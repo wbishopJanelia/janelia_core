@@ -1,2 +1,2 @@
 # janelia_core
-Core code for work at Janelia
+Core code for William Bishop's work at Janelia
