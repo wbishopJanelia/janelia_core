@@ -16,6 +16,7 @@ setup(
         "numpy",
         "matplotlib",
         "jupyter",
-        "sphinx"
+        "sphinx",
+        "dask[complete]"
     ],
 )
