@@ -28,15 +28,19 @@ Core code for William Bishop's work at Janelia.
 
 #### Installing pyklb
 
-If you will be working with klb files (https://bitbucket.org/fernandoamat/keller-lab-block-filetype), you will need to install pyklb which is abailable from https://github.com/bhoeckendorf/pyklb. Follow the instructions there to install into the janelia_core conda environment. 
+If you will be working with [klb files](https://bitbucket.org/fernandoamat/keller-lab-block-filetype), 
+you will need to install pyklb which is available from https://github.com/bhoeckendorf/pyklb. 
+Follow the instructions there to install into the janelia_core conda environment. 
 
 ##### Note on installing pyklb for mac
 
-There is an bug in the current version of pyklb so that after following the instructions referenced above you must use Mac's install_name_tool command and run:
+There is an bug in the current version of pyklb so that after following the instructions referenced 
+above you must use Mac's install_name_tool command and run:
  
    install_name_tool -change /Users/clackn/src/keller-lab-block-filetype/build/libklb.dylib [path to downloaded dylib] [path to the .so file in site-packages]
 
-The dylib file will by default be in the build/lib directory in the top level folder of the pyklb repository.  The .so file will be in the site-packages folder of the conda environment (e.g., /anaconda3/envs/janelia_core/lib/python3.6/site-packages/pyklb.cpython-36m-darwin.so). 
+The dylib file will by default be in the build/lib directory in the top level folder of the pyklb repository.  
+The .so file will be in the site-packages folder of the conda environment (e.g., /anaconda3/envs/janelia_core/lib/python3.6/site-packages/pyklb.cpython-36m-darwin.so). 
 
 
 
