@@ -9,11 +9,11 @@ import numpy as np
 import os
 import pathlib
 from shutil import copyfile
-from xml.etree import ElementTree as ET
 
 import janelia_core.dataprocessing.dataset
 import janelia_core.dataprocessing.dataset as dataset
-import janelia_core.fileio.exp_reader as exp_reader
+from janelia_core.fileio.shared_lab import read_imaging_metadata
+from janelia_core.fileio.shared_lab import read_images
 
 # Indices in image file names indicating which sample they correspond to
 IMAGE_NAME_SMP_START_IND = 8
@@ -52,18 +52,18 @@ def read_exp(image_folder: pathlib.Path, metadata_folder: pathlib.Path,
 
     Returns:
         A DataSet object representing the experiment.  The data dictionary will have one entry with the
-        key 'imgs' containing a dask.array object with the image data. The metadata for the experiment will
-        have an entry with the key 'image_names' containing the image names in an order corresponding to how image
-        data is order in data['images'].
+        key 'imgs' with image data.  The metadata for the experiment will have an entry with the key
+        'image_names' containing the image names in an order corresponding to how image data is ordered
+         in the imgs dictionary.
 
     Raises:
         RuntimeError: If the number of images found differs from the number of time stamps in the time_stamps_file.
 
     """
 
-    metadata = read_metadata(metadata_folder / metadata_file)
+    metadata = read_imaging_metadata(metadata_folder / metadata_file)
     time_stamps = read_time_stamps(metadata_folder / time_stamps_file)
-    image_names, dask_array = read_images(image_folder, image_ext, verbose)
+    image_names, dask_array = read_images(image_folder, image_ext, image_folder_depth=1, verbose=verbose)
 
     n_images = dask_array.shape[0]
     n_time_stamps = time_stamps.size
@@ -75,61 +75,6 @@ def read_exp(image_folder: pathlib.Path, metadata_folder: pathlib.Path,
     metadata['image_names'] = image_names
 
     return dataset.DataSet(data_dict, metadata)
-
-
-def read_metadata(metadata_file: pathlib.Path) -> dict:
-    """Function to read in Keller lab metadata stored in xml files.
-
-    This function does some very light processing of the data in the xml files.
-
-    Note: Keller lab metadata is stored as attributes of XML elements.
-
-    Args:
-        metadata_file: The xml file with metadata
-
-    Returns:
-        A dictionary of metadata.
-
-    Raises:
-        RuntimeError: If xml elements produce dictionaries which have more than one key (This function
-            currently only handles simple xml structure.)
-
-        RuntimeError: If xml elments have the same tag and attributes (This function currently assumes this
-            can't happen).
-
-    """
-
-    # First replace '&' characters with 'and' so xml will parse
-    with open(metadata_file) as xml_file:
-        metadata_string = xml_file.read().replace('&', ' and ')
-
-    # Read in xml data
-    metadata_root = ET.fromstring(metadata_string)
-
-    # Now convert DOM tree to dictionary
-    metadata = dict()
-
-    # See all the tags we have and create sub-dictionaries for each tag
-    all_tags = [c.tag for c in metadata_root]
-    unique_tags = set(all_tags)
-    for t in unique_tags:
-        metadata[t] = dict()
-
-    for c in metadata_root:
-        element_tag = c.tag
-        element_dict = c.attrib
-        element_keys = list(element_dict.keys())
-
-        if len(element_keys) != 1:
-            raise(RuntimeError('Found xml element with multiple attributes.'))
-
-        element_key = element_keys[0]
-        tag_dict = metadata[element_tag]
-        if element_key in tag_dict.keys():
-            raise(RuntimeError('Found xml elments with the same tags and attributes.'))
-        tag_dict[element_key] = element_dict[element_key]
-
-    return metadata
 
 
 def read_time_stamps(time_stamp_file: pathlib.Path) -> np.ndarray:
@@ -157,47 +102,6 @@ def read_time_stamps(time_stamp_file: pathlib.Path) -> np.ndarray:
         raise(RuntimeError('First recovered time stamp is not 0.'))
 
     return time_stamps
-
-
-def read_images(image_folder: pathlib.Path, image_ext: str='.weightFused.TimeRegistration.klb', verbose=True) -> list:
-    """Locates Keller lab image files and creates a dask.array object.
-
-    Args:
-        image_folder: The folder containing the images (see above) as a pathlib.Path object
-
-        image_ext: String to use when searching for files with the extension for image files.
-
-        verbose: True if progress updates should be printed to screen
-
-    Returns:
-        Returns a list.  The first element of the list is a list of file names. The second element of the
-        list is a dask.array object.  The ordering of data in the array matches the ordering of file names so
-        that list[0][i] is the filename for the data in list[1][i,:,:,:].  Data is ordered in chronological order.
-
-    Raises:
-        RuntimeError: If no image files are located.
-    """
-    if verbose:
-        print('Searching for image files...')
-    img_files = glob.glob(str(image_folder / '*' / ('*' + image_ext)))
-    n_img_files = len(img_files)
-
-    if n_img_files == 0:
-        raise(RuntimeError('Unable to find any ' + image_ext + ' files in the subfolders of ' + str(image_folder)))
-
-    # Make sure our image files are sorted
-    files_as_paths = [pathlib.Path(f) for f in img_files]
-    smp_inds = np.asarray([int(f.name[IMAGE_NAME_SMP_START_IND:IMAGE_NAME_SMP_END_IND]) for f in files_as_paths])
-    sort_order = np.argsort(smp_inds)
-    sorted_files_as_paths = [files_as_paths[sort_order[i]] for i in sort_order]
-
-    if verbose:
-        print('Creating dask.array object from ' + str(n_img_files) + ' image files.')
-    dask_array = exp_reader.img_files_to_dask_array(sorted_files_as_paths)
-
-    if verbose:
-        print('Done reading in image files.')
-    return [sorted_files_as_paths, dask_array]
 
 
 def copy_exp(image_folder: pathlib.Path, metadata_folder: pathlib.Path, dest_folder: pathlib.Path,
@@ -282,4 +186,3 @@ def copy_exp(image_folder: pathlib.Path, metadata_folder: pathlib.Path, dest_fol
     if verbose:
         print('Done.')
         print('All files copied successfully.')
-
