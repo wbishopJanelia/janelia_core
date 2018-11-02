@@ -4,34 +4,28 @@
     bishopw@hhmi.org
 """
 
-import numpy as np
-
 
 class DataSet:
     """A class for holding a basic data set.
 
     Args:
-        data: A dictionary.  Each entry contains a numpy.ndarray or dask.array object of data.  The arrays can be of
-            varying sizes but in all cases, the fist dimension must correspond to time.  If data is none the data attribute
-            of the created object will be an empty dictionary.
+        ts_data: A dictionary of time series data.  Each entry in the dictionary is one set of data (with a user
+            specified key).  Each set of data is itself stored in a dictionary with two entries.  The fist with
+            the key 'ts' is a 1-2 numpy.ndarray with timestamps.  The second 'vls' is a numpy.ndarray or dask.array
+            object of data.  The arrays can be of varying sizes but in all cases, the fist dimension must correspond
+            to time so that values in 'tm' give the time stamps for corresponding points in 'vls'.
 
-        time_pts: A 1-d numpy.ndarray array of time points for the data in the data dictionary. If time_pts is none the
-            data attribute of the crated object will be a 0-dimensional numpy array
+            If data is none the data attribute of the created object will be an empty dictionary.
 
         metadata: A dictionary of metadata. If meta_data is None, the meta_data attribute of the created object will be
             a empty dictionary.
     """
 
-    def __init__(self, data: dict=None, time_pts: np.ndarray=None, metadata: dict=None):
-        if data is None:
-            self.data = dict()
+    def __init__(self, ts_data: dict=None, metadata: dict=None):
+        if ts_data is None:
+            self.ts_data = dict()
         else:
-            self.data = data
-
-        if time_pts is None:
-            self.time_pts = np.empty(0)
-        else:
-            self.time_pts = time_pts
+            self.ts_data = ts_data
 
         if metadata is None:
             self.metadata = dict()

@@ -52,7 +52,7 @@ def read_exp(image_folder: pathlib.Path, metadata_folder: pathlib.Path,
 
     Returns:
         A DataSet object representing the experiment.  The data dictionary will have one entry with the
-        key 'images' containing a dask.array object with the image data. The metadata for the experiment will
+        key 'imgs' containing a dask.array object with the image data. The metadata for the experiment will
         have an entry with the key 'image_names' containing the image names in an order corresponding to how image
         data is order in data['images'].
 
@@ -70,11 +70,11 @@ def read_exp(image_folder: pathlib.Path, metadata_folder: pathlib.Path,
     if n_images != n_time_stamps:
         raise(RuntimeError('Found ' + str(n_images) + ' image files but ' + str(n_time_stamps) + ' time stamps.'))
 
-    data_dict = {'images': dask_array}
-
+    im_dict = {'ts': time_stamps, 'vls': dask_array}
+    data_dict = {'imgs': im_dict}
     metadata['image_names'] = image_names
 
-    return dataset.DataSet(data_dict, time_stamps, metadata)
+    return dataset.DataSet(data_dict, metadata)
 
 
 def read_metadata(metadata_file: pathlib.Path) -> dict:
