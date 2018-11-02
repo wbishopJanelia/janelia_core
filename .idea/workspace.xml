@@ -15,7 +15,7 @@
     <session id="-2006470994">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="2" />
+          <entry key="project.closed" value="3" />
           <entry key="project.open.time.3" value="1" />
           <entry key="project.open.time.4" value="2" />
           <entry key="project.opened" value="3" />
@@ -60,7 +60,7 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/janelia_core/fileio/ahrens_lab.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="649">
+            <state relative-caret-position="1728">
               <caret line="64" column="85" selection-start-line="64" selection-start-column="85" selection-end-line="64" selection-end-column="85" />
               <folding>
                 <element signature="e#101#112#0" expanded="true" />
@@ -176,7 +176,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="1405" y="13" width="2015" height="1317" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.16084976" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -271,7 +270,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/fileio/ahrens_lab.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="649">
+        <state relative-caret-position="1728">
           <caret line="64" column="85" selection-start-line="64" selection-start-column="85" selection-end-line="64" selection-end-column="85" />
           <folding>
             <element signature="e#101#112#0" expanded="true" />
