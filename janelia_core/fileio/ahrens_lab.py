@@ -7,6 +7,7 @@
 import glob
 import pathlib
 
+import h5py
 import numpy as np
 
 import janelia_core.dataprocessing.dataset
@@ -20,9 +21,9 @@ STACK_FREQ_EXP_DURATION_LINE = 1
 STACK_FREQ_N_IMAGES_LINE = 2
 
 
-def read_exp(image_folder: pathlib.Path, ephys_folder: pathlib.Path = None,
+def read_exp(image_folder: pathlib.Path, ephys_folder: pathlib.Path = None, ephys_var_name: str = 'frame_swim',
              image_ext: str = '.h5', h5_data_group: str = 'default', metadata_file: str = 'ch0.xml',
-             stack_freq_file: str = 'Stack_frequency.txt', ephys_file : str = 'rawdata.mat',
+             stack_freq_file: str = 'Stack_frequency.txt', ephys_file : str = 'frame_swim.mat',
              verbose: bool = True) -> janelia_core.dataprocessing.dataset.DataSet:
     """Reads in Ahrens lab experimental data to a Dataset object.
 
@@ -33,6 +34,8 @@ def read_exp(image_folder: pathlib.Path, ephys_folder: pathlib.Path = None,
         image_folder: The folder holding the images, metadata file and stack frequency file.
 
         ephys_folder: The folder holder the ephys data.
+
+        ephys_var_name: The variable name holding ephys data in ephys_file.
 
         image_ext: The extension to use when looking for image files.
 
@@ -65,21 +68,48 @@ def read_exp(image_folder: pathlib.Path, ephys_folder: pathlib.Path = None,
     time_stamps = np.asarray([float(i / stack_freq_info['smp_freq']) for i in range(n_images)])
 
     if ephys_file is not None:
-        raise(NotImplementedError('Functionality to read in ephys data has not yet been implemented.'))
+        ephys_data = read_ephys_data(ephys_folder / ephys_file, ephys_var_name, verbose=verbose)
+        n_ephys_smps = ephys_data.shape[0]
+        if n_ephys_smps != n_images:
+            raise (RuntimeError('Found ' + str(n_images) + ' image files but ' + str(n_ephys_smps) + ' ephys data points.'))
+        ephys_dict = {'ts': time_stamps, 'vls': ephys_data}
 
     # Check to make we found the right number of images
     if n_images != stack_freq_info['n_images']:
-        raise (RuntimeError('Found ' + str(n_images) + ' image files stack frequency file specified ' +
+        raise (RuntimeError('Found ' + str(n_images) + ' image files but stack frequency file specified ' +
                             str(stack_freq_info['n_images']) + ' time stamps.'))
 
     # Create an instance of Dataset
     im_dict = {'ts': time_stamps, 'vls': dask_array}
     data_dict = {'imgs': im_dict}
+    if ephys_file is not None:
+        data_dict['ephys'] = ephys_dict
 
     metadata['image_names'] = image_names
     metadata['stack_freq_info'] = stack_freq_info
 
     return dataset.DataSet(data_dict, metadata)
+
+
+def read_ephys_data(ephys_file: pathlib.Path, var_name: str = 'frame_swim', verbose: bool = True):
+    """ Reads in electophysiological data for an Ahrens lab experiment.
+
+    Args:
+        ephys_file: The path to the .mat file holding the data
+
+        var_name: The name of the variable in the .mat file holding the
+        ephys_data
+
+    Returns:
+        A numpy.ndarray with the data
+    """
+    if verbose:
+        print('Reading ephys data.')
+
+    with h5py.File(ephys_file) as f:
+        data = f[var_name][:]
+        data = data.T
+        return data
 
 
 def read_stack_freq(stack_freq_file: pathlib.Path):
