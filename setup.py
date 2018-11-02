@@ -13,10 +13,11 @@ setup(
     description='Core code which supports William Bishops research projects at Janelia.',
     long_description = long_description,
     install_requires=[
+	"dask[complete]",
+	"h5py",
+	"jupyter",
+	"matplotlib",
         "numpy",
-        "matplotlib",
-        "jupyter",
         "sphinx",
-        "dask[complete]"
     ],
 )
