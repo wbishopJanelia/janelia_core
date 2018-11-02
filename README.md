@@ -59,3 +59,10 @@ The .so file will be in the site-packages folder of the conda environment (e.g.,
 5) Install python-graphviz with the command: 
     conda install python-graphviz
 
+##### Note on installing pyklb for Windows
+
+There is an bug in the current version of pyklb so that after following the instructions referenced 
+above the klb.dll library is not in the right spot.  To fix this, find the klb.dll file in the build/lib folder 
+under the pyklb folder of the pyklb project and copy it to the site packages folder for your environment.
+ 
+
