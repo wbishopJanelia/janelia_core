@@ -12,10 +12,10 @@ Core code for William Bishop's work at Janelia.
 ### On Mac:
 
 1) Create a conda environment by running this command: 
-	conda create -n janelia_core python=3.6 (mac)
+	conda create -n janelia_core python=3.6
 
 2) Activate the conda environment by running this command
-    source activate janelia_core (mac)
+    source activate janelia_core
 
 3) In the directory containing setup.py run the command from the terminal: 
 	python setup.py develop
@@ -42,5 +42,20 @@ above you must use Mac's install_name_tool command and run:
 The dylib file will by default be in the build/lib directory in the top level folder of the pyklb repository.  
 The .so file will be in the site-packages folder of the conda environment (e.g., /anaconda3/envs/janelia_core/lib/python3.6/site-packages/pyklb.cpython-36m-darwin.so). 
 
+### On Windows:
 
+1) Create a conda environment by running this command: 
+	conda create -n janelia_core python=3.6
+
+2) Activate the conda environment by running this command
+    source activate janelia_core
+
+3) In the directory containing setup.py run the command from the terminal: 
+	python setup.py develop
+
+4) Install jupyter notebook by running this command
+	conda install jupyter
+
+5) Install python-graphviz with the command: 
+    conda install python-graphviz
 
