@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+    janelia_core.dataprocessing
     janelia_core.fileio
 
 Module contents

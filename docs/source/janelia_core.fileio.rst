@@ -12,6 +12,14 @@ janelia\_core.fileio.exp\_reader module
     :undoc-members:
     :show-inheritance:
 
+janelia\_core.fileio.keller\_lab module
+---------------------------------------
+
+.. automodule:: janelia_core.fileio.keller_lab
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
