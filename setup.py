@@ -18,6 +18,7 @@ setup(
 	"jupyter",
 	"matplotlib",
         "numpy",
+	"pyqtgraph",
         "sphinx",
     ],
 )
