@@ -14,11 +14,13 @@ setup(
     long_description = long_description,
     install_requires=[
 	"dask[complete]",
+	"findspark",
 	"h5py",
 	"jupyter",
 	"matplotlib",
         "numpy",
 	"pyqtgraph",
+	"pyspark",
         "sphinx",
     ],
 )
