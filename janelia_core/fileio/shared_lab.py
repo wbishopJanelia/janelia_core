@@ -17,6 +17,50 @@ import janelia_core.fileio.exp_reader as exp_reader
 IMG_SMP_NUM_FILE_NAME_REG_EXP = r'(.*)(TM)([0123456789]*)_'
 
 
+def find_images(image_folder: pathlib.Path, image_ext: str, image_folder_depth: int = 0, verbose=True) -> list:
+    """ Locates image files, returning paths to files in a sorted list.
+
+    Image files are sorted by sample number.
+
+    Args:
+        image_folder: The folder directly containing images or containing subfolders which contain the images.
+
+        image_ext: String to use when searching for files with the extension for image files.
+
+        image_folder_depth: The number of layers of subfolders under image_folder to look to find the image files. If
+            this is 0, then the images are directly under image_folder.
+
+        verbose: True if progress updates should be printed to screen
+
+    Returns: A list of image files as pathlib.Path objects.
+
+    """
+    if verbose:
+        print('Searching for image files...')
+
+    image_glob_path = image_folder
+    cur_depth = 0
+    while cur_depth < image_folder_depth:
+        image_glob_path = image_glob_path / '*'
+        cur_depth += 1
+    image_glob_path = image_glob_path / ('*' + image_ext)
+
+    img_files = glob.glob(str(image_glob_path))
+    n_img_files = len(img_files)
+
+    if n_img_files == 0:
+        raise(RuntimeError('Unable to find any ' + image_ext + ' files under ' + str(image_folder)))
+
+    # Make sure our image files are sorted
+    files_as_paths = [pathlib.Path(f) for f in img_files]
+    smp_inds = np.asarray([int(re.match(IMG_SMP_NUM_FILE_NAME_REG_EXP, f.name).group(3)) for f in files_as_paths])
+    sort_order = np.argsort(smp_inds)
+
+    print('Found ' + str(n_img_files) + ' images.')
+
+    return [files_as_paths[i] for i in sort_order]
+
+
 def read_images(image_folder: pathlib.Path, image_ext: str, image_folder_depth: int = 0,
                 h5_data_group: str = 'default', verbose=True) -> list:
     """Locates lab image files and creates an instance of a dask.Array object.
@@ -41,27 +85,9 @@ def read_images(image_folder: pathlib.Path, image_ext: str, image_folder_depth: 
     Raises:
         RuntimeError: If no image files are located.
     """
-    if verbose:
-        print('Searching for image files...')
 
-    image_glob_path = image_folder
-    cur_depth = 0
-    while cur_depth < image_folder_depth:
-        image_glob_path = image_glob_path / '*'
-        cur_depth += 1
-    image_glob_path = image_glob_path / ('*' + image_ext)
-
-    img_files = glob.glob(str(image_glob_path))
-    n_img_files = len(img_files)
-
-    if n_img_files == 0:
-        raise(RuntimeError('Unable to find any ' + image_ext + ' files under ' + str(image_folder)))
-
-    # Make sure our image files are sorted
-    files_as_paths = [pathlib.Path(f) for f in img_files]
-    smp_inds = np.asarray([int(re.match(IMG_SMP_NUM_FILE_NAME_REG_EXP, f.name).group(3)) for f in files_as_paths])
-    sort_order = np.argsort(smp_inds)
-    sorted_files_as_paths = [files_as_paths[i] for i in sort_order]
+    sorted_files_as_paths = find_images(image_folder, image_ext, image_folder_depth, verbose)
+    n_img_files = len(sorted_files_as_paths)
 
     if verbose:
         print('Creating dask.array object from ' + str(n_img_files) + ' image files.')
