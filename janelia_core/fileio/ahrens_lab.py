@@ -13,7 +13,7 @@ import numpy as np
 import janelia_core.dataprocessing.dataset
 import janelia_core.dataprocessing.dataset as dataset
 from janelia_core.fileio.shared_lab import read_imaging_metadata
-from janelia_core.fileio.shared_lab import read_images
+from janelia_core.fileio.shared_lab import find_images
 
 # Constants for reading a stack frequency file
 STACK_FREQ_STACK_FREQ_LINE = 0
@@ -22,13 +22,10 @@ STACK_FREQ_N_IMAGES_LINE = 2
 
 
 def read_exp(image_folder: pathlib.Path, ephys_folder: pathlib.Path = None, ephys_var_name: str = 'frame_swim',
-             image_ext: str = '.h5', h5_data_group: str = 'default', metadata_file: str = 'ch0.xml',
+             image_ext: str = '.h5', metadata_file: str = 'ch0.xml',
              stack_freq_file: str = 'Stack_frequency.txt', ephys_file : str = 'frame_swim.mat',
              verbose: bool = True) -> janelia_core.dataprocessing.dataset.DataSet:
     """Reads in Ahrens lab experimental data to a Dataset object.
-
-    This function is currently developed for reading in two color glial data but can be generalized in
-    the future.
 
     Args:
         image_folder: The folder holding the images, metadata file and stack frequency file.
@@ -38,8 +35,6 @@ def read_exp(image_folder: pathlib.Path, ephys_folder: pathlib.Path = None, ephy
         ephys_var_name: The variable name holding ephys data in ephys_file.
 
         image_ext: The extension to use when looking for image files.
-
-        h5_data_group: The data group in .h5 image files containing image data.
 
         metadata_file: The name of the .xml file holding metadata.
 
@@ -51,10 +46,9 @@ def read_exp(image_folder: pathlib.Path, ephys_folder: pathlib.Path = None, ephy
 
     Returns:
         A Dataset object.  A DataSet object representing the experiment.  The data dictionary will have an entry 'imgs'
-        'imgs' containing the image data. If ephys data was available, an entry 'ephys' will also contain the ephys
-        data.  The metadata for the experiment will have an entry with the key 'image_names' containing the image names
-        in an order corresponding to how image data is order in the imgs dictionary.  It will also have an entry
-        'stack_freq_info' with the information from the stack frequency file.
+        'imgs' containing the file names for the images. If ephys data was available, an entry 'ephys' will also contain
+        the ephys data.  The metadata for the experiment will have an entry 'stack_freq_info' with the information from
+        the stack frequency file.
     """
 
     # Read in all of the raw data
@@ -62,9 +56,9 @@ def read_exp(image_folder: pathlib.Path, ephys_folder: pathlib.Path = None, ephy
 
     stack_freq_info = read_stack_freq(image_folder / stack_freq_file)
 
-    image_names, dask_array = read_images(image_folder, image_ext, image_folder_depth=0,
-                                          h5_data_group=h5_data_group, verbose=verbose)
-    n_images = dask_array.shape[0]
+    image_names_sorted = find_images(image_folder, image_ext, image_folder_depth=0, verbose=verbose)
+
+    n_images = len(image_names_sorted)
     time_stamps = np.asarray([float(i / stack_freq_info['smp_freq']) for i in range(n_images)])
 
     if ephys_file is not None:
@@ -80,12 +74,11 @@ def read_exp(image_folder: pathlib.Path, ephys_folder: pathlib.Path = None, ephy
                             str(stack_freq_info['n_images']) + ' time stamps.'))
 
     # Create an instance of Dataset
-    im_dict = {'ts': time_stamps, 'vls': dask_array}
+    im_dict = {'ts': time_stamps, 'vls': image_names_sorted}
     data_dict = {'imgs': im_dict}
     if ephys_file is not None:
         data_dict['ephys'] = ephys_dict
 
-    metadata['image_names'] = image_names
     metadata['stack_freq_info'] = stack_freq_info
 
     return dataset.DataSet(data_dict, metadata)

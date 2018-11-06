@@ -13,7 +13,7 @@ from shutil import copyfile
 import janelia_core.dataprocessing.dataset
 import janelia_core.dataprocessing.dataset as dataset
 from janelia_core.fileio.shared_lab import read_imaging_metadata
-from janelia_core.fileio.shared_lab import read_images
+from janelia_core.fileio.shared_lab import find_images
 
 # Indices in image file names indicating which sample they correspond to
 IMAGE_NAME_SMP_START_IND = 8
@@ -34,8 +34,7 @@ def read_exp(image_folder: pathlib.Path, metadata_folder: pathlib.Path,
     and the time point data is stored at:
         metadata_folder/time_stamps_file
 
-    This function will read all experimental data into a DataSet object.  Imaging data will be represented as a
-    dask.array object.
+    This function will read all experimental data into a DataSet object.
 
     Args:
         image_folder: The folder containing the images (see above) as a pathlib.Path object
@@ -52,9 +51,7 @@ def read_exp(image_folder: pathlib.Path, metadata_folder: pathlib.Path,
 
     Returns:
         A DataSet object representing the experiment.  The data dictionary will have one entry with the
-        key 'imgs' with image data.  The metadata for the experiment will have an entry with the key
-        'image_names' containing the image names in an order corresponding to how image data is ordered
-         in the imgs dictionary.
+        key 'imgs' containing paths to each image file in the dataset.
 
     Raises:
         RuntimeError: If the number of images found differs from the number of time stamps in the time_stamps_file.
@@ -63,16 +60,15 @@ def read_exp(image_folder: pathlib.Path, metadata_folder: pathlib.Path,
 
     metadata = read_imaging_metadata(metadata_folder / metadata_file)
     time_stamps = read_time_stamps(metadata_folder / time_stamps_file)
-    image_names, dask_array = read_images(image_folder, image_ext, image_folder_depth=1, verbose=verbose)
+    image_names_sorted = find_images(image_folder, image_ext, image_folder_depth=1, verbose=verbose)
 
-    n_images = dask_array.shape[0]
+    n_images = len(image_names_sorted)
     n_time_stamps = time_stamps.size
     if n_images != n_time_stamps:
         raise(RuntimeError('Found ' + str(n_images) + ' image files but ' + str(n_time_stamps) + ' time stamps.'))
 
-    im_dict = {'ts': time_stamps, 'vls': dask_array}
+    im_dict = {'ts': time_stamps, 'vls': image_names_sorted}
     data_dict = {'imgs': im_dict}
-    metadata['image_names'] = image_names
 
     return dataset.DataSet(data_dict, metadata)
 
