@@ -65,7 +65,7 @@ def read_img_file(f_name: pathlib.Path, h5_data_group: str = 'default') -> numpy
     if ext == '.klb':
         return pyklb.readfull(str(f_name))  # pyklb requires string input
     if ext == '.h5':
-        f = h5py.File(f_name)
-        return f[h5_data_group][:]
+        with h5py.File(f_name) as f:
+            return f[h5_data_group][:]
     else:
         raise ValueError('File is a ' + ext + ' file, which is not currently supported.')
