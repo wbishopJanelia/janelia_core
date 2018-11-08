@@ -10,8 +10,12 @@ import os
 import pathlib
 from shutil import copyfile
 
+import h5py
+import pyspark
+
 import janelia_core.dataprocessing.dataset
 import janelia_core.dataprocessing.dataset as dataset
+from janelia_core.fileio.exp_reader import  read_img_file
 from janelia_core.fileio.shared_lab import read_imaging_metadata
 from janelia_core.fileio.shared_lab import find_images
 
@@ -182,3 +186,48 @@ def copy_exp(image_folder: pathlib.Path, metadata_folder: pathlib.Path, dest_fol
     if verbose:
         print('Done.')
         print('All files copied successfully.')
+
+
+def write_planes_to_file(orig_files: list, target_dir: pathlib.Path,
+                         plane: int, plane_suffix: str = '_p', sc: pyspark.SparkContext = None):
+    """ Function to read in a list of .klb files, extract one plane from each, and right these to h5 files.
+
+    Each plane will be stored in a separate file. The new file names will be the same as the first with a suffix
+    added of the form [plane_suffix]#, where # is the plane number.
+
+    To speed up computation, an optional SparkContext object can be provided.
+
+    Args:
+
+        orig_files: A list of files.  Each file should be a pathlib.Path object
+
+        target_dir: The directory to save the files into as a pathlib.Path object.  If this does not exist,
+        it will be created.
+
+        plane: The z-index of the plane to extract across files.
+
+        plane_suffix: The suffix to append to the file name to indicate the file contains just one plane.
+
+        sc: A SparkContext option if spark should be used
+    """
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+
+    def extract_and_write(file):
+        data_in_plane = read_img_file(file)[plane, :]
+
+        # Create the new file name
+        new_file_name = file.name
+        suffix_len = len(file.suffix)
+        new_file_name = new_file_name[0:-suffix_len] + plane_suffix + str(plane) + '.h5'
+        new_file_path = target_dir / new_file_name
+
+        # Function to write the new file
+        with h5py.File(new_file_path, 'w') as new_file:
+            new_file.create_dataset('data', data_in_plane.shape, data_in_plane.dtype, data_in_plane)
+
+    if sc is not None:
+        sc.parallelize(orig_files).foreach(extract_and_write)
+    else:
+        for f in orig_files:
+            extract_and_write(f)
