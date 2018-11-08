@@ -20,7 +20,6 @@ setup(
 	"matplotlib",
         "numpy",
 	"pyqtgraph",
-        "pyqt4",
 	"pyspark",
         "sphinx",
     ],
