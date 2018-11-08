@@ -214,7 +214,7 @@ def write_planes_to_file(orig_files: list, target_dir: pathlib.Path,
         os.makedirs(target_dir)
 
     def extract_and_write(file):
-        data_in_plane = read_img_file(file)[plane, :]
+        data_in_plane = np.expand_dims(read_img_file(file)[plane, :, :], 0)
 
         # Create the new file name
         new_file_name = file.name
