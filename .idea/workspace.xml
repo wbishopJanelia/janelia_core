@@ -2,12 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2a2d555a-35e5-4abf-92bc-db5f0ce7289c" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/data_handling.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/janelia_core/fileio/exp_reader.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/fileio/exp_reader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/playpin/test_exp_reader.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/playpin/test_exp_reader.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -19,43 +16,72 @@
     <session id="-2006470994">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="12" />
-          <entry key="project.open.time.0" value="1" />
+          <entry key="project.closed" value="13" />
+          <entry key="project.open.time.0" value="3" />
           <entry key="project.open.time.1" value="1" />
           <entry key="project.open.time.3" value="2" />
           <entry key="project.open.time.4" value="6" />
           <entry key="project.open.time.5" value="2" />
-          <entry key="project.opened" value="12" />
+          <entry key="project.opened" value="14" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="ipynb" value="7" />
           <entry key="md" value="1" />
-          <entry key="py" value="18" />
+          <entry key="py" value="22" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="IPNB" value="7" />
           <entry key="Markdown" value="1" />
-          <entry key="Python" value="18" />
+          <entry key="Python" value="22" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="14207" />
+          <entry key="py" value="15660" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="14207" />
+          <entry key="Python" value="15660" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="108">
+              <caret line="4" column="4" lean-forward="true" selection-start-line="4" selection-start-column="4" selection-end-line="5" selection-end-column="20" />
+              <folding>
+                <element signature="e#201#225#0" expanded="true" />
+                <marker date="1541793231092" expanded="true" signature="446:1001" ph="..." />
+                <marker date="1541793231092" expanded="true" signature="2369:2416" ph="..." />
+                <marker date="1541793231092" expanded="true" signature="2443:2448" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/data_handling.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="115">
+              <caret line="12" column="65" selection-start-line="12" selection-start-column="65" selection-end-line="12" selection-end-column="65" />
+              <folding>
+                <element signature="e#92#101#0" expanded="true" />
+                <marker date="1541799957434" expanded="true" signature="285:290" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -84,22 +110,24 @@
         <option value="$PROJECT_DIR$/janelia_core/fileio/keller_lab.py" />
         <option value="$PROJECT_DIR$/janelia_core/fileio/exp_reader.py" />
         <option value="$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py" />
-        <option value="$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py" />
         <option value="$PROJECT_DIR$/playpin/test_exp_reader.ipynb" />
+        <option value="$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py" />
+        <option value="$PROJECT_DIR$/janelia_core/dataprocessing/data_handling.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="799" />
-    <option name="y" value="28" />
-    <option name="width" value="2328" />
-    <option name="height" value="1279" />
+    <option name="x" value="1077" />
+    <option name="y" value="53" />
+    <option name="width" value="2028" />
+    <option name="height" value="1296" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -133,7 +161,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -166,9 +193,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="799" y="28" width="2328" height="1279" extended-state="0" />
+    <frame x="1163" y="5" width="2028" height="1296" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.14061135" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.16180904" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -278,25 +306,33 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="459">
-          <caret line="62" column="29" lean-forward="true" selection-start-line="62" selection-start-column="29" selection-end-line="62" selection-end-column="29" />
-          <folding>
-            <element signature="e#201#225#0" expanded="true" />
-            <marker date="1541714258618" expanded="true" signature="446:1001" ph="..." />
-            <marker date="1541714258618" expanded="true" signature="2369:2416" ph="..." />
-            <marker date="1541714258618" expanded="true" signature="2443:2448" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1043">
           <caret line="217" selection-start-line="217" selection-end-line="217" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="108">
+          <caret line="4" column="4" lean-forward="true" selection-start-line="4" selection-start-column="4" selection-end-line="5" selection-end-column="20" />
           <folding>
-            <element signature="e#101#112#0" expanded="true" />
+            <element signature="e#201#225#0" expanded="true" />
+            <marker date="1541793231092" expanded="true" signature="446:1001" ph="..." />
+            <marker date="1541793231092" expanded="true" signature="2369:2416" ph="..." />
+            <marker date="1541793231092" expanded="true" signature="2443:2448" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/data_handling.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="115">
+          <caret line="12" column="65" selection-start-line="12" selection-start-column="65" selection-end-line="12" selection-end-column="65" />
+          <folding>
+            <element signature="e#92#101#0" expanded="true" />
+            <marker date="1541799957434" expanded="true" signature="285:290" ph="..." />
           </folding>
         </state>
       </provider>

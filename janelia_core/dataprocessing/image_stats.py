@@ -88,5 +88,5 @@ def std_through_time(images: list, sc: pyspark.SparkContext = None, verbose = Tr
     if verbose:
         print('Done processing ' + str(n_images) + ' images.')
 
-    return {'sqrt': std, 'mean': moments[0], 'sec_mom': moments[1]}
+    return {'std': std, 'mean': moments[0], 'sec_mom': moments[1]}
 
