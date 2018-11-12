@@ -5,15 +5,20 @@
 
 """
 
-import numpy
 import pathlib
+
+import numpy
+import warnings
 
 import dask
 from dask.array import from_delayed, stack
 from dask.delayed import delayed
 import h5py
 
-import pyklb
+try:
+    import pyklb
+except ModuleNotFoundError as error:
+    warnings.warn('Unable to locate pyklb module.  Will not be able to read in .klb files.')
 
 
 def img_files_to_dask_array(f_names: list, h5_data_group: str = 'default') -> dask.array.core.Array:

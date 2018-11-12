@@ -184,5 +184,11 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+### Across platform files
+
+# Numpy files
+*.npy
+
+
 
 # End of https://www.gitignore.io/api/macos,python,windows

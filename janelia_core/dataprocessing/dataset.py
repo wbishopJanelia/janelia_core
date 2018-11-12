@@ -1,4 +1,4 @@
-""" Defines dataset class.  In the future this may include more tools for working with datasets.
+""" Tools for working with imaging datasets.
 
     William Bishop
     bishopw@hhmi.org
@@ -28,5 +28,3 @@ class DataSet:
             self.metadata = dict()
         else:
             self.metadata = metadata
-
-
