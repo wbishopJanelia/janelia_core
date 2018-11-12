@@ -11,7 +11,7 @@ from operator import add
 import numpy as np
 import pyspark
 
-from janelia_core.fileio.exp_reader import get_image_data
+from janelia_core.dataprocessing.utils import get_image_data
 
 
 SPARK_N_IMGS = 100 # Number of images in a calculation we must exceed to use spark

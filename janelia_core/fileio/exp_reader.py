@@ -67,25 +67,6 @@ def find_images(image_folder: pathlib.Path, image_ext: str, image_folder_depth: 
     return [files_as_paths[i] for i in sort_order]
 
 
-def get_image_data(image) -> np.ndarray:
-    """ Gets image data.
-
-    This is a wrapper that allows us to get image data from file or from a numpy array
-    seamlessly in our code.  If image is already a numpy array, image is simply returned
-    as is.  Otherwise, image is assumed to be a path to a image which is opened and the data
-    is loaded and returned as a numpy array.
-
-    Args:
-        image: Either a numpy array or path to the image.
-
-    Returns: The image data.
-    """
-    if isinstance(image, np.ndarray):
-        return image
-    else:
-        return read_img_file(image)
-
-
 def read_imaging_metadata(metadata_file: pathlib.Path) -> dict:
     """Function to read in imaging metadata stored in xml files as dictionaries.
 

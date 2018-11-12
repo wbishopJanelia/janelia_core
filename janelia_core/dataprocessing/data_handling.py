@@ -12,6 +12,7 @@ import pyspark
 
 from janelia_core.fileio.exp_reader import read_img_file
 
+
 def split_images(image_files: list, base_split_folder: pathlib.Path, split_labels: list,
                  split_inds: list, h5_data_group: str = 'default', sc: pyspark.SparkContext = None):
     """ Reads in a list of images and splits them, saving new images.
