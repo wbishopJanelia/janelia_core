@@ -2,12 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2a2d555a-35e5-4abf-92bc-db5f0ce7289c" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/janelia_core/dataprocessing/data_handling.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/data_handling.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/janelia_core/dataprocessing/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/janelia_core/fileio/ahrens_lab.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/fileio/ahrens_lab.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/janelia_core/fileio/exp_reader.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/fileio/exp_reader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/janelia_core/visualization/exp_viewing.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/visualization/exp_viewing.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -30,82 +29,71 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="ipynb" value="7" />
+          <entry key="ipynb" value="9" />
           <entry key="md" value="1" />
-          <entry key="py" value="36" />
+          <entry key="py" value="39" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="IPNB" value="7" />
+          <entry key="IPNB" value="9" />
           <entry key="Markdown" value="1" />
-          <entry key="Python" value="36" />
+          <entry key="Python" value="39" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="18501" />
+          <entry key="py" value="20109" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="18501" />
+          <entry key="Python" value="20109" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="351">
-              <caret line="13" column="38" selection-start-line="13" selection-start-column="38" selection-end-line="13" selection-end-column="38" />
-              <folding>
-                <marker date="1542035976051" expanded="true" signature="409:410" ph="..." />
-                <marker date="1542035976051" expanded="true" signature="1778:1825" ph="..." />
-                <marker date="1542035976051" expanded="true" signature="1852:1857" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/data_handling.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="378">
-              <caret line="14" lean-forward="true" selection-start-line="14" selection-end-line="14" />
-              <folding>
-                <element signature="e#92#101#0" expanded="true" />
-                <marker date="1542035777363" expanded="true" signature="394:399" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="810">
-              <caret line="30" lean-forward="true" selection-start-line="30" selection-end-line="30" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="162">
-              <caret line="6" column="18" selection-start-line="6" selection-start-column="18" selection-end-line="6" selection-end-column="18" />
+            <state relative-caret-position="486">
+              <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
+              <folding>
+                <element signature="e#91#109#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/janelia_core/visualization/exp_viewing.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="783">
+              <caret line="29" column="8" lean-forward="true" selection-start-line="29" selection-start-column="8" selection-end-line="29" selection-end-column="8" />
+              <folding>
+                <element signature="e#97#115#0" expanded="true" />
+                <marker date="1542036412232" expanded="true" signature="337:342" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/playpin/pyqtgraph_exs.ipynb">
+          <provider selected="true" editor-type-id="ipnb-editor">
+            <state>
+              <selected id="0" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/janelia_core/fileio/ahrens_lab.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="54">
-              <caret line="2" selection-start-line="2" selection-end-line="4" selection-end-column="3" />
+            <state relative-caret-position="216">
+              <caret line="131" lean-forward="true" selection-start-line="131" selection-end-line="131" />
               <folding>
                 <element signature="e#101#112#0" expanded="true" />
               </folding>
@@ -114,10 +102,13 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py">
+        <entry file="file://$PROJECT_DIR$/janelia_core/fileio/exp_reader.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="432">
-              <caret line="16" column="53" lean-forward="true" selection-start-line="16" selection-start-column="53" selection-end-line="16" selection-end-column="53" />
+            <state relative-caret-position="-2304">
+              <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
+              <folding>
+                <element signature="e#106#117#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -134,6 +125,7 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>n_data_files</find>
+      <find>numpy</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -147,21 +139,21 @@
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/janelia_core/dataprocessing/__init__.py" />
         <option value="$PROJECT_DIR$/playpin/test_exp_reader.ipynb" />
-        <option value="$PROJECT_DIR$/janelia_core/visualization/exp_viewing.py" />
         <option value="$PROJECT_DIR$/janelia_core/fileio/shared_lab.py" />
-        <option value="$PROJECT_DIR$/janelia_core/fileio/ahrens_lab.py" />
         <option value="$PROJECT_DIR$/janelia_core/fileio/keller_lab.py" />
-        <option value="$PROJECT_DIR$/janelia_core/fileio/exp_reader.py" />
         <option value="$PROJECT_DIR$/janelia_core/dataprocessing/data_handling.py" />
         <option value="$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py" />
-        <option value="$PROJECT_DIR$/janelia_core/dataprocessing/utils.py" />
         <option value="$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py" />
+        <option value="$PROJECT_DIR$/janelia_core/dataprocessing/utils.py" />
+        <option value="$PROJECT_DIR$/janelia_core/visualization/exp_viewing.py" />
+        <option value="$PROJECT_DIR$/janelia_core/fileio/exp_reader.py" />
+        <option value="$PROJECT_DIR$/janelia_core/fileio/ahrens_lab.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="92" />
-    <option name="y" value="3" />
+    <option name="x" value="1143" />
+    <option name="y" value="8" />
     <option name="width" value="2260" />
     <option name="height" value="1365" />
   </component>
@@ -187,6 +179,12 @@
               <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
               <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
               <item name="dataprocessing" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="janelia_core" type="b2602c69:ProjectViewProjectNode" />
+              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
+              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
+              <item name="fileio" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="janelia_core" type="b2602c69:ProjectViewProjectNode" />
@@ -236,7 +234,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="92" y="3" width="2260" height="1365" extended-state="0" />
+    <frame x="1143" y="8" width="2260" height="1365" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.20522052" />
@@ -321,23 +319,31 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/visualization/exp_viewing.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="617">
-          <caret line="41" column="8" selection-start-line="41" selection-start-column="8" selection-end-line="41" selection-end-column="8" />
-          <folding>
-            <element signature="e#97#115#0" expanded="true" />
-            <marker date="1542034733597" expanded="true" signature="288:293" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/fileio/shared_lab.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="513">
           <caret line="19" selection-start-line="19" selection-end-line="19" />
           <folding>
             <element signature="e#114#125#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="432">
+          <caret line="16" column="53" lean-forward="true" selection-start-line="16" selection-start-column="53" selection-end-line="16" selection-end-column="53" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="10" column="18" lean-forward="true" selection-start-line="10" selection-start-column="18" selection-end-line="10" selection-end-column="18" />
+          <folding>
+            <marker date="1542035976051" expanded="true" signature="409:410" ph="..." />
+            <marker date="1542035976051" expanded="true" signature="1778:1825" ph="..." />
+            <marker date="1542035976051" expanded="true" signature="1852:1857" ph="..." />
           </folding>
         </state>
       </provider>
@@ -353,30 +359,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="432">
-          <caret line="16" column="53" lean-forward="true" selection-start-line="16" selection-start-column="53" selection-end-line="16" selection-end-column="53" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/exp_reader.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1647">
-          <caret line="68" selection-start-line="68" selection-end-line="68" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/ahrens_lab.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="54">
-          <caret line="2" selection-start-line="2" selection-end-line="4" selection-end-column="3" />
-          <folding>
-            <element signature="e#101#112#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="810">
@@ -386,19 +368,55 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="162">
-          <caret line="6" column="18" selection-start-line="6" selection-start-column="18" selection-end-line="6" selection-end-column="18" />
+        <state relative-caret-position="486">
+          <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
+          <folding>
+            <element signature="e#91#109#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py">
+    <entry file="file://$PROJECT_DIR$/playpin/load_data_with_spark.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/visualization/exp_viewing.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="351">
-          <caret line="13" column="38" selection-start-line="13" selection-start-column="38" selection-end-line="13" selection-end-column="38" />
+        <state relative-caret-position="783">
+          <caret line="29" column="8" lean-forward="true" selection-start-line="29" selection-start-column="8" selection-end-line="29" selection-end-column="8" />
           <folding>
-            <marker date="1542035976051" expanded="true" signature="409:410" ph="..." />
-            <marker date="1542035976051" expanded="true" signature="1778:1825" ph="..." />
-            <marker date="1542035976051" expanded="true" signature="1852:1857" ph="..." />
+            <element signature="e#97#115#0" expanded="true" />
+            <marker date="1542036412232" expanded="true" signature="337:342" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/playpin/pyqtgraph_exs.ipynb">
+      <provider selected="true" editor-type-id="ipnb-editor">
+        <state>
+          <selected id="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/exp_reader.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2304">
+          <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
+          <folding>
+            <element signature="e#106#117#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/ahrens_lab.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="216">
+          <caret line="131" lean-forward="true" selection-start-line="131" selection-end-line="131" />
+          <folding>
+            <element signature="e#101#112#0" expanded="true" />
           </folding>
         </state>
       </provider>

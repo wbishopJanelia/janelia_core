@@ -12,7 +12,7 @@ from xml.etree import ElementTree as ET
 import warnings
 
 import h5py
-import numpy
+import numpy as np
 
 try:
     import pyklb
@@ -128,7 +128,7 @@ def read_imaging_metadata(metadata_file: pathlib.Path) -> dict:
     return metadata
 
 
-def read_img_file(f_name: pathlib.Path, h5_data_group: str = 'default') -> numpy.ndarray:
+def read_img_file(f_name: pathlib.Path, h5_data_group: str = 'default') -> np.ndarray:
     """ Returns a numpy array with data from one image file.
     
     The following file types are supported:
