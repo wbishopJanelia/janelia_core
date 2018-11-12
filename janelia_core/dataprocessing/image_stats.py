@@ -11,29 +11,10 @@ from operator import add
 import numpy as np
 import pyspark
 
-from janelia_core.fileio.exp_reader import read_img_file
+from janelia_core.fileio.exp_reader import get_image_data
 
 
 SPARK_N_IMGS = 100 # Number of images in a calculation we must exceed to use spark
-
-
-def get_image_data(image) -> np.ndarray:
-    """ Gets image data.
-
-    This is a wrapper that allows us to get image data from file or from a numpy array
-    seamlessly in our code.  If image is already a numpy array, image is simply returned
-    as is.  Otherwise, image is assumed to be a path to a image which is opened and the data
-    is loaded and returned as a numpy array.
-
-    Args:
-        image: Either a numpy array or path to the image.
-
-    Returns: The image data.
-    """
-    if isinstance(image, np.ndarray):
-        return image
-    else:
-        return read_img_file(image)
 
 
 def std_through_time(images: list, sc: pyspark.SparkContext = None, verbose = True, correct_denom = True) -> dict:

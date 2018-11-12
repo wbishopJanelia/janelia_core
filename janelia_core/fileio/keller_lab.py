@@ -16,8 +16,8 @@ import pyspark
 import janelia_core.dataprocessing.dataset
 import janelia_core.dataprocessing.dataset as dataset
 from janelia_core.fileio.exp_reader import  read_img_file
-from janelia_core.fileio.shared_lab import read_imaging_metadata
-from janelia_core.fileio.shared_lab import find_images
+from janelia_core.fileio.exp_reader import read_imaging_metadata
+from janelia_core.fileio.exp_reader import find_images
 
 # Indices in image file names indicating which sample they correspond to
 IMAGE_NAME_SMP_START_IND = 8

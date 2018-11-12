@@ -12,8 +12,8 @@ import numpy as np
 
 import janelia_core.dataprocessing.dataset
 import janelia_core.dataprocessing.dataset as dataset
-from janelia_core.fileio.shared_lab import read_imaging_metadata
-from janelia_core.fileio.shared_lab import find_images
+from janelia_core.fileio.exp_reader import read_imaging_metadata
+from janelia_core.fileio.exp_reader import find_images
 
 # Constants for reading a stack frequency file
 STACK_FREQ_STACK_FREQ_LINE = 0
