@@ -188,8 +188,8 @@ def copy_exp(image_folder: pathlib.Path, metadata_folder: pathlib.Path, dest_fol
         print('All files copied successfully.')
 
 
-def write_planes_to_file(orig_files: list, target_dir: pathlib.Path,
-                         plane: int, plane_suffix: str = '_p', sc: pyspark.SparkContext = None):
+def write_planes_to_file(orig_files: list, plane: int, target_dir: pathlib.Path,
+                        plane_suffix: str = '_p', sc: pyspark.SparkContext = None) -> list:
     """ Function to read in a list of .klb files, extract one plane from each, and right these to h5 files.
 
     Each plane will be stored in a separate file. The new file names will be the same as the first with a suffix
@@ -201,14 +201,16 @@ def write_planes_to_file(orig_files: list, target_dir: pathlib.Path,
 
         orig_files: A list of files.  Each file should be a pathlib.Path object
 
+        plane: The z-index of the plane to extract across files.
+
         target_dir: The directory to save the files into as a pathlib.Path object.  If this does not exist,
         it will be created.
-
-        plane: The z-index of the plane to extract across files.
 
         plane_suffix: The suffix to append to the file name to indicate the file contains just one plane.
 
         sc: A SparkContext option if spark should be used
+
+    Returns: A list of the new files created, in the same order as orig_files.
     """
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
@@ -226,8 +228,12 @@ def write_planes_to_file(orig_files: list, target_dir: pathlib.Path,
         with h5py.File(new_file_path, 'w') as new_file:
             new_file.create_dataset('data', data_in_plane.shape, data_in_plane.dtype, data_in_plane)
 
+        return new_file_path
+
     if sc is not None:
-        sc.parallelize(orig_files).foreach(extract_and_write)
+        return sc.parallelize(orig_files).map(extract_and_write).collect()
     else:
+        new_files = []
         for f in orig_files:
-            extract_and_write(f)
+            new_files.append(extract_and_write(f))
+        return new_files
