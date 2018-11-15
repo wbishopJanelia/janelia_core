@@ -2,13 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2a2d555a-35e5-4abf-92bc-db5f0ce7289c" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/janelia_core/registration/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/janelia_core/registration/registration.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/janelia_core/cell_extraction/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/janelia_core/cell_extraction/suite_2p.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/janelia_core/dataprocessing/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
-    <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -18,20 +18,20 @@
     <session id="-2006470994">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="18" />
-          <entry key="project.open.time.0" value="3" />
+          <entry key="project.closed" value="20" />
+          <entry key="project.open.time.0" value="6" />
           <entry key="project.open.time.1" value="1" />
           <entry key="project.open.time.3" value="2" />
           <entry key="project.open.time.4" value="9" />
           <entry key="project.open.time.5" value="3" />
-          <entry key="project.opened" value="18" />
+          <entry key="project.opened" value="21" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="ipynb" value="16" />
           <entry key="md" value="1" />
-          <entry key="py" value="57" />
+          <entry key="py" value="62" />
           <entry key="pyi" value="1" />
         </counts>
       </usages-collector>
@@ -39,47 +39,64 @@
         <counts>
           <entry key="IPNB" value="16" />
           <entry key="Markdown" value="1" />
-          <entry key="Python" value="57" />
+          <entry key="Python" value="62" />
           <entry key="PythonStub" value="1" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="28650" />
+          <entry key="py" value="32612" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="28650" />
+          <entry key="Python" value="32612" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="registration.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/janelia_core/registration/registration.py">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1040">
-              <caret line="70" column="16" selection-start-line="70" selection-start-column="16" selection-end-line="70" selection-end-column="16" />
+            <state relative-caret-position="173">
+              <caret line="137" column="32" selection-start-line="137" selection-start-column="32" selection-end-line="137" selection-end-column="32" />
+              <folding>
+                <element signature="e#91#107#0" expanded="true" />
+                <marker date="1542302985438" expanded="true" signature="2133:2138" ph="..." />
+                <marker date="1542302985438" expanded="true" signature="3549:3663" ph="..." />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="image_stats.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/janelia_core/cell_extraction/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="220">
-              <caret line="10" column="18" lean-forward="true" selection-start-line="10" selection-start-column="18" selection-end-line="10" selection-end-column="18" />
+            <state relative-caret-position="27">
+              <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="exp_viewing.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/janelia_core/visualization/exp_viewing.py">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/janelia_core/cell_extraction/suite_2p.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="44">
-              <caret line="2" selection-start-line="2" selection-end-line="3" selection-end-column="20" />
+            <state relative-caret-position="324">
+              <caret line="12" column="31" selection-start-line="12" selection-start-column="4" selection-end-line="12" selection-end-column="31" />
+              <folding>
+                <element signature="e#1#12#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="5427">
+              <caret line="214" column="4" selection-start-line="214" selection-start-column="4" selection-end-line="215" selection-end-column="31" />
             </state>
           </provider>
         </entry>
@@ -117,25 +134,25 @@
         <option value="$PROJECT_DIR$/janelia_core/fileio/ahrens_lab.py" />
         <option value="$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py" />
         <option value="$PROJECT_DIR$/janelia_core/visualization/exp_viewing.py" />
-        <option value="$PROJECT_DIR$/janelia_core/dataprocessing/utils.py" />
         <option value="$PROJECT_DIR$/janelia_core/fileio/keller_lab.py" />
         <option value="$PROJECT_DIR$/janelia_core/registration/__init__.py" />
         <option value="$PROJECT_DIR$/janelia_core/registration/registration.py" />
+        <option value="$PROJECT_DIR$/janelia_core/cell_extraction/__init__.py" />
+        <option value="$PROJECT_DIR$/janelia_core/cell_extraction/suite_2p.py" />
+        <option value="$PROJECT_DIR$/janelia_core/dataprocessing/utils.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="2218" />
-    <option name="y" value="-749" />
-    <option name="width" value="2100" />
-    <option name="height" value="1381" />
+    <option name="x" value="1802" />
+    <option name="width" value="1633" />
+    <option name="height" value="1003" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -152,35 +169,19 @@
               <item name="janelia_core" type="b2602c69:ProjectViewProjectNode" />
               <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
               <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
+              <item name="cell_extraction" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="janelia_core" type="b2602c69:ProjectViewProjectNode" />
+              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
+              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
               <item name="dataprocessing" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="janelia_core" type="b2602c69:ProjectViewProjectNode" />
-              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
-              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
-              <item name="fileio" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="janelia_core" type="b2602c69:ProjectViewProjectNode" />
-              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
-              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
-              <item name="registration" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="janelia_core" type="b2602c69:ProjectViewProjectNode" />
-              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
-              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
-              <item name="visualization" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="janelia_core" type="b2602c69:ProjectViewProjectNode" />
-              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
-              <item name="playpin" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -213,78 +214,51 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="2218" y="-749" width="2100" height="1381" extended-state="0" />
+    <frame x="1672" y="42" width="1633" height="1003" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.20619048" />
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
-      <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Version Control" order="10" />
-      <window_info anchor="bottom" id="Python Console" order="7" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.070219435" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Terminal" order="8" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.3280363" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Python Console" order="7" />
+      <window_info anchor="bottom" id="Terminal" order="8" />
+      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
+      <window_info anchor="bottom" id="Version Control" order="10" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.3280363" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
     </layout>
     <layout-to-restore>
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25816202" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Version Control" order="10" />
-      <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Python Console" order="7" />
+      <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.3280363" />
+      <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Python Console" order="7" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.3280363" />
-      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Version Control" order="10" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
     </layout-to-restore>
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4466">
-          <caret line="216" selection-start-line="216" selection-end-line="216" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/registration/__init__.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4466">
-          <caret line="216" selection-start-line="216" selection-end-line="216" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/registration/__init__.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4422">
-          <caret line="214" lean-forward="true" selection-start-line="214" selection-end-line="214" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/fileio/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="22">
@@ -352,14 +326,6 @@
     <entry file="file://$USER_HOME$/AppData/Local/Continuum/anaconda3/envs/janelia_core/Lib/site-packages/pyqtgraph-0.10.0-py3.6.egg/pyqtgraph/widgets/PlotWidget.py" />
     <entry file="file://$USER_HOME$/AppData/Local/Continuum/anaconda3/envs/janelia_core/Lib/site-packages/PyQt5/QtGui.pyi" />
     <entry file="file://$USER_HOME$/AppData/Local/Continuum/anaconda3/envs/janelia_core/Lib/site-packages/pyqtgraph-0.10.0-py3.6.egg/pyqtgraph/widgets/GraphicsView.py" />
-    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/data_handling.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-706">
-          <caret line="14" lean-forward="true" selection-start-line="14" selection-end-line="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/utils.py" />
     <entry file="file://$PROJECT_DIR$/playpin/pyqtgraph_exs.ipynb">
       <provider selected="true" editor-type-id="ipnb-editor">
         <state>
@@ -395,24 +361,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/registration/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="44">
-          <caret line="2" column="3" lean-forward="true" selection-start-line="2" selection-start-column="3" selection-end-line="2" selection-end-column="3" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="896">
-          <caret line="216" selection-start-line="216" selection-end-line="216" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/registration/__init__.py" />
+    <entry file="file://$PROJECT_DIR$/janelia_core/registration/registration.py" />
     <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="220">
-          <caret line="10" column="18" lean-forward="true" selection-start-line="10" selection-start-column="18" selection-end-line="10" selection-end-column="18" />
+          <caret line="10" column="18" selection-start-line="10" selection-start-column="18" selection-end-line="10" selection-end-column="18" />
         </state>
       </provider>
     </entry>
@@ -423,10 +377,46 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/registration/registration.py">
+    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/data_handling.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1040">
-          <caret line="70" column="16" selection-start-line="70" selection-start-column="16" selection-end-line="70" selection-end-column="16" />
+        <state relative-caret-position="54">
+          <caret line="14" lean-forward="true" selection-start-line="14" selection-end-line="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="5427">
+          <caret line="214" column="4" selection-start-line="214" selection-start-column="4" selection-end-line="215" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/cell_extraction/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="27">
+          <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/cell_extraction/suite_2p.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="324">
+          <caret line="12" column="31" selection-start-line="12" selection-start-column="4" selection-end-line="12" selection-end-column="31" />
+          <folding>
+            <element signature="e#1#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="173">
+          <caret line="137" column="32" selection-start-line="137" selection-start-column="32" selection-end-line="137" selection-end-column="32" />
+          <folding>
+            <element signature="e#91#107#0" expanded="true" />
+            <marker date="1542302985438" expanded="true" signature="2133:2138" ph="..." />
+            <marker date="1542302985438" expanded="true" signature="3549:3663" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
