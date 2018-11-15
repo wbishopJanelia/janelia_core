@@ -5,10 +5,17 @@
 """
 
 import numpy as np
+from scipy.ndimage import fourier_shift
+from skimage.feature import register_translation
+
+from janelia_core.math.basic_functions import l_th
+from janelia_core.math.basic_functions import u_th
 
 
-def calc_phase_corr_shift(ref_img: np.ndarray, shifted_img: np.ndarray) -> np.ndarray:
+def calc_phase_corr_shift(ref_img: np.ndarray, shifted_img: np.ndarray, *args) -> np.ndarray:
     """ Calculates pixel-wise shift between two images using phase correlation.
+
+    This function will return the shift to go from shifted_img to ref_img.
 
     This function works for both 2d and 3d images.
 
@@ -17,9 +24,12 @@ def calc_phase_corr_shift(ref_img: np.ndarray, shifted_img: np.ndarray) -> np.nd
 
         shifted_img: The shifted image as a numpy array.
 
+        args: Extra arguments to pass to the underlying registration call.
+
     Returns: The pixel-wise shift to go from the shifted_img to ref_img.
     """
-    pass
+    shift, _, _ = register_translation(ref_img, shifted_img, *args)
+    return shift
 
 
 def apply_translation(base_img: np.ndarray, shift: np.ndarray) -> np.ndarray:
@@ -36,7 +46,8 @@ def apply_translation(base_img: np.ndarray, shift: np.ndarray) -> np.ndarray:
 
     Returns: The shifted image.
     """
-    pass
+    orig_dtype = base_img.dtype
+    return np.ndarray.astype(np.real(np.fft.ifftn(fourier_shift(np.fft.fftn(base_img), shift))), orig_dtype)
 
 
 def get_valid_translated_image_window(shifts: np.ndarray, image_shape: np.ndarray) -> tuple:
@@ -51,7 +62,7 @@ def get_valid_translated_image_window(shifts: np.ndarray, image_shape: np.ndarra
     all shifts.  (Useful when finding valid windows for time series of shifted images).
 
     Args:
-        shifts: The shifts to calculate the window for.  Each column is a shift.
+        shifts: The shifts to calculate the window for.  Each row is a shift.
 
         image_shape: The shape of the image.  Dimensions should be listed here in the
         same order they are listed in shifts.
@@ -62,13 +73,17 @@ def get_valid_translated_image_window(shifts: np.ndarray, image_shape: np.ndarra
     """
     if shifts.ndim == 1:
         shifts = np.reshape(shifts, [shifts.size, 1])
+        shifts = shifts.T
 
     shift_margins = np.sign(shifts) * np.ceil(np.abs(shifts))
-    shift_maxs = np.ndarray.astype(np.max(shift_margins, 1), 'int')
-    shift_mins = np.ndarray.astype(np.min(shift_margins, 1), 'int')
+    shift_maxs = np.ndarray.astype(np.max(shift_margins, 0), np.int)
+    shift_mins = np.ndarray.astype(np.min(shift_margins, 0), np.int)
 
-    n_dims = shifts.shape[0]
-    return tuple(slice(shift_maxs[i], image_shape[i] - shift_mins[i], 1) for i in range(n_dims))
+    shift_ups = l_th(shift_maxs, 0)
+    shift_downs = u_th(shift_mins, 0)
+
+    n_dims = shifts.shape[1]
+    return tuple(slice(shift_ups[i], image_shape[i] + shift_downs[i], 1) for i in range(n_dims))
 
 
 
