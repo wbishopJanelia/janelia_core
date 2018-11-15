@@ -145,6 +145,7 @@ def write_planes_for_one_file(file: pathlib.Path, planes: np.ndarray, plane_dirs
     if some_plane_files_exist and not skip_existing_files:
         raise (RuntimeError('Files for extracted planes already exist for 3d image file ' + str(file)))
 
+    print(all_plane_files_exist)
     # Write all planes that we need to to file
     if not all_plane_files_exist:
         image_3d = read_img_file(file)
