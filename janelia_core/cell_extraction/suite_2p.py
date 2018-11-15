@@ -1,6 +1,9 @@
+""" Helper functions for working with suite2p.
 
-import glob
-import os
+    William Bishop
+    bishopw@hhmi.org
+"""
+
 import pathlib
 
 import numpy as np
@@ -27,8 +30,8 @@ def run_suite2p_on_single_plane(plane_folder: pathlib.Path, base_results_folder:
 
     """
 
-    plane_files = glob.glob(plane_folder / '*.h5')
-    if len(plane_files) == 1:
+    plane_files = list(plane_folder.glob('*.h5'))
+    if len(plane_files) == 0:
         raise(RuntimeError('Unable to find any .h5 files in ' + str(plane_folder)))
 
     ops['save_path0'] = str(plane_folder)
@@ -42,7 +45,7 @@ def run_suite2p_on_single_plane(plane_folder: pathlib.Path, base_results_folder:
         'fast_disk': str(plane_folder),
     }
 
-    #run_s2p(ops=ops,db=db)
+    run_s2p(ops=ops,db=db)
 
 
 def default_suite2p_ops() -> dict:

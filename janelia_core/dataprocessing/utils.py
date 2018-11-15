@@ -63,7 +63,7 @@ def get_processed_image_data(images: list, func: types.FunctionType = None, sc: 
 
 def write_planes_to_files(planes: np.ndarray, files: list,
                           base_planes_dir: pathlib.Path, plane_suffix: str='plane',
-                          skip_existing_files=False, sc: pyspark.SparkContext=None):
+                          skip_existing_files=False, sc: pyspark.SparkContext=None) -> list:
     """ Extracts one or more planes from image files, writing planes to seperate files.
 
     Args:
@@ -82,6 +82,9 @@ def write_planes_to_files(planes: np.ndarray, files: list,
         error.
 
         sc: An optional spark context to use to write files in parallel.
+
+    Returns:
+        A list of the directories that images for each plane are saved into.
     """
     if not os.path.exists(base_planes_dir):
         os.makedirs(base_planes_dir)
@@ -100,6 +103,8 @@ def write_planes_to_files(planes: np.ndarray, files: list,
         def write_plane_wrapper(file):
             write_planes_for_one_file(file, planes, plane_dirs, '_' + plane_suffix, skip_existing_files)
         sc.parallelize(files).foreach(write_plane_wrapper)
+
+    return plane_dirs
 
 
 def write_planes_for_one_file(file: pathlib.Path, planes: np.ndarray, plane_dirs: list,
@@ -145,7 +150,6 @@ def write_planes_for_one_file(file: pathlib.Path, planes: np.ndarray, plane_dirs
     if some_plane_files_exist and not skip_existing_files:
         raise (RuntimeError('Files for extracted planes already exist for 3d image file ' + str(file)))
 
-    print(all_plane_files_exist)
     # Write all planes that we need to to file
     if not all_plane_files_exist:
         image_3d = read_img_file(file)
