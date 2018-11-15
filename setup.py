@@ -13,7 +13,6 @@ setup(
     description='Core code which supports William Bishops research projects at Janelia.',
     long_description = long_description,
     install_requires=[
-	"dipy",
 	"findspark",
 	"h5py",
 	"jupyter",
