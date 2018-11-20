@@ -13,7 +13,7 @@ import janelia_core.dataprocessing.dataset
 from janelia_core.fileio.keller_lab import write_planes_to_file
 
 
-def run_suite2p_on_single_plane(plane_folder: pathlib.Path, base_results_folder: pathlib.Path, ops: dict):
+def run_suite2p_on_single_plane(plane_folder: pathlib.Path, ops: dict):
     """ Runs suite 2p on a single plane of multi-plane imaging data.
 
     This function is useful for running suite2p in parallel on multiple planes of data.
@@ -22,9 +22,6 @@ def run_suite2p_on_single_plane(plane_folder: pathlib.Path, base_results_folder:
 
     Args:
         plane_folder: A folder holding .h5 files for the plane at each point in time.
-
-        base_results_folder: The folder to save final results into. Subfolders specific to the plane being processed will
-        be created under this folder.
 
         ops: Structure of options to pass to suite2p.
 

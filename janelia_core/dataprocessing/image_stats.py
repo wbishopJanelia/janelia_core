@@ -17,7 +17,8 @@ from janelia_core.dataprocessing.utils import get_image_data
 SPARK_N_IMGS = 100 # Number of images in a calculation we must exceed to use spark
 
 
-def std_through_time(images: list, sc: pyspark.SparkContext = None, verbose = True, correct_denom = True) -> dict:
+def std_through_time(images: list, sc: pyspark.SparkContext = None, verbose = True,
+                     correct_denom = True, h5_data_group: str ='default') -> dict:
     """ Calculates standard deviation of individual voxels through time.
 
     This function will also return the uncentered first (i.e, the mean) and second moments for each individual
@@ -33,6 +34,8 @@ def std_through_time(images: list, sc: pyspark.SparkContext = None, verbose = Tr
 
         correct_denom: If true, standard deviation is calculated by dividing by sqrt(n - 1) where n is the
         number of images.  If false, division by sqrt(n) is used.
+
+        h5_data_group: The hdfs data group holding image data in hdfs files
 
     Returns:
         A dict with the standard deviation, mean and uncentered second moments for each voxel as numpy arrays. The keys
@@ -51,13 +54,14 @@ def std_through_time(images: list, sc: pyspark.SparkContext = None, verbose = Tr
     # Perform calculations
     if sc is not None and n_images > SPARK_N_IMGS:
         print('Processing ' + str(n_images) + ' images with spark.')
-        moments = sc.parallelize(images).map(lambda im: calc_uc_moments(get_image_data(im))).reduce(list_sum)
+        moments = sc.parallelize(images).map(
+            lambda im: calc_uc_moments(get_image_data(im, h5_data_group=h5_data_group))).reduce(list_sum)
     else:
         if verbose:
             print('Processing ' + str(n_images) + ' images without spark.')
-            moments = calc_uc_moments(get_image_data(images[0]))
+            moments = calc_uc_moments(get_image_data(images[0], h5_data_group=h5_data_group))
             for i in images[1:]:
-                moments = list_sum(moments, calc_uc_moments(get_image_data(i)))
+                moments = list_sum(moments, calc_uc_moments(get_image_data(i, h5_data_group=h5_data_group)))
 
     var = moments[1] - np.square(moments[0])
     var[np.where(var < 0)] = 0  # Correct for small floating point errors

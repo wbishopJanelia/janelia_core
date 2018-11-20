@@ -17,7 +17,7 @@ import pyspark
 from janelia_core.fileio.exp_reader import read_img_file
 
 
-def get_image_data(image) -> np.ndarray:
+def get_image_data(image, h5_data_group: str = 'default') -> np.ndarray:
     """ Gets image data for a single image.
 
     This is a wrapper that allows us to get image data for a single image from a file or from a numpy array
@@ -28,12 +28,14 @@ def get_image_data(image) -> np.ndarray:
     Args:
         image: Either a numpy array or path to the image.
 
+        h5_data_group: The hdfs group holding image data in h5 files.
+
     Returns: The image data.
     """
     if isinstance(image, np.ndarray):
         return image
     else:
-        return read_img_file(image)
+        return read_img_file(image, h5_data_group=h5_data_group)
 
 
 def get_processed_image_data(images: list, func: types.FunctionType = None, sc: pyspark.SparkContext = None) -> list:
