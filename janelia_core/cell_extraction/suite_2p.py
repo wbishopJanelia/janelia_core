@@ -4,7 +4,9 @@
     bishopw@hhmi.org
 """
 
+import os
 import pathlib
+from shutil import copy
 
 import numpy as np
 from suite2p.run_s2p import run_s2p
@@ -100,3 +102,60 @@ def default_suite2p_ops() -> dict:
     }
 
     return ops
+
+
+def delete_suite2p_single_plane_temp_results(base_results_folder: pathlib.Path):
+    """ Deletes suite2p folders created when running suite2p.
+
+    Args:
+        base_results_folder: The base folder holding additonal folders under them (e.g., these additional folders may
+        hold results for each plane in an analysis.) This function will look in each of the subfolders and delete
+        any folder named 'suite2p'.
+
+    """
+    pass
+
+
+def collect_single_plane_files(base_results_folder: pathlib.Path, base_collect_folder: pathlib.Path, plane_prefix='plane'):
+    """ Searches for suite2p results for different planes and saves them together in a single folder.
+
+    Results will be saved under a new folder.  In this folder, subfolders for each plane will be created, holding
+    all .npy files saved by suite2p.
+
+    Args:
+        base_results_folder: The base folder holding additional folders with results for each plane.  Each of
+        these subfolders should have a 'suite2p/plane0' folder under them with results.
+
+        base_collect_folder: The folder to save collected results under.  This folder does not have to exist yet.
+
+        plane_prefix: The prefix which identifies subfolders as containing results for an individual plane.
+
+    Raises:
+        RuntimeError: If any of the collected results folders for a single plane exist.
+
+
+    """
+
+    # Identify folders containing plane results
+    plane_folders = base_results_folder.glob(plane_prefix + '*')
+
+    # Create the folder to collect results in
+    if not os.path.exists(base_collect_folder):
+        os.makedirs(base_collect_folder)
+
+    # Save copy of results for each plane
+    for plane_folder in plane_folders:
+
+        # Create the folder we will save the collected results for this plane into
+        new_plane_folder = base_collect_folder / plane_folder.name
+        if os.path.exists(new_plane_folder):
+            raise(RuntimeError('Single plane collected results folder already exists: ' + str(new_plane_folder)))
+        os.makedirs(new_plane_folder)
+
+        # Save the collected results
+        suite2p_folder = plane_folder / 'suite2p' / 'plane0'
+        if not suite2p_folder.is_dir():
+            raise (RuntimeError('Unable to find suite2p folder.  Expected it to be: ' + str(suite2p_folder)))
+        suite2p_folder_contents = suite2p_folder.glob('*.npy')
+        for c in suite2p_folder_contents:
+            copy(c, new_plane_folder)

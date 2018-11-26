@@ -65,7 +65,8 @@ def get_processed_image_data(images: list, func: types.FunctionType = None, sc: 
 
 def write_planes_to_files(planes: np.ndarray, files: list,
                           base_planes_dir: pathlib.Path, plane_suffix: str='plane',
-                          skip_existing_files=False, sc: pyspark.SparkContext=None) -> list:
+                          skip_existing_files=False, sc: pyspark.SparkContext=None,
+                          h5_data_group='data') -> list:
     """ Extracts one or more planes from image files, writing planes to seperate files.
 
     Args:
@@ -85,6 +86,8 @@ def write_planes_to_files(planes: np.ndarray, files: list,
 
         sc: An optional spark context to use to write files in parallel.
 
+        h5_data_group: The h5_data_group that original images are stored under if reading in .h5 files.
+
     Returns:
         A list of the directories that images for each plane are saved into.
     """
@@ -100,17 +103,20 @@ def write_planes_to_files(planes: np.ndarray, files: list,
 
     if sc is None:
         for file in files:
-            write_planes_for_one_file(file, planes, plane_dirs, '_' + plane_suffix, skip_existing_files)
+            write_planes_for_one_file(file, planes, plane_dirs, '_' + plane_suffix, skip_existing_files,
+                                      h5_data_group=h5_data_group)
     else:
         def write_plane_wrapper(file):
-            write_planes_for_one_file(file, planes, plane_dirs, '_' + plane_suffix, skip_existing_files)
+            write_planes_for_one_file(file, planes, plane_dirs, '_' + plane_suffix, skip_existing_files,
+                                      h5_data_group=h5_data_group)
         sc.parallelize(files).foreach(write_plane_wrapper)
 
     return plane_dirs
 
 
 def write_planes_for_one_file(file: pathlib.Path, planes: np.ndarray, plane_dirs: list,
-                              plane_suffix: str='plane', skip_existing_files=False):
+                              plane_suffix: str='plane', skip_existing_files=False,
+                              h5_data_group='default'):
     """ Writes specified planes from a 3d image file to separate .h5 files.
 
     The new files will have the same name as the original with an added suffix to indicate they contain
@@ -129,6 +135,8 @@ def write_planes_for_one_file(file: pathlib.Path, planes: np.ndarray, plane_dirs
         If false, then errors will be thrown if files for extracted planes are found to already exist. Setting
         this to true can be helpful if there is a need to run this function a second time to recover from an
         error.
+
+        h5_data_group: The h5_data_group that original images are stored under if reading in .h5 files.
 
     """
     # Create names of the files the planes will be saved into
@@ -154,7 +162,7 @@ def write_planes_for_one_file(file: pathlib.Path, planes: np.ndarray, plane_dirs
 
     # Write all planes that we need to to file
     if not all_plane_files_exist:
-        image_3d = read_img_file(file)
+        image_3d = read_img_file(file, h5_data_group=h5_data_group)
 
         # Write planes to file
         for i, plane_file_path in enumerate(plane_file_paths):
