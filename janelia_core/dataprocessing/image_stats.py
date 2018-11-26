@@ -17,8 +17,8 @@ from janelia_core.dataprocessing.utils import get_image_data
 SPARK_N_IMGS = 100 # Number of images in a calculation we must exceed to use spark
 
 
-def std_through_time(images: list, sc: pyspark.SparkContext = None, verbose = True,
-                     correct_denom = True, h5_data_group: str ='default') -> dict:
+def std_through_time(images: list, sc: pyspark.SparkContext=None, verbose=True,
+                     correct_denom=True, h5_data_group: str='default') -> dict:
     """ Calculates standard deviation of individual voxels through time.
 
     This function will also return the uncentered first (i.e, the mean) and second moments for each individual
@@ -75,3 +75,56 @@ def std_through_time(images: list, sc: pyspark.SparkContext = None, verbose = Tr
 
     return {'std': std, 'mean': moments[0], 'sec_mom': moments[1]}
 
+
+def create_brain_mask(stats: dict, std_p: int=70, mean_p: int=70, verbose=True) -> np.ndarray:
+    """ Creates a brain mask.
+
+    Given a structure of statistics produced by std_through_time, this function returns a binary array estimating which
+    voxels belong to the brain.
+
+    The array is estimated by looking for voxels with both a mean and standard deviation which surpass a user defined
+    threshold.
+
+    Args:
+        stats: The dictionary of statistics produced by std_through_time.
+
+        std_p: The threshold percentile for standard deviation values
+
+        mean_p: The threshold percentile for mean values
+
+        verbose: True if status updates should be printed.
+
+    Returns:
+         mask: A binary array the same shape as an image.  Each entry indicates if the corresponding voxel in the images
+         belongs to the brain or not.
+
+    """
+
+    std_t = np.percentile(stats['std'], std_p)
+    if verbose:
+        print(str(std_p) + '-th standard deviation percentile: ' + str(std_t))
+    mean_t = np.percentile(stats['mean'], mean_p)
+    if verbose:
+        print(str(mean_p) + '-th mean percentile: ' + str(mean_t))
+
+    return np.bitwise_and(stats['std'] > std_t, stats['mean'] > mean_t)
+
+
+def identify_rois_in_brain_mask(brain_mask: np.ndarray, rois: list, p_in=.9) -> np.ndarray:
+    """
+    Identifies ROIs that significantly overlap with a brain mask.
+
+    Args:
+        brain_mask: A binary np.ndarray the same shape as the shape of images rois were extracted from, indicating
+        which voxels belong to the brain.
+
+        rois: A list of rois.  Each entry should have a dictionary with entries 'x', 'y' and 'z' listing the x, y and z
+        coordinates of an roi.
+
+        p_in: The percentage of voxels of an roi that must overlap with the brain mask to be considered in the mask.
+
+    Returns:
+        rois_in_brain:
+    """
+    rois_in_brain = np.where([np.sum(brain_mask[roi['z'], roi['y'], roi['x']])/len(roi['z']) > p_in for roi in rois])
+    return rois_in_brain[0]
