@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2a2d555a-35e5-4abf-92bc-db5f0ce7289c" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/janelia_core/cell_extraction/suite_2p.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/cell_extraction/suite_2p.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/playpin/qt_test.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/playpin/qt_test.ipynb" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -56,23 +58,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="exp_viewing.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/janelia_core/visualization/exp_viewing.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1452">
-              <caret line="73" column="43" selection-start-line="73" selection-start-column="43" selection-end-line="73" selection-end-column="43" />
-              <folding>
-                <element signature="e#97#115#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="roi_exploration.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="752">
-              <caret line="181" column="25" lean-forward="true" selection-start-line="181" selection-start-column="25" selection-end-line="181" selection-end-column="25" />
+            <state relative-caret-position="-9">
+              <caret line="144" lean-forward="true" selection-start-line="144" selection-end-line="144" />
               <folding>
                 <element signature="e#85#103#0" expanded="true" />
               </folding>
@@ -117,20 +107,21 @@
         <option value="$PROJECT_DIR$/janelia_core/cell_extraction/__init__.py" />
         <option value="$PROJECT_DIR$/janelia_core/math/__init__.py" />
         <option value="$PROJECT_DIR$/janelia_core/math/math.py" />
-        <option value="$PROJECT_DIR$/janelia_core/cell_extraction/suite_2p.py" />
         <option value="$PROJECT_DIR$/janelia_core/dataprocessing/utils.py" />
-        <option value="$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py" />
         <option value="$PROJECT_DIR$/janelia_core/math/basic_functions.py" />
         <option value="$PROJECT_DIR$/janelia_core/registration/registration.py" />
         <option value="$PROJECT_DIR$/janelia_core/visualization/basic_functions.py" />
+        <option value="$PROJECT_DIR$/janelia_core/cell_extraction/suite_2p.py" />
+        <option value="$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py" />
         <option value="$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="y" value="23" />
-    <option name="width" value="1653" />
-    <option name="height" value="1027" />
+    <option name="x" value="-262" />
+    <option name="y" value="-1417" />
+    <option name="width" value="2079" />
+    <option name="height" value="1417" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -222,10 +213,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1653" height="1027" extended-state="0" />
+    <frame x="-262" y="-1417" width="2079" height="1417" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.14942528" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.11880712" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="10" />
@@ -393,13 +384,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1242">
-          <caret line="46" lean-forward="true" selection-start-line="46" selection-end-line="46" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state>
@@ -436,13 +420,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/cell_extraction/suite_2p.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="432">
-          <caret line="22" column="9" selection-start-line="22" selection-start-column="9" selection-end-line="22" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/fileio/exp_reader.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3321">
@@ -450,31 +427,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/math/basic_functions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
-          <caret line="54" lean-forward="true" selection-start-line="54" selection-end-line="54" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="540">
-          <caret line="59" column="19" selection-start-line="59" selection-start-column="19" selection-end-line="59" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/registration/registration.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="536">
           <caret line="143" column="49" selection-start-line="143" selection-start-column="49" selection-end-line="143" selection-end-column="49" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="351">
-          <caret line="23" column="43" selection-start-line="23" selection-start-column="43" selection-end-line="23" selection-end-column="43" />
         </state>
       </provider>
     </entry>
@@ -495,16 +451,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/visualization/exp_viewing.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1452">
-          <caret line="73" column="43" selection-start-line="73" selection-start-column="43" selection-end-line="73" selection-end-column="43" />
-          <folding>
-            <element signature="e#97#115#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///anaconda3/envs/janelia_core/lib/python3.6/site-packages/pyqtgraph-0.10.0-py3.6.egg/pyqtgraph/__init__.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -516,10 +462,58 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/visualization/basic_functions.py" />
+    <entry file="file://$PROJECT_DIR$/janelia_core/math/basic_functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1188">
+          <caret line="54" selection-start-line="54" selection-end-line="54" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/visualization/exp_viewing.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="273">
+          <caret line="195" column="8" selection-start-line="195" selection-start-column="8" selection-end-line="198" selection-end-column="59" />
+          <folding>
+            <element signature="e#97#115#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/cell_extraction/suite_2p.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="308">
+          <caret line="20" column="32" selection-start-line="20" selection-start-column="32" selection-end-line="20" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="286">
+          <caret line="23" column="43" selection-start-line="23" selection-start-column="43" selection-end-line="23" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="724">
+          <caret line="46" selection-start-line="46" selection-end-line="46" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/image_stats.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="75" column="66" lean-forward="true" selection-start-line="75" selection-start-column="66" selection-end-line="75" selection-end-column="66" />
+          <folding>
+            <element signature="e#581#2953#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="752">
-          <caret line="181" column="25" lean-forward="true" selection-start-line="181" selection-start-column="25" selection-end-line="181" selection-end-column="25" />
+        <state relative-caret-position="-9">
+          <caret line="144" lean-forward="true" selection-start-line="144" selection-end-line="144" />
           <folding>
             <element signature="e#85#103#0" expanded="true" />
           </folding>
