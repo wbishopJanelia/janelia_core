@@ -12,8 +12,7 @@ from shutil import copy
 import numpy as np
 from suite2p.run_s2p import run_s2p
 
-import janelia_core.dataprocessing.dataset
-from janelia_core.fileio.keller_lab import write_planes_to_file
+from janelia_core.cell_extraction.roi import ROI
 
 
 def run_suite2p_on_single_plane(plane_folder: pathlib.Path, ops: dict):
@@ -171,13 +170,8 @@ def collect_suite2p_rois_from_file(base_folder: pathlib.Path, plane_prefix='plan
          plane_prefix: The prefix indicating a folder holds results for a plane.
 
     Returns:
-        rois: A list.  Each entry is an roi, represented as a dictionary with entries:
-            x: np.ndarray of x coordinates for each pixel in the roi
-            y: np.ndarray of y coordinates for each pixel in the roi
-            z: np.ndarray of z coordinates for each pixel in the roi
-            w: np.ndarray of weights for each pixel in the roi
-            f: np.ndarray of fluorescence values for the roi through time
-            s: np.ndarray of spike values for the roi through time
+        rois: A list of ROI objects for each ROI.  Each ROI will have the additonal attributes 'spks' and 'f' with
+        spike and fluorescene across time for the ROI.
      """
 
     # Identify folders containing plane results
@@ -192,11 +186,13 @@ def collect_suite2p_rois_from_file(base_folder: pathlib.Path, plane_prefix='plan
         match = re.search(plane_prefix + '([0123456789]+)', plane_folder.name)
         z_plane = int(match[1])
 
-        for i, roi in enumerate(stats):
-            z_pix = z_plane*np.ones(roi['xpix'].shape, dtype=roi['xpix'].dtype)
+        for i, s2p_roi in enumerate(stats):
+            z_pix = z_plane*np.ones(s2p_roi['xpix'].shape, dtype=np.int16)
 
-            roi = {'x': roi['xpix'], 'y': roi['ypix'], 'z': z_pix, 'w': roi['lam'],
-                   'f': f[i, :], 's': spks[i, :]}
+            roi_voxels = tuple([z_pix, s2p_roi['ypix'], s2p_roi['xpix']])
+
+            roi = ROI(roi_voxels, s2p_roi['lam'])
+            roi.spks = spks[i, :]
+            roi.f = f[i, :]
             rois.append(roi)
-
     return rois

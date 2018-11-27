@@ -38,7 +38,8 @@ def get_image_data(image, h5_data_group: str = 'default') -> np.ndarray:
         return read_img_file(image, h5_data_group=h5_data_group)
 
 
-def get_processed_image_data(images: list, func: types.FunctionType = None, sc: pyspark.SparkContext = None) -> list:
+def get_processed_image_data(images: list, func: types.FunctionType = None,
+                             h5_data_group='default', sc: pyspark.SparkContext = None) -> list:
     """ Gets processed image data for multiple images.
     
     This is a wrapper that allows retrieving images from files or from numpy arrays,
@@ -48,6 +49,8 @@ def get_processed_image_data(images: list, func: types.FunctionType = None, sc: 
         images: A list of images.  Each entry is either a numpy array or a path to an image file.
         
         func: A function to apply to each image.  If none, images will be returned unaltered.
+
+        h5_data_group: The hdfs group holding image data in h5 files.
         
         sc: An optional pySpark.SparkContext object to use in speeding up reading of images.
         
@@ -55,7 +58,7 @@ def get_processed_image_data(images: list, func: types.FunctionType = None, sc: 
     """
 
     if sc is None:
-        return [func(get_image_data(img)) for img in images]
+        return [func(get_image_data(img, h5_data_group)) for img in images]
     else:
         def _process_img(img):
             return func(get_image_data(img))

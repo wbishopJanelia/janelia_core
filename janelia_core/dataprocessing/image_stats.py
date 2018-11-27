@@ -124,7 +124,28 @@ def identify_rois_in_brain_mask(brain_mask: np.ndarray, rois: list, p_in=.9) -> 
         p_in: The percentage of voxels of an roi that must overlap with the brain mask to be considered in the mask.
 
     Returns:
-        rois_in_brain:
+        rois_in_brain: A np.ndarray of indices of ROIs that are in the brain mask
     """
-    rois_in_brain = np.where([np.sum(brain_mask[roi['z'], roi['y'], roi['x']])/len(roi['z']) > p_in for roi in rois])
+    rois_in_brain = np.where([np.sum(brain_mask[roi.voxel_inds])/roi.n_voxels() >= p_in for roi in rois])
     return rois_in_brain[0]
+
+
+def identify_small_rois(roi_extents: np.ndarray, rois: list):
+    """ Identifies ROIS that fit within a rectangular box of a set size.
+
+    Args:
+        roi_extents: A 3d array of the lengths of the sides of a rectangle (in pixels)
+        rois must fit into.
+
+        rois: A list of roi objects.
+
+    Returns:
+        small_rois: A np.ndarray of indices of rois that fit within the rectangle
+    """
+
+    small_rois = list()
+    for i, roi in enumerate(rois):
+        roi_bounding_box = roi.extents()
+        if np.all(np.less_equal(roi_bounding_box, roi_extents)):
+            small_rois.append(i)
+    return np.asarray(small_rois)

@@ -123,11 +123,7 @@ class ROIViewer(QWidget):
         Args:
             bg_img: The background image.  Should be a 2-d numpy array (first dimension y, second dimension x).
 
-            rois: A list of rois.  Each entry is a dictionary with the fields:
-                x - a 1 dimensional np.ndarray of x coordinates of pixels in the ROI
-                y - a 1 dimensional np.ndarray of y coordinates of pixels in the ROI
-                w - a 1 dimensional np.ndarray of weights of each pixel in the ROI
-                vls - a 1 dimensional np.ndarray of values the ROI takes on across time.  Should be within 0 to 1.
+            rois: A list of ROI objects.
 
             roi_vl_str - If the values of the ROI across time are stored in a field with a different name than 'vls',
             the user can specify that with this argument.
@@ -154,7 +150,7 @@ class ROIViewer(QWidget):
     def init_ui(self):
         """ Initializes and shows the interface for the ROIViewer."""
 
-        n_tm_pts = len(self.rois[0][self.roi_vl_str])
+        n_tm_pts = len(getattr(self.rois[0], self.roi_vl_str))
 
         # Create a viewbox for our images - this will allow us to pan and scale things
         image_vew_box = pg.ViewBox()
@@ -179,8 +175,8 @@ class ROIViewer(QWidget):
         # Define a helper function to set opacity of rois
         def set_roi_opacity(ind):
             for roi_ind, roi in enumerate(self.rois):
-                curVl = roi[self.roi_vl_str][ind]
-                roi_image_items[roi_ind].setOpacity(curVl)
+                cur_vl = getattr(self.rois[0], self.roi_vl_str)[ind]
+                roi_image_items[roi_ind].setOpacity(cur_vl)
 
         def time_pt_changed(ind):
             set_roi_opacity(ind)
@@ -228,29 +224,37 @@ class ROIViewer(QWidget):
         Returns:
             roi_image_item - the image item for the roi
         """
-        y_min = np.min(self.rois[roi_ind]['y'])
-        y_max = np.max(self.rois[roi_ind]['y'])
-        x_min = np.min(self.rois[roi_ind]['x'])
-        x_max = np.max(self.rois[roi_ind]['x'])
+        roi = self.rois[roi_ind]
 
-        y_len = y_max - y_min + 1
-        x_len = x_max - x_min + 1
+        # Get bounding box for roi
+        bounding_box = roi.bounding_box()
+        side_lengths = roi.extents()
+        dim_starts = [s.start for s in bounding_box]
+
+        # Get coordinates of voxels in ROI within bounding box
+        roi_voxel_inds = roi.list_all_voxel_inds()
+        n_roi_dims = len(side_lengths)
+        shifted_roi_voxel_inds = tuple([roi_voxel_inds[d] - dim_starts[d] for d in range(n_roi_dims)])
+
+        # Get rid of first dimension if we need
+        if n_roi_dims > 2:
+            side_lengths = side_lengths[1:]
+            dim_starts = dim_starts[1:]
+            shifted_roi_voxel_inds = shifted_roi_voxel_inds[1:]
 
         # Set color of all pixels
-        base_image = np.zeros([y_len, x_len, 4], dtype=np.int)
+        base_image = np.zeros([*side_lengths, 4], dtype=np.int)
         base_image[:, :, 0:3] = clr
 
         # Set alpha levels of pixels in the roi
-        y_pxls = self.rois[roi_ind]['y'] - y_min
-        x_pxls = self.rois[roi_ind]['x'] - x_min
-        base_image[y_pxls, x_pxls, 3] = np.ndarray.astype(self.rois[roi_ind]['w']*255, np.int)
+        base_image[shifted_roi_voxel_inds[0], shifted_roi_voxel_inds[1], 3] = np.ndarray.astype(roi.weights*255, np.int)
 
         roi_image_item = pg.ImageItem(base_image, autoDownsample=True)
 
-        img_rect = pg.QtCore.QRect(y_min, x_min, y_len, x_len)
+        img_rect = pg.QtCore.QRect(dim_starts[0], dim_starts[1], side_lengths[0], side_lengths[1])
         roi_image_item.setRect(img_rect)
 
-        roi_image_item.setOpacity(.2)
+        roi_image_item.setOpacity(.5)
         return roi_image_item
 
     def keyPressEvent(self, ev):
