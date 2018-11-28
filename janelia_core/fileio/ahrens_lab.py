@@ -46,12 +46,12 @@ def read_exp(image_folder: pathlib.Path, ephys_folder: pathlib.Path = None, ephy
     Returns:
         A Dataset object.  A DataSet object representing the experiment.  The data dictionary will have an entry 'imgs'
         containing the file names for the images. If ephys data was available, an entry 'ephys' will also contain
-        the ephys data.  The metadata for the experiment will have an entry 'stack_freq_info' with the information from
-        the stack frequency file.
+        the ephys data.  The metadata for the experiment will have one entry 'imaging_metadata' with the imaging
+        metadata stored there.
     """
 
     # Read in all of the raw data
-    metadata = read_imaging_metadata(image_folder / metadata_file)
+    imaging_metadata = read_imaging_metadata(image_folder / metadata_file)
 
     stack_freq_info = read_stack_freq(image_folder / stack_freq_file)
 
@@ -78,7 +78,8 @@ def read_exp(image_folder: pathlib.Path, ephys_folder: pathlib.Path = None, ephy
     if ephys_file is not None:
         data_dict['ephys'] = ephys_dict
 
-    metadata['stack_freq_info'] = stack_freq_info
+    imaging_metadata['stack_freq_info'] = stack_freq_info
+    metadata = {'imaging_metadata': imaging_metadata}
 
     return dataset.DataSet(data_dict, metadata)
 

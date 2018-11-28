@@ -34,12 +34,9 @@ def extract_super_voxels_in_brain(images: list, n_voxels_per_dimension: np.ndarr
         sc: An optional Spark context to speed up computation.
 
     Returns:
-        rois: A list of rois.  Each entry contains a dictionary with the keys:
-            z - a np.ndarray of z coordinates for each voxel in the roi
-            x - a np.ndarray of x coordinates for each voxel in the roi
-            y - a np.ndarray of y coordinates for each voxel in the roi
-            w - a np.ndarray of weights for each voxel in the roi (this will be 1 for all voxels)
-            vls - a np.ndarray of the value of the roi at each image
+        roi_vls: A np.ndarraay of shape time*n_rois containing the value of each roi at each point in time.
+
+        rois: A list of rois.  Each entry is an ROI object, corresponding to the same column in roi_vls.
 
     Raises:
         RuntimeError: If dimensions specified in n_voxels_per_dimension is different than dimensions of images being
@@ -95,8 +92,10 @@ def extract_super_voxels(images: list, voxel_slices: slice, h5_data_group='defau
             verbose: True if status updates should be printed to screen.
 
     Returns:
-        rois: A list of rois.  Each entry is an ROI object.  ROI objects will have an additional atribute 'vls'
-        containing the value of the ROI across time.
+        roi_vls: A np.ndarraay of shape time*n_rois containing the value of each roi at each point in time.
+
+        rois: A list of rois.  Each entry is an ROI object, corresponding to the same column in roi_vls.
+
         """
 
     n_super_voxels = len(voxel_slices)
@@ -106,16 +105,15 @@ def extract_super_voxels(images: list, voxel_slices: slice, h5_data_group='defau
 
     # Extract ROI values
     def extract_rois_from_single_image(image):
-        return np.asarray([np.mean(image[sv_slice]) for sv_slice in voxel_slices])
+        return np.asarray([np.mean(image[sv_slice]) for sv_slice in voxel_slices], dtype=np.float32)
     roi_vls = get_processed_image_data(images, extract_rois_from_single_image, h5_data_group, sc)
+    roi_vls = np.asarray(roi_vls)
 
     # Generate roi dictionary
     rois = [None]*n_super_voxels
     for i, sv_slice in enumerate(voxel_slices):
-        vls = np.asarray([roi_vls[t][i] for t in range(len(roi_vls))])
         rois[i] = ROI(voxel_slices[i], 1)
-        rois[i].vls = vls
 
-    return rois
+    return [roi_vls, rois]
 
 

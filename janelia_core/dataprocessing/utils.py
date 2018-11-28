@@ -61,7 +61,7 @@ def get_processed_image_data(images: list, func: types.FunctionType = None,
         return [func(get_image_data(img, h5_data_group)) for img in images]
     else:
         def _process_img(img):
-            return func(get_image_data(img))
+            return func(get_image_data(img, h5_data_group))
 
         return sc.parallelize(images).map(_process_img).collect()
 

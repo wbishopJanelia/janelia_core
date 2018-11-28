@@ -170,14 +170,17 @@ def collect_suite2p_rois_from_file(base_folder: pathlib.Path, plane_prefix='plan
          plane_prefix: The prefix indicating a folder holds results for a plane.
 
     Returns:
-        rois: A list of ROI objects for each ROI.  Each ROI will have the additonal attributes 'spks' and 'f' with
-        spike and fluorescene across time for the ROI.
+        roi_f: A np.ndarray of shape t*n_rois containing the value of each roi at each point in time
+        roi_spks: A np.ndarray the same shape as roi_f containing extracted spikes for each roi
+        rois: A list of ROI objects for each ROI.  ROIs are in the same order here as they are in roi_f and roi_spks.
      """
 
     # Identify folders containing plane results
     plane_folders = base_folder.glob(plane_prefix + '*')
 
     rois = list()
+    roi_f = list()
+    roi_spks = list()
     for plane_folder in plane_folders:
 
         stats = np.load(plane_folder / 'stat.npy')
@@ -188,11 +191,14 @@ def collect_suite2p_rois_from_file(base_folder: pathlib.Path, plane_prefix='plan
 
         for i, s2p_roi in enumerate(stats):
             z_pix = z_plane*np.ones(s2p_roi['xpix'].shape, dtype=np.int16)
-
             roi_voxels = tuple([z_pix, s2p_roi['ypix'], s2p_roi['xpix']])
-
             roi = ROI(roi_voxels, s2p_roi['lam'])
-            roi.spks = spks[i, :]
-            roi.f = f[i, :]
             rois.append(roi)
-    return rois
+
+            roi_f.append(f[i, :])
+            roi_spks.append(spks[i,:])
+
+    roi_f = np.asarray(roi_f, dtype=np.float32).T
+    roi_spks = np.asarray(roi_spks, dtype=np.float32).T
+
+    return [roi_f, roi_spks, rois]

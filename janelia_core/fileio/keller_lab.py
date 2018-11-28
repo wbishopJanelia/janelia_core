@@ -55,7 +55,8 @@ def read_exp(image_folder: pathlib.Path, metadata_folder: pathlib.Path,
 
     Returns:
         A DataSet object representing the experiment.  The data dictionary will have one entry with the
-        key 'imgs' containing paths to each image file in the dataset.
+        key 'imgs' containing paths to each image file in the dataset.  The metadata dictionary will have
+        one entry 'imaging_metadata' containing metadata for the imaging.
 
     Raises:
         RuntimeError: If the number of images found differs from the number of time stamps in the time_stamps_file.
@@ -74,7 +75,7 @@ def read_exp(image_folder: pathlib.Path, metadata_folder: pathlib.Path,
     im_dict = {'ts': time_stamps, 'vls': image_names_sorted}
     data_dict = {'imgs': im_dict}
 
-    return dataset.DataSet(data_dict, metadata)
+    return dataset.DataSet(data_dict, {'imaging_metadata': metadata})
 
 
 def read_time_stamps(time_stamp_file: pathlib.Path) -> np.ndarray:

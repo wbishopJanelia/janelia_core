@@ -14,8 +14,10 @@ class DataSet:
     Args:
         ts_data: A dictionary of time series data.  Each entry in the dictionary is one set of data (with a user
             specified key).  Each set of data is itself stored in a dictionary with two entries.  The fist with
-            the key 'ts' is a 1-d numpy.ndarray with timestamps.  The second 'vls' is a list of or numpy array of data
-            for each point in ts. If data is none the data attribute of the created object will be an empty dictionary.
+            the key 'ts' is a 1-d numpy.ndarray with timestamps.  The second 'vls' can be:
+                1) A list, with one entry per time point
+                2) A numpy array of data, with the first dimension corresponding to time
+        If data is none the data attribute of the created object will be an empty dictionary.
 
         metadata: A dictionary of metadata. If meta_data is None, the meta_data attribute of the created object will be
             a empty dictionary.
@@ -92,43 +94,39 @@ class ROIDataset(DataSet):
     """ A dataset object for holding datasets which include roi information.
     """
 
-    def __init__(self, ts_data: dict = None, metadata: dict = None, rois: list = None,
-                 roi_ts: np.ndarray = None, roi_data_labels: list = None, roi_data: list = None):
+    def __init__(self, ts_data: dict = None, metadata: dict = None, roi_groups: dict = None):
         """
             Initializes an ROIDataset object.
 
             ROI data is added to the ts_data dictionary.  A field
 
         Args:
-            ts_data: A dictionary of time series data.  Each entry in the dictionary is one set of data (with a user
-            specified key).  Each set of data is itself stored in a dictionary with two entries.  The fist with
-            the key 'ts' is a 1-d numpy.ndarray with timestamps.  The second 'vls' is a list of or numpy array of data
-            for each point in ts. If data is none the data attribute of the created object will be an empty dictionary.
+            ts_data: A dictionary of time series data.  See description in Dataset.__init__()
 
-            metadata: A dictionary of metadata. If meta_data is None, the meta_data attribute of the created object will be
-            a empty dictionary.
+            metadata: A dictionary of metadata.  See description in Dataset.__init__()
 
-            rois: A list with ROI objects. If rois is none, an empty list will be created.
+            roi_groups.  A dictionary holding ROI groups.  A "ROI group" is a group of ROIs whose values
+                are stored together in entries in ts_data.  One group can have values stored in multiple entries in
+                ts_data. Each entry in roi_groups is specified by a key giving the name of the group and a value which
+                is a dictioary with the keys:
+                    1) rois: A list of ROI objects representing the rois in the group
+                    2) ts_labels: A list of ts_data entries with data for this group of rois.
+                    3) Optional keys the user may specify. For example, a "type" can be specified.
 
-            rois_ts: A ndarray of time stamps for roi data
+                If an entry in ts_data holds values for an ROI group, it must hold only values for those ROIs and the order
+                of variables in ts_data 'vls' entry must match the order of ROIs in the rois list for the group.
 
-            roi_data_labels: A list of labels for the types of data provided in roi_data.
+                If roi_groups is none, an empty dictionary will be created.
 
-            roi_data: A list of numpy arrays with roi data.  Each entry is a ndarray of size n_rois * t,
-            where t is the number of time stamps in rois_ts.  roi_data[i,j] contains the value of rois[i]
-            at time rois_ts[j].  If this is none, no ROI data will be added.
+        Raises:
+
         """
         super().__init__(ts_data, metadata)
 
-        if rois is not None:
-            self.rois = rois
+        if roi_groups is not None:
+            self.roi_groups = roi_groups
         else:
-            self.rois = []
-
-        if roi_data is not None:
-            self.roi_ts_lbls = roi_data_labels
-            for i, roi_data_type in enumerate(roi_data_labels):
-                self.ts_data[roi_data_type] = {'ts': roi_ts, 'vls': roi_data[i]}
+            self.roi_groups = {}
 
     def down_select_rois(self, roi_inds):
         """ Down select the rois in a dataset.
