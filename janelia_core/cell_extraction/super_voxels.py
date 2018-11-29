@@ -4,7 +4,7 @@
 import numpy as np
 import pyspark
 
-from janelia_core.cell_extraction.roi import ROI
+from janelia_core.dataprocessing.roi import ROI
 from janelia_core.dataprocessing.utils import get_image_data
 from janelia_core.dataprocessing.utils import get_processed_image_data
 from janelia_core.math.basic_functions import divide_into_nearly_equal_parts

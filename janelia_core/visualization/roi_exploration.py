@@ -153,7 +153,8 @@ class ROIViewer(QWidget):
         n_tm_pts = len(getattr(self.rois[0], self.roi_vl_str))
 
         # Create a viewbox for our images - this will allow us to pan and scale things
-        image_vew_box = pg.ViewBox()
+        imageAspectRatio = self.mn_img.shape[0]/self.mn_img.shape[1]
+        image_vew_box = pg.ViewBox(lockAspect=imageAspectRatio)
 
         # Add the background image to the image view
         bg_image_item = pg.ImageItem(self.mn_img)
@@ -162,7 +163,6 @@ class ROIViewer(QWidget):
         # Add the rois to the image view
         roi_image_items = [None]*len(self.rois)
         for i, roi in enumerate(self.rois):
-
 
             clr = self.clrs[i,:]
             roi_image_items[i] = self._gen_roi_image(i, clr)
@@ -175,7 +175,7 @@ class ROIViewer(QWidget):
         # Define a helper function to set opacity of rois
         def set_roi_opacity(ind):
             for roi_ind, roi in enumerate(self.rois):
-                cur_vl = getattr(self.rois[0], self.roi_vl_str)[ind]
+                cur_vl = getattr(roi, self.roi_vl_str)[ind]
                 roi_image_items[roi_ind].setOpacity(cur_vl)
 
         def time_pt_changed(ind):
@@ -247,14 +247,15 @@ class ROIViewer(QWidget):
         base_image[:, :, 0:3] = clr
 
         # Set alpha levels of pixels in the roi
-        base_image[shifted_roi_voxel_inds[0], shifted_roi_voxel_inds[1], 3] = np.ndarray.astype(roi.weights*255, np.int)
+        norm_w = roi.list_all_weights()/np.max(roi.list_all_weights())
+        base_image[shifted_roi_voxel_inds[0], shifted_roi_voxel_inds[1], 3] = np.ndarray.astype(norm_w*255, np.int)
 
         roi_image_item = pg.ImageItem(base_image, autoDownsample=True)
 
         img_rect = pg.QtCore.QRect(dim_starts[0], dim_starts[1], side_lengths[0], side_lengths[1])
         roi_image_item.setRect(img_rect)
 
-        roi_image_item.setOpacity(.5)
+        roi_image_item.setOpacity(.2)
         return roi_image_item
 
     def keyPressEvent(self, ev):

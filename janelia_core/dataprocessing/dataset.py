@@ -6,7 +6,8 @@
 
 import numpy as np
 
-from janelia_core.cell_extraction.roi import ROI
+from janelia_core.dataprocessing.roi import ROI
+
 
 class DataSet:
     """A class for holding a basic data set.
@@ -21,9 +22,11 @@ class DataSet:
 
         metadata: A dictionary of metadata. If meta_data is None, the meta_data attribute of the created object will be
             a empty dictionary.
+
+        **kwargs: Additional keyword arguments that will be added as attributes of the object.
     """
 
-    def __init__(self, ts_data: dict=None, metadata: dict=None):
+    def __init__(self, ts_data: dict=None, metadata: dict=None, **kwargs):
         if ts_data is None:
             self.ts_data = dict()
         else:
@@ -33,6 +36,32 @@ class DataSet:
             self.metadata = dict()
         else:
             self.metadata = metadata
+
+        for k in kwargs:
+            setattr(self, k, kwargs[k])
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        """ Creates a new Dataset object from a dictioary.
+
+        Args:
+            d: A dictionary with the keys 'ts_data' and 'metadata'
+
+        Returns:
+            A new DataSet object
+        """
+        return cls(**d)
+
+    def to_dict(self):
+        """ Creates a dictionary from a Dataset object.
+
+        This is useful for saving the object in a manner which will still allow it to be loaded in the future should
+        the class definition of Dataset change.
+
+        Returns:
+            d: A dictionary with the object data.
+        """
+        return vars(self)
 
     def has_ts_data(self) -> bool:
         """Returns true if any time series data has non-zero data points.
@@ -94,7 +123,7 @@ class ROIDataset(DataSet):
     """ A dataset object for holding datasets which include roi information.
     """
 
-    def __init__(self, ts_data: dict = None, metadata: dict = None, roi_groups: dict = None):
+    def __init__(self, ts_data: dict = None, metadata: dict = None, roi_groups: dict = None, **kwargs):
         """
             Initializes an ROIDataset object.
 
@@ -118,6 +147,8 @@ class ROIDataset(DataSet):
 
                 If roi_groups is none, an empty dictionary will be created.
 
+            **kwargs: Additional keyword arguments that will be added as attributes of the object.
+
         Raises:
 
         """
@@ -128,29 +159,99 @@ class ROIDataset(DataSet):
         else:
             self.roi_groups = {}
 
-    def down_select_rois(self, roi_inds):
+        for k in kwargs:
+            setattr(self, k, kwargs[k])
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        """ Creates a new ROIDataset object from a dictionary.
+
+        Args:
+            d: A dictionary with the keys 'ts_data' and 'metadata'
+
+        Returns:
+            A new ROIDataset object
+        """
+        standard_attrs = {'ts_data', 'metadata', 'roi_groups'}
+
+        roi_groups_keys = d['roi_groups'].keys()
+        new_roi_groups_dict = dict()
+        for k in roi_groups_keys:
+            cur_group = d['roi_groups'][k]
+            cur_group_keys = set(cur_group.keys())
+            cur_group_keys.remove('rois')
+
+            new_group_dict = {k: cur_group[k] for k in cur_group_keys}
+
+            rois_as_objs = [ROI.from_dict(r) for r in cur_group['rois']]
+            new_group_dict['rois'] = rois_as_objs
+
+            new_roi_groups_dict[k] = new_group_dict
+
+        nonstandard_attrs = set(d.keys())
+        nonstandard_attrs = nonstandard_attrs.difference(standard_attrs)
+        nonstandard_dict = {a: d[a] for a in nonstandard_attrs}
+
+        return ROIDataset(d['ts_data'], d['metadata'], new_roi_groups_dict, **nonstandard_dict)
+
+    def to_dict(self) -> dict:
+        """ Creates a dictionary from a Dataset object.
+
+        This is useful for saving the object in a manner which will still allow it to be loaded in the future should
+        the class definition of Dataset change.
+
+        Returns:
+            d: A dictionary with the object data.
+        """
+
+        other_attrs = set(vars(self).keys())
+        other_attrs.remove('roi_groups')
+        save_dict = {a: getattr(self, a) for a in other_attrs}
+
+        roi_groups = self.roi_groups
+        roi_group_dict = dict()
+        for grp in roi_groups:
+            other_group_keys = set(roi_groups[grp].keys())
+            other_group_keys.remove('rois')
+
+            new_group_dict = {k: roi_groups[grp][k] for k in other_group_keys}
+
+            rois_as_dict = [r.to_dict() for r in roi_groups[grp]['rois']]
+            new_group_dict['rois'] = rois_as_dict
+
+            roi_group_dict[grp] = new_group_dict
+
+        save_dict['roi_groups'] = roi_group_dict
+
+        return save_dict
+
+    def down_select_rois(self, roi_group, roi_inds):
         """ Down select the rois in a dataset.
 
         ROIs will be removed from dataset.rois and any data for the removed ROIS will
         also be removed from the appropriate ts_data entries.
 
         Args:
+            roi_group: The roi group of the rois to extract
+
             roi_inds: The indices in dataset.rois to keep.
         """
 
-        new_rois = [self.rois[i] for i in roi_inds]
-        self.rois = new_rois
+        new_rois = [self.roi_groups[roi_group]['rois'][i] for i in roi_inds]
+        self.roi_groups[roi_group]['rois'] = new_rois
 
-        for label in self.roi_ts_lbls:
+        for label in self.roi_groups[roi_group]['ts_labels']:
             old_vls = self.ts_data[label]['vls']
-            new_vls = old_vls[roi_inds,:]
+            new_vls = old_vls[:, roi_inds]
             self.ts_data[label]['vls'] = new_vls
 
-    def extract_rois(self, roi_inds, labels):
+    def extract_rois(self, roi_group, roi_inds, labels):
         """ Extracts rois from a dataset.
 
         Args:
             roi_inds: The indices of the dataset.rois to extract
+
+            roi_group: The roi group of the rois to extract
 
             labels: A list of labels of tsdata for the rois to pull out.
 
@@ -165,8 +266,9 @@ class ROIDataset(DataSet):
         n_rois = len(roi_inds)
         rois = [None]*n_rois
         for i, roi_ind in enumerate(roi_inds):
-            roi = ROI(self.rois[roi_ind].voxel_inds, self.rois[roi_ind].weights)
+            dataset_roi = self.roi_groups[roi_group]['rois'][roi_ind]
+            roi = ROI(dataset_roi.voxel_inds, dataset_roi.weights)
             for label in labels:
-                setattr(roi, label, self.ts_data[label]['vls'][roi_ind, :])
+                setattr(roi, label, self.ts_data[label]['vls'][:,roi_ind])
             rois[i] = roi
         return rois

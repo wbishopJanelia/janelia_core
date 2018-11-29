@@ -12,7 +12,7 @@ from shutil import copy
 import numpy as np
 from suite2p.run_s2p import run_s2p
 
-from janelia_core.cell_extraction.roi import ROI
+from janelia_core.dataprocessing.roi import ROI
 
 
 def run_suite2p_on_single_plane(plane_folder: pathlib.Path, ops: dict):
