@@ -17,10 +17,10 @@ setup(
 	"h5py",
 	"jupyter",
 	"matplotlib",
-        "numpy",
+    "numpy",
 	"pyqtgraph",
 	"scikit-image",
 	"pyspark",
-        "sphinx",
+    "sphinx",
     ],
 )
