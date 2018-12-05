@@ -2,10 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="69a31846-1df4-4f64-a0d0-84c2a069ff47" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/janelia_core/dataprocessing/roi.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/roi.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/janelia_core/fileio/exp_reader.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/fileio/exp_reader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/janelia_core/fileio/keller_lab.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
-    <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -15,57 +20,76 @@
     <session id="-2006470994">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="9" />
-          <entry key="project.open.time.3" value="1" />
-          <entry key="project.open.time.4" value="6" />
+          <entry key="project.closed" value="14" />
+          <entry key="project.open.time.3" value="2" />
+          <entry key="project.open.time.4" value="11" />
           <entry key="project.open.time.5" value="2" />
-          <entry key="project.opened" value="9" />
+          <entry key="project.opened" value="15" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="ipynb" value="7" />
           <entry key="md" value="2" />
-          <entry key="py" value="25" />
+          <entry key="py" value="30" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="IPNB" value="7" />
           <entry key="Markdown" value="2" />
-          <entry key="Python" value="25" />
+          <entry key="Python" value="30" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
+          <entry key="dummy" value="4" />
           <entry key="md" value="135" />
-          <entry key="py" value="23205" />
+          <entry key="py" value="33654" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="Markdown" value="135" />
-          <entry key="Python" value="23205" />
+          <entry key="PLAIN_TEXT" value="4" />
+          <entry key="Python" value="33654" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="keller_lab.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="432">
-              <caret line="153" column="21" selection-start-line="153" selection-start-column="21" selection-end-line="153" selection-end-column="21" />
+            <state relative-caret-position="404">
+              <caret line="300" column="60" selection-start-line="300" selection-start-column="60" selection-end-line="300" selection-end-column="60" />
+              <folding>
+                <element signature="e#91#109#0" expanded="true" />
+                <marker date="1543950672958" expanded="true" signature="6998:7003" ph="..." />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="exp_reader.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/janelia_core/fileio/exp_reader.py">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="554">
-              <caret line="226" column="28" selection-start-line="226" selection-start-column="28" selection-end-line="226" selection-end-column="28" />
+            <state relative-caret-position="105">
+              <caret line="287" column="26" lean-forward="true" selection-start-line="287" selection-start-column="26" selection-end-line="287" selection-end-column="26" />
+              <folding>
+                <marker date="1544025721752" expanded="true" signature="9976:10457" ph="..." />
+                <marker date="1544025721752" expanded="true" signature="14574:14631" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/roi.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="455">
+              <caret line="161" column="28" lean-forward="true" selection-start-line="161" selection-start-column="28" selection-end-line="161" selection-end-column="28" />
             </state>
           </provider>
         </entry>
@@ -90,22 +114,24 @@
         <option value="$PROJECT_DIR$/janelia_core/cell_extraction/super_voxels.py" />
         <option value="$PROJECT_DIR$/janelia_core/cell_extraction/suite_2p.py" />
         <option value="$PROJECT_DIR$/janelia_core/fileio/ahrens_lab.py" />
-        <option value="$PROJECT_DIR$/janelia_core/fileio/keller_lab.py" />
-        <option value="$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py" />
         <option value="$PROJECT_DIR$/janelia_core/cell_extraction/roi.py" />
-        <option value="$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py" />
-        <option value="$PROJECT_DIR$/setup.py" />
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/janelia_core/math/gpu_fcns.py" />
+        <option value="$PROJECT_DIR$/setup.py" />
         <option value="$PROJECT_DIR$/janelia_core/fileio/exp_reader.py" />
+        <option value="$PROJECT_DIR$/janelia_core/fileio/keller_lab.py" />
+        <option value="$PROJECT_DIR$/../ahrens_glia/setup.py" />
+        <option value="$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py" />
+        <option value="$PROJECT_DIR$/janelia_core/dataprocessing/roi.py" />
+        <option value="$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="518" />
-    <option name="y" value="8" />
-    <option name="width" value="1924" />
-    <option name="height" value="1138" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="1554" />
+    <option name="y" value="12" />
+    <option name="width" value="1692" />
+    <option name="height" value="1250" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -128,6 +154,12 @@
               <item name="janelia_core" type="b2602c69:ProjectViewProjectNode" />
               <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
               <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
+              <item name="dataprocessing" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="janelia_core" type="b2602c69:ProjectViewProjectNode" />
+              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
+              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
               <item name="fileio" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -135,6 +167,12 @@
               <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
               <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
               <item name="math" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="janelia_core" type="b2602c69:ProjectViewProjectNode" />
+              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
+              <item name="janelia_core" type="462c0819:PsiDirectoryNode" />
+              <item name="visualization" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -178,39 +216,32 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1680" height="1027" extended-state="6" />
+    <frame x="1554" y="12" width="1692" height="1250" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.19345239" />
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
-      <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Version Control" order="7" />
-      <window_info anchor="bottom" id="Python Console" order="10" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.027811367" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Terminal" order="8" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Version Control" order="7" />
+      <window_info anchor="bottom" id="Terminal" order="8" />
+      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
+      <window_info anchor="bottom" id="Python Console" order="10" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3058">
-          <caret line="152" column="21" lean-forward="true" selection-start-line="152" selection-start-column="21" selection-end-line="152" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/playpin/estimate_brain_mask.ipynb">
       <provider selected="true" editor-type-id="ipnb-editor">
         <state>
@@ -276,21 +307,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="212">
-          <caret line="170" lean-forward="true" selection-start-line="170" selection-end-line="170" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/roi.py" />
-    <entry file="file://$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2997">
-          <caret line="123" column="47" selection-start-line="123" selection-start-column="47" selection-end-line="123" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
@@ -302,13 +318,6 @@
       </provider>
     </entry>
     <entry file="file://$USER_HOME$/AppData/Local/Continuum/anaconda3/envs/janelia_core/Lib/site-packages/torch/__init__.py" />
-    <entry file="file://$PROJECT_DIR$/setup.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="702">
-          <caret line="26" selection-start-line="26" selection-end-line="26" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/math/gpu_fcns.py" />
     <entry file="file://$PROJECT_DIR$/janelia_core/math/basic_functions.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -317,17 +326,54 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py">
+    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/keller_lab.py" />
+    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/exp_reader.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="432">
-          <caret line="153" column="21" selection-start-line="153" selection-start-column="21" selection-end-line="153" selection-end-column="21" />
+        <state relative-caret-position="654">
+          <caret line="163" selection-start-line="163" selection-end-line="163" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/janelia_core/fileio/exp_reader.py">
+    <entry file="file://$PROJECT_DIR$/setup.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="554">
-          <caret line="226" column="28" selection-start-line="226" selection-start-column="28" selection-end-line="226" selection-end-column="28" />
+        <state relative-caret-position="486">
+          <caret line="18" column="17" selection-start-line="18" selection-start-column="17" selection-end-line="18" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../ahrens_glia/setup.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="648">
+          <caret line="24" column="17" selection-start-line="24" selection-start-column="17" selection-end-line="24" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="404">
+          <caret line="300" column="60" selection-start-line="300" selection-start-column="60" selection-end-line="300" selection-end-column="60" />
+          <folding>
+            <element signature="e#91#109#0" expanded="true" />
+            <marker date="1543950672958" expanded="true" signature="6998:7003" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/roi.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="455">
+          <caret line="161" column="28" lean-forward="true" selection-start-line="161" selection-start-column="28" selection-end-line="161" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="287" column="26" lean-forward="true" selection-start-line="287" selection-start-column="26" selection-end-line="287" selection-end-column="26" />
+          <folding>
+            <marker date="1544025721752" expanded="true" signature="9976:10457" ph="..." />
+            <marker date="1544025721752" expanded="true" signature="14574:14631" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>

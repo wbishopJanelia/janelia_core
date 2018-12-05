@@ -6,6 +6,7 @@
 """
 
 import glob
+import os
 import pathlib
 import re
 from xml.etree import ElementTree as ET
@@ -159,78 +160,4 @@ def read_img_file(f_name: pathlib.Path, h5_data_group: str = 'default') -> np.nd
             return f[h5_data_group][:]
     else:
         raise ValueError('File is a ' + ext + ' file, which is not currently supported.')
-
-
-def process_wave_video_data_frame(datafame: pandas.DataFrame) -> list:
-    """ Produces compact annotations of waves from annotations loaded from a csv file.
-
-    This function is fairly rigidly written for annotations for the current Keller lab
-    format.
-
-    Args:
-        dataframe: A dataframe object loaded from a csv file.  This can be achieved by:
-            dataframe = pandas.read_csv(csv_file)
-
-    Returns:
-        annots: A list.  Each entry is a wave annotation.  When reading in the original
-        annotations, if an original annotation had multiple types listed for the same wave,
-        that annotation will be ignored.  Each entry in annots is a dictionary with the entries:
-           s: The start index of the wave (indices are 0 based, and index the original images)
-           e: The end index of the wave
-           type: A string indicating what type of wave it is
-           value: The value for the wave annotation in the original csv value
-    """
-    key_map = {'forward': 'forward wave',
-               'backward': 'Backward wave',
-               'hunch': 'Hunch',
-               'turn': 'Turn',
-               'other': 'Other'}
-
-    def process_row(i, r):
-        typ = None
-        vl = None
-        for k in key_map:
-            cur_vl = r[key_map[k]]
-            if pandas.notna(cur_vl):
-                if typ is not None:
-                    warn(RuntimeWarning('Found row with multiple types: Skipping row ' + str(i)))
-                    return None
-                typ = k
-                vl = cur_vl
-
-        return {'s': r['Start'] - 1, 'e': r['End'] - 1, 'type': typ, 'value': vl}
-
-    annots = [process_row(*r) for r in dataframe.iterrows()]
-
-    none_inds = np.where([a is None for a in annots])[0]
-    for i in sorted(none_inds, reverse=True):
-        del annots[i]
-
-    return annots
-
-
-def process_stimulus_inds(dataframe: pandas.DataFrame) -> list:
-    """ Processes stimulus annotations loaded from a csv file.
-
-    This function expects no header in the csv file and each line to contain
-    two values in the order start, end giving the start and end index of the
-    stimulus.  This function expects indexing *to be 1 based* and will convert to
-    0 based when it produces output.
-
-    Args:
-        dataframe: A dataframe object loaded from a csv file.  This can be achieved by:
-            dataframe = pandas.read_csv(csv_file)
-
-    Returns:
-        annots: A list.  Each entry is a stimulus event represented as a dictionary with the
-        keys:
-            s: the start index
-            e: the end index
-            type: A string which will always be 'stimulus'
-    """
-    stim_inds = list()
-    for row_ind, row in dataframe.iterrows():
-        stim_inds.append({'s': row['s'] - 1, 'e': row['e'] - 1, 'type': 'stimulus'})
-    return stim_inds
-
 

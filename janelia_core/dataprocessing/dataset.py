@@ -272,3 +272,48 @@ class ROIDataset(DataSet):
                 setattr(roi, label, self.ts_data[label]['vls'][:,roi_ind])
             rois[i] = roi
         return rois
+
+    def form_composite_rois(self, roi_groups:list, roi_weights:list) -> ROI:
+        """ Forms composite rois as linear combinations of rois in a dataset.
+
+        Args:
+            roi_groups: A list of roi groups to use in forming the composite roi.
+
+            roi_weihgts: a list of weights.  roi_weights[i] is a np.ndarray of weights for
+            the rois in roi_groups[i].  Weights should be listed in the same order as rois in the group
+            they are for.
+
+        Returns:
+            comp_roi: The composite roi
+
+        """
+
+        # Get maximum possible extent of the composite roi
+        min_bounds = [s.start for s in self.roi_groups[roi_groups[0]]['rois'][0].bounding_box()]
+        max_bounds = [s.stop for s in self.roi_groups[roi_groups[0]]['rois'][0].bounding_box()]
+        n_dims = len(min_bounds)
+        for grp_i, grp in enumerate(roi_groups):
+            grp_w = roi_weights[grp_i]
+            for w_i, roi in enumerate(self.roi_groups[grp]['rois']):
+                if grp_w[w_i] != 0:
+                    cur_min_bounds = [s.start for s in roi.bounding_box()]
+                    cur_max_bounds = [s.stop for s in roi.bounding_box()]
+                    min_bounds = [np.min([min_bounds[i], cur_min_bounds[i]]) for i in range(n_dims)]
+                    max_bounds = [np.max([max_bounds[i], cur_max_bounds[i]]) for i in range(n_dims)]
+
+        # Create the composite roi in an array
+        roi_side_lengths = [max_bounds[i] - min_bounds[i] for i in range(n_dims)]
+        comp_roi_array = np.zeros(roi_side_lengths)
+        for grp_i, grp in enumerate(roi_groups):
+            grp_w = roi_weights[grp_i]
+            for w_i, roi in enumerate(self.roi_groups[grp]['rois']):
+                if grp_w[w_i] != 0:
+                    roi_inds = list(roi.voxel_inds)
+                    for d in range(n_dims):
+                        roi_inds[d] = roi_inds[d] - min_bounds[d]
+                    roi_inds = tuple(roi_inds)
+                    comp_roi_array[roi_inds] = comp_roi_array[roi_inds] + roi.weights
+
+        # Create the composite roi object
+        return ROI.from_array(comp_roi_array, min_bounds)
+

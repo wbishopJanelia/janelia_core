@@ -31,6 +31,30 @@ class ROI():
         """
         return cls(**d)
 
+    @classmethod
+    def from_array(cls, arr: np.ndarray, start_inds: np.ndarray = None):
+        """ Create an ROI onbject from a numpy array.
+
+        Args:
+            arr: The array represnting the ROI.  Individual values are weights of voxels in the ROI.
+
+            start_inds: If not none, gives the index in a larger image the first index of each dimension
+            in arr corresponds to. When start_inds is None, this is equivelent to providing a start_inds of
+            all zeros.
+        """
+
+        n_dims = len(arr.shape)
+
+        if start_inds is None:
+            start_inds = np.zeros(n_dims, dtype=np.int)
+
+        nz_inds = list(np.where(arr))
+        for d in range(n_dims):
+            nz_inds[d] = nz_inds[d] + start_inds[d]
+
+        nz_inds = tuple(nz_inds)
+        return ROI(nz_inds, arr[nz_inds])
+
     def to_dict(self):
         """ Creates a dictionary from a ROI object.
 
@@ -111,3 +135,41 @@ class ROI():
         else:
             return self.weights
 
+    def slice_roi(self, plane_idx: int, dim: int = None):
+        """ Returns a slice of an ROI.
+
+        Args:
+            plane_idx: The index of the plane to slice
+
+            dim: The dimension which defines the plane.  If this is None, dim will be set to 0.
+
+        Returns:
+            new_roi: A new roi formed from slicing the roi this function was called on.
+        """
+        if dim is None:
+            dim = 0
+
+        n_dims = len(self.voxel_inds)
+
+        keep_inds = np.where(self.voxel_inds[dim] == plane_idx)[0]
+
+        new_voxel_inds = tuple([self.voxel_inds[d][keep_inds] for d in range(n_dims)])
+        new_weights = self.weights[keep_inds]
+
+        return ROI(new_voxel_inds, new_weights)
+
+    def intersect_plane(self, plane_idx: int, dim: int = None):
+        """ Tests if an ROI intersects a plane.
+
+        Args:
+            plane_idx: The index of the plane
+
+            dim: The dimension which defines the plane.  If this is None, dim will be set to 0.
+
+        Returns:
+            intersects: True if roi intersects the plane; false if otherwise
+        """
+        if dim is None:
+            dim = 0
+
+        return np.any(self.voxel_inds[dim] == plane_idx)

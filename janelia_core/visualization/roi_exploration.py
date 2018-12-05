@@ -36,19 +36,34 @@ class TimeLine(QWidget):
     # This signal emitted as the lines indicating selected time are dragged
     time_dragged = pyqtSignal(float)
 
-    def __init__(self, ts: np.ndarray, vls: np.ndarray):
+    def __init__(self, ts: np.ndarray, vls: np.ndarray, clrs: np.ndarray = None):
         """ Creates a new TimeLine object.
 
         Args:
             ts: A numpy array of time stamps.
 
-            vls: A numpy array of values.  Each row is a different signals.  Columns correspond to
+            vls: A numpy array of values.  Each column is a different signals.  Rows correspond to
             times in ts.
+
+            clrs: A n_signals*3 array, where n_sigmals is the number of signals in vls.  Each row
+            gives the color to plot the corresponding signal in vls in.  If this is None, all
+            signals will be white.
+
         """
         super().__init__()
 
         self.ts = ts
+
+        if len(vls.shape) == 1:
+            vls = np.reshape(vls, [vls.size, 1])
+
         self.vls = vls
+
+        if clrs is None:
+            n_sigs = vls.shape[1]
+            self.clrs = 255*np.ones([n_sigs, 3], dtype=int)
+        else:
+            self.clrs = clrs
 
     def init_ui(self):
         """ Initializes the user interface.
@@ -61,10 +76,10 @@ class TimeLine(QWidget):
         overview_plot = pg.PlotWidget()
         detail_plot = pg.PlotWidget()
 
-        n_sigs = self.vls.shape[0]
+        n_sigs = self.vls.shape[1]
         for s_i in range(n_sigs):
-            overview_plot.plot(self.ts, self.vls[s_i, :])
-            detail_plot.plot(self.ts, self.vls[s_i, :])
+            overview_plot.plot(self.ts, self.vls[:, s_i], pen=self.clrs[s_i, :])
+            detail_plot.plot(self.ts, self.vls[:, s_i], pen=self.clrs[s_i, :])
 
         # Add linear region to overview plot that selects the region shown in the detail plot
         sel_region = LinearRegionItem(movable=True, bounds=[t_min, t_max])
@@ -117,7 +132,7 @@ class ROIViewer(QWidget):
     """
     sigKeyPress = pyqtSignal(object)
 
-    def __init__(self, bg_img, rois, roi_vl_str='vls', clrs=None):
+    def __init__(self, bg_img, rois, roi_vl_str='vls', clrs=None, title:str = None):
         """ Creates an ROIViewer object.
 
         Args:
@@ -131,6 +146,8 @@ class ROIViewer(QWidget):
             clrs - If not note, a np.ndarray of shape n_rois * 3, where each row specifies the color of an roi.  The dtype
             clrs should be int. And all entries should be within 0 and 255.
 
+            title - An optional title to provide for the window
+
         """
         super().__init__()
 
@@ -138,6 +155,7 @@ class ROIViewer(QWidget):
         self.rois = rois
         self.roi_vl_str = roi_vl_str
         self.slider = QSlider(Qt.Horizontal)
+        self.title = title
 
         if clrs is None:
             n_rois = len(rois)
@@ -149,6 +167,9 @@ class ROIViewer(QWidget):
 
     def init_ui(self):
         """ Initializes and shows the interface for the ROIViewer."""
+
+        if self.title is not None:
+            self.setWindowTitle(self.title)
 
         n_tm_pts = len(getattr(self.rois[0], self.roi_vl_str))
 
@@ -262,3 +283,119 @@ class ROIViewer(QWidget):
         """ Overrides keyPressEvent of base class, so that we signal to this object that a key has been pressed."""
         self.sigKeyPress.emit(ev)
 
+
+class MultiPlaneROIViewer():
+    """ An object for viewing ROIs across multiple planes and roi groups.
+
+    This function allows for the visualization of a set of signals along with roi values across time.  The main window
+    consists of a TimeLine Widget showing the signals. There will be additional windows to show ROIs in each plane and
+    for each group. As the user moves the slider on this widget, roi values for the time the slider
+    corresponds to will be updated in the opacity of rois.
+    """
+
+    def __init__(self, ts: np.ndarray, vls: np.ndarray, roi_groups: list, bg_imgs: list, planes: list, clrs: list = None,
+                 roi_signals:list = None, roi_group_names: list = None):
+        """ Create a MultiPlaneROIViewer object.
+
+        Args:
+            ts: A numpy array of time stamps.
+
+            vls: A numpy array of values.  Each row is a different signals.  Columns correspond to
+            times in ts.
+
+            roi_groups: A list of roi_groups (e.g., neurons and glia).  Each list contains roi objects for the group.  These
+            roi objects should be supplemented with a 'vls' attribute containing the value of the roi at each point in ts.
+
+            bg_imgs: A list of back ground images.  bg_imgs[i] contains the background image to use for rois[i]
+
+            planes: A list. planes[i] is the indices of planes to show for rois in roi_groups[i]
+
+            clrs: A list.  clrs[i] contains a shape n_rois * 3 np.ndaray, where each row specifies the color of the
+            corresponding roi in rois[i].  The dtype of clrs should be int, and all entries should be within 0 and 255.
+            If clrs is None, then random colors will be assigned to the ROIs.
+
+            roi_signals: A list.  roi_signals[i] contains indices of rois in roi_groups[i] whose values should be plotted
+            along with those in the vls array.  If None, no roi values will be plotted.
+
+            roi_group_names: An optional list providing a name for each roi group.
+
+            """
+
+        self.ts = ts
+        self.roi_groups = roi_groups
+        self.bg_imgs = bg_imgs
+        self.planes = planes
+        self.roi_signals = roi_signals
+        self.roi_group_names = roi_group_names
+
+        if len(vls.shape) == 1:
+            vls = np.reshape(vls, [vls.size, 1])
+        self.vls = vls
+
+        if clrs is not None:
+            self.clrs = clrs
+        else:
+            clrs = list()
+            cnt = 0
+            for grp in roi_groups:
+                n_rois = len(grp)
+                grp_clrs = np.zeros([n_rois, 3], dtype=np.int)
+                for i in range(n_rois):
+                    clr_ind = cnt % roi_clrs.shape[0]
+                    grp_clrs[i, :] = roi_clrs[clr_ind, :]
+                    cnt += 1
+                clrs.append(grp_clrs)
+            self.clrs = clrs
+
+    def init_ui(self):
+        """ Initializes the UI. """
+
+        # Add roi signals to those we show in timeline if user has specified this
+        if self.roi_signals is not None:
+            roi_signals = list()
+            roi_clrs = list()
+            if self.roi_signals is not None:
+                for grp_ind, grp in enumerate(self.roi_groups):
+                    for roi_ind in self.roi_signals[grp_ind]:
+                        roi_signals.append(grp[roi_ind].vls)
+                        roi_clrs.append(self.clrs[grp_ind][roi_ind,:])
+            roi_signals = np.asarray(roi_signals).T
+            roi_clrs = np.asarray(roi_clrs)
+
+            sig_values = np.concatenate([self.vls, roi_signals], 1)
+            sig_clrs = np.concatenate([255*np.ones([self.vls.shape[1], 3]), roi_clrs], 0)
+
+        # Create timeline
+        tl = TimeLine(self.ts, sig_values, sig_clrs)
+        tl.init_ui()
+
+        # Create ROI Viewers for each plane in each roi group
+        def gen_roi_viewer(bg_image, grp, plane, grp_clrs, grp_name):
+            """ Helper function to create roi viewers for each plane and roi group and to
+            connect them to the timeline."""
+            plane_rois = list()
+            plane_clrs = list()
+            for roi_ind, roi in enumerate(grp):
+                if roi.intersect_plane(plane):
+                    plane_roi = roi.slice_roi(plane)
+                    plane_roi.vls = roi.vls
+                    plane_rois.append(plane_roi)
+                    plane_clrs.append(grp_clrs[roi_ind,:])
+            plane_clrs = np.asarray(plane_clrs)
+
+            rv = ROIViewer(bg_image[plane, :, :], plane_rois, clrs=plane_clrs,
+                           title=grp_name + ': ' + str(plane))
+            rv.init_ui()
+
+            def update_rv_time(ev):
+                rv.set_value(np.floor(ev))
+
+            tl.time_dragged.connect(update_rv_time)
+
+        for grp_ind, grp in enumerate(self.roi_groups):
+            for plane in self.planes[grp_ind]:
+                if self.roi_group_names is not None:
+                    group_name = self.roi_group_names[grp_ind]
+                else:
+                    group_name = 'Plane'
+                gen_roi_viewer(self.bg_imgs[grp_ind], grp, plane, self.clrs[grp_ind], group_name)

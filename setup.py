@@ -20,6 +20,7 @@ setup(
     "numpy",
 	"pyqtgraph",
 	"scikit-image",
+    "pandas",
 	"pyspark",
     "sphinx",
     ],
