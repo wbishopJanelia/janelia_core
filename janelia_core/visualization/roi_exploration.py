@@ -4,6 +4,8 @@
     bishopw@hhmi.org
 """
 
+import warnings
+
 import numpy as np
 import PyQt5
 from PyQt5.QtCore import Qt
@@ -132,13 +134,14 @@ class ROIViewer(QWidget):
     """
     sigKeyPress = pyqtSignal(object)
 
-    def __init__(self, bg_img, rois, roi_vl_str='vls', clrs=None, title:str = None):
+    def __init__(self, bg_img, rois, roi_vl_str='vls', clrs=None, title:str=None, roi_scale_f: np.float64=None):
         """ Creates an ROIViewer object.
 
         Args:
             bg_img: The background image.  Should be a 2-d numpy array (first dimension y, second dimension x).
 
-            rois: A list of ROI objects.
+            rois: A list of ROI objects. These should have a 'vls' field which stores the values of the ROI
+            across time.  vls should be between 0 and 1.
 
             roi_vl_str - If the values of the ROI across time are stored in a field with a different name than 'vls',
             the user can specify that with this argument.
@@ -148,6 +151,9 @@ class ROIViewer(QWidget):
 
             title - An optional title to provide for the window
 
+            roi_scale_f: If provided, the weights of all rois are divided by this factor to determine there alpha value
+            (which must be between 0 and 1).  If none, each roi is scaled individually by its max weight.
+
         """
         super().__init__()
 
@@ -156,6 +162,14 @@ class ROIViewer(QWidget):
         self.roi_vl_str = roi_vl_str
         self.slider = QSlider(Qt.Horizontal)
         self.title = title
+        self.roi_scale_f = roi_scale_f
+
+        for roi_ind, roi in enumerate(rois):
+            vls = getattr(roi, roi_vl_str)
+            min_vl = np.min(vls)
+            max_vl = np.max(vls)
+            if min_vl < 0 or max_vl > 1:
+                warnings.warn(RuntimeWarning('Roi ' + str(roi_ind) + ' has values outside of [0, 1].'))
 
         if clrs is None:
             n_rois = len(rois)
@@ -180,6 +194,7 @@ class ROIViewer(QWidget):
         # Add the background image to the image view
         bg_image_item = pg.ImageItem(self.mn_img)
         image_vew_box.addItem(bg_image_item)
+
 
         # Add the rois to the image view
         roi_image_items = [None]*len(self.rois)
@@ -268,15 +283,19 @@ class ROIViewer(QWidget):
         base_image[:, :, 0:3] = clr
 
         # Set alpha levels of pixels in the roi
-        norm_w = roi.list_all_weights()/np.max(roi.list_all_weights())
+        if self.roi_scale_f is None:
+            norm_w = roi.list_all_weights()/np.max(roi.list_all_weights())
+        else:
+            norm_w = roi.list_all_weights()/self.roi_scale_f
         base_image[shifted_roi_voxel_inds[0], shifted_roi_voxel_inds[1], 3] = np.ndarray.astype(norm_w*255, np.int)
 
         roi_image_item = pg.ImageItem(base_image, autoDownsample=True)
+        roi_image_item.setLevels([0, 255])
 
         img_rect = pg.QtCore.QRect(dim_starts[0], dim_starts[1], side_lengths[0], side_lengths[1])
         roi_image_item.setRect(img_rect)
 
-        roi_image_item.setOpacity(.2)
+        roi_image_item.setOpacity(.5)
         return roi_image_item
 
     def keyPressEvent(self, ev):
@@ -294,7 +313,7 @@ class MultiPlaneROIViewer():
     """
 
     def __init__(self, ts: np.ndarray, vls: np.ndarray, roi_groups: list, bg_imgs: list, planes: list, clrs: list = None,
-                 roi_signals:list = None, roi_group_names: list = None):
+                 roi_signals:list = None, roi_group_names: list=None, roi_scale_fs: list=None):
         """ Create a MultiPlaneROIViewer object.
 
         Args:
@@ -319,6 +338,10 @@ class MultiPlaneROIViewer():
 
             roi_group_names: An optional list providing a name for each roi group.
 
+            roi_scale_fs: If provided, a list.  Each entry contains a factor by which the weights of all rois in
+            the corresponding group are divided by to determine there alpha value (which must be between 0 and 1).
+            If none, each roi is scaled individually by its max weight.
+
             """
 
         self.ts = ts
@@ -327,6 +350,10 @@ class MultiPlaneROIViewer():
         self.planes = planes
         self.roi_signals = roi_signals
         self.roi_group_names = roi_group_names
+
+        if roi_scale_fs is None:
+            roi_scale_fs = [None]*len(roi_group_names)
+        self.roi_scale_fs = roi_scale_fs
 
         if len(vls.shape) == 1:
             vls = np.reshape(vls, [vls.size, 1])
@@ -370,7 +397,7 @@ class MultiPlaneROIViewer():
         tl.init_ui()
 
         # Create ROI Viewers for each plane in each roi group
-        def gen_roi_viewer(bg_image, grp, plane, grp_clrs, grp_name):
+        def gen_roi_viewer(bg_image, grp, plane, grp_clrs, grp_name, roi_scale_f):
             """ Helper function to create roi viewers for each plane and roi group and to
             connect them to the timeline."""
             plane_rois = list()
@@ -384,11 +411,16 @@ class MultiPlaneROIViewer():
             plane_clrs = np.asarray(plane_clrs)
 
             rv = ROIViewer(bg_image[plane, :, :], plane_rois, clrs=plane_clrs,
-                           title=grp_name + ': ' + str(plane))
+                           title=grp_name + ': ' + str(plane), roi_scale_f=roi_scale_f)
             rv.init_ui()
 
             def update_rv_time(ev):
-                rv.set_value(np.floor(ev))
+                small_inds = np.nonzero(self.ts - ev < 0)[0]
+                if small_inds.size == 0:
+                    idx = 0
+                else:
+                    idx = small_inds[-1]
+                rv.set_value(idx)
 
             tl.time_dragged.connect(update_rv_time)
 
@@ -398,4 +430,4 @@ class MultiPlaneROIViewer():
                     group_name = self.roi_group_names[grp_ind]
                 else:
                     group_name = 'Plane'
-                gen_roi_viewer(self.bg_imgs[grp_ind], grp, plane, self.clrs[grp_ind], group_name)
+                gen_roi_viewer(self.bg_imgs[grp_ind], grp, plane, self.clrs[grp_ind], group_name, self.roi_scale_fs[grp_ind])

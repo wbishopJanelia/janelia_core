@@ -279,7 +279,7 @@ class ROIDataset(DataSet):
         Args:
             roi_groups: A list of roi groups to use in forming the composite roi.
 
-            roi_weihgts: a list of weights.  roi_weights[i] is a np.ndarray of weights for
+            roi_weights: a list of weights.  roi_weights[i] is a np.ndarray of weights for
             the rois in roi_groups[i].  Weights should be listed in the same order as rois in the group
             they are for.
 
@@ -312,7 +312,7 @@ class ROIDataset(DataSet):
                     for d in range(n_dims):
                         roi_inds[d] = roi_inds[d] - min_bounds[d]
                     roi_inds = tuple(roi_inds)
-                    comp_roi_array[roi_inds] = comp_roi_array[roi_inds] + roi.weights
+                    comp_roi_array[roi_inds] = comp_roi_array[roi_inds] + grp_w[w_i]*roi.weights
 
         # Create the composite roi object
         return ROI.from_array(comp_roi_array, min_bounds)

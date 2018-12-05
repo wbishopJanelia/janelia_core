@@ -49,6 +49,7 @@ class ROI():
             start_inds = np.zeros(n_dims, dtype=np.int)
 
         nz_inds = list(np.where(arr))
+
         for d in range(n_dims):
             nz_inds[d] = nz_inds[d] + start_inds[d]
 

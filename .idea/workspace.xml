@@ -2,13 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="69a31846-1df4-4f64-a0d0-84c2a069ff47" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/janelia_core/dataprocessing/roi.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/dataprocessing/roi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/janelia_core/fileio/exp_reader.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/fileio/exp_reader.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/janelia_core/fileio/keller_lab.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -20,7 +16,7 @@
     <session id="-2006470994">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="14" />
+          <entry key="project.closed" value="15" />
           <entry key="project.open.time.3" value="2" />
           <entry key="project.open.time.4" value="11" />
           <entry key="project.open.time.5" value="2" />
@@ -45,14 +41,14 @@
         <counts>
           <entry key="dummy" value="4" />
           <entry key="md" value="135" />
-          <entry key="py" value="33654" />
+          <entry key="py" value="35654" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="Markdown" value="135" />
           <entry key="PLAIN_TEXT" value="4" />
-          <entry key="Python" value="33654" />
+          <entry key="Python" value="35654" />
         </counts>
       </usages-collector>
     </session>
@@ -62,11 +58,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="404">
-              <caret line="300" column="60" selection-start-line="300" selection-start-column="60" selection-end-line="300" selection-end-column="60" />
+            <state relative-caret-position="3105">
+              <caret line="310" column="51" lean-forward="true" selection-start-line="310" selection-start-column="51" selection-end-line="310" selection-end-column="51" />
               <folding>
                 <element signature="e#91#109#0" expanded="true" />
-                <marker date="1543950672958" expanded="true" signature="6998:7003" ph="..." />
+                <marker date="1544030376295" expanded="true" signature="6998:7003" ph="..." />
               </folding>
             </state>
           </provider>
@@ -75,11 +71,12 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="287" column="26" lean-forward="true" selection-start-line="287" selection-start-column="26" selection-end-line="287" selection-end-column="26" />
+            <state relative-caret-position="861">
+              <caret line="432" column="123" selection-start-line="432" selection-start-column="123" selection-end-line="432" selection-end-column="123" />
               <folding>
-                <marker date="1544025721752" expanded="true" signature="9976:10457" ph="..." />
-                <marker date="1544025721752" expanded="true" signature="14574:14631" ph="..." />
+                <element signature="e#85#100#0" expanded="true" />
+                <marker date="1544034113233" expanded="true" signature="10871:11352" ph="..." />
+                <marker date="1544034113233" expanded="true" signature="16154:16202" ph="..." />
               </folding>
             </state>
           </provider>
@@ -88,8 +85,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/roi.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="455">
-              <caret line="161" column="28" lean-forward="true" selection-start-line="161" selection-start-column="28" selection-end-line="161" selection-end-column="28" />
+            <state relative-caret-position="690">
+              <caret line="150" column="19" lean-forward="true" selection-start-line="150" selection-start-column="19" selection-end-line="150" selection-end-column="19" />
             </state>
           </provider>
         </entry>
@@ -217,7 +214,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="1554" y="12" width="1692" height="1250" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.027811367" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -350,29 +346,30 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/dataset.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="404">
-          <caret line="300" column="60" selection-start-line="300" selection-start-column="60" selection-end-line="300" selection-end-column="60" />
+        <state relative-caret-position="3105">
+          <caret line="310" column="51" lean-forward="true" selection-start-line="310" selection-start-column="51" selection-end-line="310" selection-end-column="51" />
           <folding>
             <element signature="e#91#109#0" expanded="true" />
-            <marker date="1543950672958" expanded="true" signature="6998:7003" ph="..." />
+            <marker date="1544030376295" expanded="true" signature="6998:7003" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/dataprocessing/roi.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="455">
-          <caret line="161" column="28" lean-forward="true" selection-start-line="161" selection-start-column="28" selection-end-line="161" selection-end-column="28" />
+        <state relative-caret-position="690">
+          <caret line="150" column="19" lean-forward="true" selection-start-line="150" selection-start-column="19" selection-end-line="150" selection-end-column="19" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/visualization/roi_exploration.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="287" column="26" lean-forward="true" selection-start-line="287" selection-start-column="26" selection-end-line="287" selection-end-column="26" />
+        <state relative-caret-position="861">
+          <caret line="432" column="123" selection-start-line="432" selection-start-column="123" selection-end-line="432" selection-end-column="123" />
           <folding>
-            <marker date="1544025721752" expanded="true" signature="9976:10457" ph="..." />
-            <marker date="1544025721752" expanded="true" signature="14574:14631" ph="..." />
+            <element signature="e#85#100#0" expanded="true" />
+            <marker date="1544034113233" expanded="true" signature="10871:11352" ph="..." />
+            <marker date="1544034113233" expanded="true" signature="16154:16202" ph="..." />
           </folding>
         </state>
       </provider>
