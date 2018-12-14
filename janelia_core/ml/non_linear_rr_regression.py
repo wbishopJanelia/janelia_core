@@ -56,8 +56,10 @@ class NonLinearRRRegresion(torch.nn.Module):
     def init_weights(self):
         """ Randomly initializes all model parameters."""
         for param_name, param in self.named_parameters():
-            if param_name in {'v', 'g'}:
+            if param_name in {'v'}:
                 param.data.uniform_(0, 1)
+            elif param_name in {'g'}:
+                param.data.uniform_(0, 10)
             else:
                 param.data.normal_(0, 1)
 
