@@ -5,7 +5,14 @@ rank regression.
     bishopw@hhmi.org
 """
 
+import time
+
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
+
+from janelia_core.visualization.matrix_visualization import cmp_n_mats
 
 
 class NonLinearRRRegresion(torch.nn.Module):
@@ -101,12 +108,13 @@ class NonLinearRRRegresion(torch.nn.Module):
             noise = torch.randn_like(mns)*torch.sqrt(self.v)
             return mns + noise
 
-    def neg_log_likelihood(self, y, mns):
+    def neg_log_likelihood(self, y: torch.Tensor, mns: torch.Tensor):
         """ Calculates the negative log-likelihood of observed data, given conditional means for that
         data up to a constant.
 
         Note: This function does not compute the term .5*n_smps*log(2*pi).  Add this term in
-        if you want the exact log likelihood
+        if you want the exact log likelihood.  Also, this function divides the negative log likelihood
+        by the number of samples.
 
         This function can be used as a loss, using the output of forward for mns and setting
         y to be observed data.  Using this function as loss will give (subject to local optima)
@@ -122,7 +130,77 @@ class NonLinearRRRegresion(torch.nn.Module):
         """
 
         n_smps = y.shape[0]
-        return .5*n_smps*torch.sum(torch.log(self.v)) + .5*torch.sum(((y - mns)**2)/self.v)
+        return .5*torch.sum(torch.log(self.v)) + .5*torch.sum(((y - mns)**2)/self.v)/n_smps
+
+    def fit(self, x: torch.Tensor, y: torch.Tensor, batch_size: int=100, max_its: int=10,
+            adam_params: dict = {'lr': .01}):
+        """ Fits a model to data.
+
+        This function performs stochastic optimization with the ADAM algorithm.  The weights of the model
+        should be initialized before calling this function.
+
+        Optimization will be perfomed on whatever device the model parameters are on.
+
+        Args:
+
+            x: Tensor of input data of shape n_smps*d_in
+
+            y: Tensor of output data of shape n_smps*d_out
+
+            batch_size: The number of samples to train on during each iteration
+
+            max_its: The maximum number of iterations to run
+
+            adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object
+
+            """
+
+        device = self.g.device
+
+        optimizer = torch.optim.Adam(self.parameters(), **adam_params)
+
+        n_smps = x.shape[0]
+        cur_it = 0
+        start_time = time.time()
+
+        elapsed_time_log = np.zeros(max_its)
+        nll_log = np.zeros(max_its)
+
+        while cur_it < max_its:
+
+            # Chose the samples for this iteration
+            cur_smps = np.random.choice(n_smps, batch_size, replace=False)
+            send_start = time.time()
+            batch_x = x[cur_smps, :].to(device)
+            batch_y = y[cur_smps, :].to(device)
+            send_end = time.time()
+            print('Data send time: ' + str(send_end - send_start))
+
+            # Perform optimization for this step
+            opt_start = time.time()
+            optimizer.zero_grad()
+            mns = self(batch_x.data)
+            nll = self.neg_log_likelihood(batch_y.data, mns)
+            nll.backward()
+            optimizer.step()
+            opt_end = time.time()
+            print('Optimization time: ' + str(opt_end - opt_start))
+
+            # Log our progress
+            log_start = time.time()
+            elapsed_time = time.time() - start_time
+            elapsed_time_log[cur_it] = elapsed_time
+            cur_nll = nll.cpu().data.detach().numpy()
+            nll_log[cur_it] = cur_nll
+            log_end = time.time()
+            print('Logging time: ' + str(log_end - log_start))
+
+            # Provide user with some feedback
+            if cur_it % 1 == 0:
+                print(str(cur_it) + ': Elapsed time ' + str(elapsed_time) +
+                      ', vl: ' + str(cur_nll))
+
+            cur_it += 1
 
     def standardize(self):
         """ Puts the model in a standard form.
@@ -141,6 +219,7 @@ class NonLinearRRRegresion(torch.nn.Module):
         # Standardize with respect to gains
         for i in range(len(self.g)):
             if self.g[i] < 0:
+                print('Changing sign of gain ' + str(i))
                 self.w1.data[i, :] = -1*self.w1.data[i, :]
                 self.o1.data[i] = -1*self.o1.data[i]
                 self.o2.data[i] = self.o2.data[i] + self.g.data[i]
@@ -150,3 +229,86 @@ class NonLinearRRRegresion(torch.nn.Module):
         [u1, s1, v1] = torch.svd(self.w1.data, some=True)
         self.w1.data = u1
         self.w0.data = torch.matmul(torch.matmul(self.w0.data, v1), torch.diag(s1))
+
+    @staticmethod
+    def compare_models(m1, m2, x: torch.Tensor = None, plot_vars: int = 2):
+        """ Visually compares two models.
+
+        Args:
+            m1: The fist model
+
+            m2: The second model
+
+            x: Input to test the models on.  The conditional means for both model will be plotted for this input if
+            provided.
+
+            plot_vars: Indices of variables to plot if plotting conditional means. If this None, the first (up to) two
+            variables will be plotted.
+
+        """
+
+        ROW_SPAN = 14  # Number of rows in the gridspec
+        COL_SPAN = 12 # Number of columns in the gridspec
+
+        grid_spec = matplotlib.gridspec.GridSpec(ROW_SPAN, COL_SPAN)
+
+        def _make_subplot(loc, r_span, c_span, d1, d2, title):
+            subplot = plt.subplot(grid_spec.new_subplotspec(loc, r_span, c_span))
+            subplot.plot(d1, 'b-')
+            subplot.plot(d2, 'r-')
+            subplot.title = plt.title(title)
+
+        def _make_weight_subplots(loc, r_span, c_span, w, title):
+            subplot = plt.subplot(grid_spec.new_subplotspec(loc, r_span, c_span))
+            subplot.imshow(w)
+            subplot.title = plt.title(title)
+
+        # Make plots of scalar variables
+        _make_subplot([0, 0], 2, 2, m1.g.detach().numpy(), m2.g.detach().numpy(), 'g')
+        _make_subplot([3,0], 2, 2, m1.o2.detach().numpy(), m2.o2.detach().numpy(), 'o2')
+        _make_subplot([6, 0], 2, 2, m1.o1.detach().numpy(), m2.o1.detach().numpy(), 'o1')
+        _make_subplot([9, 0], 2, 2, m1.v.detach().numpy(), m2.v.detach().numpy(), 'v')
+
+        # Make plots of w1 matrices
+        m1_w1 = m1.w1.detach().numpy()
+        m2_w1 = m2.w1.detach().numpy()
+        w1_diff = m1_w1 - m2_w1
+        w1_grid_info = {'grid_spec': grid_spec}
+        w1_cell_info = list()
+        w1_cell_info.append({'loc': [0, 2], 'rowspan': 10, 'colspan': 1})
+        w1_cell_info.append({'loc': [0, 4], 'rowspan': 10, 'colspan': 1})
+        w1_cell_info.append({'loc': [0, 6], 'rowspan': 10, 'colspan': 1})
+        w1_grid_info['cell_info'] = w1_cell_info
+        cmp_n_mats([m1_w1, m2_w1, w1_diff], show_colorbars=True, titles=['m1_w1', 'm2_w1', 'm1_w1 - m2_w1'], grid_info=w1_grid_info)
+
+        # Make plots of w0 matrices
+        m1_w0 = m1.w0.detach().numpy().T
+        m2_w0 = m2.w0.detach().numpy().T
+        w0_diff = m1_w0 - m2_w0
+        w0_grid_info = {'grid_spec': grid_spec}
+        w0_cell_info = list()
+        w0_cell_info.append({'loc': [0, 8], 'rowspan': 1, 'colspan': COL_SPAN-8+1})
+        w0_cell_info.append({'loc': [2, 8], 'rowspan': 1, 'colspan': COL_SPAN-8+1})
+        w0_cell_info.append({'loc': [4, 8], 'rowspan': 1, 'colspan': COL_SPAN-8+1})
+        w0_grid_info['cell_info'] = w0_cell_info
+        cmp_n_mats([m1_w0, m2_w0, w0_diff], show_colorbars=True, titles=['m1_w0', 'm2_w0', 'm1_w0 - m2_w0'],
+                   grid_info=w0_grid_info)
+
+        # Make plot of model output
+        if x is not None:
+            m1_mns = m1(x).detach().numpy()
+            m2_mns = m2(x).detach().numpy()
+            mns_plot = plt.subplot(grid_spec.new_subplotspec([12, 0], 2, COL_SPAN))
+
+            if plot_vars is None:
+                n_vars = m1_mns.shape[1]
+                plot_vars = range(0, np.min([2, n_vars]))
+
+            if len(plot_vars) != 0:
+                for v_i in plot_vars:
+                    v1_plot = mns_plot.plot(m1_mns[:, v_i])
+                    v2_plot = mns_plot.plot(m2_mns[:, v_i], 'o')
+                    v2_plot[0].set_color(v1_plot[0].get_color())
+
+
+
