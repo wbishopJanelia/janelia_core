@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bf7ea4cb-b77c-40a2-bf96-a3d505e7c467" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/development/sigmoidRRRegression.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/development/sigmoidRRRegression.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/janelia_core/ml/non_linear_rr_regression.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/ml/reduced_rank_models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/janelia_core/ml/reduced_rank_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/ml/reduced_rank_models.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -16,11 +15,11 @@
     <session id="-2006470994">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="5" />
+          <entry key="project.closed" value="6" />
           <entry key="project.open.time.3" value="1" />
-          <entry key="project.open.time.4" value="2" />
+          <entry key="project.open.time.4" value="3" />
           <entry key="project.open.time.5" value="3" />
-          <entry key="project.opened" value="6" />
+          <entry key="project.opened" value="7" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -38,13 +37,13 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="23" />
-          <entry key="py" value="15675" />
+          <entry key="py" value="16503" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="23" />
-          <entry key="Python" value="15675" />
+          <entry key="Python" value="16503" />
         </counts>
       </usages-collector>
     </session>
@@ -54,12 +53,12 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/janelia_core/ml/reduced_rank_models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="202">
-              <caret line="88" column="17" lean-forward="true" selection-start-line="88" selection-start-column="17" selection-end-line="88" selection-end-column="17" />
+            <state relative-caret-position="175">
+              <caret line="300" column="108" selection-start-line="300" selection-start-column="108" selection-end-line="300" selection-end-column="108" />
               <folding>
-                <element signature="e#151#162#0" expanded="true" />
-                <marker date="1545256267761" expanded="true" signature="356:12525" ph="..." />
-                <marker date="1545256267761" expanded="true" signature="3004:4166" ph="..." />
+                <marker date="1545261326098" expanded="true" signature="356:13557" ph="..." />
+                <marker date="1545261326098" expanded="true" signature="3004:4166" ph="..." />
+                <marker date="1545261326098" expanded="true" signature="10375:10929" ph="..." />
               </folding>
             </state>
           </provider>
@@ -87,9 +86,9 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="917" />
-    <option name="y" value="21" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="-1" />
+    <option name="y" value="53" />
     <option name="width" value="2496" />
     <option name="height" value="1275" />
   </component>
@@ -158,9 +157,9 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="917" y="21" width="2496" height="1275" extended-state="0" />
+    <frame x="-8" y="-8" width="1696" height="1026" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.09357201" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.070566945" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -231,12 +230,12 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/ml/reduced_rank_models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="202">
-          <caret line="88" column="17" lean-forward="true" selection-start-line="88" selection-start-column="17" selection-end-line="88" selection-end-column="17" />
+        <state relative-caret-position="175">
+          <caret line="300" column="108" selection-start-line="300" selection-start-column="108" selection-end-line="300" selection-end-column="108" />
           <folding>
-            <element signature="e#151#162#0" expanded="true" />
-            <marker date="1545256267761" expanded="true" signature="356:12525" ph="..." />
-            <marker date="1545256267761" expanded="true" signature="3004:4166" ph="..." />
+            <marker date="1545261326098" expanded="true" signature="356:13557" ph="..." />
+            <marker date="1545261326098" expanded="true" signature="3004:4166" ph="..." />
+            <marker date="1545261326098" expanded="true" signature="10375:10929" ph="..." />
           </folding>
         </state>
       </provider>

@@ -250,10 +250,16 @@ class RRLinearModel(torch.nn.Module):
             The values of w1 and w2 are not fully determined.  The svd of w1 = u1*s1*v1.T will be performed (where s1
             is a non-negative diagonal matrix) and then w1 will be set w1=u1 and w0 will be set w0 = wo*s1*v1
         """
+        latent_dim = self.w0.shape[1]
 
-        [u1, s1, v1] = torch.svd(self.w1.data, some=True)
-        self.w1.data = u1
-        self.w0.data = torch.matmul(torch.matmul(self.w0.data, v1), torch.diag(s1))
+        with torch.no_grad():
+            [u1, s1, v1] = torch.svd(torch.matmul(self.w1.data, torch.t(self.w0.data)), some=True)
+            sorted_s1, sorted_inds = torch.sort(s1, descending=True)
+            s1 = s1[sorted_inds[0:latent_dim]]
+            u1 = u1[:, sorted_inds[0:latent_dim]]
+            v1 = v1[:, sorted_inds[0:latent_dim]]
+            self.w1.data = u1
+            self.w0.data = torch.matmul(v1, torch.diag(s1))
 
     @staticmethod
     def compare_models(m1, m2, x: torch.Tensor = None, plot_vars: int = 2):
@@ -288,6 +294,17 @@ class RRLinearModel(torch.nn.Module):
             subplot.imshow(w)
             subplot.title = plt.title(title)
 
+        def _flip_signs(m1_w0, m2_w0, m1_w1, m2_w1):
+            n_dims = m1_w1.shape[1]
+            for d_i in range(n_dims):
+                e1 = np.sum((m1_w0[:, d_i] - m2_w0[:, d_i])**2) + np.sum((m1_w1[:, d_i] - m2_w1[:, d_i])**2)
+                e2 = np.sum((m1_w0[:, d_i] + m2_w0[:, d_i])**2) + np.sum((m1_w1[:, d_i] + m2_w1[:, d_i])**2)
+                if e2 < e1:
+                    print('Flipping signs for dimension ' + str(d_i))
+                    m2_w0[:, d_i] = -1*m2_w0[:, d_i]
+                    m2_w1[:, d_i] = -1*m2_w1[:, d_i]
+            return [m1_w0, m2_w0, m1_w1, m2_w1]
+
         # Make plots of scalar variables
         if hasattr(m1, 'g'):
             _make_subplot([0, 0], 2, 2, m1.g.detach().numpy(), m2.g.detach().numpy(), 'g')
@@ -298,9 +315,14 @@ class RRLinearModel(torch.nn.Module):
         if hasattr(m1, 'v'):
             _make_subplot([9, 0], 2, 2, m1.v.detach().numpy(), m2.v.detach().numpy(), 'v')
 
-        # Make plots of w1 matrices
+        # Flip signs of weight matrices if needed
+        m1_w0 = m1.w0.detach().numpy().T
+        m2_w0 = m2.w0.detach().numpy().T
         m1_w1 = m1.w1.detach().numpy()
         m2_w1 = m2.w1.detach().numpy()
+        m1_w0, m2_w0, m1_w1, m2_w1 = _flip_signs(m1_w0, m2_w0, m1_w1, m2_w1)
+
+        # Make plots of w1 matrices
         w1_diff = m1_w1 - m2_w1
         w1_grid_info = {'grid_spec': grid_spec}
         w1_cell_info = list()
@@ -312,8 +334,7 @@ class RRLinearModel(torch.nn.Module):
                    grid_info=w1_grid_info)
 
         # Make plots of w0 matrices
-        m1_w0 = m1.w0.detach().numpy().T
-        m2_w0 = m2.w0.detach().numpy().T
+
         w0_diff = m1_w0 - m2_w0
         w0_grid_info = {'grid_spec': grid_spec}
         w0_cell_info = list()
