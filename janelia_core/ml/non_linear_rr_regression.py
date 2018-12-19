@@ -15,7 +15,7 @@ import torch
 from janelia_core.visualization.matrix_visualization import cmp_n_mats
 
 
-class NonLinearRRRegresion(torch.nn.Module):
+class SigmoidRRRegresion(torch.nn.Module):
     """ Basic sigmoidal non-linear reduced rank regression.
 
     Fits models of the form:
@@ -30,7 +30,7 @@ class NonLinearRRRegresion(torch.nn.Module):
     """
 
     def __init__(self, d_in: int, d_out: int, d_latent: int):
-        """ Create a NonLinearRRRegrssion object.
+        """ Create a SigmoidRRRegrssion object.
 
         Args:
             d_in: Input dimensionality
@@ -50,25 +50,78 @@ class NonLinearRRRegresion(torch.nn.Module):
         o1 = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
         self.register_parameter('o1', o1)
 
-        g = torch.nn.Parameter(torch.zeros([d_out]), requires_grad=True)
+        g = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
         self.register_parameter('g', g)
 
         o2 = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
         self.register_parameter('o2', o2)
 
         # v is the *variances* of each noise term
-        v = torch.nn.Parameter(torch.zeros([d_out]), requires_grad=True)
+        v = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
         self.register_parameter('v', v)
 
-    def init_weights(self):
-        """ Randomly initializes all model parameters."""
+    def init_weights(self, y: torch.Tensor):
+        """ Randomly initializes all model parameters based on data.
+
+        This function should be called before model fitting.
+
+        Args:
+            y: Output data that the model will be fit to of shape n_smps*d_out
+
+        Raise:
+            NotImplementedError: If a parameter of the model exists for which initialization code
+            does not exist.
+        """
+
+        d_in = self.w0.shape[0]
+        d_out = self.w1.shape[0]
+
+        var_variance = np.reshape(np.var(y.numpy(), 0), [d_out, 1])
+        var_mean = np.reshape(np.mean(y.numpy(), 0), [d_out,1])
+
+        for param_name, param in self.named_parameters():
+            if param_name in {'v', 'g'}:
+                param.data = torch.from_numpy(var_variance/2)
+            elif param_name in {'o2'}:
+                param.data = torch.from_numpy(var_mean/2)
+            elif param_name in {'o1'}:
+                param.data = torch.zeros_like(param.data)
+            elif param_name in {'w0'}:
+                param.data.normal_(0, 1/np.sqrt(d_in))
+            elif param_name in {'w1'}:
+                param.data.normal_(0, 1/np.sqrt(d_out))
+            else:
+                raise(NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
+
+    def random_weights(self):
+        """ Function to randomly generate parameters for a model.
+
+        Use init_weights() to initialize the model before model fitting.  The purpose of this
+        function is to generate a random model for testing code testing purposes.
+
+        Raise:
+            NotImplementedError: If a parameter of the model exists for which initialization code
+            does not exist.
+        """
+
+        d_in = self.w0.shape[0]
+        d_out = self.w1.shape[0]
+
         for param_name, param in self.named_parameters():
             if param_name in {'v'}:
-                param.data.uniform_(0, 1)
+                param.data.uniform_(.5, 1)
             elif param_name in {'g'}:
-                param.data.uniform_(0, 10)
-            else:
+                param.data.uniform_(5, 10)
+            elif param_name in {'o1'}:
                 param.data.normal_(0, 1)
+            elif param_name in {'o2'}:
+                param.data.uniform_(15, 20)
+            elif param_name in {'w0'}:
+                param.data.normal_(0, 1/np.sqrt(d_in))
+            elif param_name in {'w1'}:
+                param.data.normal_(0, 1/np.sqrt(d_out))
+            else:
+                raise (NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """ Computes output means condition on x.
@@ -86,7 +139,7 @@ class NonLinearRRRegresion(torch.nn.Module):
         x = torch.matmul(self.w1, x)
         x = x + self.o1
         x = torch.sigmoid(x)
-        x = torch.matmul(torch.diag(self.g), x)
+        x = self.g*x
         x = x + self.o2
         return torch.t(x)
 
@@ -105,7 +158,7 @@ class NonLinearRRRegresion(torch.nn.Module):
         """
         with torch.no_grad():
             mns = self.forward(x)
-            noise = torch.randn_like(mns)*torch.sqrt(self.v)
+            noise = torch.randn_like(mns)*torch.sqrt(torch.t(self.v))
             return mns + noise
 
     def neg_log_likelihood(self, y: torch.Tensor, mns: torch.Tensor):
@@ -130,10 +183,10 @@ class NonLinearRRRegresion(torch.nn.Module):
         """
 
         n_smps = y.shape[0]
-        return .5*torch.sum(torch.log(self.v)) + .5*torch.sum(((y - mns)**2)/self.v)/n_smps
+        return .5*torch.sum(torch.log(self.v)) + .5*torch.sum(((y - mns)**2)/torch.t(self.v))/n_smps
 
     def fit(self, x: torch.Tensor, y: torch.Tensor, batch_size: int=100, max_its: int=10,
-            adam_params: dict = {'lr': .01}):
+            adam_params: dict = {'lr': .01}, update_int: int = 1000):
         """ Fits a model to data.
 
         This function performs stochastic optimization with the ADAM algorithm.  The weights of the model
@@ -153,6 +206,8 @@ class NonLinearRRRegresion(torch.nn.Module):
 
             adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object
 
+            update_int: The interval of iterations we update the user on.
+
             """
 
         device = self.g.device
@@ -170,33 +225,24 @@ class NonLinearRRRegresion(torch.nn.Module):
 
             # Chose the samples for this iteration
             cur_smps = np.random.choice(n_smps, batch_size, replace=False)
-            send_start = time.time()
             batch_x = x[cur_smps, :].to(device)
             batch_y = y[cur_smps, :].to(device)
-            send_end = time.time()
-            print('Data send time: ' + str(send_end - send_start))
 
             # Perform optimization for this step
-            opt_start = time.time()
             optimizer.zero_grad()
             mns = self(batch_x.data)
             nll = self.neg_log_likelihood(batch_y.data, mns)
             nll.backward()
             optimizer.step()
-            opt_end = time.time()
-            print('Optimization time: ' + str(opt_end - opt_start))
 
             # Log our progress
-            log_start = time.time()
             elapsed_time = time.time() - start_time
             elapsed_time_log[cur_it] = elapsed_time
             cur_nll = nll.cpu().data.detach().numpy()
             nll_log[cur_it] = cur_nll
-            log_end = time.time()
-            print('Logging time: ' + str(log_end - log_start))
 
             # Provide user with some feedback
-            if cur_it % 1 == 0:
+            if cur_it % update_int == 0:
                 print(str(cur_it) + ': Elapsed time ' + str(elapsed_time) +
                       ', vl: ' + str(cur_nll))
 
