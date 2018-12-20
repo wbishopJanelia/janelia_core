@@ -307,19 +307,19 @@ class RRLinearModel(torch.nn.Module):
 
         # Make plots of scalar variables
         if hasattr(m1, 'g'):
-            _make_subplot([0, 0], 2, 2, m1.g.detach().numpy(), m2.g.detach().numpy(), 'g')
+            _make_subplot([0, 0], 2, 2, m1.g.cpu().detach().numpy(), m2.g.cpu().detach().numpy(), 'g')
         if hasattr(m1, 'o2'):
-            _make_subplot([3, 0], 2, 2, m1.o2.detach().numpy(), m2.o2.detach().numpy(), 'o2')
+            _make_subplot([3, 0], 2, 2, m1.o2.cpu().detach().numpy(), m2.o2.cpu().detach().numpy(), 'o2')
         if hasattr(m1, 'o1'):
-            _make_subplot([6, 0], 2, 2, m1.o1.detach().numpy(), m2.o1.detach().numpy(), 'o1')
+            _make_subplot([6, 0], 2, 2, m1.o1.cpu().detach().numpy(), m2.o1.cpu().detach().numpy(), 'o1')
         if hasattr(m1, 'v'):
-            _make_subplot([9, 0], 2, 2, m1.v.detach().numpy(), m2.v.detach().numpy(), 'v')
+            _make_subplot([9, 0], 2, 2, m1.v.cpu().detach().numpy(), m2.v.cpu().detach().numpy(), 'v')
 
         # Flip signs of weight matrices if needed
-        m1_w0 = m1.w0.detach().numpy().T
-        m2_w0 = m2.w0.detach().numpy().T
-        m1_w1 = m1.w1.detach().numpy()
-        m2_w1 = m2.w1.detach().numpy()
+        m1_w0 = m1.w0.cpu().detach().numpy().T
+        m2_w0 = m2.w0.cpu().detach().numpy().T
+        m1_w1 = m1.w1.cpu().detach().numpy()
+        m2_w1 = m2.w1.cpu().detach().numpy()
         m1_w0, m2_w0, m1_w1, m2_w1 = _flip_signs(m1_w0, m2_w0, m1_w1, m2_w1)
 
         # Make plots of w1 matrices
@@ -362,7 +362,7 @@ class RRLinearModel(torch.nn.Module):
                     v2_plot[0].set_color(v1_plot[0].get_color())
 
 
-class SigmoidRRRegresion(RRLinearModel):
+class RRSigmoidModel(RRLinearModel):
     """ Sigmoidal non-linear reduced rank model.
 
     For models of the form:
@@ -386,26 +386,13 @@ class SigmoidRRRegresion(RRLinearModel):
 
             d_latent: Latent dimensionality
         """
-        super().__init__()
-
-        w0 = torch.nn.Parameter(torch.zeros([d_in, d_latent]), requires_grad=True)
-        self.register_parameter('w0', w0)
-
-        w1 = torch.nn.Parameter(torch.zeros([d_out, d_latent]), requires_grad=True)
-        self.register_parameter('w1', w1)
+        super().__init__(d_in, d_out, d_latent)
 
         o1 = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
         self.register_parameter('o1', o1)
 
         g = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
         self.register_parameter('g', g)
-
-        o2 = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
-        self.register_parameter('o2', o2)
-
-        # v is the *variances* of each noise term
-        v = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
-        self.register_parameter('v', v)
 
     def init_weights(self, y: torch.Tensor):
         """ Randomly initializes all model parameters based on data.
@@ -430,7 +417,7 @@ class SigmoidRRRegresion(RRLinearModel):
             if param_name in {'v', 'g'}:
                 param.data = torch.from_numpy(var_variance/2)
             elif param_name in {'o2'}:
-                param.data = torch.from_numpy(var_mean/2)
+                param.data = torch.from_numpy(var_mean)
             elif param_name in {'o1'}:
                 param.data = torch.zeros_like(param.data)
             elif param_name in {'w0'}:
@@ -440,15 +427,26 @@ class SigmoidRRRegresion(RRLinearModel):
             else:
                 raise(NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
 
-    def random_weights(self):
-        """ Function to randomly generate parameters for a model.
+    def generate_random_model(self, var_range: list = [.5, 1], g_range: list = [5, 10],
+                              o1_range: list = [-.2, .2], o2_range: list = [5, 10],
+                              w_gain: float = 1.0):
+        """ Genarates random values for model parameters.
 
-        Use init_weights() to initialize the model before model fitting.  The purpose of this
-        function is to generate a random model for testing code testing purposes.
+        This function is useful for when generating models for testing code.
 
-        Raise:
-            NotImplementedError: If a parameter of the model exists for which initialization code
-            does not exist.
+        Args:
+
+            var_range: A list giving limits of a uniform distribution variance values will be pulled from
+
+            g_range: A list giving limits of a uniform distribution g values will be pulled from
+
+            o1_range: A list giving limits of a uniform distribution o1 values will be pulled from
+
+            o2_range: A list giving limits of a uniform distribution o2 values will be pulled from
+
+            w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d),
+            where d is d_in for w_0 and d_out for w_1.
+
         """
 
         d_in = self.w0.shape[0]
@@ -456,17 +454,17 @@ class SigmoidRRRegresion(RRLinearModel):
 
         for param_name, param in self.named_parameters():
             if param_name in {'v'}:
-                param.data.uniform_(.01, .02)
+                param.data.uniform_(*var_range)
             elif param_name in {'g'}:
-                param.data.uniform_(5, 10)
+                param.data.uniform_(*g_range)
             elif param_name in {'o1'}:
-                param.data.normal_(0, 1)
+                param.data.uniform_(*o1_range)
             elif param_name in {'o2'}:
-                param.data.uniform_(15, 20)
+                param.data.uniform_(*o2_range)
             elif param_name in {'w0'}:
-                param.data.normal_(0, 1/np.sqrt(d_in))
+                param.data.normal_(0, w_gain / np.sqrt(d_in))
             elif param_name in {'w1'}:
-                param.data.normal_(0, 1/np.sqrt(d_out))
+                param.data.normal_(0, w_gain / np.sqrt(d_out))
             else:
                 raise (NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
 
@@ -499,9 +497,8 @@ class SigmoidRRRegresion(RRLinearModel):
             in w1, o1 and d.  This function will put models in a form where all gains have positive
             sign.
 
-            2) Even after (1), the values of w1 and w2 are not fully determined.  After standardizing
-            with respect to gains, the svd of w1 = u1*s1*v1.T will be performed (where s1 is a non-negative
-            diagonal matrix) and then w1 will be set w1=u1 and w0 will be set w0 = wo*s1*v1
+            2) Even after (1), the values of w1 and w2 are not fully determined.
+            See RRLinearModel.standardize() for how this is done.
         """
 
         # Standardize with respect to gains
@@ -514,10 +511,7 @@ class SigmoidRRRegresion(RRLinearModel):
                 self.g.data[i] = -1*self.g.data[i]
 
         # Standardize with respect to weights
-        [u1, s1, v1] = torch.svd(self.w1.data, some=True)
-        self.w1.data = u1
-        self.w0.data = torch.matmul(torch.matmul(self.w0.data, v1), torch.diag(s1))
-
+        super().standardize()
 
 
 
