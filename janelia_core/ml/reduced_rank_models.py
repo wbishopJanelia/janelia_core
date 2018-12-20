@@ -190,7 +190,7 @@ class RRLinearModel(torch.nn.Module):
         return .5 * n_smps*torch.sum(torch.log(self.v)) + .5 * torch.sum(((y - mns) ** 2) / torch.t(self.v))
 
     def fit(self, x: torch.Tensor, y: torch.Tensor, batch_size: int=100, send_size: int=100, max_its: int=10,
-            adam_params: dict = {'lr': .01}, update_int: int = 1000):
+            adam_params: dict = {'lr': .01}, update_int: int = 1000, parameters: list = None):
         """ Fits a model to data.
 
         This function performs stochastic optimization with the ADAM algorithm.  The weights of the model
@@ -217,6 +217,9 @@ class RRLinearModel(torch.nn.Module):
 
             update_int: The interval of iterations we update the user on.
 
+            parameters: If provided, only these parameters of the model will be optimized.  If none, all parameters are
+            optimized.
+
         Raises:
             ValueError: If send_size is greater than batch_size.
 
@@ -227,7 +230,10 @@ class RRLinearModel(torch.nn.Module):
 
         device = self.w0.device
 
-        optimizer = torch.optim.Adam(self.parameters(), **adam_params)
+        if parameters is None:
+            parameters = self.parameters()
+
+        optimizer = torch.optim.Adam(parameters, **adam_params)
 
         n_smps = x.shape[0]
         cur_it = 0
@@ -580,7 +586,7 @@ class RRExpModel(RRLinearModel):
 
     For models of the form:
 
-        y_t = exp(w_1*w_0^T * x_t + o_1) + o_2 + n_t,
+        y_t = exp(w_1*w_0^T * x_t) + o_2 + n_t,
 
         n_t ~ N(0, V), for a diagonal V
 
@@ -600,9 +606,6 @@ class RRExpModel(RRLinearModel):
             d_latent: Latent dimensionality
         """
         super().__init__(d_in, d_out, d_latent)
-
-        o1 = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
-        self.register_parameter('o1', o1)
 
         g = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
         self.register_parameter('g', g)
@@ -624,16 +627,13 @@ class RRExpModel(RRLinearModel):
         d_out = self.w1.shape[0]
 
         var_variance = np.reshape(np.var(y.numpy(), 0), [d_out, 1])
-        var_min = np.reshape(np.min(y.numpy(), 0), [d_out, 1])
 
         for param_name, param in self.named_parameters():
             if param_name in {'g'}:
-                param.data = torch.ones_like(param.data)
+                param.data = 10*torch.ones_like(param.data)
             elif param_name in {'v'}:
-                param.data = torch.from_numpy(var_variance)
+                param.data = torch.ones_like(param.data)
             elif param_name in {'o2'}:
-                param.data = torch.from_numpy(var_min)
-            elif param_name in {'o1'}:
                 param.data = torch.zeros_like(param.data)
             elif param_name in {'w0'}:
                 param.data.normal_(0, 1/np.sqrt(d_in))
@@ -643,8 +643,7 @@ class RRExpModel(RRLinearModel):
                 raise(NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
 
     def generate_random_model(self, var_range: list = [.5, 1], g_range: list = [5, 10],
-                              o1_range: list = [-.2, .2], o2_range: list = [5, 10],
-                              w_gain: float = 1.0):
+                              o2_range: list = [0, 1], w_offsets: list = [0, -1], w_gains: list = [1, 1]):
         """ Genarates random values for model parameters.
 
         This function is useful for when generating models for testing code.
@@ -655,12 +654,16 @@ class RRExpModel(RRLinearModel):
 
             g_range: A list giving limits of a uniform distribution g values will be pulled from
 
-            o1_range: A list giving limits of a uniform distribution o1 values will be pulled from
-
             o2_range: A list giving limits of a uniform distribution o2 values will be pulled from
 
-            w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),
-            and entries of w1 are pulled from a distribution with a standard deviation of w_gain
+            w_offsets: Means of the normal distributions weights are pulled from w_offsets[i] is the mean for w_i.
+            Setting w_offsets[1] to be negative, helps ensure (assuing input has enough variance) that the generated
+            data uses the full shape of the exponential - which can be important for practical concerns about model
+            identifiability.
+
+            w_gains: Gains of the standard deviations of the normal distributions weights are pulled from. Weights
+            for w_0 will be pulled from a normal distribution with standard deviation w_gains[0]/sqrt(d_in) and weights
+            for w_1 will be pulled from a normal distribution with standard deviation w_gains[1].
 
         """
 
@@ -671,14 +674,12 @@ class RRExpModel(RRLinearModel):
                 param.data.uniform_(*var_range)
             elif param_name in {'g'}:
                 param.data.uniform_(*g_range)
-            elif param_name in {'o1'}:
-                param.data.uniform_(*o1_range)
             elif param_name in {'o2'}:
                 param.data.uniform_(*o2_range)
             elif param_name in {'w0'}:
-                param.data.normal_(0, w_gain / np.sqrt(d_in))
+                param.data.normal_(w_offsets[0], w_gains[0] / np.sqrt(d_in))
             elif param_name in {'w1'}:
-                param.data.normal_(0, w_gain)
+                param.data.normal_(w_offsets[1], w_gains[1])
             else:
                 raise (NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
 
@@ -696,11 +697,19 @@ class RRExpModel(RRLinearModel):
         """
         x = torch.matmul(torch.t(self.w0), torch.t(x))
         x = torch.matmul(self.w1, x)
-        x = x + self.o1
         x = torch.exp(x)
         x = self.g*x
         x = x + self.o2
         return torch.t(x)
+
+    def latent_rep(self, x:torch.Tensor) -> torch.Tensor:
+        with torch.no_grad():
+            l = torch.matmul(torch.t(self.w0), torch.t(x))
+            exp_in = torch.matmul(self.w1, l)
+            exp_out = torch.exp(exp_in)
+            g_out = self.g * exp_out
+            mn = g_out + self.o2
+            return [torch.t(mn), torch.t(g_out), torch.t(exp_in), torch.t(l)]
 
     def standardize(self):
         """ Puts the model in a standard form.
@@ -710,6 +719,8 @@ class RRExpModel(RRLinearModel):
             The values of w1 and w2 are not fully determined.
             See RRLinearModel.standardize() for how this is done.
         """
+
+        print('Standardize called.')
 
         # Standardize with respect to weights
         super().standardize()
