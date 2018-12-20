@@ -513,7 +513,6 @@ class RRSigmoidModel(RRLinearModel):
         """
 
         d_in = self.w0.shape[0]
-        d_out = self.w1.shape[0]
 
         for param_name, param in self.named_parameters():
             if param_name in {'v'}:
@@ -625,12 +624,12 @@ class RRExpModel(RRLinearModel):
         d_out = self.w1.shape[0]
 
         var_variance = np.reshape(np.var(y.numpy(), 0), [d_out, 1])
-        var_min= np.reshape(np.min(y.numpy(), 0), [d_out,1])
+        var_min = np.reshape(np.min(y.numpy(), 0), [d_out, 1])
 
         for param_name, param in self.named_parameters():
             if param_name in {'g'}:
                 param.data = torch.ones_like(param.data)
-            if param_name in {'v'}:
+            elif param_name in {'v'}:
                 param.data = torch.from_numpy(var_variance)
             elif param_name in {'o2'}:
                 param.data = torch.from_numpy(var_min)
@@ -643,6 +642,75 @@ class RRExpModel(RRLinearModel):
             else:
                 raise(NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
 
+    def generate_random_model(self, var_range: list = [.5, 1], g_range: list = [5, 10],
+                              o1_range: list = [-.2, .2], o2_range: list = [5, 10],
+                              w_gain: float = 1.0):
+        """ Genarates random values for model parameters.
 
+        This function is useful for when generating models for testing code.
 
+        Args:
+
+            var_range: A list giving limits of a uniform distribution variance values will be pulled from
+
+            g_range: A list giving limits of a uniform distribution g values will be pulled from
+
+            o1_range: A list giving limits of a uniform distribution o1 values will be pulled from
+
+            o2_range: A list giving limits of a uniform distribution o2 values will be pulled from
+
+            w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),
+            and entries of w1 are pulled from a distribution with a standard deviation of w_gain
+
+        """
+
+        d_in = self.w0.shape[0]
+
+        for param_name, param in self.named_parameters():
+            if param_name in {'v'}:
+                param.data.uniform_(*var_range)
+            elif param_name in {'g'}:
+                param.data.uniform_(*g_range)
+            elif param_name in {'o1'}:
+                param.data.uniform_(*o1_range)
+            elif param_name in {'o2'}:
+                param.data.uniform_(*o2_range)
+            elif param_name in {'w0'}:
+                param.data.normal_(0, w_gain / np.sqrt(d_in))
+            elif param_name in {'w1'}:
+                param.data.normal_(0, w_gain)
+            else:
+                raise (NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes output means condition on x.
+
+        This is equivalent to running the full generative model but not adding noise from n_t.
+
+        Args:
+            x: Input of shape n_smps*d_in
+
+        Returns:
+            mns: The output.  Of shape n_smps*d_out
+
+        """
+        x = torch.matmul(torch.t(self.w0), torch.t(x))
+        x = torch.matmul(self.w1, x)
+        x = x + self.o1
+        x = torch.exp(x)
+        x = self.g*x
+        x = x + self.o2
+        return torch.t(x)
+
+    def standardize(self):
+        """ Puts the model in a standard form.
+
+        The models have multiple degenerecies (non-identifiabilities):
+
+            The values of w1 and w2 are not fully determined.
+            See RRLinearModel.standardize() for how this is done.
+        """
+
+        # Standardize with respect to weights
+        super().standardize()
 

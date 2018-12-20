@@ -2,10 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bf7ea4cb-b77c-40a2-bf96-a3d505e7c467" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/development/develop_RRSignmodModel .ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/development/develop_RRSignmodModel .ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/development/develop_RRExpModel.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/janelia_core/ml/reduced_rank_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/janelia_core/ml/reduced_rank_models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -50,18 +53,15 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file leaf-file-name="reduced_rank_models.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/janelia_core/ml/reduced_rank_models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="270">
-              <caret line="568" column="29" selection-start-line="568" selection-start-column="29" selection-end-line="568" selection-end-column="29" />
+            <state relative-caret-position="167">
+              <caret line="628" column="13" selection-start-line="628" selection-start-column="13" selection-end-line="628" selection-end-column="13" />
               <folding>
                 <element signature="e#150#161#0" expanded="true" />
-                <marker date="1545329372385" expanded="true" signature="385:16214" ph="..." />
-                <marker date="1545329372385" expanded="true" signature="3018:4175" ph="..." />
-                <marker date="1545329372385" expanded="true" signature="4693:4880" ph="..." />
-                <marker date="1545329372385" expanded="true" signature="11707:11713" ph="..." />
-                <marker date="1545329372385" expanded="true" signature="12960:13514" ph="..." />
+                <element signature="e#390#16211#0" />
+                <element signature="e#16255#21683#0" />
               </folding>
             </state>
           </provider>
@@ -90,8 +90,8 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="128" />
-    <option name="width" value="1428" />
+    <option name="y" value="23" />
+    <option name="width" value="1556" />
     <option name="height" value="1017" />
   </component>
   <component name="ProjectView">
@@ -136,7 +136,8 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../ahrens_glia" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -164,32 +165,44 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="128" y="0" width="1428" height="1017" extended-state="0" />
+    <frame x="0" y="23" width="1556" height="1017" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.056834534" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.11632391" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Version Control" order="7" />
-      <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Python Console" order="10" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="bottom" id="Terminal" order="8" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/janelia_core/ml/reduced_rank_models.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="12496">
+          <caret line="568" column="29" selection-start-line="568" selection-start-column="29" selection-end-line="568" selection-end-column="29" />
+          <folding>
+            <element signature="e#150#161#0" expanded="true" />
+            <element signature="e#390#16211#0" />
+            <element signature="e#16255#21683#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/math/basic_functions.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="54">
@@ -238,15 +251,12 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/ml/reduced_rank_models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="568" column="29" selection-start-line="568" selection-start-column="29" selection-end-line="568" selection-end-column="29" />
+        <state relative-caret-position="167">
+          <caret line="628" column="13" selection-start-line="628" selection-start-column="13" selection-end-line="628" selection-end-column="13" />
           <folding>
             <element signature="e#150#161#0" expanded="true" />
-            <marker date="1545329372385" expanded="true" signature="385:16214" ph="..." />
-            <marker date="1545329372385" expanded="true" signature="3018:4175" ph="..." />
-            <marker date="1545329372385" expanded="true" signature="4693:4880" ph="..." />
-            <marker date="1545329372385" expanded="true" signature="11707:11713" ph="..." />
-            <marker date="1545329372385" expanded="true" signature="12960:13514" ph="..." />
+            <element signature="e#390#16211#0" />
+            <element signature="e#16255#21683#0" />
           </folding>
         </state>
       </provider>
