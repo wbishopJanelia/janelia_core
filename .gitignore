@@ -189,6 +189,7 @@ $RECYCLE.BIN/
 # Numpy files
 *.npy
 
-
+### IDE files
+.idea/
 
 # End of https://www.gitignore.io/api/macos,python,windows
