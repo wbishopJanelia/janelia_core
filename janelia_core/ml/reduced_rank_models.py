@@ -567,7 +567,6 @@ class RRSigmoidModel(RRLinearModel):
         # Standardize with respect to gains
         for i in range(len(self.g)):
             if self.g[i] < 0:
-                print('Changing sign of gain ' + str(i))
                 self.w1.data[i, :] = -1*self.w1.data[i, :]
                 self.o1.data[i] = -1*self.o1.data[i]
                 self.o2.data[i] = self.o2.data[i] + self.g.data[i]

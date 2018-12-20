@@ -53,15 +53,15 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/janelia_core/ml/reduced_rank_models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="675">
-              <caret line="310" column="12" selection-start-line="310" selection-start-column="12" selection-end-line="310" selection-end-column="12" />
+            <state relative-caret-position="270">
+              <caret line="568" column="29" selection-start-line="568" selection-start-column="29" selection-end-line="568" selection-end-column="29" />
               <folding>
                 <element signature="e#150#161#0" expanded="true" />
-                <marker date="1545327030943" expanded="true" signature="385:16226" ph="..." />
-                <marker date="1545327030943" expanded="true" signature="3018:4175" ph="..." />
-                <marker date="1545327030943" expanded="true" signature="4693:4880" ph="..." />
-                <marker date="1545327030943" expanded="true" signature="11719:11725" ph="..." />
-                <marker date="1545327030943" expanded="true" signature="12972:13526" ph="..." />
+                <marker date="1545329372385" expanded="true" signature="385:16214" ph="..." />
+                <marker date="1545329372385" expanded="true" signature="3018:4175" ph="..." />
+                <marker date="1545329372385" expanded="true" signature="4693:4880" ph="..." />
+                <marker date="1545329372385" expanded="true" signature="11707:11713" ph="..." />
+                <marker date="1545329372385" expanded="true" signature="12960:13514" ph="..." />
               </folding>
             </state>
           </provider>
@@ -90,9 +90,9 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1697" />
-    <option name="width" value="1691" />
-    <option name="height" value="1407" />
+    <option name="x" value="128" />
+    <option name="width" value="1428" />
+    <option name="height" value="1017" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -164,10 +164,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1697" y="0" width="1691" height="1407" extended-state="0" />
+    <frame x="128" y="0" width="1428" height="1017" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.047791895" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.056834534" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -238,15 +238,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/janelia_core/ml/reduced_rank_models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="675">
-          <caret line="310" column="12" selection-start-line="310" selection-start-column="12" selection-end-line="310" selection-end-column="12" />
+        <state relative-caret-position="270">
+          <caret line="568" column="29" selection-start-line="568" selection-start-column="29" selection-end-line="568" selection-end-column="29" />
           <folding>
             <element signature="e#150#161#0" expanded="true" />
-            <marker date="1545327030943" expanded="true" signature="385:16226" ph="..." />
-            <marker date="1545327030943" expanded="true" signature="3018:4175" ph="..." />
-            <marker date="1545327030943" expanded="true" signature="4693:4880" ph="..." />
-            <marker date="1545327030943" expanded="true" signature="11719:11725" ph="..." />
-            <marker date="1545327030943" expanded="true" signature="12972:13526" ph="..." />
+            <marker date="1545329372385" expanded="true" signature="385:16214" ph="..." />
+            <marker date="1545329372385" expanded="true" signature="3018:4175" ph="..." />
+            <marker date="1545329372385" expanded="true" signature="4693:4880" ph="..." />
+            <marker date="1545329372385" expanded="true" signature="11707:11713" ph="..." />
+            <marker date="1545329372385" expanded="true" signature="12960:13514" ph="..." />
           </folding>
         </state>
       </provider>
