@@ -85,7 +85,7 @@ class RRLinearModel(torch.nn.Module):
             elif param_name in {'w0'}:
                 param.data.normal_(0, 1/np.sqrt(d_in))
             elif param_name in {'w1'}:
-                param.data.normal_(0, 1/np.sqrt(d_out))
+                param.data.normal_(0, 1)
             else:
                 raise(NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
 
@@ -100,8 +100,8 @@ class RRLinearModel(torch.nn.Module):
 
             o2_std: Standard deviation of normal distribution values of o2 are pulled from
 
-            w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d),
-            where d is d_in for w_0 and d_out for w_1.
+            w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),
+            and entries of w1 are pulled from a distribution with a standard deviation of w_gain
 
         """
 
@@ -116,7 +116,7 @@ class RRLinearModel(torch.nn.Module):
             elif param_name in {'w0'}:
                 param.data.normal_(0, w_gain / np.sqrt(d_in))
             elif param_name in {'w1'}:
-                param.data.normal_(0, w_gain / np.sqrt(d_out))
+                param.data.normal_(0, w_gain)
             else:
                 raise (NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
 
@@ -423,7 +423,7 @@ class RRSigmoidModel(RRLinearModel):
             elif param_name in {'w0'}:
                 param.data.normal_(0, 1/np.sqrt(d_in))
             elif param_name in {'w1'}:
-                param.data.normal_(0, 1/np.sqrt(d_out))
+                param.data.normal_(0, 1)
             else:
                 raise(NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
 
@@ -444,8 +444,8 @@ class RRSigmoidModel(RRLinearModel):
 
             o2_range: A list giving limits of a uniform distribution o2 values will be pulled from
 
-            w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d),
-            where d is d_in for w_0 and d_out for w_1.
+            w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),
+            and entries of w1 are pulled from a distribution with a standard deviation of w_gain
 
         """
 
@@ -464,7 +464,7 @@ class RRSigmoidModel(RRLinearModel):
             elif param_name in {'w0'}:
                 param.data.normal_(0, w_gain / np.sqrt(d_in))
             elif param_name in {'w1'}:
-                param.data.normal_(0, w_gain / np.sqrt(d_out))
+                param.data.normal_(0, w_gain)
             else:
                 raise (NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
 
