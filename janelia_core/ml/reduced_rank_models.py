@@ -10,6 +10,7 @@ import time
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import sklearn.decomposition
 import torch
 
 from janelia_core.visualization.matrix_visualization import cmp_n_mats
@@ -106,7 +107,6 @@ class RRLinearModel(torch.nn.Module):
         """
 
         d_in = self.w0.shape[0]
-        d_out = self.w1.shape[0]
 
         for param_name, param in self.named_parameters():
             if param_name in {'v'}:
@@ -137,6 +137,14 @@ class RRLinearModel(torch.nn.Module):
         x = x + self.o2
         return torch.t(x)
 
+    def scale_grads(self, sc: float):
+        """ Scales computed gradients.
+
+        """
+        for param in self.parameters():
+            if param.requires_grad:
+                param.grad.data = sc*param.grad.data
+
     def generate(self, x: torch.Tensor) -> torch.Tensor:
         """ Generates data from a model.
 
@@ -157,8 +165,8 @@ class RRLinearModel(torch.nn.Module):
 
     def neg_log_likelihood(self, y: torch.Tensor, mns: torch.Tensor):
 
-        """ Calculates the average (over samples) negative log-likelihood of observed data,
-        given conditional means for that data up to a constant.
+        """ Calculates the (over samples) negative log-likelihood of observed data, given conditional means for
+         that data up to a constant.
 
         Note: This function does not compute the term .5*log(2*pi).  Add this term in if you want the exact
         log likelihood.
@@ -179,9 +187,9 @@ class RRLinearModel(torch.nn.Module):
         """
 
         n_smps = y.shape[0]
-        return .5 * torch.sum(torch.log(self.v)) + .5 * torch.sum(((y - mns) ** 2) / torch.t(self.v)) / n_smps
+        return .5 * n_smps*torch.sum(torch.log(self.v)) + .5 * torch.sum(((y - mns) ** 2) / torch.t(self.v))
 
-    def fit(self, x: torch.Tensor, y: torch.Tensor, batch_size: int=100, max_its: int=10,
+    def fit(self, x: torch.Tensor, y: torch.Tensor, batch_size: int=100, send_size: int=100, max_its: int=10,
             adam_params: dict = {'lr': .01}, update_int: int = 1000):
         """ Fits a model to data.
 
@@ -198,13 +206,24 @@ class RRLinearModel(torch.nn.Module):
 
             batch_size: The number of samples to train on during each iteration
 
+            send_size: The number of samples to send to the device at a time for calculating batch gradients.  It is
+            most efficient to set send_size = batch_size, but if this results in computations exceeding device memory,
+            send_size can be set lower.  In this case gradients will accumulated until all samples in the batch are
+            sent to the device and then a step will be taken.
+
             max_its: The maximum number of iterations to run
 
             adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object
 
             update_int: The interval of iterations we update the user on.
 
+        Raises:
+            ValueError: If send_size is greater than batch_size.
+
             """
+
+        if send_size > batch_size:
+            raise(ValueError('send_size must be less than or equal to batch_size.'))
 
         device = self.w0.device
 
@@ -221,26 +240,47 @@ class RRLinearModel(torch.nn.Module):
 
             # Chose the samples for this iteration
             cur_smps = np.random.choice(n_smps, batch_size, replace=False)
-            batch_x = x[cur_smps, :].to(device)
-            batch_y = y[cur_smps, :].to(device)
+            batch_x = x[cur_smps, :]
+            batch_y = y[cur_smps, :]
 
             # Perform optimization for this step
             optimizer.zero_grad()
-            mns = self(batch_x.data)
-            nll = self.neg_log_likelihood(batch_y.data, mns)
-            nll.backward()
+
+            # Handle sending data to device in small chunks if needed
+            start_ind = 0
+            end_ind = np.min([batch_size, send_size])
+            while True:
+                sent_x = batch_x[start_ind:end_ind, :].to(device)
+                sent_y = batch_y[start_ind:end_ind, :].to(device)
+
+                mns = self(sent_x.data)
+                nll = self.neg_log_likelihood(sent_y.data, mns)
+                nll.backward()
+
+                if end_ind == batch_size:
+                    break
+
+                start_end = end_ind
+                end_ind = np.min([batch_size, start_end + send_size])
+
+            # Scale gradients that have been accumulated - this is equivalent to using
+            # the average (over samples) negative log-likelihood for the objective.  The advantage
+            # of this normalization is it makes picking a learning rate a little less dependent on batch size.
+            self.scale_grads(1/batch_size)
+            avg_nll = nll.cpu().detach().numpy()/batch_size
+
+            # Take a step
             optimizer.step()
 
             # Log our progress
             elapsed_time = time.time() - start_time
             elapsed_time_log[cur_it] = elapsed_time
-            cur_nll = nll.cpu().data.detach().numpy()
-            nll_log[cur_it] = cur_nll
+            nll_log[cur_it] = avg_nll
 
             # Provide user with some feedback
             if cur_it % update_int == 0:
                 print(str(cur_it) + ': Elapsed time ' + str(elapsed_time) +
-                      ', vl: ' + str(cur_nll))
+                      ', vl: ' + str(avg_nll))
 
             cur_it += 1
 
@@ -251,15 +291,38 @@ class RRLinearModel(torch.nn.Module):
             is a non-negative diagonal matrix) and then w1 will be set w1=u1 and w0 will be set w0 = wo*s1*v1
         """
         latent_dim = self.w0.shape[1]
+        output_dim = self.w1.shape[0]
 
-        with torch.no_grad():
-            [u1, s1, v1] = torch.svd(torch.matmul(self.w1.data, torch.t(self.w0.data)), some=True)
-            sorted_s1, sorted_inds = torch.sort(s1, descending=True)
-            s1 = s1[sorted_inds[0:latent_dim]]
-            u1 = u1[:, sorted_inds[0:latent_dim]]
-            v1 = v1[:, sorted_inds[0:latent_dim]]
-            self.w1.data = u1
-            self.w0.data = torch.matmul(v1, torch.diag(s1))
+        w0 = self.w0.cpu().detach().numpy()
+        w1 = self.w1.cpu().detach().numpy()
+        full_w_t = np.matmul(w0, w1.T)
+
+        if latent_dim < output_dim:
+            # Truncated svd only works for latent_dim < output_dim
+            svd = sklearn.decomposition.TruncatedSVD(latent_dim)
+            svd.fit(full_w_t)
+            v = svd.components_.T
+            u_s = svd.transform(full_w_t)
+
+        else:
+            u, s, v_t = np.linalg.svd(full_w_t)
+            v = v_t.T
+            u_s = np.matmul(u, np.diag(s))
+
+        self.w0.data = torch.from_numpy(u_s).to(device=self.w0.device, dtype=self.w0.dtype)
+        self.w1.data = torch.from_numpy(v).to(device=self.w1.device, dtype=self.w1.dtype)
+
+    def flip_weight_signs(self, m2):
+        """ Flips signs of weights, column-wise of input model to best match weights of this model.
+
+        Even after standardizing the weights of the model, signs of elements in columns of w0 and w1 are not
+        determined.  This creates a problem when comparing two models.  This function can be passed a second model,
+        and it will flip the signs of the columns of that model's weights to best match the weights of the base
+        model.
+
+        Args:
+            m2: The model with weights to flip
+        """
 
     @staticmethod
     def compare_models(m1, m2, x: torch.Tensor = None, plot_vars: int = 2):
@@ -377,7 +440,7 @@ class RRSigmoidModel(RRLinearModel):
     """
 
     def __init__(self, d_in: int, d_out: int, d_latent: int):
-        """ Create a SigmoidRRRegrssion object.
+        """ Create a RRSigmoidModel object.
 
         Args:
             d_in: Input dimensionality
@@ -512,6 +575,74 @@ class RRSigmoidModel(RRLinearModel):
 
         # Standardize with respect to weights
         super().standardize()
+
+
+class RRExpModel(RRLinearModel):
+    """ Exponential non-linear reduced rank model.
+
+    For models of the form:
+
+        y_t = exp(w_1*w_0^T * x_t + o_1) + o_2 + n_t,
+
+        n_t ~ N(0, V), for a diagonal V
+
+    where x_t is the input and exp() is the element-wise application of e^x.  We assume w_0 and w_1 are
+    tall and skinny matrices.
+
+    """
+
+    def __init__(self, d_in: int, d_out: int, d_latent: int):
+        """ Create a RRExpModel object.
+
+        Args:
+            d_in: Input dimensionality
+
+            d_out: Output dimensionality
+
+            d_latent: Latent dimensionality
+        """
+        super().__init__(d_in, d_out, d_latent)
+
+        o1 = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
+        self.register_parameter('o1', o1)
+
+        g = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
+        self.register_parameter('g', g)
+
+    def init_weights(self, y: torch.Tensor):
+        """ Randomly initializes all model parameters based on data.
+
+        This function should be called before model fitting.
+
+        Args:
+            y: Output data that the model will be fit to of shape n_smps*d_out
+
+        Raise:
+            NotImplementedError: If a parameter of the model exists for which initialization code
+            does not exist.
+        """
+
+        d_in = self.w0.shape[0]
+        d_out = self.w1.shape[0]
+
+        var_variance = np.reshape(np.var(y.numpy(), 0), [d_out, 1])
+        var_min= np.reshape(np.min(y.numpy(), 0), [d_out,1])
+
+        for param_name, param in self.named_parameters():
+            if param_name in {'g'}:
+                param.data = torch.ones_like(param.data)
+            if param_name in {'v'}:
+                param.data = torch.from_numpy(var_variance)
+            elif param_name in {'o2'}:
+                param.data = torch.from_numpy(var_min)
+            elif param_name in {'o1'}:
+                param.data = torch.zeros_like(param.data)
+            elif param_name in {'w0'}:
+                param.data.normal_(0, 1/np.sqrt(d_in))
+            elif param_name in {'w1'}:
+                param.data.normal_(0, 1)
+            else:
+                raise(NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
 
 
 
