@@ -5,6 +5,7 @@ rank regression.
     bishopw@hhmi.org
 """
 
+import copy
 import time
 
 import matplotlib
@@ -350,17 +351,14 @@ class RRLinearModel(torch.nn.Module):
         ROW_SPAN = 14  # Number of rows in the gridspec
         COL_SPAN = 12  # Number of columns in the gridspec
 
+        m2 = copy.deepcopy(m2) # Copy m2 to local variable so changes to weights don't affect the passed object
+
         grid_spec = matplotlib.gridspec.GridSpec(ROW_SPAN, COL_SPAN)
 
         def _make_subplot(loc, r_span, c_span, d1, d2, title):
             subplot = plt.subplot(grid_spec.new_subplotspec(loc, r_span, c_span))
             subplot.plot(d1, 'b-')
             subplot.plot(d2, 'r-')
-            subplot.title = plt.title(title)
-
-        def _make_weight_subplots(loc, r_span, c_span, w, title):
-            subplot = plt.subplot(grid_spec.new_subplotspec(loc, r_span, c_span))
-            subplot.imshow(w)
             subplot.title = plt.title(title)
 
         def _flip_signs(m1_w0, m2_w0, m1_w1, m2_w1):
@@ -385,11 +383,15 @@ class RRLinearModel(torch.nn.Module):
             _make_subplot([9, 0], 2, 2, m1.v.cpu().detach().numpy(), m2.v.cpu().detach().numpy(), 'v')
 
         # Flip signs of weight matrices if needed
-        m1_w0 = m1.w0.cpu().detach().numpy().T
-        m2_w0 = m2.w0.cpu().detach().numpy().T
+        m1_w0 = m1.w0.cpu().detach().numpy()
+        m2_w0 = m2.w0.cpu().detach().numpy()
         m1_w1 = m1.w1.cpu().detach().numpy()
         m2_w1 = m2.w1.cpu().detach().numpy()
         m1_w0, m2_w0, m1_w1, m2_w1 = _flip_signs(m1_w0, m2_w0, m1_w1, m2_w1)
+
+        # Transpose w0 for viewing
+        m1_w0 = m1_w0.T
+        m2_w0 = m2_w0.T
 
         # Make plots of w1 matrices
         w1_diff = m1_w1 - m2_w1
@@ -711,17 +713,124 @@ class RRExpModel(RRLinearModel):
             mn = g_out + self.o2
             return [torch.t(mn), torch.t(g_out), torch.t(exp_in), torch.t(l)]
 
-    def standardize(self):
-        """ Puts the model in a standard form.
 
-        The models have multiple degenerecies (non-identifiabilities):
+class RRReluModel(RRLinearModel):
+    """ Rectified linear reduced rank model.
 
-            The values of w1 and w2 are not fully determined.
-            See RRLinearModel.standardize() for how this is done.
+    For models of the form:
+
+        y_t = relu(w_1*w_0^T * x_t + o_1) + o_2 + n_t,
+
+        n_t ~ N(0, V), for a diagonal V
+
+    where x_t is the input and relu() is the element-wise application of the relu.  We assume w_0 and w_1 are
+    tall and skinny matrices.
+
+    """
+
+    def __init__(self, d_in: int, d_out: int, d_latent: int):
+        """ Create a RRSigmoidModel object.
+
+        Args:
+            d_in: Input dimensionality
+
+            d_out: Output dimensionality
+
+            d_latent: Latent dimensionality
+        """
+        super().__init__(d_in, d_out, d_latent)
+
+        o1 = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
+        self.register_parameter('o1', o1)
+
+    def init_weights(self, y: torch.Tensor, w_gain: float = .5):
+        """ Randomly initializes all model parameters based on data.
+
+        This function should be called before model fitting.
+
+        Args:
+            y: Output data that the model will be fit to of shape n_smps*d_out
+
+            w_gain: Weights will be initialized from a N(0, w_gain/sqrt(d_in)) distribution
+            for w_0 and N(0, w_gain) distribution from w1.
+
+        Raise:
+            NotImplementedError: If a parameter of the model exists for which initialization code
+            does not exist.
         """
 
-        print('Standardize called.')
+        d_in = self.w0.shape[0]
+        d_out = self.w1.shape[0]
 
-        # Standardize with respect to weights
-        super().standardize()
+        var_variance = np.reshape(np.var(y.numpy(), 0), [d_out, 1])
+        var_min = np.reshape(np.min(y.numpy(), 0), [d_out,1])
+
+        for param_name, param in self.named_parameters():
+            if param_name in {'v'}:
+                param.data = torch.from_numpy(var_variance/2)
+            elif param_name in {'o2'}:
+                param.data = torch.from_numpy(var_min)
+            elif param_name in {'o1'}:
+                param.data = torch.zeros_like(param.data)
+            elif param_name in {'w0'}:
+                param.data.normal_(0, w_gain/np.sqrt(d_in))
+            elif param_name in {'w1'}:
+                param.data.normal_(0, w_gain)
+            else:
+                raise(NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
+
+    def generate_random_model(self, var_range: list = [.5, 1], o1_range: list = [-.2, .2],
+                              o2_range: list = [5, 10], w_gain: float = 1.0):
+        """ Genarates random values for model parameters.
+
+        This function is useful for when generating models for testing code.
+
+        Args:
+
+            var_range: A list giving limits of a uniform distribution variance values will be pulled from
+
+            o1_range: A list giving limits of a uniform distribution o1 values will be pulled from
+
+            o2_range: A list giving limits of a uniform distribution o2 values will be pulled from
+
+            w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),
+            and entries of w1 are pulled from a distribution with a standard deviation of w_gain
+
+        """
+
+        d_in = self.w0.shape[0]
+
+        for param_name, param in self.named_parameters():
+            if param_name in {'v'}:
+                param.data.uniform_(*var_range)
+            elif param_name in {'o1'}:
+                param.data.uniform_(*o1_range)
+            elif param_name in {'o2'}:
+                param.data.uniform_(*o2_range)
+            elif param_name in {'w0'}:
+                param.data.normal_(0, w_gain / np.sqrt(d_in))
+            elif param_name in {'w1'}:
+                param.data.normal_(0, w_gain)
+            else:
+                raise (NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes output means condition on x.
+
+        This is equivalent to running the full generative model but not adding noise from n_t.
+
+        Args:
+            x: Input of shape n_smps*d_in
+
+        Returns:
+            mns: The output.  Of shape n_smps*d_out
+
+        """
+        x = torch.matmul(torch.t(self.w0), torch.t(x))
+        x = torch.matmul(self.w1, x)
+        x = x + self.o1
+        x = torch.relu(x)
+        x = x + self.o2
+        return torch.t(x)
+
 

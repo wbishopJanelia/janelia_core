@@ -65,7 +65,7 @@ def cmp_n_mats(mats: list, clim: list = None, show_colorbars: bool = False, titl
     img_plots = [None]*n_mats
     for i, m in enumerate(mats):
         subplot = plt.subplot(grid_spec.new_subplotspec(**grid_info['cell_info'][i]))
-        img_plots[i] = subplot.imshow(mats[i])
+        img_plots[i] = subplot.imshow(mats[i], aspect='auto')
 
         subplot.set_axis_off()
         if show_colorbars:
