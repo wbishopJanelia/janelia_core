@@ -141,6 +141,9 @@ class RRLinearModel(torch.nn.Module):
     def scale_grads(self, sc: float):
         """ Scales computed gradients.
 
+        Args:
+            sc: The scale factor to multiply gradients by.
+
         """
         for param in self.parameters():
             if param.requires_grad:
@@ -166,10 +169,10 @@ class RRLinearModel(torch.nn.Module):
 
     def neg_log_likelihood(self, y: torch.Tensor, mns: torch.Tensor):
 
-        """ Calculates the (over samples) negative log-likelihood of observed data, given conditional means for
+        """ Calculates the negative log-likelihood of observed data, given conditional means for
          that data up to a constant.
 
-        Note: This function does not compute the term .5*log(2*pi).  Add this term in if you want the exact
+        Note: This function does not compute the term .5*n_smps*log(2*pi).  Add this term in if you want the exact
         log likelihood.
 
         This function can be used as a loss, using the output of forward for mns and setting y to be observed data.
@@ -331,9 +334,22 @@ class RRLinearModel(torch.nn.Module):
             m2: The model with weights to flip
         """
 
+        n_dims = self.w1.shape[1]
+        for d_i in range(n_dims):
+            e1 = ((self.w0[:, d_i] - m2.w0[:, d_i]) ** 2).sum() + ((self.w1[:, d_i] - m2.w1[:, d_i]) ** 2).sum()
+            e2 = ((self.w0[:, d_i] + m2.w0[:, d_i]) ** 2).sum() + ((self.w1[:, d_i] + m2.w1[:, d_i]) ** 2).sum()
+            if e2 < e1:
+                print('Flipping signs for dimension ' + str(d_i))
+                m2.w0[:, d_i] = -1 * m2.w0[:, d_i]
+                m2.w1[:, d_i] = -1 * m2.w1[:, d_i]
+
     @staticmethod
     def compare_models(m1, m2, x: torch.Tensor = None, plot_vars: int = 2):
         """ Visually compares two models.
+
+        This function will flip signs on columns of w0 and w1 to best match weights between models (as signs of
+        corresponding columns of w0 and w1 can be flipped arbitrarily).  Models will be copied before this is done
+        so the m1 and m2 passed in are unchanged.
 
         Args:
             m1: The fist model
@@ -383,15 +399,11 @@ class RRLinearModel(torch.nn.Module):
             _make_subplot([9, 0], 2, 2, m1.v.cpu().detach().numpy(), m2.v.cpu().detach().numpy(), 'v')
 
         # Flip signs of weight matrices if needed
-        m1_w0 = m1.w0.cpu().detach().numpy()
-        m2_w0 = m2.w0.cpu().detach().numpy()
+        m1.flip_weight_signs(m2)
+        m1_w0 = m1.w0.cpu().detach().numpy().T # Transpose w0 for viewing
+        m2_w0 = m2.w0.cpu().detach().numpy().T
         m1_w1 = m1.w1.cpu().detach().numpy()
         m2_w1 = m2.w1.cpu().detach().numpy()
-        m1_w0, m2_w0, m1_w1, m2_w1 = _flip_signs(m1_w0, m2_w0, m1_w1, m2_w1)
-
-        # Transpose w0 for viewing
-        m1_w0 = m1_w0.T
-        m2_w0 = m2_w0.T
 
         # Make plots of w1 matrices
         w1_diff = m1_w1 - m2_w1
