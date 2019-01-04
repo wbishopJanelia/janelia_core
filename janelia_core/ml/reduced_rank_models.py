@@ -60,6 +60,26 @@ class RRLinearModel(torch.nn.Module):
         v = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
         self.register_parameter('v', v)
 
+    @classmethod
+    def from_state_dict(cls, state_dict: dict):
+        """ Creates a new RRReluModel model from a dictionary.
+
+        Args:
+            state_dict: The state dictionary to create the model from.  This can be obtained
+            by calling .state_dict() on a model.
+
+        Returns:
+            A new model with parameters taking values in the state_dict()
+
+        """
+        d_in = state_dict['w0'].shape[0]
+        d_out = state_dict['w1'].shape[0]
+        d_latent = state_dict['w0'].shape[1]
+
+        mdl = cls(d_in, d_out, d_latent)
+        mdl.load_state_dict(state_dict)
+        return mdl
+
     def init_weights(self, y: torch.Tensor):
         """ Randomly initializes all model parameters based on data.
 
@@ -137,6 +157,19 @@ class RRLinearModel(torch.nn.Module):
         x = torch.matmul(self.w1, x)
         x = x + self.o2
         return torch.t(x)
+
+    def infer_latents(self, x: torch.Tensor) -> torch.Tensor:
+        """ Infers latents defined as w0.T*x.
+
+        Args:
+            x: Input of shape n_smps*d_in
+
+        Returns:
+            l: Infered latents of shape n_smps*d_latents.
+
+        """
+        with torch.no_grad():
+            return torch.matmul(x, self.w0)
 
     def scale_grads(self, sc: float):
         """ Scales computed gradients.
@@ -230,6 +263,14 @@ class RRLinearModel(torch.nn.Module):
         Raises:
             ValueError: If send_size is greater than batch_size.
 
+        Returns:
+            log: A dictionary logging progress.  Will have the enries:
+                'elapsed_time': log['elapsed_time'][i] contains the elapsed time from the beginning of optimization to
+                the end of iteration i
+
+                'nll': log['nll'][i] contains the negative log-likelihood (without constant terms) at the beginning (
+                before parameters are updated) of iteration i.
+
             """
 
         if send_size > batch_size:
@@ -250,6 +291,10 @@ class RRLinearModel(torch.nn.Module):
         nll_log = np.zeros(max_its)
 
         while cur_it < max_its:
+            elapsed_time = time.time() - start_time  # Record elapsed time here because we measure it from the start of
+            # each iteration.  This is because we also record the nll value for each iteration before parameters are
+            # updated.  In this way, the elapsed time is the elapsed time to get to a set of parameters for which we
+            # report the nll.
 
             # Chose the samples for this iteration
             cur_smps = np.random.choice(n_smps, batch_size, replace=False)
@@ -290,16 +335,24 @@ class RRLinearModel(torch.nn.Module):
                 self.v.data[small_v_inds] = min_var
 
             # Log our progress
-            elapsed_time = time.time() - start_time
             elapsed_time_log[cur_it] = elapsed_time
             nll_log[cur_it] = avg_nll
 
             # Provide user with some feedback
             if cur_it % update_int == 0:
-                print(str(cur_it) + ': Elapsed time ' + str(elapsed_time) +
+                print(str(cur_it) + ': Elapsed fitting time ' + str(elapsed_time) +
                       ', vl: ' + str(avg_nll))
 
             cur_it += 1
+
+        # Give final fitting results (if we have not already)
+        if update_int != 1:
+            print(str(cur_it-1) + ': Elapsed fitting time ' + str(elapsed_time) +
+                  ', vl: ' + str(avg_nll))
+
+        log = {'elapsed_time': elapsed_time_log, 'nll': nll_log}
+
+        return log
 
     def standardize(self):
         """ Puts the model in a standard form.
@@ -484,6 +537,26 @@ class RRSigmoidModel(RRLinearModel):
         g = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
         self.register_parameter('g', g)
 
+    @classmethod
+    def from_state_dict(cls, state_dict: dict):
+        """ Creates a new RRSigmoidModel model from a dictionary.
+
+        Args:
+            state_dict: The state dictionary to create the model from.  This can be obtained
+            by calling .state_dict() on a model.
+
+        Returns:
+            A new model with parameters taking values in the state_dict()
+
+        """
+        d_in = state_dict['w0'].shape[0]
+        d_out = state_dict['w1'].shape[0]
+        d_latent = state_dict['w0'].shape[1]
+
+        mdl = cls(d_in, d_out, d_latent)
+        mdl.load_state_dict(state_dict)
+        return mdl
+
     def init_weights(self, y: torch.Tensor):
         """ Randomly initializes all model parameters based on data.
 
@@ -631,6 +704,26 @@ class RRExpModel(RRLinearModel):
         g = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
         self.register_parameter('g', g)
 
+    @classmethod
+    def from_state_dict(cls, state_dict: dict):
+        """ Creates a new RRExpModel model from a dictionary.
+
+        Args:
+            state_dict: The state dictionary to create the model from.  This can be obtained
+            by calling .state_dict() on a model.
+
+        Returns:
+            A new model with parameters taking values in the state_dict()
+
+        """
+        d_in = state_dict['w0'].shape[0]
+        d_out = state_dict['w1'].shape[0]
+        d_latent = state_dict['w0'].shape[1]
+
+        mdl = cls(d_in, d_out, d_latent)
+        mdl.load_state_dict(state_dict)
+        return mdl
+
     def init_weights(self, y: torch.Tensor):
         """ Randomly initializes all model parameters based on data.
 
@@ -748,7 +841,7 @@ class RRReluModel(RRLinearModel):
     """
 
     def __init__(self, d_in: int, d_out: int, d_latent: int):
-        """ Create a RRSigmoidModel object.
+        """ Create a RRReluModel object.
 
         Args:
             d_in: Input dimensionality
@@ -761,6 +854,26 @@ class RRReluModel(RRLinearModel):
 
         o1 = torch.nn.Parameter(torch.zeros([d_out, 1]), requires_grad=True)
         self.register_parameter('o1', o1)
+
+    @classmethod
+    def from_state_dict(cls, state_dict: dict):
+        """ Creates a new RRReluModel model from a dictionary.
+
+        Args:
+            state_dict: The state dictionary to create the model from.  This can be obtained
+            by calling .state_dict() on a model.
+
+        Returns:
+            A new model with parameters taking values in the state_dict()
+
+        """
+        d_in = state_dict['w0'].shape[0]
+        d_out = state_dict['w1'].shape[0]
+        d_latent = state_dict['w0'].shape[1]
+
+        mdl = cls(d_in, d_out, d_latent)
+        mdl.load_state_dict(state_dict)
+        return mdl
 
     def init_weights(self, y: torch.Tensor, w_gain: float = .5):
         """ Randomly initializes all model parameters based on data.
