@@ -74,8 +74,8 @@ class DataSet:
                 break
         return has_data
 
-    def select_time_range(self, start_time: float, end_time: float) -> 'DataSet':
-        """Selects data in a time range and returns a new dataset Object.
+    def select_time_range(self, start_time: float, end_time: float):
+        """Down selects data in a time range.
 
         The start and end times are inclusive.
 
@@ -84,16 +84,12 @@ class DataSet:
 
             end_time: The end time of the selection.
 
-        Returns:
-            New dataset object containing just those time points requested.
         """
 
         ts_data_keys = self.ts_data.keys()
-        sel_ts_data = {}
         for key in ts_data_keys:
             sel_inds = np.flatnonzero(np.logical_and(self.ts_data[key]['ts'] >= start_time, self.ts_data[key]['ts'] <= end_time))
-            sel_ts_data[key] = self.select_ts_data(key, sel_inds)
-        return DataSet(sel_ts_data, self.metadata)
+            self.ts_data[key] = self.select_ts_data(key, sel_inds)
 
     def select_ts_data(self, key:str, sel_inds: np.ndarray) -> dict:
         """ Selects data by index in a given dictionary of ts_data.

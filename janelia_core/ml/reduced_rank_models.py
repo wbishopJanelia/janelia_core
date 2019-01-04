@@ -194,7 +194,7 @@ class RRLinearModel(torch.nn.Module):
         return .5 * n_smps*torch.sum(torch.log(self.v)) + .5 * torch.sum(((y - mns) ** 2) / torch.t(self.v))
 
     def fit(self, x: torch.Tensor, y: torch.Tensor, batch_size: int=100, send_size: int=100, max_its: int=10,
-            adam_params: dict = {'lr': .01}, update_int: int = 1000, parameters: list = None):
+            adam_params: dict = {'lr': .01}, min_var: float = 0.0, update_int: int = 1000, parameters: list = None):
         """ Fits a model to data.
 
         This function performs stochastic optimization with the ADAM algorithm.  The weights of the model
@@ -218,6 +218,9 @@ class RRLinearModel(torch.nn.Module):
             max_its: The maximum number of iterations to run
 
             adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object
+
+            min_var: The minumum value any entry of v can take on.  After a gradient update, values less than this
+            will be clamped to this value.
 
             update_int: The interval of iterations we update the user on.
 
@@ -281,6 +284,10 @@ class RRLinearModel(torch.nn.Module):
 
             # Take a step
             optimizer.step()
+
+            with torch.no_grad():
+                small_v_inds = torch.nonzero(self.v < min_var)
+                self.v.data[small_v_inds] = min_var
 
             # Log our progress
             elapsed_time = time.time() - start_time

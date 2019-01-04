@@ -1,4 +1,8 @@
-""" Tools for calculating baseline values for fluorescence data."""
+""" Tools for calculating baseline values for fluorescence data.
+
+    William Bishop
+    bishopw@hhmi.org
+"""
 
 import multiprocessing
 import numpy as np

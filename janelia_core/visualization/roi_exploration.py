@@ -319,7 +319,7 @@ class MultiPlaneROIViewer():
         Args:
             ts: A numpy array of time stamps.
 
-            vls: A numpy array of values.  Each row is a different signals.  Columns correspond to
+            vls: A numpy array of values for the main timeline.  Each row is a different signal.  Columns correspond to
             times in ts.
 
             roi_groups: A list of roi_groups (e.g., neurons and glia).  Each list contains roi objects for the group.  These
@@ -391,6 +391,9 @@ class MultiPlaneROIViewer():
 
             sig_values = np.concatenate([self.vls, roi_signals], 1)
             sig_clrs = np.concatenate([255*np.ones([self.vls.shape[1], 3]), roi_clrs], 0)
+        else:
+            sig_values = self.vls
+            sig_clrs = 255*np.ones([self.vls.shape[1], 3])
 
         # Create timeline
         tl = TimeLine(self.ts, sig_values, sig_clrs)
