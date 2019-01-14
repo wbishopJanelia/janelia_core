@@ -227,7 +227,8 @@ class RRLinearModel(torch.nn.Module):
         return .5 * n_smps*torch.sum(torch.log(self.v)) + .5 * torch.sum(((y - mns) ** 2) / torch.t(self.v))
 
     def fit(self, x: torch.Tensor, y: torch.Tensor, batch_size: int=100, send_size: int=100, max_its: int=10,
-            adam_params: dict = {'lr': .01}, min_var: float = 0.0, update_int: int = 1000, parameters: list = None):
+            adam_params: dict = {'lr': .01}, min_var: float = 0.0, update_int: int = 1000,
+            parameters: list = None, w0_l2: float = 0.0):
         """ Fits a model to data.
 
         This function performs stochastic optimization with the ADAM algorithm.  The weights of the model
@@ -260,6 +261,8 @@ class RRLinearModel(torch.nn.Module):
             parameters: If provided, only these parameters of the model will be optimized.  If none, all parameters are
             optimized.
 
+            w0_l2: The penalty on the l-2 norm of the model's w0 weights.
+
         Raises:
             ValueError: If send_size is greater than batch_size.
 
@@ -268,8 +271,7 @@ class RRLinearModel(torch.nn.Module):
                 'elapsed_time': log['elapsed_time'][i] contains the elapsed time from the beginning of optimization to
                 the end of iteration i
 
-                'nll': log['nll'][i] contains the negative log-likelihood (without constant terms) at the beginning (
-                before parameters are updated) of iteration i.
+                'obj': log['obj'][i] contains the objective value at the beginning (before parameters are updated) of iteration i.
 
             """
 
@@ -288,7 +290,7 @@ class RRLinearModel(torch.nn.Module):
         start_time = time.time()
 
         elapsed_time_log = np.zeros(max_its)
-        nll_log = np.zeros(max_its)
+        obj_log = np.zeros(max_its)
 
         while cur_it < max_its:
             elapsed_time = time.time() - start_time  # Record elapsed time here because we measure it from the start of
@@ -312,7 +314,8 @@ class RRLinearModel(torch.nn.Module):
                 sent_y = batch_y[start_ind:end_ind, :].to(device)
 
                 mns = self(sent_x.data)
-                nll = self.neg_log_likelihood(sent_y.data, mns)
+                # Calculate nll - we divide by batch size to get average (over samples) negative log-likelihood
+                nll = (1/batch_size)*self.neg_log_likelihood(sent_y.data, mns)
                 nll.backward()
 
                 if end_ind == batch_size:
@@ -321,11 +324,13 @@ class RRLinearModel(torch.nn.Module):
                 start_end = end_ind
                 end_ind = np.min([batch_size, start_end + send_size])
 
-            # Scale gradients that have been accumulated - this is equivalent to using
-            # the average (over samples) negative log-likelihood for the objective.  The advantage
-            # of this normalization is it makes picking a learning rate a little less dependent on batch size.
-            self.scale_grads(1/batch_size)
-            avg_nll = nll.cpu().detach().numpy()/batch_size
+            # Add penalty to average negative log-likelihood of needed
+            if w0_l2 > 0:
+                penalty = w0_l2 * (self.w0 * self.w0).sum()
+                penalty.backward()
+                obj = nll + penalty
+            else:
+                obj = nll
 
             # Take a step
             optimizer.step()
@@ -336,21 +341,22 @@ class RRLinearModel(torch.nn.Module):
 
             # Log our progress
             elapsed_time_log[cur_it] = elapsed_time
-            nll_log[cur_it] = avg_nll
+            obj_vl = obj.cpu().detach().numpy()
+            obj_log[cur_it] = obj_vl
 
             # Provide user with some feedback
             if cur_it % update_int == 0:
                 print(str(cur_it) + ': Elapsed fitting time ' + str(elapsed_time) +
-                      ', vl: ' + str(avg_nll))
+                      ', vl: ' + str(obj_vl))
 
             cur_it += 1
 
         # Give final fitting results (if we have not already)
         if update_int != 1:
             print(str(cur_it-1) + ': Elapsed fitting time ' + str(elapsed_time) +
-                  ', vl: ' + str(avg_nll))
+                  ', vl: ' + str(obj_vl))
 
-        log = {'elapsed_time': elapsed_time_log, 'nll': nll_log}
+        log = {'elapsed_time': elapsed_time_log, 'obj': obj_log}
 
         return log
 
