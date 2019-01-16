@@ -347,7 +347,7 @@ class RRLinearModel(torch.nn.Module):
             # Provide user with some feedback
             if cur_it % update_int == 0:
                 print(str(cur_it) + ': Elapsed fitting time ' + str(elapsed_time) +
-                      ', vl: ' + str(obj_vl))
+                      ', vl: ' + str(obj_vl) + ', penalty: ' + str(penalty.cpu().detach().numpy()))
 
             cur_it += 1
 

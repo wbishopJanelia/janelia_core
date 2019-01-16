@@ -114,6 +114,14 @@ class DataSet:
             sel_vls = [self.ts_data[key]['vls'][i] for i in sel_inds]
         return {'ts': sel_ts, 'vls': sel_vls}
 
+    def ts_paths_to_strings(self):
+        """ Looks at time stamps data and converts any path to a string representation.
+
+        This function is useful to call before pickling as it removes problems when trying
+        to load paths saved in one operating system (e.g., Windows) on other operating systems
+        (e.g., Linux).
+        """
+
 
 class ROIDataset(DataSet):
     """ A dataset object for holding datasets which include roi information.
