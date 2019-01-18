@@ -15,7 +15,7 @@ import sklearn.decomposition
 import torch
 
 from janelia_core.visualization.matrix_visualization import cmp_n_mats
-
+from janelia_core.ml.utils import format_and_check_learning_rates
 
 class RRLinearModel(torch.nn.Module):
     """ Object for linear reduced rank linear model objects.
@@ -227,7 +227,7 @@ class RRLinearModel(torch.nn.Module):
         return .5 * n_smps*torch.sum(torch.log(self.v)) + .5 * torch.sum(((y - mns) ** 2) / torch.t(self.v))
 
     def fit(self, x: torch.Tensor, y: torch.Tensor, batch_size: int=100, send_size: int=100, max_its: int=10,
-            adam_params: dict = {'lr': .01}, min_var: float = 0.0, update_int: int = 1000,
+            learning_rates=.01, adam_params: dict = {}, min_var: float = 0.0, update_int: int = 1000,
             parameters: list = None, w0_l2: float = 0.0, w1_l2: float = 0, w0_l1: float = 0, w1_l1: float = 0,
             print_penalties: bool = False):
         """ Fits a model to data.
@@ -252,7 +252,14 @@ class RRLinearModel(torch.nn.Module):
 
             max_its: The maximum number of iterations to run
 
-            adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object
+            learning_rates: If a single number, this is the learning rate to use for all iteration.  Alternatively, this
+            can be a list of tuples.  Each tuple is of the form (iteration, learning_rate), which gives the learning rate
+            to use from that iteration onwards, until another tuple specifies another learning rate to use at a different
+            iteration on.  E.g., learning_rates = [(0, .01), (1000, .001), (10000, .0001)] would specify a learning
+            rate of .01 from iteration 0 to 999, .001 from iteration 1000 to 9999 and .0001 from iteration 10000 onwards.
+
+            adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object.
+            Note that if learning rate is specified here *it will be ignored.* (Use the learning_rates option instead).
 
             min_var: The minumum value any entry of v can take on.  After a gradient update, values less than this
             will be clamped to this value.
@@ -292,6 +299,13 @@ class RRLinearModel(torch.nn.Module):
         if parameters is None:
             parameters = self.parameters()
 
+        if not isinstance(learning_rates, (int, float, list)):
+            raise (ValueError('learning_rates must be of type int, float or list.'))
+
+        # Format and check learning rates - no matter the input format this outputs learning rates in a standard format
+        # where the learning rate starting at iteration 0 is guaranteed to be listed first
+        learning_rate_its, learning_rate_values = format_and_check_learning_rates(learning_rates)
+
         optimizer = torch.optim.Adam(parameters, **adam_params)
 
         n_smps = x.shape[0]
@@ -302,10 +316,18 @@ class RRLinearModel(torch.nn.Module):
         obj_log = np.zeros(max_its)
 
         while cur_it < max_its:
+
             elapsed_time = time.time() - start_time  # Record elapsed time here because we measure it from the start of
             # each iteration.  This is because we also record the nll value for each iteration before parameters are
             # updated.  In this way, the elapsed time is the elapsed time to get to a set of parameters for which we
             # report the nll.
+
+            # Set the learning rate
+            cur_learing_rate_ind = np.nonzero(learning_rate_its <= cur_it)[0]
+            cur_learing_rate_ind = cur_learing_rate_ind[-1]
+            cur_learning_rate = learning_rate_values[cur_learing_rate_ind]
+            for g in optimizer.param_groups:
+                g['lr'] = cur_learning_rate
 
             # Chose the samples for this iteration
             cur_smps = np.random.choice(n_smps, batch_size, replace=False)
@@ -370,7 +392,7 @@ class RRLinearModel(torch.nn.Module):
             # Provide user with some feedback
             if cur_it % update_int == 0:
                 print(str(cur_it) + ': Elapsed fitting time ' + str(elapsed_time) +
-                      ', vl: ' + str(obj_vl))
+                      ', vl: ' + str(obj_vl) + ', lr: ' + str(cur_learning_rate))
                 if print_penalties:
                     if w0_l2 > 0:
                         print('w0 l-2 penalty:  ' + str(w0_l2_penalty.cpu().detach().numpy()))
