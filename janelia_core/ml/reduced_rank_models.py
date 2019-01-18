@@ -228,7 +228,8 @@ class RRLinearModel(torch.nn.Module):
 
     def fit(self, x: torch.Tensor, y: torch.Tensor, batch_size: int=100, send_size: int=100, max_its: int=10,
             adam_params: dict = {'lr': .01}, min_var: float = 0.0, update_int: int = 1000,
-            parameters: list = None, w0_l2: float = 0.0):
+            parameters: list = None, w0_l2: float = 0.0, w1_l2: float = 0, w0_l1: float = 0, w1_l1: float = 0,
+            print_penalties: bool = False):
         """ Fits a model to data.
 
         This function performs stochastic optimization with the ADAM algorithm.  The weights of the model
@@ -262,6 +263,14 @@ class RRLinearModel(torch.nn.Module):
             optimized.
 
             w0_l2: The penalty on the l-2 norm of the model's w0 weights.
+
+            w1_l2: The penalty on the l-2 norm of the model's w1 weights.
+
+            w0_l1: The penalty on the l-1 norm of the model's w0 weights.
+
+            w1_l1: The penalty on the l-2 norm of the model's w1 weights.
+
+            print_penalties: True if penalty values should be printed to screen.
 
         Raises:
             ValueError: If send_size is greater than batch_size.
@@ -315,8 +324,8 @@ class RRLinearModel(torch.nn.Module):
 
                 mns = self(sent_x.data)
                 # Calculate nll - we divide by batch size to get average (over samples) negative log-likelihood
-                nll = (1/batch_size)*self.neg_log_likelihood(sent_y.data, mns)
-                nll.backward()
+                obj = (1/batch_size)*self.neg_log_likelihood(sent_y.data, mns)
+                obj.backward()
 
                 if end_ind == batch_size:
                     break
@@ -324,13 +333,27 @@ class RRLinearModel(torch.nn.Module):
                 start_end = end_ind
                 end_ind = np.min([batch_size, start_end + send_size])
 
-            # Add penalty to average negative log-likelihood of needed
+            # Add penalties to average negative log-likelihood if needed
             if w0_l2 > 0:
-                penalty = w0_l2 * (self.w0 * self.w0).sum()
-                penalty.backward()
-                obj = nll + penalty
-            else:
-                obj = nll
+                w0_l2_penalty = w0_l2 * (self.w0 * self.w0).sum()
+                w0_l2_penalty.backward() # Apply backwards just to penalty terms since gradients accumulate and we
+                                         # we have already done this for the likelihood
+                obj = obj + w0_l2_penalty
+
+            if w1_l2 > 0:
+                w1_l2_penalty = w1_l2 * (self.w1 * self.w1).sum()
+                w1_l2_penalty.backward()
+                obj = obj + w1_l2_penalty
+
+            if w0_l1 > 0:
+                w0_l1_penalty = w0_l1*(torch.abs(self.w0)).sum()
+                w0_l1_penalty.backward()
+                obj = obj + w0_l1_penalty
+
+            if w1_l1 > 0:
+                w1_l1_penalty = w1_l1*(torch.abs(self.w1)).sum()
+                w1_l1_penalty.backward()
+                obj = obj + w1_l1_penalty
 
             # Take a step
             optimizer.step()
@@ -347,7 +370,19 @@ class RRLinearModel(torch.nn.Module):
             # Provide user with some feedback
             if cur_it % update_int == 0:
                 print(str(cur_it) + ': Elapsed fitting time ' + str(elapsed_time) +
-                      ', vl: ' + str(obj_vl) + ', penalty: ' + str(penalty.cpu().detach().numpy()))
+                      ', vl: ' + str(obj_vl))
+                if print_penalties:
+                    if w0_l2 > 0:
+                        print('w0 l-2 penalty:  ' + str(w0_l2_penalty.cpu().detach().numpy()))
+                if print_penalties:
+                    if w1_l2 > 0:
+                        print('w1 l-2 penalty:  ' + str(w1_l2_penalty.cpu().detach().numpy()))
+                if print_penalties:
+                    if w0_l1 > 0:
+                        print('w0 l-1 penalty:  ' + str(w0_l1_penalty.cpu().detach().numpy()))
+                if print_penalties:
+                    if w1_l1 > 0:
+                        print('w1 l-1 penalty:  ' + str(w1_l1_penalty.cpu().detach().numpy()))
 
             cur_it += 1
 
