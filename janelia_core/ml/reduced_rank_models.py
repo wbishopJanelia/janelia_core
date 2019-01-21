@@ -298,6 +298,8 @@ class RRLinearModel(torch.nn.Module):
 
         if parameters is None:
             parameters = self.parameters()
+        # Convert generator to list (since we need to reference parameters multiple times in the code below)
+        parameters = [p for p in parameters]
 
         if not isinstance(learning_rates, (int, float, list)):
             raise (ValueError('learning_rates must be of type int, float or list.'))
@@ -306,7 +308,7 @@ class RRLinearModel(torch.nn.Module):
         # where the learning rate starting at iteration 0 is guaranteed to be listed first
         learning_rate_its, learning_rate_values = format_and_check_learning_rates(learning_rates)
 
-        optimizer = torch.optim.Adam(parameters, **adam_params)
+        optimizer = torch.optim.Adam(parameters, lr=learning_rate_values[0], **adam_params)
 
         n_smps = x.shape[0]
         cur_it = 0
@@ -314,6 +316,7 @@ class RRLinearModel(torch.nn.Module):
 
         elapsed_time_log = np.zeros(max_its)
         obj_log = np.zeros(max_its)
+        prev_learning_rate = learning_rate_values[0]
 
         while cur_it < max_its:
 
@@ -326,8 +329,10 @@ class RRLinearModel(torch.nn.Module):
             cur_learing_rate_ind = np.nonzero(learning_rate_its <= cur_it)[0]
             cur_learing_rate_ind = cur_learing_rate_ind[-1]
             cur_learning_rate = learning_rate_values[cur_learing_rate_ind]
-            for g in optimizer.param_groups:
-                g['lr'] = cur_learning_rate
+            if cur_learning_rate != prev_learning_rate:
+                # We reset the whole optimizer because ADAM is an adaptive optimizer
+                optimizer = torch.optim.Adam(parameters, lr=cur_learning_rate, **adam_params)
+                prev_learning_rate = cur_learning_rate
 
             # Chose the samples for this iteration
             cur_smps = np.random.choice(n_smps, batch_size, replace=False)
