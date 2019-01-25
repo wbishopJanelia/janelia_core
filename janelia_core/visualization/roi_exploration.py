@@ -18,14 +18,150 @@ import pyqtgraph as pg
 from pyqtgraph import InfiniteLine
 from pyqtgraph import LinearRegionItem
 
+from janelia_core.math.basic_functions import l_th
 from janelia_core.math.basic_functions import u_th
 
 roi_clrs = np.asarray([[0, 153, 255], # Blue
+                      [255, 0, 9], # Red
                       [51, 204, 51], # Green
                       [255, 255, 0], # Yellow
-                      [204, 0, 244], # Purple
-                      [255, 0, 9]],  # Red
+                      [204, 0, 244]], # Purple
                         dtype=np.uint8)
+
+
+class StaticROIViewer(QWidget):
+    """ QT Widget for viewing static 3D roi data.
+
+    This widget allows the user to provide a 3D background image as well as a set of 3D ROIs. The user
+    can then view slices through the 3D volume.
+    """
+
+    sigKeyPress = pyqtSignal(object)
+
+    def __init__(self, bg_image: np.ndarray, rois: list, dim: int = 0, clrs: np.ndarray = None, weight_gain: float = 1.0):
+        """ Creates a new StaticROIViewer object.
+
+        Args:
+            bg_image: The background image to view.
+
+            rois: A list of ROI objects.
+
+            dim: The dimension to slice along.
+
+            clrs: A n_roi*3 array.  Each row gives the color to plot the corresponding ROI in.  If this is none,
+            random colors will be assigned to ROIs.
+
+            weight_gain: The value to multiply weights of rois by before mapping the weights to aplha values in the
+            range of 0 to 255.
+        """
+
+        super().__init__()
+
+        self.bg_image = bg_image
+        self.rois = rois
+        self.dim = dim
+        self.weight_gain = weight_gain
+
+        self.bg_planes = None
+        self.roi_planes = None
+        self.slider = QSlider(Qt.Horizontal)
+
+        if clrs is None:
+            n_rois = len(rois)
+            clrs = np.zeros([n_rois, 3], dtype=np.int)
+            for i in range(n_rois):
+                clr_ind = i % roi_clrs.shape[0]
+                clrs[i, :] = roi_clrs[clr_ind, :]
+        self.clrs = clrs
+
+    # Set things up to respond to key presses
+    def process_key_press(self, ev):
+        if ev.key() == Qt.Key_Right:
+            self.slider.setValue(self.slider.value() + 1)
+        elif ev.key() == Qt.Key_Left:
+            self.slider.setValue(self.slider.value() - 1)
+
+    def init_ui(self):
+        """ Initializes the user interface.
+        """
+
+        # First thing we need to do is create the set of background images to display in each slice
+        image_shape = self.bg_image.shape
+        n_planes = image_shape[self.dim]
+
+        slices = [[slice(0, image_shape[d], 1) if d != self.dim else slice(p, p+1, 1) for d in range(3)]
+                  for p in range(n_planes)]
+        slices = [tuple(slices[p]) for p in range(n_planes)]
+
+        self.bg_planes = [np.squeeze(self.bg_image[s]) for s in slices]
+
+        # Now we create the roi images to display as well
+        plane_shape = self.bg_planes[0].shape
+        self.roi_planes = []
+        for p in range(n_planes):
+            plane_clrs = np.zeros([*plane_shape, 3], dtype=np.int)
+            plane_alpha = np.zeros([*plane_shape], dtype=np.int)
+            for roi_idx, roi in enumerate(self.rois):
+                sliced_roi = roi.slice_roi(p, self.dim, retain_dim=False)
+                plane_clrs[sliced_roi.voxel_inds[0], sliced_roi.voxel_inds[1], :] = \
+                    plane_clrs[sliced_roi.voxel_inds[0], sliced_roi.voxel_inds[1], :] + self.clrs[roi_idx, :]
+                plane_alpha[sliced_roi.voxel_inds[0], sliced_roi.voxel_inds[1]] = \
+                   plane_alpha[sliced_roi.voxel_inds[0], sliced_roi.voxel_inds[1]] + 255*self.weight_gain*sliced_roi.weights
+
+            plane_clrs = u_th(l_th(plane_clrs, 0), 255)
+            plane_alpha = u_th(l_th(plane_alpha, 0), 255)
+            plane_alpha = np.expand_dims(plane_alpha, 2)
+
+            self.roi_planes.append(np.concatenate([plane_clrs, plane_alpha], 2))
+
+        # Create a viewbox for our images - this will allow us to pan and scale things
+        imageAspectRatio = self.bg_planes[0].shape[0] / self.bg_planes[0].shape[1]
+        image_vew_box = pg.ViewBox(lockAspect=imageAspectRatio)
+
+        # Add the plane 0 background image to the image view
+        bg_image_item = pg.ImageItem(self.bg_planes[0])
+        image_vew_box.addItem(bg_image_item)
+
+        # Add the plane 0 roi image to the image view
+        roi_image_item = pg.ImageItem(self.roi_planes[0])
+        image_vew_box.addItem(roi_image_item)
+
+        # Create a graphics view widget, adding our viewbox
+        graphics_view = pg.GraphicsView()
+        graphics_view.setCentralItem(image_vew_box)
+
+        def slider_moved(vl):
+            bg_image_item.setImage(self.bg_planes[vl])
+            roi_image_item.setImage(self.roi_planes[vl])
+
+        # Setup things to hand key presses
+        self.sigKeyPress.connect(self.process_key_press)
+
+        # Setup the slider
+        slider = self.slider
+        slider.valueChanged.connect(slider_moved)
+        slider.setTracking(True)
+        slider.setRange(0, n_planes - 1)
+
+        # Layout everything
+        layout = QVBoxLayout()
+        layout.addWidget(graphics_view)
+        layout.addWidget(slider)
+        self.setLayout(layout)
+
+        self.show()
+
+    def keyPressEvent(self, ev):
+        """ Overrides keyPressEvent of base class, so that we signal to this object that a key has been pressed."""
+        self.sigKeyPress.emit(ev)
+
+    def set_plane(self, p):
+        """ Sets the plane of the viewer shows.
+
+        Args:
+            idx - the index to show.
+        """
+        self.slider.setValue(p)
 
 
 class TimeLine(QWidget):
@@ -47,7 +183,7 @@ class TimeLine(QWidget):
             vls: A numpy array of values.  Each column is a different signals.  Rows correspond to
             times in ts.
 
-            clrs: A n_signals*3 array, where n_sigmals is the number of signals in vls.  Each row
+            clrs: A n_signals*3 array, where n_signals is the number of signals in vls.  Each row
             gives the color to plot the corresponding signal in vls in.  If this is None, all
             signals will be white.
 
@@ -194,7 +330,6 @@ class ROIViewer(QWidget):
         # Add the background image to the image view
         bg_image_item = pg.ImageItem(self.mn_img)
         image_vew_box.addItem(bg_image_item)
-
 
         # Add the rois to the image view
         roi_image_items = [None]*len(self.rois)

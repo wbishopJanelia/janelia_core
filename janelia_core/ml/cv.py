@@ -100,3 +100,29 @@ def generate_balanced_folds(labels: np.ndarray, n_folds: int, balance_across_fol
     return folds
 
 
+def parameter_combinations(param_values: dict) -> list:
+    """ Generates all possible combination of parameter values from sets of possible values for individual parameters.
+
+    Args:
+        param_values: Each key in the dictionary is a parameter name.  Each value is a sequence of possible parameter
+        values.
+
+    Returns:
+        A list of parameter dictionaries.  Each dictionary will have the same keys as param_values but the value associated
+        with each key will be only one parameter value.  The list will contain dictionaries of all possible parameter
+        values.
+    """
+
+    params = param_values.keys()
+    n_params = [len(param_values[k]) for k in params]
+
+    param_ind_combos = np.indices(n_params)
+    param_ind_combos = [np.reshape(inds, inds.size) for inds in param_ind_combos] # Flatten indices
+
+    n_combos = len(param_ind_combos[0])
+    param_combos = [None]*n_combos
+    for c_i in range(n_combos):
+        param_combos[c_i] = {p:param_values[p][param_ind_combos[p_i][c_i]] for p_i, p in enumerate(params)}
+
+    return param_combos
+

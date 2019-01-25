@@ -136,25 +136,30 @@ class ROI():
         else:
             return self.weights
 
-    def slice_roi(self, plane_idx: int, dim: int = None):
+    def slice_roi(self, plane_idx: int, dim: int = 0, retain_dim=True):
         """ Returns a slice of an ROI.
 
         Args:
             plane_idx: The index of the plane to slice
 
-            dim: The dimension which defines the plane.  If this is None, dim will be set to 0.
+            dim: The dimension which defines the plane.
+
+            retain_dim: If true, the voxel_inds of the returned roi will be the same length
+            as the original roi.  If false, the entry in voxel_inds for the dimension that was
+            sliced along will be removed.
 
         Returns:
             new_roi: A new roi formed from slicing the roi this function was called on.
         """
-        if dim is None:
-            dim = 0
-
         n_dims = len(self.voxel_inds)
 
         keep_inds = np.where(self.voxel_inds[dim] == plane_idx)[0]
 
-        new_voxel_inds = tuple([self.voxel_inds[d][keep_inds] for d in range(n_dims)])
+        new_voxel_inds = [self.voxel_inds[d][keep_inds] for d in range(n_dims)]
+        if retain_dim is False:
+            del new_voxel_inds[dim]
+        new_voxel_inds = tuple(new_voxel_inds)
+
         new_weights = self.weights[keep_inds]
 
         return ROI(new_voxel_inds, new_weights)
