@@ -11,6 +11,8 @@ def alpha_overlay(base_img: np.ndarray, overlay_inds: list, overlay_clrs: np.nda
                   overlay_alpha: np.ndarray) -> np.ndarray:
     """ Takes a base image and overlays another image, performing alpha blending.
 
+    Note: The output of this function will be floating point numbers (not integers).
+
     Args:
         base_img: The image to overlay things on top of.  Should be of size n_pixels*n_pixels*3,
         where the last dimension contains the RGB values of each pixel in the image.
@@ -43,13 +45,13 @@ def alpha_overlay(base_img: np.ndarray, overlay_inds: list, overlay_clrs: np.nda
         red_inds = [np.reshape(i, i.size) for i in red_inds]
         red_clrs = 0*np.ones([16, 3], dtype=np.int)
         red_clrs[:,0] = 255
-        red_alpha = .5*np.ones(16, dtype=np.int)
+        red_alpha = 255*.5*np.ones(16, dtype=np.int)
 
         blue_inds = np.indices([4,4])
         blue_inds = [np.reshape(i, i.size)+2 for i in blue_inds]
         blue_clrs = 0*np.ones([16, 3], dtype=np.int)
         blue_clrs[:,2] = 255
-        blue_alpha = .2*np.ones(16, dtype=np.int)
+        blue_alpha = 255*.2*np.ones(16, dtype=np.int)
 
         new_image = alpha_overlay(base_img, red_inds, red_clrs, red_alpha)
         new_image = alpha_overlay(new_image, blue_inds, blue_clrs, blue_alpha)
@@ -66,7 +68,7 @@ def alpha_overlay(base_img: np.ndarray, overlay_inds: list, overlay_clrs: np.nda
     if overlay_alpha.ndim != 1:
         raise (RuntimeError('overlay_alpha must be one dimensional.'))
 
-    overlay_alpha = np.expand_dims(overlay_alpha, 1)
+    overlay_alpha = np.expand_dims(overlay_alpha, 1)/255.0
 
     new_image = base_img
     new_image[overlay_inds[0], overlay_inds[1], :] = \

@@ -20,6 +20,7 @@ from pyqtgraph import LinearRegionItem
 
 from janelia_core.math.basic_functions import l_th
 from janelia_core.math.basic_functions import u_th
+from janelia_core.visualization.utils import alpha_overlay
 
 roi_clrs = np.asarray([[0, 153, 255], # Blue
                       [255, 0, 9], # Red
@@ -62,8 +63,7 @@ class StaticROIViewer(QWidget):
         self.dim = dim
         self.weight_gain = weight_gain
 
-        self.bg_planes = None
-        self.roi_planes = None
+        self.plane_images = None
         self.slider = QSlider(Qt.Horizontal)
 
         if clrs is None:
@@ -85,7 +85,9 @@ class StaticROIViewer(QWidget):
         """ Initializes the user interface.
         """
 
-        # First thing we need to do is create the set of background images to display in each slice
+        # First thing we need to do is create the set of images to display in each slice - we do blending of
+        # rois on top of the background image for each plane here
+
         image_shape = self.bg_image.shape
         n_planes = image_shape[self.dim]
 
@@ -93,46 +95,37 @@ class StaticROIViewer(QWidget):
                   for p in range(n_planes)]
         slices = [tuple(slices[p]) for p in range(n_planes)]
 
-        self.bg_planes = [np.squeeze(self.bg_image[s]) for s in slices]
-
-        # Now we create the roi images to display as well
-        plane_shape = self.bg_planes[0].shape
-        self.roi_planes = []
+        self.plane_images = list()
         for p in range(n_planes):
-            plane_clrs = np.zeros([*plane_shape, 3], dtype=np.int)
-            plane_alpha = np.zeros([*plane_shape], dtype=np.int)
+            plane_image = np.squeeze(self.bg_image[slices[p]])
+            plane_image = np.matlib.repmat(plane_image, 3)
+
             for roi_idx, roi in enumerate(self.rois):
                 sliced_roi = roi.slice_roi(p, self.dim, retain_dim=False)
-                plane_clrs[sliced_roi.voxel_inds[0], sliced_roi.voxel_inds[1], :] = \
-                    plane_clrs[sliced_roi.voxel_inds[0], sliced_roi.voxel_inds[1], :] + self.clrs[roi_idx, :]
-                plane_alpha[sliced_roi.voxel_inds[0], sliced_roi.voxel_inds[1]] = \
-                   plane_alpha[sliced_roi.voxel_inds[0], sliced_roi.voxel_inds[1]] + 255*self.weight_gain*sliced_roi.weights
 
-            plane_clrs = u_th(l_th(plane_clrs, 0), 255)
-            plane_alpha = u_th(l_th(plane_alpha, 0), 255)
-            plane_alpha = np.expand_dims(plane_alpha, 2)
+                n_roi_voxels = len(roi.weights)
+                roi_clr = self.clrs[roi_idx, :]
+                roi_clr = np.matlib.repmat(roi_clr, n_roi_voxels)
 
-            self.roi_planes.append(np.concatenate([plane_clrs, plane_alpha], 2))
+                plane_image = alpha_overlay(plane_image, sliced_roi.voxel_inds, roi_clr,
+                                            255*self.weight_gain*sliced_roi.weights)
+
+            self.plane_images.append(plane_image)
 
         # Create a viewbox for our images - this will allow us to pan and scale things
-        imageAspectRatio = self.bg_planes[0].shape[0] / self.bg_planes[0].shape[1]
-        image_vew_box = pg.ViewBox(lockAspect=imageAspectRatio)
+        image_aspect_ratio = self.plane_images[0].shape[0] / self.plane_images[0].shape[1]
+        image_vew_box = pg.ViewBox(lockAspect=image_aspect_ratio)
 
-        # Add the plane 0 background image to the image view
-        bg_image_item = pg.ImageItem(self.bg_planes[0])
-        image_vew_box.addItem(bg_image_item)
-
-        # Add the plane 0 roi image to the image view
-        roi_image_item = pg.ImageItem(self.roi_planes[0])
-        image_vew_box.addItem(roi_image_item)
+        # Add the plane 0 image to the image view
+        image_item = pg.ImageItem(self.plane_images[0])
+        image_vew_box.addItem(image_item)
 
         # Create a graphics view widget, adding our viewbox
         graphics_view = pg.GraphicsView()
         graphics_view.setCentralItem(image_vew_box)
 
         def slider_moved(vl):
-            bg_image_item.setImage(self.bg_planes[vl])
-            roi_image_item.setImage(self.roi_planes[vl])
+            image_item.setImage(self.plane_images[vl])
 
         # Setup things to hand key presses
         self.sigKeyPress.connect(self.process_key_press)
