@@ -39,7 +39,8 @@ class StaticROIViewer(QWidget):
 
     sigKeyPress = pyqtSignal(object)
 
-    def __init__(self, bg_image: np.ndarray, rois: list, dim: int = 0, clrs: np.ndarray = None, weight_gain: float = 1.0):
+    def __init__(self, bg_image: np.ndarray, rois: list, dim: int = 0, clrs: np.ndarray = None,
+                 weight_gain: float = 1.0, levels: list = None):
         """ Creates a new StaticROIViewer object.
 
         Args:
@@ -54,6 +55,9 @@ class StaticROIViewer(QWidget):
 
             weight_gain: The value to multiply weights of rois by before mapping the weights to aplha values in the
             range of 0 to 255.
+
+            levels: If none, min, max intensity levels for each plane are automatically set.  Otherwise,
+            levels should be a sequence giving the [min, max] levels
         """
 
         super().__init__()
@@ -65,6 +69,7 @@ class StaticROIViewer(QWidget):
 
         self.plane_images = None
         self.slider = QSlider(Qt.Horizontal)
+        self.levels = levels
 
         if clrs is None:
             n_rois = len(rois)
@@ -98,14 +103,22 @@ class StaticROIViewer(QWidget):
         self.plane_images = list()
         for p in range(n_planes):
             plane_image = np.squeeze(self.bg_image[slices[p]])
-            plane_image = np.matlib.repmat(plane_image, 3)
+            plane_image = np.stack([plane_image, plane_image, plane_image], 2)
 
             for roi_idx, roi in enumerate(self.rois):
                 sliced_roi = roi.slice_roi(p, self.dim, retain_dim=False)
 
-                n_roi_voxels = len(roi.weights)
+                n_roi_voxels = len(sliced_roi.weights)
                 roi_clr = self.clrs[roi_idx, :]
-                roi_clr = np.matlib.repmat(roi_clr, n_roi_voxels)
+                roi_clr = np.matlib.repmat(roi_clr, n_roi_voxels, 1)
+
+                w = self.weight_gain*sliced_roi.weights
+                if np.min(w) < 0:
+                    warnings.warn('Some weights for roi ' + str(roi_idx) + ' are less than 0.')
+                    w = l_th(w, 0)
+                if np.max(w) > 1:
+                    warnings.warn('Some weights for roi ' + str(roi_idx) + ' are greater than 1.')
+                    w = u_th(w,0)
 
                 plane_image = alpha_overlay(plane_image, sliced_roi.voxel_inds, roi_clr,
                                             255*self.weight_gain*sliced_roi.weights)
@@ -118,6 +131,8 @@ class StaticROIViewer(QWidget):
 
         # Add the plane 0 image to the image view
         image_item = pg.ImageItem(self.plane_images[0])
+        if self.levels is not None:
+            image_item.setLevels(self.levels, update=False)
         image_vew_box.addItem(image_item)
 
         # Create a graphics view widget, adding our viewbox
@@ -125,7 +140,7 @@ class StaticROIViewer(QWidget):
         graphics_view.setCentralItem(image_vew_box)
 
         def slider_moved(vl):
-            image_item.setImage(self.plane_images[vl])
+            image_item.setImage(self.plane_images[vl], autoLevels=False)
 
         # Setup things to hand key presses
         self.sigKeyPress.connect(self.process_key_press)
