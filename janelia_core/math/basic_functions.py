@@ -65,3 +65,69 @@ def divide_into_nearly_equal_parts(n, k) -> np.ndarray:
         vls[i] += 1
 
     return vls
+
+
+def find_first_before(a: np.ndarray, ind: int) -> int:
+    """ Given a logical array, finds first true value before or at a given index.
+
+    Args:
+        a: The logical array to search
+
+        ind: The index to start the search at.
+
+    Returns:
+        first_ind: The index the first true value occurs at. If no match is found, returns None.
+
+    Raises:
+        ValueError: If ind is negative or out of the range of the array.
+
+    """
+
+    len_a = len(a)
+
+    if ind > len_a - 1:
+        raise(RuntimeError('Index ' + str(ind) +
+                           ' is out of range for an array with length ' + str(len_a) + '.'))
+    if ind < 0:
+        raise(RuntimeError('Index must be positive.'))
+
+    a = a[0:ind+1]
+    inds = np.where(a == 1)[0]
+    if inds.size == 0:
+        return None
+    else:
+        return inds[-1]
+
+
+def find_first_after(a: np.ndarray, ind: int) -> int:
+    """ Given a logical array, finds first true value after or at a given index.
+
+    Args:
+        a: The logical array to search
+
+        ind: The index to start the search at.
+
+    Returns:
+        first_ind: The index the first true value occurs at. If no match is found, returns None.
+
+    Raises:
+        ValueError: If ind is negative or out of the range of the array.
+
+    """
+
+    len_a = len(a)
+
+    if ind > len_a - 1:
+        raise(RuntimeError('Index ' + str(ind) +
+                           ' is out of range for an array with length ' + str(len_a) + '.'))
+    if ind < 0:
+        raise(RuntimeError('Index must be positive.'))
+
+    a = a[ind:len_a]
+    inds = np.where(a == 1)[0]
+    if inds.size == 0:
+        return None
+    else:
+        return inds[0] + ind
+
+

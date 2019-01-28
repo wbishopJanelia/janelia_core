@@ -73,7 +73,6 @@ def fisher_lda(x: np.ndarray, y: np.ndarray, use_cov: bool = False) -> np.ndarra
             c_inds = np.where(y == c_i)[0]
             plt.plot(x_p[c_inds,0], x_p[c_inds,1], 'o')
 
-
     """
 
     d_x = x.shape[1]

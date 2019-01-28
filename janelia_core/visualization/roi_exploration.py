@@ -40,7 +40,7 @@ class StaticROIViewer(QWidget):
     sigKeyPress = pyqtSignal(object)
 
     def __init__(self, bg_image: np.ndarray, rois: list, dim: int = 0, clrs: np.ndarray = None,
-                 weight_gain: float = 1.0, levels: list = None):
+                 weight_gain: float = 1.0, levels: list = None, ignore_warnings: bool = False):
         """ Creates a new StaticROIViewer object.
 
         Args:
@@ -58,6 +58,8 @@ class StaticROIViewer(QWidget):
 
             levels: If none, min, max intensity levels for each plane are automatically set.  Otherwise,
             levels should be a sequence giving the [min, max] levels
+
+            ignore_warning: True if warnings should not be generated
         """
 
         super().__init__()
@@ -70,6 +72,7 @@ class StaticROIViewer(QWidget):
         self.plane_images = None
         self.slider = QSlider(Qt.Horizontal)
         self.levels = levels
+        self.ignore_warnings = ignore_warnings
 
         if clrs is None:
             n_rois = len(rois)
@@ -113,12 +116,15 @@ class StaticROIViewer(QWidget):
                 roi_clr = np.matlib.repmat(roi_clr, n_roi_voxels, 1)
 
                 w = self.weight_gain*sliced_roi.weights
-                if np.min(w) < 0:
-                    warnings.warn('Some weights for roi ' + str(roi_idx) + ' are less than 0.')
-                    w = l_th(w, 0)
-                if np.max(w) > 1:
-                    warnings.warn('Some weights for roi ' + str(roi_idx) + ' are greater than 1.')
-                    w = u_th(w,0)
+                if len(w) > 0:
+                    if np.min(w) < 0:
+                        if not self.ignore_warnings:
+                            warnings.warn('Some weights for roi ' + str(roi_idx) + ' are less than 0.')
+                        w = l_th(w, 0)
+                    if np.max(w) > 1:
+                        if not self.ignore_warnings:
+                            warnings.warn('Some weights for roi ' + str(roi_idx) + ' are greater than 1.')
+                        w = u_th(w,0)
 
                 plane_image = alpha_overlay(plane_image, sliced_roi.voxel_inds, roi_clr,
                                             255*self.weight_gain*sliced_roi.weights)
@@ -449,7 +455,7 @@ class ROIViewer(QWidget):
 class MultiPlaneROIViewer():
     """ An object for viewing ROIs across multiple planes and roi groups.
 
-    This function allows for the visualization of a set of signals along with roi values across time.  The main window
+    This object allows for the visualization of a set of signals along with roi values across time.  The main window
     consists of a TimeLine Widget showing the signals. There will be additional windows to show ROIs in each plane and
     for each group. As the user moves the slider on this widget, roi values for the time the slider
     corresponds to will be updated in the opacity of rois.
