@@ -1,5 +1,7 @@
 """ Module for working with and representing rois. """
 
+import copy
+
 import numpy as np
 
 
@@ -49,12 +51,14 @@ class ROI():
             start_inds = np.zeros(n_dims, dtype=np.int)
 
         nz_inds = list(np.where(arr))
+        shifted_nz_inds = copy.deepcopy(nz_inds)
 
         for d in range(n_dims):
-            nz_inds[d] = nz_inds[d] + start_inds[d]
+            shifted_nz_inds[d] = shifted_nz_inds[d] + start_inds[d]
 
         nz_inds = tuple(nz_inds)
-        return ROI(nz_inds, arr[nz_inds])
+        shifted_nz_inds = tuple(shifted_nz_inds)
+        return ROI(shifted_nz_inds, arr[nz_inds])
 
     def to_dict(self):
         """ Creates a dictionary from a ROI object.

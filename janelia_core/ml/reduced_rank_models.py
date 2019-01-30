@@ -17,6 +17,7 @@ import torch
 from janelia_core.visualization.matrix_visualization import cmp_n_mats
 from janelia_core.ml.utils import format_and_check_learning_rates
 
+
 class RRLinearModel(torch.nn.Module):
     """ Object for linear reduced rank linear model objects.
 
@@ -1032,5 +1033,85 @@ class RRReluModel(RRLinearModel):
         x = torch.relu(x)
         x = x + self.o2
         return torch.t(x)
+
+    def vary_latents(self, p_mat: torch.Tensor, mn_input: torch.Tensor, latent_vls: torch.Tensor) -> list:
+        """ Produces output of model as latents take on different values.
+
+        We define the latents for the model as l_t = w_0^T*x_t, for l_t \in R^d_latent.  We want to know
+        what happens to the model as we change values in different dimensions of our latent space.
+
+        Generally, we want to be able to work with arbitrary coordinate systems in our latent space, so we introduce
+        projection matrices to allow us to pick out latent dimensions we want to vary. Let proj_m be a projection matrix
+        such that proj_m = p_mat*p_mat^T, and let proj_c = I - proj_m.  In this was, the columns of p_mat specify latent
+        dimensions in R^d_latent we are going to explore.
+
+        For latent_vls[:,i] this function will compute:
+
+            delta[:, t] = relu(w_1*p_mat*latent_vls[:,i] + mean_c + o_1) + o_2, where mean_c = w_1*proj_c*w_0^T*mn_input.
+
+        Intuitively, we are doing the following.  We are saying (1), let's assume that all of the latent dimensions
+        we are not varying are at their mean value.  Now (2), what happens to the output of my function as I vary the
+        latent dimensions specified by p_mat.  To make this clear, notice that p_mat*latent_vls[:,i] gives the
+        value of the latent dimensions we are interested in.
+
+        This function will also return w_1_proj = w_1*p_mat and w_0_proj = w_0*p_mat, so that activation of the w1 and
+        w0 weights corresponding to latent_vls[:,i] can be computed as w_1_proj*latent_vls[:,i] and
+        w_0_proj*latent_vls[:,i].
+
+        Note: Gradients will not be updated during this function call.
+
+        Args:
+            p_mat: A matrix with orthonormal columns defining the latent space to project into.
+
+            mn_input: The mean input vector to calculate changes of input around.  Note, as specified above, any
+            component of proj_m*w_0^T*x_t will be ignored.  Thus, we can interpret this function as giving changes
+            from the mean activation if the components corresponding to p_mat are 0.
+
+            latent_vls: An array of latent values to generate output for of shape n_smps*d_vary, where d_vary is the
+            number of latent dimensions varied.
+
+        Returns:
+
+            delta: The model output for each point in latent_vls as a tensor.  Of shape n_smps*d_out
+
+            w_0_proj: A tensor equal o w_0*p_mat of shape d_in*d_latent
+
+            w_1_proj: A tensor equal to w_1*p_mat of shape d_out*d_latent
+
+        Raises:
+
+            ValueError: If the columns of p_mat are not orthonormal.
+        """
+
+        n_proj_dims = p_mat.shape[1]
+        d_latent = self.w0.shape[1]
+
+        if len(mn_input.shape) == 1:
+            mn_input = torch.unsqueeze(mn_input, 1)
+
+        with torch.no_grad():
+            # First, make sure that p_mat is a matrix with orthonormal columns
+            check = torch.matmul(torch.t(p_mat), p_mat)
+            check_diff = check - torch.eye(n_proj_dims, dtype=check.dtype)
+            if not np.all(np.isclose(check_diff.detach().numpy(), np.zeros(check_diff.shape))):
+                raise(ValueError('p_mat must have orthonormal columns.'))
+
+            # Now compute projected weights
+            w_0_proj = torch.matmul(self.w0, p_mat)
+            w_1_proj = torch.matmul(self.w1, p_mat)
+
+            proj_c = torch.eye(d_latent) - torch.matmul(p_mat, torch.t(p_mat))
+            mean_c = torch.matmul(self.w1, torch.matmul(proj_c, torch.matmul(torch.t(self.w0), mn_input)))
+
+            # Now compute delta
+            x = torch.matmul(w_1_proj, latent_vls)
+            x = x + mean_c + self.o1
+            x = torch.relu(x)
+            x = x + self.o2
+            delta = torch.t(x)
+
+            return [delta, w_0_proj, w_1_proj]
+
+
 
 
