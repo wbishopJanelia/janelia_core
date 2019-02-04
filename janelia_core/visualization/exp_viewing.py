@@ -4,6 +4,8 @@
     bishopw@hhmi.org
 """
 
+from copy import deepcopy
+
 import numpy as np
 import pyspark
 import pyqtgraph as pg
@@ -80,7 +82,8 @@ def visualize_exp(dataset: janelia_core.dataprocessing.dataset.DataSet,
 
     def load_images():
         selected_region = lr.getRegion()
-        selected_dataset = dataset.select_time_range(selected_region[0], selected_region[1])
+        selected_dataset = deepcopy(dataset)
+        selected_dataset.select_time_range(selected_region[0], selected_region[1])
         selected_cont_series = selected_dataset.ts_data[cont_var_key]
         selected_image_series = [selected_dataset.ts_data[k] for k in image_keys]
         windows.append(view_images_with_continuous_values(selected_cont_series, selected_image_series, func,
@@ -147,7 +150,8 @@ def view_images_with_continuous_values(cont_var_dict: dict, image_dicts: list, f
     # Read in image data
     if func is None:
         func = lambda img: np.max(img, 0)
-    img_data = [np.asarray(get_processed_image_data(img_dict['vls'], func, sc)) for img_dict in image_dicts]
+
+    img_data = [np.asarray(get_processed_image_data(img_dict['vls'], func, sc=sc)) for img_dict in image_dicts]
 
     app = pg.mkQApp()
     w = QtGui.QWidget()

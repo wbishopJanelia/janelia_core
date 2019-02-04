@@ -7,6 +7,7 @@
 """
 
 from operator import add
+from typing import Callable
 
 import numpy as np
 import pyspark
@@ -14,10 +15,8 @@ import pyspark
 from janelia_core.dataprocessing.utils import get_image_data
 
 
-SPARK_N_IMGS = 100 # Number of images in a calculation we must exceed to use spark
-
-
-def std_through_time(images: list, sc: pyspark.SparkContext=None, verbose=True,
+def std_through_time(images: list, sc: pyspark.SparkContext=None,
+                     preprocess_func:Callable[[np.ndarray], np.ndarray] = None, verbose=True,
                      correct_denom=True, h5_data_group: str='default') -> dict:
     """ Calculates standard deviation of individual voxels through time.
 
@@ -27,8 +26,10 @@ def std_through_time(images: list, sc: pyspark.SparkContext=None, verbose=True,
     Args:
         images: A list of either (1) numpy arrays containing the images or (2) file paths to the image files
 
-        sc: If provided, and there are more than SPARK_N_IMAGES images, spark will be used to
-        distribute computation.
+        sc: If provided, spark will be used to distribute computation.
+
+        preprocess_func: A function to apply to the data of each image before calculating means.  If none,
+        a function which returns image data unchanged will be used.
 
         verbose: True if progress updates should be printed to screen.
 
@@ -44,6 +45,10 @@ def std_through_time(images: list, sc: pyspark.SparkContext=None, verbose=True,
 
     n_images = len(images)
 
+    if preprocess_func is None:
+        def preprocess_func(x):
+            return x
+
     # Define helper functions
     def calc_uc_moments(data: np.ndarray) -> list:
         return [(1/n_images)*data, (1/n_images)*np.square(data.astype('uint64'))]
@@ -52,16 +57,16 @@ def std_through_time(images: list, sc: pyspark.SparkContext=None, verbose=True,
         return list(map(add, list_1, list_2))
 
     # Perform calculations
-    if sc is not None and n_images > SPARK_N_IMGS:
+    if sc is not None and n_images:
         print('Processing ' + str(n_images) + ' images with spark.')
         moments = sc.parallelize(images).map(
-            lambda im: calc_uc_moments(get_image_data(im, h5_data_group=h5_data_group))).reduce(list_sum)
+            lambda im: calc_uc_moments(preprocess_func(get_image_data(im, h5_data_group=h5_data_group)))).reduce(list_sum)
     else:
         if verbose:
             print('Processing ' + str(n_images) + ' images without spark.')
-            moments = calc_uc_moments(get_image_data(images[0], h5_data_group=h5_data_group))
+            moments = calc_uc_moments(preprocess_func(get_image_data(images[0], h5_data_group=h5_data_group)))
             for i in images[1:]:
-                moments = list_sum(moments, calc_uc_moments(get_image_data(i, h5_data_group=h5_data_group)))
+                moments = list_sum(moments, calc_uc_moments(preprocess_func(get_image_data(i, h5_data_group=h5_data_group))))
 
     var = moments[1] - np.square(moments[0])
     var[np.where(var < 0)] = 0  # Correct for small floating point errors

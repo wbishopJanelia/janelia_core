@@ -4,17 +4,141 @@
     bishopw@hhmi.org
 """
 
+from dipy.align.transforms import TranslationTransform2D
+from dipy.align.transforms import TranslationTransform3D
+from dipy.align.imaffine import AffineRegistration
+from dipy.align.imaffine import MutualInformationMetric
 import h5py
 import numpy as np
 import pathlib
 import pyspark
 from scipy.ndimage import fourier_shift
+from scipy.ndimage.filters import median_filter
 from skimage.feature import register_translation
+from time import time
+from typing import Sequence
+from typing import Iterable
 
+from janelia_core.dataprocessing.dataset import DataSet
+from janelia_core.dataprocessing.utils import get_image_data
+from janelia_core.dataprocessing.image_stats import std_through_time
 from janelia_core.math.basic_functions import l_th
 from janelia_core.math.basic_functions import u_th
 from janelia_core.math.basic_functions import divide_into_nearly_equal_parts
 from janelia_core.fileio.exp_reader import read_img_file
+
+
+def register_dataset_images(dataset: DataSet, img_field: str, ref_inds: np.ndarray, sc: pyspark.SparkContext = None,
+                            median_filter_shape: Sequence[int] = [1, 5, 5], reg_params: dict() = None,
+                            t_field_name: str = 'shift_transform'):
+
+    """ Calculates transforms to register images through time.
+
+    Currently this function calculates translations in x-y.  This function will:
+        1) Median filter each plane in all images.
+        2) Calculate a reference image by taking the mean of a set of user specified median filtered images.
+        3) Calculate the max projection of the reference image.
+        4) Calculate the optimal translation to align the max projection of each median filtered image to the
+           max projection of the reference image.
+
+    Args:
+        dataset: The dataset containing the images to register.
+
+        img_field: The entry in dataset.ts_data containing the images.
+
+        ref_inds: The indices of images to use for calculating the reference image.
+
+        sc: A spark context to use to distribute computations.  If none, no spark context will be used.
+
+        median_filter_shape: The shape of the median filter to use.
+
+        reg_params: A dictionary of optional parameters to provide to the call to estimate_translation
+
+        t_field_name: Tha name to save the transform under with each image entry in the dataset.
+
+    Returns: None. Each entry in the images list (which is a dictionary) will have an the transform
+    for that image added as a 'transform' entry of the dictionary.
+
+    """
+
+    t0 = time()
+
+    if reg_params is None:
+        reg_params = dict()
+
+    def med_filter_image(img):
+        return median_filter(img.astype('float32'), median_filter_shape)
+
+    # Get the reference image we will register to
+    print('Calculating reference image for registration.')
+    ref_image_files = [dataset.ts_data[img_field]['vls'][i]['file'] for i in ref_inds]
+    ref_stats = std_through_time(ref_image_files, preprocess_func=med_filter_image, sc=sc)
+    ref_image = ref_stats['mean'].max(0)
+
+    t1 = time()
+    print('Done calculating reference image.  Elapsed time: ' + str(t1 - t0))
+
+    # Calculate transforms for each image
+    def reg_func(img):
+        img = get_image_data(img)
+        img = med_filter_image(img)
+        img = np.max(img, 0)
+        return estimate_translation(ref_image, img, **reg_params)
+
+    all_images = [d['file'] for d in dataset.ts_data[img_field]['vls']]
+    all_images = all_images[0:20]
+    n_images = len(all_images)
+    print('Calculating registration transforms.')
+    if sc is None:
+        print('Processing ' + str(n_images) + ' images without spark.')
+        transforms = [reg_func(img) for img in all_images]
+    else:
+        print('Processing ' + str(n_images) + ' images with spark.')
+        transforms = sc.parallelize(all_images).map(reg_func).collect()
+    t1 = time()
+    print('Done calculating registration transforms.  Elapsed time: ' + str(t1 - t0))
+
+    # Put transforms with images
+    for t_i, t in enumerate(transforms):
+        dataset.ts_data[img_field]['vls'][t_i][t_field_name] = t
+
+
+def estimate_translation(fixed: np.ndarray, moving: np.ndarray, metric_sampling: float=1.0,
+                         factors: Iterable =(4, 2, 1), level_iters: Iterable =(1000, 1000, 1000),
+                         sigmas: Iterable =(8, 4, 1)):
+    """
+
+    Estimate translation between 2D or 3D images using dipy.align.
+
+    This is code provided by Davis Bennett with minor reformatting by Will Bishop.
+
+    Args:
+
+    fixed : numpy array, 2D or 3D.  The reference image.
+
+    moving : numpy array, 2D or 3D.  The image to be transformed.
+
+    metric_sampling : float, within the interval (0,  1]. Fraction of the metric sampling to use for optimization
+
+    factors : iterable.  The image pyramid factors to use
+
+    level_iters : iterable. Number of iterations per pyramid level
+
+    sigmas : iterable. Standard deviation of gaussian blurring for each pyramid level
+    """
+
+    metric = MutualInformationMetric(32, metric_sampling)
+
+    affreg = AffineRegistration(metric=metric, level_iters=level_iters, sigmas=sigmas, factors=factors, verbosity=0)
+
+    if fixed.ndim == 2:
+        transform = TranslationTransform2D()
+    elif fixed.ndim == 3:
+        transform = TranslationTransform3D()
+    tx = affreg.optimize(fixed, moving, transform, params0=None)
+
+    return tx
+
 
 
 def calc_phase_corr_shift(ref_img: np.ndarray, shifted_img: np.ndarray, **kwargs) -> np.ndarray:

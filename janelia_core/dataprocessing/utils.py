@@ -35,7 +35,7 @@ def get_image_data(image, h5_data_group: str = 'default') -> np.ndarray:
     if isinstance(image, np.ndarray):
         return image
     else:
-        return read_img_file(image, h5_data_group=h5_data_group)
+        return read_img_file(pathlib.Path(image), h5_data_group=h5_data_group)
 
 
 def get_processed_image_data(images: list, func: types.FunctionType = None,
@@ -56,6 +56,10 @@ def get_processed_image_data(images: list, func: types.FunctionType = None,
         
     Returns: The processed image data as a list.  Each processed image is an entry in the list. 
     """
+
+    if func is None:
+        def func(x):
+            return x
 
     if sc is None:
         return [func(get_image_data(img, h5_data_group)) for img in images]

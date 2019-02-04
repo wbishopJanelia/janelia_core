@@ -21,7 +21,7 @@ STACK_FREQ_EXP_DURATION_LINE = 1
 STACK_FREQ_N_IMAGES_LINE = 2
 
 
-def read_exp(image_folder: pathlib.Path, ephys_folder: pathlib.Path = None, ephys_file: str = 'frame_swim.mat',
+def read_exp(image_folder: str = None, ephys_folder: str = None, ephys_file: str = 'frame_swim.mat',
              ephys_var_name: str = 'frame_swim', image_ext: str = '.h5', metadata_file: str = 'ch0.xml',
              stack_freq_file: str = 'Stack_frequency.txt', verbose: bool = True) -> janelia_core.dataprocessing.dataset.DataSet:
     """Reads in Ahrens lab experimental data to a Dataset object.
@@ -44,24 +44,30 @@ def read_exp(image_folder: pathlib.Path, ephys_folder: pathlib.Path = None, ephy
         verbose: True if progress updates should be printed to screen.
 
     Returns:
-        A Dataset object.  A DataSet object representing the experiment.  The data dictionary will have an entry 'imgs'
-        containing the file names for the images. If ephys data was available, an entry 'ephys' will also contain
-        the ephys data.  The metadata for the experiment will have one entry 'imaging_metadata' with the imaging
-        metadata stored there.
+        A Dataset object.  A DataSet object representing the experiment.  The data dictionary will have an
+            entry 'imgs'. This entry will contain a list of dictionaries.  Each dictionary will have a field 'file'
+            giving the file name of the image as a string. If ephys data was available, an entry 'ephys' will also
+            contain the ephys data.  The metadata for the experiment will have one entry 'imaging_metadata' with the
+            imaging metadata stored there.
     """
 
     # Read in all of the raw data
-    imaging_metadata = read_imaging_metadata(image_folder / metadata_file)
+    imaging_metadata = read_imaging_metadata(pathlib.Path(image_folder) / metadata_file)
 
-    stack_freq_info = read_stack_freq(image_folder / stack_freq_file)
+    stack_freq_info = read_stack_freq(pathlib.Path(image_folder) / stack_freq_file)
 
-    image_names_sorted = find_images(image_folder, image_ext, image_folder_depth=0, verbose=verbose)
+    image_names_sorted = find_images(pathlib.Path(image_folder), image_ext, image_folder_depth=0, verbose=verbose)
+
+    # Convert from paths to strings - this is to ensure compatability across operating systems. Also put
+    # images paths in dictionaries - this will allow us to add additional fields to store with each
+    # image name later
+    image_names_sorted = [{'file': str(i_name)} for i_name in image_names_sorted]
 
     n_images = len(image_names_sorted)
     time_stamps = np.asarray([float(i / stack_freq_info['smp_freq']) for i in range(n_images)])
 
     if ephys_file is not None:
-        ephys_data = read_ephys_data(ephys_folder / ephys_file, ephys_var_name, verbose=verbose)
+        ephys_data = read_ephys_data(pathlib.Path(ephys_folder / ephys_file), ephys_var_name, verbose=verbose)
         n_ephys_smps = ephys_data.shape[0]
         if n_ephys_smps != n_images:
             raise (RuntimeError('Found ' + str(n_images) + ' image files but ' + str(n_ephys_smps) + ' ephys data points.'))
