@@ -17,7 +17,7 @@ import pyspark
 from janelia_core.fileio.exp_reader import read_img_file
 
 
-def get_image_data(image, h5_data_group: str = 'default') -> np.ndarray:
+def get_image_data(image, img_slice: slice = slice(None, None, None), h5_data_group: str = 'default') -> np.ndarray:
     """ Gets image data for a single image.
 
     This is a wrapper that allows us to get image data for a single image from a file or from a numpy array
@@ -28,17 +28,19 @@ def get_image_data(image, h5_data_group: str = 'default') -> np.ndarray:
     Args:
         image: Either a numpy array or path to the image.
 
+        img_slice: The slice of the image that should be returned
+
         h5_data_group: The hdfs group holding image data in h5 files.
 
     Returns: The image data.
     """
     if isinstance(image, np.ndarray):
-        return image
+        return image[img_slice]
     else:
-        return read_img_file(pathlib.Path(image), h5_data_group=h5_data_group)
+        return read_img_file(pathlib.Path(image), img_slice=img_slice, h5_data_group=h5_data_group)
 
 
-def get_processed_image_data(images: list, func: types.FunctionType = None,
+def get_processed_image_data(images: list, func: types.FunctionType = None, img_slice = slice(None, None, None),
                              h5_data_group='default', sc: pyspark.SparkContext = None) -> list:
     """ Gets processed image data for multiple images.
     
@@ -49,6 +51,8 @@ def get_processed_image_data(images: list, func: types.FunctionType = None,
         images: A list of images.  Each entry is either a numpy array or a path to an image file.
         
         func: A function to apply to each image.  If none, images will be returned unaltered.
+
+        img_slice: The slice of each image that should be returned before any processing is applied
 
         h5_data_group: The hdfs group holding image data in h5 files.
         
@@ -62,10 +66,10 @@ def get_processed_image_data(images: list, func: types.FunctionType = None,
             return x
 
     if sc is None:
-        return [func(get_image_data(img, h5_data_group)) for img in images]
+        return [func(get_image_data(img, img_slice=img_slice, h5_data_group=h5_data_group)) for img in images]
     else:
         def _process_img(img):
-            return func(get_image_data(img, h5_data_group))
+            return func(get_image_data(img, img_slice=img_slice, h5_data_group=h5_data_group))
 
         return sc.parallelize(images).map(_process_img).collect()
 

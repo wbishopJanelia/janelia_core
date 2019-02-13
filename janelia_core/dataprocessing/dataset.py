@@ -5,6 +5,7 @@
 """
 
 import numpy as np
+import pathlib
 
 from janelia_core.dataprocessing.roi import ROI
 
@@ -62,6 +63,34 @@ class DataSet:
             d: A dictionary with the object data.
         """
         return vars(self)
+
+    @staticmethod
+    def update_image_folder(dataset, img_field, new_base):
+        """ Updates the folder images are stored in the path information for image folder.
+
+        When images are stored as paths in a ts_data dictionary, this function can be used to
+        update the part of the path specifying the folder they are stored in.  This is useful
+        when using a dataset across computers/operating systems where we need to specify that
+        images are stored in difference locations.
+
+        This function expects images to be saved in dataset.ts_data[img_field]['vls'] with one
+        dictionary per image.  Each dictionary should have a 'file' field with the path to each
+        image.  This is the field that will be udpated.
+
+        Args:
+            dataset: The dataset to update
+
+            img_field: The ts_data entry with the image information stored.
+
+            new_base: The folder the images are stored in.
+
+        """
+        img_dicts = dataset.ts_data[img_field]['vls']
+        for img_dict in img_dicts:
+            old_path = pathlib.Path(img_dict['file'])
+            file_name = old_path.name
+            new_path = pathlib.Path(new_base) / file_name
+            img_dict['file'] = str(new_path)
 
     def has_ts_data(self) -> bool:
         """Returns true if any time series data has non-zero data points.

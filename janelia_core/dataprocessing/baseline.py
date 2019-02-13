@@ -35,8 +35,6 @@ def calculate_causal_percentile_baseline(data, window_size: int, p: float,
 
     """
 
-    print(data.shape)
-
     n_data_pts = len(data)
 
     min_vl = np.min(data)
@@ -66,7 +64,8 @@ def calculate_causal_percentile_baselines(data: np.ndarray, window_size: int, p:
     cores to calculate baselines in parallel.
 
     Args:
-        data: An array or size time * n_vars with data to calculate baselines for.
+        data: An array or size time * (data_shape) with data to calculate baselines for.  Here data_shape
+        is the shape of the data at each point in time.
 
         window_size: See calculate_causal_percentile_baseline()
 
@@ -84,10 +83,18 @@ def calculate_causal_percentile_baselines(data: np.ndarray, window_size: int, p:
     if n_processes is None:
         n_processes = int(os.environ['NUMBER_OF_PROCESSORS'])
 
-    var_data = [tuple([data[:, idx], window_size, p, n_hist_bins]) for idx in range(data.shape[1])]
+    # Reshape if needed
+    orig_shape = data.shape
+    n_time_pts = orig_shape[0]
+    n_vars = np.prod(orig_shape[1:])
+    reshaped_data = np.reshape(data, [n_time_pts, n_vars], 'C')
 
+    # Calculate baselines
+    var_data = [tuple([reshaped_data[:, idx], window_size, p, n_hist_bins]) for idx in range(reshaped_data.shape[1])]
     with multiprocessing.Pool(n_processes) as pool:
         baselines = pool.starmap(calculate_causal_percentile_baseline, var_data)
+    baselines = np.asarray(baselines).T
 
-    return np.asarray(baselines).T
+    # Reshape back to original shape
+    return np.reshape(baselines, orig_shape, 'C')
 

@@ -129,7 +129,8 @@ def read_imaging_metadata(metadata_file: pathlib.Path) -> dict:
     return metadata
 
 
-def read_img_file(f_name: pathlib.Path, h5_data_group: str = 'default') -> np.ndarray:
+def read_img_file(f_name: pathlib.Path, img_slice: slice = slice(None, None, None),
+                  h5_data_group: str = 'default') -> np.ndarray:
     """ Returns a numpy array with data from one image file.
     
     The following file types are supported:
@@ -139,6 +140,8 @@ def read_img_file(f_name: pathlib.Path, h5_data_group: str = 'default') -> np.nd
     Args:
         f_name: File name as pathlib.Path object
 
+        img_slice: The slice of the image that should be returned
+
         h5_data_group: The group in a h5 file containing the image data (If reading in h5 files).
         
     Returns: 
@@ -147,6 +150,7 @@ def read_img_file(f_name: pathlib.Path, h5_data_group: str = 'default') -> np.nd
     Raises:
         TypeError: If f_name is not a pathlib.Path object
         ValueError: If f_name does not have a supported extension
+        NotImplementedError: If passing in a non-default slice object while reading a .klb file
 
     """
     if not isinstance(f_name, pathlib.Path):
@@ -154,10 +158,12 @@ def read_img_file(f_name: pathlib.Path, h5_data_group: str = 'default') -> np.nd
 
     ext = f_name.suffix
     if ext == '.klb':
+        if img_slice != slice(None, None, None):
+            raise(NotImplementedError('Slicing while reading in .klb files is not currently supported.'))
         return pyklb.readfull(str(f_name))  # pyklb requires string input
     if ext == '.h5':
         with h5py.File(f_name) as f:
-            return f[h5_data_group][:]
+            return f[h5_data_group][img_slice]
     else:
         raise ValueError('File is a ' + ext + ' file, which is not currently supported.')
 
