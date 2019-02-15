@@ -192,4 +192,7 @@ $RECYCLE.BIN/
 ### IDE files
 .idea/
 
+### Swap files
+.swp
+
 # End of https://www.gitignore.io/api/macos,python,windows
