@@ -10,7 +10,7 @@ Core code for William Bishop's work at Janelia.
 ## Setting up for development purposes
 
 1) Create a conda environment by running this command:  
-    - conda create -n janelia_core python=3.6
+    - conda create -n janelia_core python=3.7
 
 2) Activate the conda environment by running this command:
     - Mac: source activate janelia_core
