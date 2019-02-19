@@ -4,6 +4,11 @@
     bishopw@hhmi.org
 """
 
+from copy import deepcopy
+from time import time
+from typing import Sequence
+from typing import Iterable
+
 import dipy
 from dipy.align.transforms import TranslationTransform2D
 from dipy.align.transforms import TranslationTransform3D
@@ -12,10 +17,6 @@ from dipy.align.imaffine import MutualInformationMetric
 import numpy as np
 import pyspark
 from scipy.ndimage.filters import median_filter
-
-from time import time
-from typing import Sequence
-from typing import Iterable
 
 from janelia_core.dataprocessing.dataset import DataSet
 from janelia_core.dataprocessing.utils import get_image_data
@@ -194,11 +195,12 @@ def apply_2d_dipy_affine_transform(moving_imgs: np.ndarray, t: dipy.align.imaffi
     This function works for a 2d image and a 3d stack of images.
 
     Args:
-        moving_imgs: The image to shift. If a stack it should be of shape n_imgs*img_dim_1*img_dim_2.
+        moving_imgs: The image to shift. If a stack it should be of shape n_imgs*img_dim_1*img_dim_2.  It is recommended
+        that this by a floating point datatype (vs. integer).
 
         t: The transform to apply.
 
-    Returns: The shifted image.
+    Returns: The shifted image.  Will be of dtype float32.
     """
 
     # If we have a single image, still put it in a trivial stack to make processing below standard
@@ -226,6 +228,31 @@ def apply_2d_dipy_affine_transform(moving_imgs: np.ndarray, t: dipy.align.imaffi
 
     return shifted_imgs
 
+
+def median_filter_2d_dipy_affine_transforms(transforms: Sequence, filter_len: int = 50) -> Sequence:
+    """ Median filters a sequence of affine transforms.
+
+    Args:
+        transforms: The sequence of transforms to filter
+
+        filter_len: The length of the window to use for median filtering
+
+    Returns:
+        m_transforms: The median filtered transforms
+
+    """
+
+    shifts = [t.affine[0:2, 2] for t in transforms]
+    shifts = np.stack(shifts)
+    m_shifts = median_filter(shifts, [filter_len, 1])
+
+    m_transforms = deepcopy(transforms)
+    n_transforms = len(m_transforms)
+    for t_i in range(n_transforms):
+        m_transforms[t_i].affine[0:2, 2] = m_shifts[t_i, :]
+        m_transforms[t_i].affine_inv[0:2, 2] = -m_shifts[t_i, :]
+
+    return m_transforms
 
 def get_valid_translated_image_window(shifts: np.ndarray, image_shape: np.ndarray) -> tuple:
     """ Gets a window of an image which is still valid after a shift.
@@ -261,3 +288,6 @@ def get_valid_translated_image_window(shifts: np.ndarray, image_shape: np.ndarra
 
     n_dims = shifts.shape[1]
     return tuple(slice(shift_ups[i], image_shape[i] + shift_downs[i], 1) for i in range(n_dims))
+
+
+

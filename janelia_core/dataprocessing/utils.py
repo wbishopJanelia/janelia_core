@@ -41,7 +41,7 @@ def get_image_data(image, img_slice: slice = slice(None, None, None), h5_data_gr
 
 
 def get_processed_image_data(images: list, func: types.FunctionType = None, img_slice = slice(None, None, None),
-                             h5_data_group='default', sc: pyspark.SparkContext = None) -> list:
+                             func_args: list = None, h5_data_group='default', sc: pyspark.SparkContext = None) -> list:
     """ Gets processed image data for multiple images.
     
     This is a wrapper that allows retrieving images from files or from numpy arrays,
@@ -50,9 +50,13 @@ def get_processed_image_data(images: list, func: types.FunctionType = None, img_
     Args:
         images: A list of images.  Each entry is either a numpy array or a path to an image file.
         
-        func: A function to apply to each image.  If none, images will be returned unaltered.
+        func: A function to apply to each image.  If none, images will be returned unaltered.  Should accept input
+        of the form func(image: np.ndarray, **keyword_args)
 
         img_slice: The slice of each image that should be returned before any processing is applied
+
+        func_args: A list of extra keyword arguments to pass to the function for each image.  If None, no arguments
+        will be passed.
 
         h5_data_group: The hdfs group holding image data in h5 files.
         
@@ -65,13 +69,20 @@ def get_processed_image_data(images: list, func: types.FunctionType = None, img_
         def func(x):
             return x
 
-    if sc is None:
-        return [func(get_image_data(img, img_slice=img_slice, h5_data_group=h5_data_group)) for img in images]
-    else:
-        def _process_img(img):
-            return func(get_image_data(img, img_slice=img_slice, h5_data_group=h5_data_group))
+    if func_args is None:
+        n_images = len(images)
+        func_args = [dict()]*n_images
 
-        return sc.parallelize(images).map(_process_img).collect()
+    if sc is None:
+        return [func(get_image_data(img, img_slice=img_slice, h5_data_group=h5_data_group), **args) for
+                img, args in zip(images, func_args)]
+    else:
+        def _process_img(input):
+            img = input[0]
+            args = input[1]
+            return func(get_image_data(img, img_slice=img_slice, h5_data_group=h5_data_group), **args)
+
+        return sc.parallelize(zip(images, func_args)).map(_process_img).collect()
 
 
 def write_planes_to_files(planes: np.ndarray, files: list,
