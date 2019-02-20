@@ -4,10 +4,10 @@
     bishopw@hhmi.org
 """
 
-import functools
 import pathlib
 import types
 
+import dipy
 import h5py
 import numpy as np
 import os
@@ -15,7 +15,6 @@ import pyspark
 
 
 from janelia_core.fileio.exp_reader import read_img_file
-
 
 def get_image_data(image, img_slice: slice = slice(None, None, None), h5_data_group: str = 'default') -> np.ndarray:
     """ Gets image data for a single image.

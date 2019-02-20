@@ -21,9 +21,10 @@ from scipy.ndimage.filters import median_filter
 from janelia_core.dataprocessing.dataset import DataSet
 from janelia_core.dataprocessing.utils import get_image_data
 from janelia_core.dataprocessing.image_stats import std_through_time
+from janelia_core.math.basic_functions import is_standard_slice
 from janelia_core.math.basic_functions import l_th
 from janelia_core.math.basic_functions import u_th
-
+from janelia_core.math.basic_functions import slice_contains
 
 def calc_dataset_ref_image(dataset: DataSet, img_field: str, ref_inds: np.ndarray,
                            median_filter_shape: Sequence[int] = [1, 5, 5],
@@ -290,4 +291,82 @@ def get_valid_translated_image_window(shifts: np.ndarray, image_shape: np.ndarra
     return tuple(slice(shift_ups[i], image_shape[i] + shift_downs[i], 1) for i in range(n_dims))
 
 
+def get_reg_image_data(image, image_shape: np.ndarray, t:dipy.align.imaffine.AffineMap, image_slice: slice, h5_data_group: str = 'default'):
+    """ Gets registered image data for a single image.
+
+    This is a wrapper around get_image_data that allows the user to register an image before getting data from it.
+
+    Args:
+        image: Either a numpy array or path to the image.
+
+        image_shape: The shape of the original image.  This is used to check that the requested window contains
+        valid data after registration.
+
+        t: The registration transform
+
+        image_slice: The slice of the image that should be returned.  Coordinates are *after* image registration.
+
+        h5_data_group: The hdfs group holding image data in h5 files.
+
+    Returns: The image data
+
+    Raises:
+        ValueError: If the requested slice for the registered image includes voxels for which there was no data in the
+        original image to calculate the registered image for.
+    """
+
+    # Helper function to form slices we will need to pull data from before registration
+    def expand_slice(s_in, delta):
+        if delta > 0:
+            return slice(s_in.start, s_in.stop + delta, s_in.step)
+        else:
+            return slice(s_in.start + delta, s_in.stop, s_in.step)
+
+    # Helper function to form slices we will need to pull data from after registration
+    def get_final_slice(s_in, delta):
+        if delta > 0:
+            return slice(0, s_in.stop - s_in.start, s_in.step)
+        else:
+            return slice(-delta, s_in.stop - s_in.start - delta, s_in.step)
+
+    n_slice_dims = len(image_slice)
+
+    # Make sure user specified a standard slice
+    if not is_standard_slice(image_slice):
+        raise(NotImplementedError('Only an image_slice with non-negative start and stop values is currently supported.'))
+
+    # Determine the rounded number of pixels we will shift - we will shift by the exact shift but
+    # use the rounded value for determining the region of data that we need to pull before registration
+    shift = t.affine[0:2, 2]
+    rounded_shift = (np.ceil(np.abs(shift))*np.sign(shift)).astype(int)
+
+    # Make sure the requested slice will have valid data in it after registration
+    if len(image_shape) > 2:
+        image_shape = image_shape[1:]
+    valid_window = get_valid_translated_image_window(-1*shift, image_shape) # Account for sign convention on shifts
+
+    if n_slice_dims < 3:
+        good_window = slice_contains(image_slice, valid_window)
+    else:
+        good_window = slice_contains(image_slice[1:], valid_window)
+    if not good_window:
+        raise(ValueError('Requested slice contains bad data after registration. Valid window is: ' + str(valid_window)))
+
+    # Form the slices we pull data from before and after registration
+    if n_slice_dims < 3:
+        orig_slice = tuple([expand_slice(image_slice[i], rounded_shift[i]) for i in range(n_slice_dims)])
+        final_slice = tuple([get_final_slice(image_slice[i], rounded_shift[i]) for i in range(n_slice_dims)])
+    else:
+        orig_slice = tuple([image_slice[0], expand_slice(image_slice[1], rounded_shift[0]),
+                            expand_slice(image_slice[2], rounded_shift[1])])
+        final_slice = tuple([slice(0, image_slice[0].stop - image_slice[0].start + 1, image_slice[0].step),
+                             get_final_slice(image_slice[1], rounded_shift[0]),
+                             get_final_slice(image_slice[2], rounded_shift[1])])
+
+    # Perform the registration
+    orig_img = get_image_data(image, img_slice=orig_slice, h5_data_group=h5_data_group)
+    reg_img = apply_2d_dipy_affine_transform(orig_img, t)
+
+    # Now return the requested slice of the registered image
+    return reg_img[final_slice]
 
