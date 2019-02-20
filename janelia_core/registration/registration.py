@@ -291,7 +291,8 @@ def get_valid_translated_image_window(shifts: np.ndarray, image_shape: np.ndarra
     return tuple(slice(shift_ups[i], image_shape[i] + shift_downs[i], 1) for i in range(n_dims))
 
 
-def get_reg_image_data(image, image_shape: np.ndarray, t:dipy.align.imaffine.AffineMap, image_slice: slice, h5_data_group: str = 'default'):
+def get_reg_image_data(image, image_shape: np.ndarray, t: dipy.align.imaffine.AffineMap, image_slice: slice,
+                       h5_data_group: str = 'default'):
     """ Gets registered image data for a single image.
 
     This is a wrapper around get_image_data that allows the user to register an image before getting data from it.

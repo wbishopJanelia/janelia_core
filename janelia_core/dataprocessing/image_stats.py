@@ -15,9 +15,10 @@ import pyspark
 from janelia_core.dataprocessing.utils import get_image_data
 
 
-def std_through_time(images: list, sc: pyspark.SparkContext=None,
-                     preprocess_func:Callable[[np.ndarray], np.ndarray] = None, verbose=True,
-                     correct_denom=True, h5_data_group: str='default') -> dict:
+def std_through_time(images: list, image_slice: slice = slice(None, None, None),
+                     t_dict: dict = None, sc: pyspark.SparkContext=None,
+                     preprocess_func:Callable[[np.ndarray], np.ndarray] = None,
+                     verbose=True, correct_denom=True, h5_data_group: str='default') -> dict:
     """ Calculates standard deviation of individual voxels through time.
 
     This function will also return the uncentered first (i.e, the mean) and second moments for each individual
@@ -25,6 +26,16 @@ def std_through_time(images: list, sc: pyspark.SparkContext=None,
 
     Args:
         images: A list of either (1) numpy arrays containing the images or (2) file paths to the image files
+
+        image_slice: The slice of each image to extract.  If registration is being performed, (see t_dict),
+        coordinates of image_slice should be for the images after registration.
+
+        t_dict: If this is not none, images will be registered before any statistics are calculated.  This dictionary
+        has two entries:
+            transforms: A list of registration transforms to apply to the images as they are being read in.  If none,
+            no registration will be applied.
+
+            image_shape: This is the shape of the original images being read in.
 
         sc: If provided, spark will be used to distribute computation.
 
@@ -43,30 +54,51 @@ def std_through_time(images: list, sc: pyspark.SparkContext=None,
         will be 'std', 'mean' and 'sec_mom', where 'sec_mom' is the uncentered second moment.
     """
 
-    n_images = len(images)
+    from janelia_core.registration.registration import get_reg_image_data
 
+    n_images = len(images)
+    do_reg = t_dict is not None
+
+    # Define helper functions
     if preprocess_func is None:
         def preprocess_func(x):
             return x
 
-    # Define helper functions
     def calc_uc_moments(data: np.ndarray) -> list:
         return [(1/n_images)*data, (1/n_images)*np.square(data.astype('uint64'))]
 
     def list_sum(list_1: list, list_2: list) -> list:
         return list(map(add, list_1, list_2))
 
+    if do_reg:
+        def get_im(im_data):
+            im = im_data[0]
+            t = im_data[1]
+            return get_reg_image_data(image=im, image_shape=t_dict['image_shape'], t=t,
+                                      image_slice=image_slice, h5_data_group=h5_data_group)
+    else:
+        def get_im(im_data):
+            im = im_data[0]
+            return get_image_data(im, img_slice=image_slice, h5_data_group=h5_data_group)
+
+    # Package images with transforms for distributed processing
+    if do_reg:
+        image_transforms = t_dict['transforms']
+    else:
+        image_transforms = [None]*n_images
+    image_data_list = list(zip(images, image_transforms))
+
     # Perform calculations
-    if sc is not None and n_images:
+    if sc is not None:
         print('Processing ' + str(n_images) + ' images with spark.')
-        moments = sc.parallelize(images).map(
-            lambda im: calc_uc_moments(preprocess_func(get_image_data(im, h5_data_group=h5_data_group)))).reduce(list_sum)
+        moments = sc.parallelize(image_data_list).map(
+            lambda im: calc_uc_moments(preprocess_func(get_im(im)))).reduce(list_sum)
     else:
         if verbose:
             print('Processing ' + str(n_images) + ' images without spark.')
-            moments = calc_uc_moments(preprocess_func(get_image_data(images[0], h5_data_group=h5_data_group)))
-            for i in images[1:]:
-                moments = list_sum(moments, calc_uc_moments(preprocess_func(get_image_data(i, h5_data_group=h5_data_group))))
+            moments = calc_uc_moments(preprocess_func(get_im(image_data_list[0])))
+            for i_tuple in image_data_list[1:]:
+                moments = list_sum(moments, calc_uc_moments(preprocess_func(get_im(i_tuple))))
 
     var = moments[1] - np.square(moments[0])
     var[np.where(var < 0)] = 0  # Correct for small floating point errors
