@@ -18,6 +18,7 @@ setup(
 	"h5py",
 	"jupyter",
 	"matplotlib",
+    "morphsnakes",
     "numpy",
 	"pyqtgraph",
 	"scikit-image",

@@ -7,12 +7,14 @@
 """
 
 from operator import add
+import time
 from typing import Callable
 
+from morphsnakes import morphological_chan_vese
 import numpy as np
 import pyspark
 
-from janelia_core.dataprocessing.utils import get_image_data
+from janelia_core.dataprocessing.utils import get_reg_image_data
 
 
 def std_through_time(images: list, image_slice: slice = slice(None, None, None),
@@ -54,8 +56,6 @@ def std_through_time(images: list, image_slice: slice = slice(None, None, None),
         will be 'std', 'mean' and 'sec_mom', where 'sec_mom' is the uncentered second moment.
     """
 
-    from janelia_core.registration.registration import get_reg_image_data
-
     n_images = len(images)
     do_reg = t_dict is not None
 
@@ -70,23 +70,20 @@ def std_through_time(images: list, image_slice: slice = slice(None, None, None),
     def list_sum(list_1: list, list_2: list) -> list:
         return list(map(add, list_1, list_2))
 
-    if do_reg:
-        def get_im(im_data):
-            im = im_data[0]
-            t = im_data[1]
-            return get_reg_image_data(image=im, image_shape=t_dict['image_shape'], t=t,
-                                      image_slice=image_slice, h5_data_group=h5_data_group)
-    else:
-        def get_im(im_data):
-            im = im_data[0]
-            return get_image_data(im, img_slice=image_slice, h5_data_group=h5_data_group)
-
-    # Package images with transforms for distributed processing
+    # Package images together with transformss
     if do_reg:
         image_transforms = t_dict['transforms']
+        image_shape = t_dict['image_shape']
     else:
         image_transforms = [None]*n_images
+        image_shape = None
     image_data_list = list(zip(images, image_transforms))
+
+    def get_im(im_data):
+        im = im_data[0]
+        t = im_data[1]
+        return get_reg_image_data(image=im, image_shape=image_shape, t=t,
+                                  image_slice=image_slice, h5_data_group=h5_data_group)
 
     # Perform calculations
     if sc is not None:
@@ -113,8 +110,59 @@ def std_through_time(images: list, image_slice: slice = slice(None, None, None),
     return {'std': std, 'mean': moments[0], 'sec_mom': moments[1]}
 
 
-def create_brain_mask(stats: dict, std_p: int=70, mean_p: int=70, verbose=True) -> np.ndarray:
-    """ Creates a brain mask.
+def create_morphsnakes_brain_mask(img: np.ndarray, p: np.ndarray, morph_params: dict = {}, verbose=True)-> np.ndarray:
+    """ Creates a brain mask using the morphsnakes package.
+
+    This function operates independently on each plane.
+
+    Args:
+        img: The image to find the brain mask of.
+
+        p: The percentile threshold value to use when forming the initial brain mask for each plane.  Specifically,
+        for each plane in the image, the p-th percentile is calculated.  The initial mask is then formed by masking out
+        any value less than this. p[i] contains the percentile for plane i.
+
+        morphsnake_params: A dictionary of parameters to pass into morphological_chan_vese.  See that function
+        for more information. Reasonable initial values are:
+            morph_params = {'iterations': 50, 'smoothing': 4, 'lambda1': 1, 'lambda2': 1}
+
+        verbose: True if progress updates should be printed.
+
+    Returns:
+        mask: A binary array the same shape as an image.  Each entry indicates if the corresponding voxel in the images
+         belongs to the brain or not.
+
+    """
+
+    t0 = time.time()
+
+    flat_image = False
+    if img.ndim < 3:
+        flat_image = True
+        img = np.expand_dims(img, axis=0)
+
+    # Define helper function here
+    def process_plane(plane_img, p_i):
+        th_vl = np.quantile(plane_img.reshape(plane_img.size), p_i)
+        init_mask = plane_img <= th_vl
+        return morphological_chan_vese(plane_img, init_level_set=init_mask, **morph_params)
+
+    n_planes = img.shape[0]
+    mask = np.zeros_like(img, dtype=np.uint8)
+    for z_i in range(n_planes):
+        mask[z_i, :, :] = process_plane(np.squeeze(img[z_i, :, :]), p[z_i])
+        if verbose:
+            print('Done extracting mask for plane ' + str(z_i + 1) + ' of ' + str(n_planes) + '.' +
+                  ' Elapsed Time:' + str(time.time() - t0))
+
+    if flat_image:
+        mask = np.squeeze(mask)
+
+    return mask
+
+
+def create_threshold_brain_mask(stats: dict, std_p: int=70, mean_p: int=70, verbose=True) -> np.ndarray:
+    """ Creates a brain mask by thresholding statistics.
 
     Given a structure of statistics produced by std_through_time, this function returns a binary array estimating which
     voxels belong to the brain.
