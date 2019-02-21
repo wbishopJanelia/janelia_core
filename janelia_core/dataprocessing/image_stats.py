@@ -65,7 +65,7 @@ def std_through_time(images: list, image_slice: slice = slice(None, None, None),
             return x
 
     def calc_uc_moments(data: np.ndarray) -> list:
-        return [(1/n_images)*data, (1/n_images)*np.square(data.astype('uint64'))]
+        return [(1/n_images)*data.astype('float32'), (1/n_images)*np.square(data.astype('float32'))]
 
     def list_sum(list_1: list, list_2: list) -> list:
         return list(map(add, list_1, list_2))
