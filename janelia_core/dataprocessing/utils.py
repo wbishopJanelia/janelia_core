@@ -182,7 +182,6 @@ def get_processed_image_data(images: list, func: types.FunctionType = None, img_
             return x
 
     if func_args is None:
-        n_images = len(images)
         func_args = [dict()]*n_images
 
     images_w_transforms_and_args = zip(images, img_transforms, func_args)
@@ -195,10 +194,10 @@ def get_processed_image_data(images: list, func: types.FunctionType = None, img_
         def _process_img(input):
             img = input[0]
             t = input[1]
-            args = input[1]
+            args = input[2]
             return func(get_reg_image_data(img, image_slice=img_slice, image_shape=img_full_shape,
-                                        t=t, h5_data_group=h5_data_group), **args)
-        return sc.parallelize(zip(images, func_args)).map(_process_img).collect()
+                                           t=t, h5_data_group=h5_data_group), **args)
+        return sc.parallelize(images_w_transforms_and_args).map(_process_img).collect()
 
 
 def write_planes_to_files(planes: np.ndarray, files: list,

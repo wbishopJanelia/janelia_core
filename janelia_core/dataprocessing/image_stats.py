@@ -153,7 +153,7 @@ def create_morphsnakes_brain_mask(img: np.ndarray, p: np.ndarray, morph_params: 
         mask[z_i, :, :] = process_plane(np.squeeze(img[z_i, :, :]), p[z_i])
         if verbose:
             print('Done extracting mask for plane ' + str(z_i + 1) + ' of ' + str(n_planes) + '.' +
-                  ' Elapsed Time:' + str(time.time() - t0))
+                  ' Elapsed Time: ' + str(time.time() - t0))
 
     if flat_image:
         mask = np.squeeze(mask)

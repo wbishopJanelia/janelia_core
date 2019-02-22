@@ -176,7 +176,7 @@ class ROIDataset(DataSet):
                     3) Optional keys the user may specify. For example, a "type" can be specified.
 
                 If an entry in ts_data holds values for an ROI group, it must hold only values for those ROIs and the order
-                of variables in ts_data 'vls' entry must match the order of ROIs in the rois list for the group.
+                order of variables in ts_data 'vls' entry must match the order of ROIs in the rois list for the group.
 
                 If roi_groups is none, an empty dictionary will be created.
 

@@ -11,7 +11,8 @@ from janelia_core.dataprocessing.utils import get_reg_image_data
 
 def extract_super_voxels_in_brain(images: list, voxel_size_per_dim: np.ndarray, brain_mask: np.ndarray,
                                   brain_mask_perc: float, image_slice: slice = slice(None, None, None),
-                                  t_dict: dict = None, h5_data_group='default', sc: pyspark.SparkContext=None) -> list:
+                                  t_dict: dict = None, h5_data_group='default',
+                                  sc: pyspark.SparkContext=None) -> list:
 
     """ Extracts super voxel ROIS from imaging data, checking to make sure ROIs are in the brain.
 
@@ -140,10 +141,11 @@ def extract_super_voxels(images: list, voxel_slices: slice, image_slice = slice(
 
         """
 
+    n_images = len(images)
     n_super_voxels = len(voxel_slices)
 
     if verbose:
-        print('Extracting: ' + str(n_super_voxels) + ' super voxels.')
+        print('Extracting: ' + str(n_super_voxels) + ' super voxels from ' + str(n_images) + ' images.')
 
     # Extract ROI values
     def extract_rois_from_single_image(image):
