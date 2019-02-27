@@ -158,7 +158,7 @@ def create_morphsnakes_brain_mask(img: np.ndarray, p: np.ndarray, morph_params: 
     if flat_image:
         mask = np.squeeze(mask)
 
-    return mask
+    return np.logical_not(mask)
 
 
 def create_threshold_brain_mask(stats: dict, std_p: int=70, mean_p: int=70, verbose=True) -> np.ndarray:

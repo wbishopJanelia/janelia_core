@@ -25,7 +25,8 @@ def extract_super_voxels_in_brain(images: list, voxel_size_per_dim: np.ndarray, 
 
         voxel_size_per_dim: The side length individual super voxels in each dimension
 
-        brain_mask: A binary np.ndarray indicating which voxels are in the brain
+        brain_mask: A binary np.ndarray indicating which voxels are in the brain.  A 1 indicates a voxel is
+        in the brain.
 
         brain_mask_perc: The percentage of voxels an a super voxel which must overlap with the brain mask in
         order to extract the voxel.
