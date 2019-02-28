@@ -341,7 +341,7 @@ class ROIDataset(DataSet):
             grp_w = roi_weights[grp_i]
             for w_i, roi in enumerate(self.roi_groups[grp]['rois']):
                 if grp_w[w_i] != 0:
-                    roi_inds = list(roi.voxel_inds)
+                    roi_inds = list(roi.list_all_voxel_inds())
                     for d in range(n_dims):
                         roi_inds[d] = roi_inds[d] - min_bounds[d]
                     roi_inds = tuple(roi_inds)

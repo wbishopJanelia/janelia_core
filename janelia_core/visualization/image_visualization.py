@@ -27,7 +27,7 @@ class GroupedStackedImageVisualizer(QWidget):
 
             titles: A list of titles for the images. If None, no special titles will be display.
 
-            color_maps: Either (1) a list of colormaps or (2) a single colormpa or (3) None.
+            color_maps: Either (1) a list of colormaps or (2) a single colormp or (3) None.
             If a list of colormaps, the list gives the colormaps for each image.  If a single
             colormap, the colormap that will be used for all images.  If None, default
             colormaps will be used.
