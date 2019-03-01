@@ -49,7 +49,7 @@ class LatentRegModel(torch.nn.Module):
     """
 
     def __init__(self, d_in: Sequence, d_out: Sequence, d_proj: Sequence, d_trans: Sequence,
-                 m: torch.nn.Module, s: Sequence[torch.nn.Module], direct_pairs: Sequence[tuple] = None):
+                 m: torch.nn.Module, s: Sequence[Sequence[torch.nn.Module]], direct_pairs: Sequence[tuple] = None):
         """ Create a LatentRegModel object.
 
         Args:
@@ -62,12 +62,12 @@ class LatentRegModel(torch.nn.Module):
 
             d_trans: d_trans[h] gives the dimensionality for the transformed latent variables for output group h.
 
-            m: The mapping from [p_1, ..., p_G] to [t_1, ..., t_G].
+            m: The mapping from [p_1, ..., p_G] to [t_h, ..., t_h].
 
-            s: s[g] contains the function to be applied element-wise to l_g (see above).
+            s: s[h] contains a sequence of functions to be applied element-wise to o_h (see above).
 
             direct_pairs: direct_pairs[p] contains a tuple of the form (g, h) giving a pair of input and output groups
-            that should have direction connections.
+            that should have direct connections.
 
         """
 
@@ -75,6 +75,7 @@ class LatentRegModel(torch.nn.Module):
 
         # Initialize projection matrices down
         n_input_groups = len(d_in)
+        self.n_input_groups = n_input_groups
         p = [None]*n_input_groups
         for g, dims in enumerate(zip(d_in, d_proj)):
             param_name = 'p' + str(g)
@@ -85,6 +86,7 @@ class LatentRegModel(torch.nn.Module):
 
         # Initialize projection matrices up
         n_output_groups = len(d_out)
+        self.n_output_groups = n_output_groups
         u = [None]*n_output_groups
         for h, dims in enumerate(zip(d_out, d_trans)):
             param_name = 'u' + str(h)
@@ -111,6 +113,8 @@ class LatentRegModel(torch.nn.Module):
             self.direct_mappings = None
 
         # Mappings from transformed latents to means
+        s = [torch.nn.ModuleList(s_h) for s_h in s]
+        s = torch.nn.ModuleList(s)
         self.s = s
 
         # Initialize the variances for the noise variables
@@ -145,7 +149,9 @@ class LatentRegModel(torch.nn.Module):
                 h = dm['pair'][1]
                 z[h] = z[h] + dm['c']*x[g]
 
-        mn = [s_h(z_h) for z_h, s_h in zip(z, self.s)]
+        mn = [None]*self.n_output_groups
+        for h, s_h, z_h in zip(range(self.n_output_groups), self.s, z):
+            mn[h] = torch.cat(tuple(s_h_i(z_h[:, i, None]) for i, s_h_i in enumerate(s_h)), dim=1)
         return mn
 
     def generate(self, x: Sequence) -> Sequence:
@@ -191,7 +197,7 @@ class LatentRegModel(torch.nn.Module):
         neg_ll = 0
 
         n_smps = y[0].shape[0]
-        neg_log_2_pi = np.log(2*np.pi)
+        neg_log_2_pi = float(np.log(2*np.pi))
 
         for mn_h, y_h, psi_h in zip(mn, y, self.psi):
             neg_ll += .5*mn_h.nelement()*neg_log_2_pi
@@ -400,12 +406,3 @@ class LinearMap(torch.nn.Module):
         x_conc = torch.cat(x, dim=1)
         y_conc = self.nn(x_conc)
         return [y_conc[:, s] for s in self.out_slices]
-
-
-
-
-
-
-
-
-
