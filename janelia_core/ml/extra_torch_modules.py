@@ -16,7 +16,7 @@ class Bias(torch.nn.ModuleList):
 
         super().__init__()
         o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-        torch.nn.init.normal_(o, std=.01)
+        torch.nn.init.normal_(o, std=5)
         self.register_parameter('o', o)
 
     def forward(self, x: torch.Tensor) -> torch.tensor:

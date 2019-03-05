@@ -40,16 +40,17 @@ class LatentRegModel(torch.nn.Module):
 
     Variables o_h = z_h + v_h are then formed (if there is an h for which v_h is not computed, then o_h = z_h.)
 
-    A (possibly) non-linear function s_h is applied element-wise to form mn_h = s_h(o_h) \in R^{d_out^h}. s_h can
-    again have it's own parameters.
+    A (possibly) non-linear function s_h is applied to form mn_h = s_h(o_h) \in R^{d_out^h}. s_h can
+    again have it's own parameters. s_h can general function mapping from R^{d_out^h} to R^{d_out^h},
+    but in many cases, it may be a composite function which just applies the same function to o_h, element-wise.
 
     Finally, y_h = mn_h + n_h, where n_h ~ N(0, psi_h) where psi_h is a diagonal covariance matrix.
-
 
     """
 
     def __init__(self, d_in: Sequence, d_out: Sequence, d_proj: Sequence, d_trans: Sequence,
-                 m: torch.nn.Module, s: Sequence[Sequence[torch.nn.Module]], direct_pairs: Sequence[tuple] = None):
+                 m: torch.nn.Module, s: Sequence[torch.nn.Module], direct_pairs: Sequence[tuple] = None,
+                 w_gain: float = 1, noise_range: Sequence[float] = [.1, .2]):
         """ Create a LatentRegModel object.
 
         Args:
@@ -64,10 +65,14 @@ class LatentRegModel(torch.nn.Module):
 
             m: The mapping from [p_1, ..., p_G] to [t_h, ..., t_h].
 
-            s: s[h] contains a sequence of functions to be applied element-wise to o_h (see above).
+            s: s[h] contains module to be applied to o_h (see above).
 
             direct_pairs: direct_pairs[p] contains a tuple of the form (g, h) giving a pair of input and output groups
             that should have direct connections.
+
+            w_gain: Gain to apply to projection p and u matrices when initializing their weights.
+
+            noise_range: Range of uniform distribution to pull psi values from during initialization.
 
         """
 
@@ -80,7 +85,7 @@ class LatentRegModel(torch.nn.Module):
         for g, dims in enumerate(zip(d_in, d_proj)):
             param_name = 'p' + str(g)
             p[g] = torch.nn.Parameter(torch.zeros([dims[0], dims[1]]), requires_grad=True)
-            torch.nn.init.xavier_normal_(p[g])
+            torch.nn.init.xavier_normal_(p[g], gain=w_gain)
             self.register_parameter(param_name, p[g])
         self.p = p
 
@@ -91,7 +96,7 @@ class LatentRegModel(torch.nn.Module):
         for h, dims in enumerate(zip(d_out, d_trans)):
             param_name = 'u' + str(h)
             u[h] = torch.nn.Parameter(torch.zeros([dims[0], dims[1]]), requires_grad=True)
-            torch.nn.init.xavier_normal_(u[h])
+            torch.nn.init.xavier_normal_(u[h], gain=w_gain)
             self.register_parameter(param_name, u[h])
         self.u = u
 
@@ -113,16 +118,14 @@ class LatentRegModel(torch.nn.Module):
             self.direct_mappings = None
 
         # Mappings from transformed latents to means
-        s = [torch.nn.ModuleList(s_h) for s_h in s]
-        s = torch.nn.ModuleList(s)
-        self.s = s
+        self.s = torch.nn.ModuleList(s)
 
         # Initialize the variances for the noise variables
         psi = [None]*n_output_groups
         for h, d in enumerate(d_out):
             param_name = 'psi' + str(h)
             psi[h] = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-            torch.nn.init.uniform_(psi[h], .01, .02)
+            torch.nn.init.uniform_(psi[h], noise_range[0], noise_range[1])
             self.register_parameter(param_name, psi[h])
         self.psi = psi
 
@@ -149,9 +152,8 @@ class LatentRegModel(torch.nn.Module):
                 h = dm['pair'][1]
                 z[h] = z[h] + dm['c']*x[g]
 
-        mn = [None]*self.n_output_groups
-        for h, s_h, z_h in zip(range(self.n_output_groups), self.s, z):
-            mn[h] = torch.cat(tuple(s_h_i(z_h[:, i, None]) for i, s_h_i in enumerate(s_h)), dim=1)
+        mn = [s_h(z_h) for z_h, s_h in zip(z, self.s)]
+
         return mn
 
     def generate(self, x: Sequence) -> Sequence:
@@ -194,7 +196,7 @@ class LatentRegModel(torch.nn.Module):
             The calculated negative log-likelihood for the sample
         """
 
-        neg_ll = 0
+        neg_ll = float(0)
 
         n_smps = y[0].shape[0]
         neg_log_2_pi = float(np.log(2*np.pi))
@@ -290,7 +292,6 @@ class LatentRegModel(torch.nn.Module):
         prev_learning_rate = learning_rate_values[0]
 
         while cur_it < max_its:
-
             elapsed_time = time.time() - start_time  # Record elapsed time here because we measure it from the start of
             # each iteration.  This is because we also record the nll value for each iteration before parameters are
             # updated.  In this way, the elapsed time is the elapsed time to get to a set of parameters for which we
@@ -305,7 +306,7 @@ class LatentRegModel(torch.nn.Module):
                 optimizer = torch.optim.Adam(parameters, lr=cur_learning_rate, **adam_params)
                 prev_learning_rate = cur_learning_rate
 
-            # Chose the samples for this iteration
+            # Chose the samples for this iteration:
             cur_smps = np.random.choice(n_smps, batch_size, replace=False)
             batch_x = [x_g[cur_smps, :] for x_g in x]
             batch_y = [y_h[cur_smps, :] for y_h in y]
@@ -317,8 +318,8 @@ class LatentRegModel(torch.nn.Module):
             start_ind = 0
             end_ind = np.min([batch_size, send_size])
             while True:
-                sent_x = [batch_x_g[start_ind:end_ind, :].to(device).detach() for batch_x_g in batch_x]
-                sent_y = [batch_y_h[start_ind:end_ind, :].to(device).detach() for batch_y_h in batch_y]
+                sent_x = [batch_x_g[start_ind:end_ind, :].to(device) for batch_x_g in batch_x]
+                sent_y = [batch_y_h[start_ind:end_ind, :].to(device) for batch_y_h in batch_y]
 
                 mns = self(sent_x)
                 # Calculate nll - we divide by batch size to get average (over samples) negative log-likelihood
@@ -406,3 +407,24 @@ class LinearMap(torch.nn.Module):
         x_conc = torch.cat(x, dim=1)
         y_conc = self.nn(x_conc)
         return [y_conc[:, s] for s in self.out_slices]
+
+
+class IdentityMap(torch.nn.Module):
+    """ Identity latent mapping."""
+
+    def __init__(self):
+        """ Creates an IdentityMap object. """
+        super().__init__()
+
+    def forward(self, x: Sequence[torch.Tensor]) -> Sequence[torch.Tensor]:
+        """ Passes through input as output.
+
+        Args:
+            x: Input.  x[g] gives the input for input group g as a tensor of shape n_smps*n_dims
+
+        Returns:
+            y: Output.  y[h] gives the output for output group h as a tensor or shape n_smps*n_dims
+        """
+
+        return x
+
