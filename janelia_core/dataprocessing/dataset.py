@@ -19,6 +19,8 @@ class DataSet:
             the key 'ts' is a 1-d numpy.ndarray with timestamps.  The second 'vls' can be:
                 1) A list, with one entry per time point
                 2) A numpy array of data, with the first dimension corresponding to time
+                3) A janelia_core.fileio.data_handlers.NDArrayHandler object
+
         If data is none the data attribute of the created object will be an empty dictionary.
 
         metadata: A dictionary of metadata. If meta_data is None, the meta_data attribute of the created object will be
@@ -137,19 +139,11 @@ class DataSet:
         sel_ts = self.ts_data[key]['ts'][sel_inds]
 
         vls = self.ts_data[key]['vls']
-        if isinstance(vls, np.ndarray):
+        if isinstance(vls, np.ndarray):  # TODO: Need to update to work NDArrayHandler objects
             sel_vls = self.ts_data[key]['vls'][sel_inds, :]
         else:
             sel_vls = [self.ts_data[key]['vls'][i] for i in sel_inds]
         return {'ts': sel_ts, 'vls': sel_vls}
-
-    def ts_paths_to_strings(self):
-        """ Looks at time stamps data and converts any path to a string representation.
-
-        This function is useful to call before pickling as it removes problems when trying
-        to load paths saved in one operating system (e.g., Windows) on other operating systems
-        (e.g., Linux).
-        """
 
 
 class ROIDataset(DataSet):
