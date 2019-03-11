@@ -208,7 +208,8 @@ class LatentRegModel(torch.nn.Module):
 
         return neg_ll
 
-    def fit(self, x: torch.Tensor, y: torch.Tensor, batch_size: int=100, send_size: int=100, max_its: int=10,
+    def fit(self, x: Sequence[torch.Tensor], y: Sequence[torch.Tensor],
+            batch_size: int=100, send_size: int=100, max_its: int=10,
             learning_rates=.01, adam_params: dict = {}, min_var: float = 0.0, update_int: int = 1000,
             parameters: list = None):
 
