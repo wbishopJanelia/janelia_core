@@ -211,7 +211,7 @@ class LatentRegModel(torch.nn.Module):
     def fit(self, x: Sequence[torch.Tensor], y: Sequence[torch.Tensor],
             batch_size: int=100, send_size: int=100, max_its: int=10,
             learning_rates=.01, adam_params: dict = {}, min_var: float = 0.0, update_int: int = 1000,
-            parameters: list = None):
+            parameters: list = None, l1_p_lambda: list = None, l1_u_lambda: list = None):
 
         """ Fits a model to data.
 
@@ -253,6 +253,11 @@ class LatentRegModel(torch.nn.Module):
 
             parameters: If provided, only these parameters of the model will be optimized.  If none, all parameters are
             optimized.
+
+            l1_p_lambda: The entries in the p parameters are penalized by their l1-norm the form
+                l1_p_lambda[g]*sum(abs(p[g])).  If l1_p_lambda is None, no penalties will be applied.
+
+            l1_u_lambda: Analagous to l1_p_lambda but for the u parameters.
 
             Raises:
                 ValueError: If send_size is greater than batch_size.
@@ -332,6 +337,21 @@ class LatentRegModel(torch.nn.Module):
 
                 start_end = end_ind
                 end_ind = np.min([batch_size, start_end + send_size])
+
+            # Add penalties
+            if l1_p_lambda is not None:
+                for g, lm_g in enumerate(l1_p_lambda):
+                    if lm_g != 0:
+                        penalty_g = lm_g*torch.mean(torch.abs(self.p[g]))
+                        penalty_g.backward()
+                        obj += penalty_g
+
+            if l1_u_lambda is not None:
+                for h, lm_h in enumerate(l1_u_lambda):
+                    if lm_h != 0:
+                        penalty_h = lm_h*torch.mean(torch.abs(self.u[h]))
+                        penalty_h.backward()
+                        obj += penalty_h
 
             # Take a step
             optimizer.step()
