@@ -4,7 +4,10 @@
     bishopw@hhmi.org
 """
 
+from typing import Sequence
+
 import numpy as np
+
 
 
 def l_th(a: np.ndarray, t: np.ndarray) -> np.ndarray:
@@ -195,6 +198,23 @@ def is_standard_slice(s: slice):
                 break
         return is_standard
 
+
+def nan_matrix(shape: Sequence[int], dtype=np.float):
+    """ Generates a matrix of a given shape and data type initialized to nan values.
+
+    Args:
+        shape: Shape of the matrix to generate.
+
+        dtype: Data type of the matrix to generate.
+
+    Returns:
+        The generated matrix.
+
+    """
+
+    m = np.empty(shape=shape, dtype=dtype)
+    m.fill(np.nan)
+    return m
 
 
 
