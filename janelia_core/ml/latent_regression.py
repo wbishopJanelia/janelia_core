@@ -103,7 +103,7 @@ class LatentRegModel(torch.nn.Module):
         # Mapping from projection to transformed latents
         self.m = m
 
-        # Direct mappings - there are none, we set direct_mappings to None
+        # Direct mappings - if there are none, we set direct_mappings to None
         if direct_pairs is not None:
             n_direct_pairs = len(direct_pairs)
             direct_mappings = [None]*n_direct_pairs
@@ -448,4 +448,41 @@ class IdentityMap(torch.nn.Module):
         """
 
         return x
+
+
+class ConcatenateMap(torch.nn.Module):
+    """ Mapping which concatenates input to form output.
+
+    Concatenation follows the order of input groups.
+    """
+
+    def __init__(self, conc_grps: np.ndarray):
+        """ Creates an IdentityMap object.
+
+        Args:
+            conc_grps: A binary array.  conc_grps[h, :] is a vector indicating which groups of projected
+            latents should be concatenated to form output for tran_h.
+
+        Raises:
+            ValueError: If dtype of conc_grps is not bool
+
+        """
+
+        super().__init__()
+
+        if not (conc_grps.dtype == np.dtype('bool')):
+            raise(ValueError('dtype of conc_grps must be bool'))
+        self.conc_grps = conc_grps
+
+    def forward(self, x: Sequence[torch.Tensor]) -> Sequence[torch.Tensor]:
+        """ Concatents input to form output. """
+
+        n_output_grps, n_input_grps = self.conc_grps.shape
+
+        y = [torch.cat(tuple(x[g] for g in range(n_input_grps) if self.conc_grps[h, g] == True), dim=1)
+             for h in range(n_output_grps)]
+
+        return y
+
+
 
