@@ -122,7 +122,7 @@ def create_morphsnakes_brain_mask(img: np.ndarray, p: np.ndarray, morph_params: 
         for each plane in the image, the p-th percentile is calculated.  The initial mask is then formed by masking out
         any value less than this. p[i] contains the percentile for plane i.
 
-        morphsnake_params: A dictionary of parameters to pass into morphological_chan_vese.  See that function
+        morph_params: A dictionary of parameters to pass into morphological_chan_vese.  See that function
         for more information. Reasonable initial values are:
             morph_params = {'iterations': 50, 'smoothing': 4, 'lambda1': 1, 'lambda2': 1}
 
