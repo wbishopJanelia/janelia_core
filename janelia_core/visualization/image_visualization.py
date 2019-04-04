@@ -4,6 +4,8 @@
     bishopw@hhmi.org
 """
 
+from typing import Sequence
+
 import numpy as np
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QWidget
@@ -40,8 +42,13 @@ class GroupedStackedImageVisualizer(QWidget):
         self.titles = titles
         self.color_maps = color_maps
 
-    def init_ui(self):
-        """ Initializes the UI for a GroupedStackedImageVisualizer object."""
+    def init_ui(self, levels_range: Sequence = None):
+        """ Initializes the UI for a GroupedStackedImageVisualizer object.
+
+        Args:
+            levels_range: range[0] gives the lower level and range[1] gives the upper
+            range to set levels to.  If none, levels will be set automatically.
+        """
 
         n_imgs = len(self.imgs)
 
@@ -49,6 +56,8 @@ class GroupedStackedImageVisualizer(QWidget):
         if self.color_maps is not None:
             if isinstance(self.color_maps, pg.ColorMap):
                 color_maps = [self.color_maps]*n_imgs
+            else:
+                color_maps = self.color_maps
             custom_color_maps = True
 
         custom_titles = self.titles is not None
@@ -69,11 +78,14 @@ class GroupedStackedImageVisualizer(QWidget):
             im_view.setImage(img)
 
             # Set initial levels automatically
-            low_p = np.percentile(img,.5)
-            high_p = np.percentile(img, 99.5)
-            half_range = (high_p - low_p)/2
+            if levels_range is None or levels_range[img_i] is None:
+                low_p = np.percentile(img,.5)
+                high_p = np.percentile(img, 99.5)
+                half_range = (high_p - low_p)/2
+                levels_range = [-half_range, half_range]
+
             hist_widget = im_view.getHistogramWidget()
-            hist_widget.setLevels(-half_range, half_range)
+            hist_widget.setLevels(*levels_range[img_i])
 
             im_views[img_i] = im_view
             if custom_color_maps:
