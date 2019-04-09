@@ -5,8 +5,10 @@
 """
 
 import multiprocessing
-import numpy as np
 import os
+from typing import Sequence
+
+import numpy as np
 
 from janelia_core.math.stats import HistogramFilter
 
@@ -97,4 +99,6 @@ def calculate_causal_percentile_baselines(data: np.ndarray, window_size: int, p:
 
     # Reshape back to original shape
     return np.reshape(baselines, orig_shape, 'C')
+
+
 

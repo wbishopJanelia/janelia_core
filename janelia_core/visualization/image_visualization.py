@@ -78,18 +78,18 @@ class GroupedStackedImageVisualizer(QWidget):
             im_view.setImage(img)
 
             # Set initial levels automatically
-            if levels_range is None or levels_range[img_i] is None:
-                low_p = np.percentile(img,.5)
-                high_p = np.percentile(img, 99.5)
-                half_range = (high_p - low_p)/2
-                levels_range = [-half_range, half_range]
-
             hist_widget = im_view.getHistogramWidget()
-            hist_widget.setLevels(*levels_range[img_i])
+            if levels_range is None or levels_range[img_i] is None:
+                low_p = np.percentile(img, 2)
+                high_p = np.percentile(img, 98)
+                hist_widget.setLevels(low_p, high_p)
+            else:
+                hist_widget.setLevels(*levels_range[img_i])
 
             im_views[img_i] = im_view
             if custom_color_maps:
-                im_view.setColorMap(color_maps[img_i])
+                if color_maps[img_i] is not None:
+                    im_view.setColorMap(color_maps[img_i])
             layout.addWidget(im_view, 1, img_i)
 
         # Wire everything up to move together when a slider is moved

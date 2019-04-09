@@ -4,8 +4,13 @@
     bishopw@hhmi.org
 """
 
-import numpy as np
+import multiprocessing
+import os
+from sortedcontainers import SortedList
+from typing import Sequence
 import warnings
+
+import numpy as np
 
 
 class HistogramFilter:
@@ -19,9 +24,9 @@ class HistogramFilter:
     be ignored.
 
     Bins of the histogram have inclusive leading edges and exclusive trailing edges.  For example, if we construct a
-    histogram with 2 bins with a min value of 0 and a max value of 2, the bins will have edges [0, .5) and [.5, 1).
+    histogram with 2 bins with a min value of 0 and a max value of 1, the bins will have edges [0, .5) and [.5, 1).
 
-    Note: At the moment this function is optimized for speed when adding and removing values but can be subjec to
+    Note: At the moment this function is optimized for speed when adding and removing values but can be subject to
     floating point errors.  If more exact results are required, used other means of calculating histograms.
 
     """
@@ -128,3 +133,116 @@ class HistogramFilter:
             return None
 
         return bin
+
+
+class NDPercentileFilter:
+    """ An object for applying a percentile filter to streaming n-dimensional data.
+
+    Percentile filters are applied across time separately to each point in n-dimensional data.
+
+    This object is useful when calculating percentiles in a streaming manner. The idea is that data can be added to and
+    removed from buffers.  Buffers are not of fixed length and efficient manners of updating sorted values in the buffers
+    are used.  At any time, a user can request the p-th percentiles of data in the buffers, which amounts to returning
+    data from a fixed index in each buffer and is therefore efficient.
+
+    """
+
+    def __init__(self, data_shape: Sequence[int], mask: np.ndarray = None, n_processes = None):
+        """ Creates a PercentileFilter object.
+
+        Args:
+            data_shape: The shape of the data at each point.  E.g., if calculating the percentiles of pixel values
+            across time of 2-d images, data_shape would be the height and width of an individual images.
+
+            mask: A binary array of shape data_shape.  Each entry indicates if percentiles should be calculated
+            for that entry in the data, with 1 indicating a value should be calculated.  If None, percentiles
+            will be calculated for all entries.
+
+            n_processes: The number of processes to use.  If None, this will be set to the number of
+            processors on the machine.
+
+        """
+
+        n_dims = len(data_shape)
+        self.data_shape = data_shape
+
+        if mask is None:
+            mask = np.ones(data_shape, dtype=np.bool)
+        self.mask = mask
+
+        # Setup buffer
+        n_vls = np.sum(self.mask)  # How many values there are in each data point
+        self.n_vls = n_vls
+        self.sorted_vl_buffer = [SortedList() for _ in range(n_vls)]  # Buffer for storing sorted values
+
+        # Now we create some variables for helping us go from a flat representation of our data to a ndarray (mgrid) and
+        # vice versa (point_coords)
+        coord_list = [slice(0, d) for d in data_shape]
+        mgrid = np.mgrid[coord_list]
+        self.mgrid_flat = tuple(a[self.mask] for a in mgrid)
+        self.point_coords = [tuple(self.mgrid_flat[d][i] for d in range(n_dims)) for i in range(n_vls)]
+
+        # Determine how many processes to use
+        if n_processes is None:
+            n_processes = int(os.environ['NUMBER_OF_PROCESSORS'])
+        self.n_processes = n_processes
+
+        # Create the pool to use
+        self.pool = multiprocessing.Pool(n_processes)
+
+    def add_data(self, data: np.ndarray):
+        """ Adds a point of data to a percentile filter.
+
+        Args:
+            data: The point of data to add
+        """
+
+        buffers_with_data = [tuple([self.sorted_vl_buffer[i], data[self.point_coords[i]]])
+                             for i in range(self.n_vls)]
+
+        self.sorted_vl_buffer = self.pool.starmap(_add_data_to_sorted_list, buffers_with_data)
+
+
+    def remove_data(self, data: np.ndarray):
+        """ Removes a point of data from a percentile filter.
+
+        Args:
+            data: The point of data to remove.
+        """
+
+        for i in range(self.n_vls):
+            self.sorted_vl_buffer[i].discard(data[self.point_coords[i]])
+
+    def retrieve_percentile(self, p: float) -> np.ndarray:
+        """ Returns percentile values based on buffered data.
+
+        Args:
+            p: The requested percentile in the range [0, 1]
+
+        Returns: The percentile for each point in the data.  Will be the same shape as the data.
+
+        Raises:
+            RuntimeError: If no data has been added to buffers yet.
+        """
+        # Determine where in the sorted lists the percentile we need to pull will be found
+        buffer_l = len(self.sorted_vl_buffer[0])
+
+        if buffer_l == 0:
+            raise(RuntimeError('No data in buffers.'))
+
+        index = np.ceil(p*(buffer_l-1)).astype('int')
+
+        # Pull the value from each list
+        percentiles_list = [self.sorted_vl_buffer[i][index] for i in range(self.n_vls)]
+
+        # Return percentiles in a numpy array the same shape as our data
+        percentiles = np.zeros(self.data_shape)
+        percentiles[self.mgrid_flat] = percentiles_list
+        return percentiles
+
+
+# Helper functions go here
+def _add_data_to_sorted_list(l, d):
+    l.add(d)
+    return l
+
