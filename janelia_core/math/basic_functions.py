@@ -174,10 +174,10 @@ def slice_contains(s1: slice, s2: slice):
             return contained
 
 
-def is_standard_slice(s: slice):
+def is_standard_slice(s: slice) -> bool:
     """ Returns true if a slice has non-negative start and stop values.
 
-    Accepts either a single slice object of sequence of slice objects.
+    Accepts either a single slice object or a sequence of slice objects.
 
     Args:
         s: A single slice object or sequence of slice objects.  If a sequence, this
@@ -199,6 +199,29 @@ def is_standard_slice(s: slice):
         return is_standard
 
 
+def is_fully_specified_slice(s: slice) -> bool:
+    """ Returns true if slice has non non-negative, non-None start and stop values.
+
+    Accepts either a single slice object or a sequence of slice objects.
+
+    Args:
+        s: A single slice object or sequence of slice objects.  If a sequence, this
+        function will return true only if all slice objects have non-negative, non-None start and stop values.
+    """
+
+    def check_slice(s_i):
+        return (s_i.start is not None) and (s_i.stop is not None) and (s_i.start >= 0) and (s_i.stop >= 0)
+
+    if isinstance(s, slice):
+        return check_slice(s)
+    else:
+        for s_i in s:
+            passes = check_slice(s_i)
+            if not passes:
+                break
+        return passes
+
+
 def nan_matrix(shape: Sequence[int], dtype=np.float):
     """ Generates a matrix of a given shape and data type initialized to nan values.
 
@@ -217,4 +240,66 @@ def nan_matrix(shape: Sequence[int], dtype=np.float):
     return m
 
 
+def select_subslice(s1: slice, s2: slice) -> slice:
+    """ Selects a smaller portion of a slice.
+
+    Accepts either a single slice or a sequence of slices.
+
+    This function expects slices to have start and stop values which are not None and non-negative.
+
+    A subslice of a larger slice, s1, is specified by a second slice, s2.  Specifically, s2.start and s2.stop
+    give the start and stop of the subslice.  s2.start and s2.stop specify the start and stop relative to s1.start.
+    For example, if s1.start=5, s2.start=0, s2.stop = 2 then the returned subslice would have a start of 5 and a stop
+    of 7. For simplicity, this function currently assumes s2.step = 1 but makes no assumption s1.step.  The step of
+    the returned subslice will be equal to s1.step.
+
+    When s1 and s2 are sequences of slices, s2[i] specifies the subslice for s1[i]
+
+    Args:
+        s1: The slice to select from.  Can also be a tuple of slices.
+
+        s2: The portion of the slice to select.  Can also be a tuple of slices. The step size of this slice must
+        be 1.
+
+    Returns:
+        subslice: The returned subslice.
+
+    Raises:
+        ValueError: If any slice in s1 or s2 is not a fully specified slice
+        ValueError: If the step size for any s2 slice is not 1.
+        ValueError: If the subslice specified by any s2 slice is not contained within the corresponding s1 slice.
+
+    """
+
+    if (not is_fully_specified_slice(s1)) or (not is_fully_specified_slice(s2)):
+        raise(ValueError('Slices must have start and stop values which are not None and non-negative.'))
+
+    return_tuple = True
+    if type(s1) is slice:
+        s1 = (s1,)
+        s2 = (s2,)
+        return_tuple = False
+
+    for s2_i in s2:
+        if (s2_i.step is not None) and (s2_i.step != 1):
+            raise(ValueError('s2.step must be 1'))
+
+    n_slices = len(s1)
+
+    subslice = [None]*n_slices
+    for i in range(n_slices):
+        new_start = s1[i].start + s2[i].start
+        new_stop = s1[i].start + s2[i].stop
+
+        if (new_start > s1[i].stop) or (new_stop > s1[i].stop):
+            raise(ValueError('Requested subslice is not contained within s1'))
+
+        subslice[i] = slice(new_start, new_stop, s1[i].step)
+
+    if not return_tuple:
+        subslice = subslice[0]
+    else:
+        subslice = tuple(subslice)
+
+    return subslice
 

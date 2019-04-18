@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import QSlider
 import pyqtgraph as pg
 from pyqtgraph import InfiniteLine
 from pyqtgraph import LinearRegionItem
+from pyqtgraph import makeARGB
 
 from janelia_core.math.basic_functions import l_th
 from janelia_core.math.basic_functions import u_th
@@ -296,7 +297,7 @@ class ROIViewer(QWidget):
             roi_vl_str - If the values of the ROI across time are stored in a field with a different name than 'vls',
             the user can specify that with this argument.
 
-            clrs - If not note, a np.ndarray of shape n_rois * 3, where each row specifies the color of an roi.  The dtype
+            clrs - If not none, a np.ndarray of shape n_rois * 3, where each row specifies the color of an roi.  The dtype
             clrs should be int. And all entries should be within 0 and 255.
 
             title - An optional title to provide for the window
