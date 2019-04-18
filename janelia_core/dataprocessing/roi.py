@@ -35,7 +35,7 @@ class ROI():
 
     @classmethod
     def from_array(cls, arr: np.ndarray, start_inds: np.ndarray = None):
-        """ Create an ROI onbject from a numpy array.
+        """ Create an ROI object from a numpy array.
 
         Args:
             arr: The array represnting the ROI.  Individual values are weights of voxels in the ROI.
@@ -64,7 +64,7 @@ class ROI():
         """ Creates a dictionary from a ROI object.
 
         This is useful for saving the object in a manner which will still allow it to be loaded in the future should
-        the class definition of Dataset change.
+        the class definition of ROI change.
 
         Returns:
             d: A dictionary with the object data.

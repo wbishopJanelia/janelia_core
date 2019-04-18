@@ -8,6 +8,7 @@ import numpy as np
 import pathlib
 
 from janelia_core.dataprocessing.roi import ROI
+from janelia_core.dataprocessing.point import Point
 
 
 class DataSet:
@@ -154,7 +155,7 @@ class ROIDataset(DataSet):
         """
             Initializes an ROIDataset object.
 
-            ROI data is added to the ts_data dictionary.  A field
+            ROI data is added to the ts_data dictionary.
 
         Args:
             ts_data: A dictionary of time series data.  See description in Dataset.__init__()
@@ -176,8 +177,6 @@ class ROIDataset(DataSet):
 
             **kwargs: Additional keyword arguments that will be added as attributes of the object.
 
-        Raises:
-
         """
         super().__init__(ts_data, metadata)
 
@@ -194,7 +193,7 @@ class ROIDataset(DataSet):
         """ Creates a new ROIDataset object from a dictionary.
 
         Args:
-            d: A dictionary with the keys 'ts_data' and 'metadata'
+            d: A dictionary with the keys 'ts_data', 'metadata', 'roi_groups' and other attributes to add to the object
 
         Returns:
             A new ROIDataset object
@@ -208,7 +207,7 @@ class ROIDataset(DataSet):
             cur_group_keys = set(cur_group.keys())
             cur_group_keys.remove('rois')
 
-            new_group_dict = {k: cur_group[k] for k in cur_group_keys}
+            new_group_dict = {k_i: cur_group[k_i] for k_i in cur_group_keys}
 
             rois_as_objs = [ROI.from_dict(r) for r in cur_group['rois']]
             new_group_dict['rois'] = rois_as_objs
@@ -344,3 +343,108 @@ class ROIDataset(DataSet):
         # Create the composite roi object
         return ROI.from_array(comp_roi_array, min_bounds)
 
+
+class PointDataset(DataSet):
+    """ A dataset object for holding datasets with timeseries information associated with points in space.
+    """
+
+    def __init__(self, ts_data: dict = None, metadata: dict = None, point_groups: dict = None, **kwargs):
+        """
+            Initializes a PointDataset object.
+
+            ROI data is added to the ts_data dictionary.
+
+        Args:
+            ts_data: A dictionary of time series data.  See description in Dataset.__init__()
+
+            metadata: A dictionary of metadata.  See description in Dataset.__init__()
+
+            point_groups: A dictionary hold point groups.  A "point group" is a group of points whose values
+            are stored together in entries in ts_data.  One group can have values stored in multiple entries in
+            ts_data.  Each entry in point_groups is specified by a key giving the name of the group and a value which
+            is a dictionary with the keys:
+                1) points: A list of Point objects representing the points in the group
+                2) ts_labels: A list of ts_data entries with data for this group of points.
+                3) Optional keys the user may specify. For example, a "type" can be specified.
+
+            If an entry in ts_data holds values for an point group, it must hold only values for those points and the
+            order of variables in the ts_data 'vls' entry must match the order of points in the points list for the
+            group.
+
+            If point_groups is none, an empty dictionary will be created.
+
+            **kwards: Additional keyword arguments will be added as attributes of the object.
+        |"""
+        super().__init__(ts_data, metadata)
+
+        if point_groups is not None:
+            self.point_groups = point_groups
+        else:
+            self.point_groups = {}
+
+        for k in kwargs:
+            setattr(self, k, kwargs[k])
+
+    def to_dict(self) -> dict:
+        """ Create a dictionary from a Dataset object.
+
+        This is useful for saving the object in a manner which will still allow for it to be loaded in the
+        future should the class definition change.
+
+        Returns:
+            d: A dictionary with the object data.
+        """
+
+        other_attrs = set(vars(self).keys())
+        other_attrs.remove('point_groups')
+        save_dict = {a: getattr(self, a) for a in other_attrs}
+
+        point_groups = self.point_groups
+        point_groups_dict = dict()
+        for grp in point_groups:
+            other_group_keys = set(point_groups[grp].keys())
+            other_group_keys.remove('points')
+
+            new_group_dict = {k: point_groups[grp][k] for k in other_group_keys}
+
+            points_as_dict = [p.to_dict() for p in point_groups[grp]['points']]
+            new_group_dict['points'] = points_as_dict
+
+            point_groups_dict[grp] = new_group_dict
+
+        save_dict['point_groups'] = point_groups_dict
+
+        return save_dict
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        """ Creates a new PointDataset object from a dictionary.
+
+        Args:
+            d: A dictionary with the keys 'ts_data', 'metadata', 'roi_groups' and other attributes to add to the object
+
+        Returns:
+            A new PointDataset object
+
+        """
+        standard_attrs = {'ts_data', 'metadata', 'roi_groups'}
+
+        point_groups_keys = d['point_groups'].keys()
+        new_point_groups_dict = dict()
+        for k in point_groups_keys:
+            cur_group = d['point_groups'][k]
+            cur_group_keys = set(cur_group.keys())
+            cur_group_keys.remove('points')
+
+            new_group_dict = {k_i: cur_group[k_i] for k_i in cur_group_keys}
+
+            points_as_objs = [Point.from_dict(p) for p in cur_group['points']]
+            new_group_dict['points'] = points_as_objs
+
+            new_point_groups_dict[k] = new_group_dict
+
+        nonstandard_attrs = set(d.keys())
+        nonstandard_attrs = nonstandard_attrs.difference(standard_attrs)
+        nonstandard_dict = {a: d[a] for a in nonstandard_attrs}
+
+        return PointDataset(d['ts_data'], d['metadata'], new_point_groups_dict, **nonstandard_dict)
