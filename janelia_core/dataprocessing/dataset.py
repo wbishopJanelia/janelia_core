@@ -427,7 +427,7 @@ class PointDataset(DataSet):
             A new PointDataset object
 
         """
-        standard_attrs = {'ts_data', 'metadata', 'roi_groups'}
+        standard_attrs = {'ts_data', 'metadata', 'point_groups'}
 
         point_groups_keys = d['point_groups'].keys()
         new_point_groups_dict = dict()
