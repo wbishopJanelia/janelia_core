@@ -33,18 +33,17 @@ class LatentRegModel(torch.nn.Module):
 
     The transformed latents are mapped to a high-dimensional vector z_h = u_h tran_h, where z_h \in R^{d_out^h}.
 
-    In addition, the user can specify pairs (g, h) when d_in^g = d_out^h, where there is a direct mapping for the
-    from x_g to a vector v_h, v_h = c_{h,g} x_g, where c_{h,g} is a diagonal matrix.  This is most useful when x_g and
+    A (possibly) non-linear function s_h is applied to form o_h = s_h(z_h) \in R^{d_out^h}. s_h can
+    again have it's own parameters. s_h can general function mapping from R^{d_out^h} to R^{d_out^h},
+    but in many cases, it may be a composite function which just applies the same function element-wise.
+
+    The user can also specify pairs (g, h) when d_in^g = d_out^h, where there is a direct mapping from x_g to a
+    vector v_h, v_h = c_{h,g} x_g, where c_{h,g} is a diagonal matrix.  This is most useful when x_g and
     y_g are the same set of variables (e.g, neurons) at times t-1 and t, and in addition to low-rank interactions,
     we want to include interactions between each variable and itself.
 
-    Variables o_h = z_h + v_h are then formed (if there is an h for which v_h is not computed, then o_h = z_h.)
-
-    A (possibly) non-linear function s_h is applied to form mn_h = s_h(o_h) \in R^{d_out^h}. s_h can
-    again have it's own parameters. s_h can general function mapping from R^{d_out^h} to R^{d_out^h},
-    but in many cases, it may be a composite function which just applies the same function to o_h, element-wise.
-
-    Finally, y_h = mn_h + n_h, where n_h ~ N(0, psi_h) where psi_h is a diagonal covariance matrix.
+    Variables mn_h = o_h + v_h are then formed, and finally, y_h = mn_h + n_h, where n_h ~ N(0, psi_h)
+    where psi_h is a diagonal covariance matrix.
 
     """
 
@@ -77,6 +76,13 @@ class LatentRegModel(torch.nn.Module):
         """
 
         super().__init__()
+
+        # Record basic parameters
+        self.d_in = d_in
+        self.d_out = d_out
+        self.d_proj = d_proj
+        self.d_trans = d_trans
+        self.direct_pairs = direct_pairs
 
         # Initialize projection matrices down
         n_input_groups = len(d_in)
@@ -117,7 +123,7 @@ class LatentRegModel(torch.nn.Module):
         else:
             self.direct_mappings = None
 
-        # Mappings from transformed latents to means
+        # Mappings from transformed latents to o_h
         self.s = torch.nn.ModuleList(s)
 
         # Initialize the variances for the noise variables
@@ -129,7 +135,7 @@ class LatentRegModel(torch.nn.Module):
             self.register_parameter(param_name, psi[h])
         self.psi = psi
 
-    def forward(self, x: Sequence) -> Sequence:
+    def forward(self, x: list) -> Sequence:
         """ Computes the predicted mean from the model given input.
 
         Args:
@@ -138,23 +144,28 @@ class LatentRegModel(torch.nn.Module):
 
         Returns:
             y: A sequence of outputs. y[h] contains the output for group h.  y[h] will be of shape n_smps*d_out[h]
+
+        Raises:
+            ValueError: if x is not a list
         """
+
+        if not isinstance(x, list):
+            raise(ValueError('x must be a list'))
 
         proj = [torch.matmul(x_g, p_g) for x_g, p_g in zip(x, self.p)]
         tran = self.m(proj)
         z = [torch.matmul(t_h, u_h.t()) for t_h, u_h in zip(tran, self.u)]
 
-        # Add direct mappings, while variable names are in general the same as in the __init__ documentation, here
-        # the variable name o is omitted in favor of adding to z to keep the code simple
+        v = [s_h(z_h) for s_h, z_h in zip(self.s, z)]
+
+        # Add direct mappings
         if self.direct_mappings is not None:
             for dm in self.direct_mappings:
                 g = dm['pair'][0]
                 h = dm['pair'][1]
-                z[h] = z[h] + dm['c']*x[g]
+                v[h] = v[h] + dm['c']*x[g]
 
-        mn = [s_h(z_h) for z_h, s_h in zip(z, self.s)]
-
-        return mn
+        return v
 
     def generate(self, x: Sequence) -> Sequence:
         """ Generates outputs from the model given inputs.
@@ -179,7 +190,7 @@ class LatentRegModel(torch.nn.Module):
 
         return y
 
-    def neg_ll(self, y: Sequence, mn: Sequence):
+    def neg_ll(self, y: list, mn: list) -> torch.Tensor:
 
         """
         Calculates the negative log likelihood of outputs given predicted means.
@@ -194,15 +205,22 @@ class LatentRegModel(torch.nn.Module):
 
         Returns:
             The calculated negative log-likelihood for the sample
+
+        Raises:
+            ValueErorr: If y and mn are not lists
         """
+        if not isinstance(y, list):
+            raise(ValueError('y must be a list'))
+        if not isinstance(mn, list):
+            raise(ValueError('mn must be a list'))
 
         neg_ll = float(0)
 
         n_smps = y[0].shape[0]
-        neg_log_2_pi = float(np.log(2*np.pi))
+        log_2_pi = float(np.log(2*np.pi))
 
         for mn_h, y_h, psi_h in zip(mn, y, self.psi):
-            neg_ll += .5*mn_h.nelement()*neg_log_2_pi
+            neg_ll += .5*mn_h.nelement()*log_2_pi
             neg_ll += .5*n_smps*torch.sum(torch.log(psi_h))
             neg_ll += .5*torch.sum(((y_h - mn_h)**2)/psi_h)
 
