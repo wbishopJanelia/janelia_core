@@ -11,7 +11,7 @@ import numpy as np
 
 
 def cmp_n_mats(mats: list, clim: list = None, show_colorbars: bool = False, titles: list = None,
-               grid_info: dict = None) -> list:
+               grid_info: dict = None, cmap: matplotlib.colors.Colormap = None) -> list:
     """ Produces a figuring comparing matrices.
 
     Each matrix will be plotted in a separate axes, and all axes will use the same color scaling.
@@ -34,6 +34,8 @@ def cmp_n_mats(mats: list, clim: list = None, show_colorbars: bool = False, titl
                 colspan: The column span for the i^th matrix
 
             If grid_info is None, one will be created for showing the matrices next to each other in a row.
+
+        cmap: The colormap to use.  Can either be a string or Colormap instance.
 
     Returns:
         subplots: List of subplot objects for each subplot showing the matrices in mats.  Subplots are ordered according
@@ -65,7 +67,7 @@ def cmp_n_mats(mats: list, clim: list = None, show_colorbars: bool = False, titl
     img_plots = [None]*n_mats
     for i, m in enumerate(mats):
         subplot = plt.subplot(grid_spec.new_subplotspec(**grid_info['cell_info'][i]))
-        img_plots[i] = subplot.imshow(mats[i], aspect='auto')
+        img_plots[i] = subplot.imshow(mats[i], aspect='auto', cmap=cmap)
 
         subplot.set_axis_off()
         if show_colorbars:
