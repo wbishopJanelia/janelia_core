@@ -11,7 +11,7 @@ import numpy as np
 
 
 def cmp_n_mats(mats: list, clim: list = None, show_colorbars: bool = False, titles: list = None,
-               grid_info: dict = None, cmap: matplotlib.colors.Colormap = None) -> list:
+               grid_info: dict = None, cmap: matplotlib.colors.Colormap = None, subplots: list = None) -> list:
     """ Produces a figuring comparing matrices.
 
     Each matrix will be plotted in a separate axes, and all axes will use the same color scaling.
@@ -37,12 +37,16 @@ def cmp_n_mats(mats: list, clim: list = None, show_colorbars: bool = False, titl
 
         cmap: The colormap to use.  Can either be a string or Colormap instance.
 
+        subplots: a list of subplot objects to plot into.  If used, grid_info is ignored
+
     Returns:
         subplots: List of subplot objects for each subplot showing the matrices in mats.  Subplots are ordered according
         to mats.
     """
 
     n_mats = len(mats)
+
+    use_existing_subplots = subplots is not None
 
     # Generate color limits if not provided
     if clim is None:
@@ -63,18 +67,23 @@ def cmp_n_mats(mats: list, clim: list = None, show_colorbars: bool = False, titl
     grid_spec = grid_info['grid_spec']
 
     # Generate plots
-    subplots = [None]*n_mats
+    if not use_existing_subplots:
+        subplots = [None]*n_mats
     img_plots = [None]*n_mats
     for i, m in enumerate(mats):
-        subplot = plt.subplot(grid_spec.new_subplotspec(**grid_info['cell_info'][i]))
-        img_plots[i] = subplot.imshow(mats[i], aspect='auto', cmap=cmap)
+        if not use_existing_subplots:
+            subplot = plt.subplot(grid_spec.new_subplotspec(**grid_info['cell_info'][i]))
+        else:
+            subplot = subplots[i]
+
+        img_plots[i] = subplot.imshow(m, aspect='auto', cmap=cmap)
 
         subplot.set_axis_off()
         if show_colorbars:
-            plt.colorbar(img_plots[i])
+            plt.colorbar(img_plots[i], ax=subplot)
 
         if titles is not None:
-            subplot.title = plt.title(titles[i])
+            subplot.set_title(titles[i])
 
         subplots[i] = subplot
 
