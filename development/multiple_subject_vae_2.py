@@ -337,15 +337,15 @@ class ConstantLowerUpperBoundedFcn(torch.nn.Module):
 class LogBumpFcn(torch.nn.Module):
     """ A module representing a log "bump" function with trainable parameters of the form:
 
-            y = log(g*exp((x-c)/s))),
+            y = log(g*f(sum((x-c)/s)^2))),
 
         where $y \in R$ is the output, x \in R^d is the input, c \in R^d is a center position,
         s \in R^d is a "standard deviation" vector which determines how fast the bump falls off
-        in each direction and g is a gain \in [0, 1].
+        in each direction and g is a gain \in [0, 1].  Above f() is a non-linearity.
 
     """
 
-    def __init__(self, n_vars: int):
+    def __init__(self, n_vars: int, f_type = 'exp'):
         """ Creates a Bump Fcn object.
 
         Args:
@@ -354,6 +354,8 @@ class LogBumpFcn(torch.nn.Module):
         """
 
         super().__init__()
+
+        self.f_type = f_type
 
         self.ctr = torch.nn.Parameter(torch.zeros(n_vars), requires_grad=True)
         torch.nn.init.uniform_(self.ctr, 0, 1)
@@ -380,11 +382,17 @@ class LogBumpFcn(torch.nn.Module):
         ctr_stds = self.ctr_stds(place_holder_input).squeeze()
         log_gain = self.log_gain_vl(place_holder_input).squeeze()
 
+
         x_ctr = x - self.ctr
         x_ctr_scaled = x_ctr/ctr_stds
         x_dist = torch.sum(x_ctr_scaled**2, dim=1)
 
-        return log_gain + -1*x_dist
+        if self.f_type == 'exp':
+            return log_gain + -1*x_dist
+        elif self.f_type == 'tanh':
+            return log_gain + .5*torch.tanh(x_dist) + .5
+        else:
+            raise(RuntimeError('The nonlinearity ' + self.f_type + ' is not recogonized.'))
 
 
 def visualize_spike_slab_distribution(d, x_range = [0, 1], y_range = [0, 1], n_points_per_side = 100,
