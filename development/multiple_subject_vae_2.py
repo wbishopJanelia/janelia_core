@@ -12,32 +12,20 @@ from matplotlib import pyplot as plt
 import torch
 
 
-class BernoulliBumpCondDistribution(torch.nn.Module):
-    """ A module for working with conditional "bump" Bernoulli distributions.
-
-    By a conditional "bump" distribution we mean the probability of a non-zero entry
-    which takes the form of a bump.
+class BernoulliCondDistribution(torch.nn.Module):
+    """ A module for working with conditional Bernoulli distributions.
 
     """
 
-    def __init__(self, n_vars: int):
-        """ Creates a BernoulliCondDist variable.
+    def __init__(self, log_prob_fcn: torch.nn.Module):
+        """ Creates a BernoulliCondDistribution variable.
 
         Args:
             n_vars: The number of variables that the Bernoulli random variable is conditioned on.
         """
 
         super().__init__()
-
-        self.ctr = torch.nn.Parameter(torch.zeros(n_vars), requires_grad=True)
-        torch.nn.init.uniform_(self.ctr, 0, 1)
-
-        # Log "Variances" determining how fast bumps fall off in each direction
-        self.log_ctr_vars = torch.nn.Parameter(torch.zeros(n_vars), requires_grad=True)
-        torch.nn.init.normal_(self.log_ctr_vars, 0, .1)
-
-        self.gain_vl = torch.nn.Parameter(torch.ones(1), requires_grad=True)
-        self.gain_vl.data = torch.tensor([.5])
+        self.log_prob_fcn = log_prob_fcn
 
     def log_prob(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """ Computes log P(y| x).
@@ -59,13 +47,9 @@ class BernoulliBumpCondDistribution(torch.nn.Module):
 
         n_smps = x.shape[0]
 
-        x_ctr = x - self.ctr
-        x_ctr_scaled = x_ctr/torch.exp(self.log_ctr_vars)
-        x_dist = torch.sum(x_ctr_scaled**2, dim=1)
-
         zero_inds = y == 0
 
-        log_nz_prob = torch.log(.5*(torch.tanh(self.gain_vl)+1)) + -1*x_dist
+        log_nz_prob = self.log_prob_fcn(x).reshape([n_smps])
 
         log_prob = torch.zeros(n_smps)
         log_prob[~zero_inds] = log_nz_prob[~zero_inds]
@@ -87,6 +71,7 @@ class BernoulliBumpCondDistribution(torch.nn.Module):
 
         bern_dist = torch.distributions.bernoulli.Bernoulli(probs)
         return bern_dist.sample().byte()
+
 
 class CondGaussianDistribution(torch.nn.Module):
     """ A general object for representing distributions over random variables with Gaussian conditional distributions.
@@ -155,6 +140,7 @@ class CondGaussianDistribution(torch.nn.Module):
 
         return mn + z*std
 
+
 class CondSpikeSlabDistribution(torch.nn.Module):
     """ A general object for working with conditional spike and slab distributions.
     """
@@ -200,10 +186,10 @@ class CondSpikeSlabDistribution(torch.nn.Module):
 
         # Log-likelihood due to spike distribution
         y_non_zero = torch.sum(y != 0, dim=1) == y_d
-        ll = torch.sum(self.spike_dist.log_prob(x, non_zero_inds))
+        ll = self.spike_dist.log_prob(x, non_zero_inds)
 
         # Log-likelihood due to slab distribution
-        ll += torch.sum(self.slab_dist.log_prob(x[non_zero_inds, :], y[non_zero_inds, :]))
+        ll[non_zero_inds] += self.slab_dist.log_prob(x[non_zero_inds, :], y[non_zero_inds, :])
 
         return ll
 
@@ -227,6 +213,7 @@ class CondSpikeSlabDistribution(torch.nn.Module):
         nz_vls = self.slab_dist.rsample(x[support,:]).squeeze()
 
         return [support, nz_vls]
+
 
 class ConstantRealFcn(torch.nn.Module):
     """ Object for representing function which are constant w.r.t to input and take values anywhere in the reals.
@@ -260,6 +247,7 @@ class ConstantRealFcn(torch.nn.Module):
         n_smps = x.shape[0]
 
         return self.vl.unsqueeze(0).expand(n_smps, self.n_dims)
+
 
 class ConstantLowerBoundedFcn(torch.nn.Module):
     """ Object for representing function which are constant w.r.t to input and take values anywhere in a range [m, \inf)
@@ -299,6 +287,105 @@ class ConstantLowerBoundedFcn(torch.nn.Module):
         vl = torch.exp(self.log_vl) + self.lower_bound
 
         return vl.unsqueeze(0).expand(n_smps, self.n_dims)
+
+
+class ConstantLowerUpperBoundedFcn(torch.nn.Module):
+    """ Object for representing a constant function which can take on output in a given range. """
+
+    def __init__(self, n_dims: int, lower_bound: float = .01, upper_bound: float = 1.0,
+                 init_value:float = None):
+        """ Creates a ConstantLowerBoundedFcn object.
+
+        Args:
+            n_dims: the number of dimensions of the output of the function
+
+            min_vl: The minimum value the function can take on.
+        """
+
+        super().__init__()
+
+        self.n_dims = n_dims
+
+        self.lower_bound = torch.tensor([lower_bound])
+        self.upper_bound = torch.tensor([upper_bound])
+
+        self.v = torch.nn.Parameter(torch.zeros(n_dims), requires_grad=True)
+
+        if init_value is None:
+            init_value = .5*(lower_bound + upper_bound)
+
+        init_v = np.arctanh(2*(init_value - lower_bound)/(upper_bound - lower_bound) - 1)
+        self.v.data = torch.tensor(init_v)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Produces constant output given input.
+
+        Args:
+            x: Conditioning data of shape nSmps*d_in, where d_in is the number of variables we
+            condition on.
+
+        Returns:
+            y: output of shape nSmps*d_out
+        """
+
+        n_smps = x.shape[0]
+
+        vl = (.5*torch.tanh(self.v) + .5)*(self.upper_bound - self.lower_bound) + self.lower_bound
+
+        return vl.unsqueeze(0).expand(n_smps, self.n_dims)
+
+class LogBumpFcn(torch.nn.Module):
+    """ A module representing a log "bump" function with trainable parameters of the form:
+
+            y = log(g*exp((x-c)/s))),
+
+        where $y \in R$ is the output, x \in R^d is the input, c \in R^d is a center position,
+        s \in R^d is a "standard deviation" vector which determines how fast the bump falls off
+        in each direction and g is a gain \in [0, 1].
+
+    """
+
+    def __init__(self, n_vars: int):
+        """ Creates a Bump Fcn object.
+
+        Args:
+
+            n_vars: The dimensionality of the domain of the function.
+        """
+
+        super().__init__()
+
+        self.ctr = torch.nn.Parameter(torch.zeros(n_vars), requires_grad=True)
+        torch.nn.init.uniform_(self.ctr, 0, 1)
+
+        # Log "Variances" determining how fast bumps fall off in each direction
+        self.ctr_stds = ConstantLowerUpperBoundedFcn(n_vars, lower_bound=.02, upper_bound=10.0,
+                                                     init_value=1.0)
+
+        self.log_gain_vl = ConstantLowerUpperBoundedFcn(1, lower_bound=-3.0, upper_bound=0.0,
+                                                        init_value=-2.0)
+
+    def forward(self, x:torch.Tensor):
+        """ Computes output of function given input.
+
+        Args:
+            x: Input of shape nSmps*d
+
+        Returns:
+            y: Output of shape nSmps
+        """
+
+        place_holder_input = torch.zeros(1)
+
+        ctr_stds = self.ctr_stds(place_holder_input).squeeze()
+        log_gain = self.log_gain_vl(place_holder_input).squeeze()
+
+        x_ctr = x - self.ctr
+        x_ctr_scaled = x_ctr/ctr_stds
+        x_dist = torch.sum(x_ctr_scaled**2, dim=1)
+
+        return log_gain + -1*x_dist
+
 
 def visualize_spike_slab_distribution(d, x_range = [0, 1], y_range = [0, 1], n_points_per_side = 100,
                                       smp_x=None, smp_y=None):
@@ -355,3 +442,106 @@ def visualize_spike_slab_distribution(d, x_range = [0, 1], y_range = [0, 1], n_p
         plt.ylim(y_range)
 
         a.set_aspect('equal', 'box')
+
+
+def visualize_bernoulli_distribution(d, x_range = [0, 1], y_range = [0, 1], n_points_per_side = 100,
+                                     smp_x = None, smp_y = None):
+
+
+    grid = np.mgrid[x_range[0]:x_range[1]:n_points_per_side * 1j,
+           y_range[0]:y_range[1]:n_points_per_side * 1j]
+
+    grid_vec = np.stack([np.ravel(grid[0, :, :]), np.ravel(grid[1, :, :])]).transpose()
+    grid_vec = torch.from_numpy(grid_vec.astype('float32'))
+
+    # Plot probability of non-zero entries
+    plt.figure()
+    plt.subplot(1, 2, 1)
+    nz_probs = torch.exp(d.log_prob(grid_vec, torch.ones(grid_vec.shape[0]))).detach().numpy()
+    nz_probs = np.reshape(nz_probs, [n_points_per_side, n_points_per_side])
+    plt.imshow(nz_probs, extent=[x_range[0], x_range[1], y_range[0], y_range[1]], origin='lower')
+    plt.colorbar()
+    plt.title('Prob. Non-Zero')
+
+    # Plot emperical data
+    if smp_x is not None:
+        a = plt.subplot(1,2,2)
+
+        cmap = matplotlib.cm.get_cmap('PiYG')
+
+        max_y = np.max(smp_y)
+        min_y = np.min(smp_y)
+        max_mag = np.max([max_y, -1*min_y])
+
+        for i in range(smp_x.shape[0]):
+            c_vl = smp_y[i]/(2 * max_mag) + .5
+            clr = cmap(c_vl)
+            p = plt.plot(smp_x[i, 1], smp_x[i, 0], 'ko', alpha=.5, markerfacecolor=clr)
+
+        plt.xlim(x_range)
+        plt.ylim(y_range)
+
+        a.set_aspect('equal', 'box')
+
+
+def make_bernoulli_vi_debug_figure(q, p, smp_x, smp_y, grads, x_range = [0, 1], y_range = [0, 1],
+                                   n_points_per_side = 100):
+
+
+    grid = np.mgrid[x_range[0]:x_range[1]:n_points_per_side * 1j,
+           y_range[0]:y_range[1]:n_points_per_side * 1j]
+
+    grid_vec = np.stack([np.ravel(grid[0, :, :]), np.ravel(grid[1, :, :])]).transpose()
+    grid_vec = torch.from_numpy(grid_vec.astype('float32'))
+
+    # Plot probability of non-zero entries for p distribution
+    plt.figure()
+    plt.subplot(1, 4, 1)
+    nz_probs = torch.exp(p.log_prob(grid_vec, torch.ones(grid_vec.shape[0]))).detach().numpy()
+    nz_probs = np.reshape(nz_probs, [n_points_per_side, n_points_per_side])
+    plt.imshow(nz_probs, extent=[x_range[0], x_range[1], y_range[0], y_range[1]], origin='lower')
+    plt.colorbar()
+    plt.title('P Prob. Non-Zero')
+
+    # Plot probability of non-zero entries for q distribution
+    plt.subplot(1, 4, 2)
+    nz_probs = torch.exp(q.log_prob(grid_vec, torch.ones(grid_vec.shape[0]))).detach().numpy()
+    nz_probs = np.reshape(nz_probs, [n_points_per_side, n_points_per_side])
+    plt.imshow(nz_probs, extent=[x_range[0], x_range[1], y_range[0], y_range[1]], origin='lower')
+    plt.colorbar()
+    plt.title('Q Prob. Non-Zero')
+
+    # Plot samples
+    a = plt.subplot(1,4,3)
+    for i in range(smp_x.shape[0]):
+        if smp_y[i] == 0:
+            clr = [0.0, 0.0, 0]
+        else:
+            clr = [1.0, 0, 0]
+
+        p = plt.plot(smp_x[i, 1], smp_x[i, 0], 'o', markerfacecolor=clr)
+
+    plt.xlim(x_range)
+    plt.ylim(y_range)
+    a.set_aspect('equal', 'box')
+
+    # Plot gradients
+    grad_mags = np.sqrt(np.sum(grads**2,1))
+    max_mag = np.max(grad_mags)
+    grads = .1*grads/max_mag
+
+    a = plt.subplot(1,4,4)
+    for i in range(smp_x.shape[0]):
+        plt.plot([smp_x[i, 1], smp_x[i, 1] + grads[i,1]],
+                 [smp_x[i, 0], smp_x[i, 0] + grads[i,0]],
+                 'r-')
+        plt.plot(smp_x[i,1], smp_x[i,0], 'ko', markersize=.5)
+
+    grad_sum = np.sum(grads, 0)
+    plt.plot([.5, .5+grad_sum[1]], [.5, .5+grad_sum[0]], 'g-')
+
+    plt.xlim(x_range)
+    plt.ylim(y_range)
+    a.set_aspect('equal', 'box')
+
+
