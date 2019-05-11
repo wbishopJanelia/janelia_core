@@ -390,9 +390,24 @@ class LogBumpFcn(torch.nn.Module):
         if self.f_type == 'exp':
             return log_gain + -1*x_dist
         elif self.f_type == 'tanh':
-            return log_gain + .5*torch.tanh(x_dist) + .5
+            return log_gain + torch.log(.49*torch.tanh(-1*x_dist) + .5)
         else:
             raise(RuntimeError('The nonlinearity ' + self.f_type + ' is not recogonized.'))
+
+
+class LogProbTanhFcn(torch.nn.Module):
+
+    def __init__(self, n_vars, n_hidden = 4):
+
+        super().__init__()
+
+        self.net = torch.nn.Sequential(torch.nn.Linear(n_vars, n_hidden), torch.nn.Tanh(),
+                                       torch.nn.Linear(n_hidden, n_hidden), torch.nn.Tanh(),
+                                       torch.nn.Linear(n_hidden, 1), torch.nn.Tanh())
+
+    def forward(self, x: torch.Tensor):
+
+        return torch.log(.49*self.net(x) + .5)
 
 
 def visualize_spike_slab_distribution(d, x_range = [0, 1], y_range = [0, 1], n_points_per_side = 100,
