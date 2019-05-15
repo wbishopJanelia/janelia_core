@@ -215,6 +215,35 @@ class CondSpikeSlabDistribution(torch.nn.Module):
         return [support, nz_vls]
 
 
+class SparseMatrixCondDistribution(torch.nn.Module):
+    """ Represents a conditional distribution over the entries of a sparse matrix.
+
+   This distribution models a matrix, M, as
+
+    M = \sum_i M_i,
+
+    where M_i are matrices, each distributed according to
+
+    M_i ~ SpikeSlab_i,
+
+    where SpikeSlab_i is a conditional spike and slab distribution.  The spike component gives the support for non-zero
+    entries in M_i and the slab component gives the distriubtion of non-zero entries.
+
+    """
+
+    def __init__(self, ssDists: list):
+        """ Creates a SparseMatrixCondDistribution object.
+
+        Args:
+
+            ssDists: A list of spike and slab distriubtions.  ssDists[i] is the spike and slab distribution for M_i.
+        """
+        super().__init__()
+        self.ssDists = ssDists
+
+
+
+
 class ConstantRealFcn(torch.nn.Module):
     """ Object for representing function which are constant w.r.t to input and take values anywhere in the reals.
      """
