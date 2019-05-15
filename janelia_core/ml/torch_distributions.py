@@ -4,7 +4,9 @@ Note: These are *not* subclasses of the torch.distributions.
 
  """
 
+import itertools
 from typing import Sequence
+
 import torch
 import math
 
@@ -80,6 +82,33 @@ class CondVAEDistriubtion(torch.nn.Module):
 
         Returns:
             ll: Conditional log probability of each sample. Of shape n_smps.
+        """
+        raise NotImplementedError
+
+    def r_params(self) -> list:
+        """ Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
+
+        In particular this returns the list of parameters for which gradients can be estimated with the
+        reparaterization trick when the distribution serves as q when optimizing KL(q, p).
+
+        If no parameters can be estiamted in this way, should return an empty list.
+
+        Returns:
+            l: the list of parameters
+
+        """
+        raise NotImplementedError
+
+    def s_params(self) ->list:
+        """ Returns a list of parameters which can be estimated with a score method based gradient.
+
+        In particular this returns the list of parameters for which gradients can be estimated with the
+        score function based gradient when the distribution serves as q when optimizing KL(q, p).
+
+        If no parameters can be estiamted in this way, should return an empty list.
+
+        Returns:
+            l: the list of parameters
         """
         raise NotImplementedError
 
@@ -161,6 +190,12 @@ class CondBernoulliDistribution(CondVAEDistriubtion):
 
     def form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor:
         return  smp
+
+    def r_params(self) -> list:
+        return list()
+
+    def s_params(self) -> list:
+        return list(self.parameters())
 
 
 class CondGaussianDistribution(CondVAEDistriubtion):
@@ -251,6 +286,12 @@ class CondGaussianDistribution(CondVAEDistriubtion):
     def form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor:
         return smp
 
+    def r_params(self):
+        return list(self.parameters())
+
+    def s_params(self) -> list:
+        return list()
+
 
 class CondLowRankMatrixDistribution(torch.nn.Module):
 
@@ -272,7 +313,7 @@ class CondLowRankMatrixDistribution(torch.nn.Module):
 
         Likewise P(L[i,:] | X_L[i,:]) can be written as:
 
-            P(L[i,:] | X_L[i,:]) = \prod_k=1^k P(L[i,k] | X_L[i,:]).
+            P(L[i,:] | X_L[i,:]) = \prod_k=1^p P(L[i,k] | X_L[i,:]).
 
         And P(R[j,:] | X_R[j,:]) can be written in a similar manner.
 
@@ -308,8 +349,7 @@ class CondLowRankMatrixDistribution(torch.nn.Module):
 
         return [s_l, s_r]
 
-
-    def log_prob(self, x_l: torch.Tensor, x_r: torch.Tensor, s_l: list, s_r: list) -> torch.Tensor:
+    def log_prob(self, x_l: torch.Tensor, x_r: torch.Tensor, s_l: list, s_r: list) -> list:
         """ Computes the log conditional probability of L and R matrices given X_L and X_R.
 
         Args:
@@ -317,20 +357,40 @@ class CondLowRankMatrixDistribution(torch.nn.Module):
 
             x_r: X_R tensor to condition on.
 
-            s_l: Compact representation (as returned by sample) of entries of L
+            s_l: s_l[i] contains the compact representation (as returned by sample) of entries of L[:, i]
 
-            s_r: Compact representation (as returned by sample) of entries of R
+            s_r: s_r[i] contains the compact representation (as returned by sample) of entries of R[:, i]
 
         Returns:
-            ll: The conditional log-probability of L and R as a scalar tensor.
+            l_log_probs: l_log_probs[j,i] gives the conditional log probability for L[j,i]
+
+            r_log_probs: r_log_probs[j,i] gives the conditional log probability for R[j,i]
         """
 
         # Compute log probability for each mode (summing over entries)
-        l_log_probs = [torch.sum(self.l_mode_dists[m].log_prob(x_l, s_l[m])) for m in range(self.n_modes)]
-        r_log_probs = [torch.sum(self.r_mode_dists[m].log_prob(x_r, s_r[m])) for m in range(self.n_modes)]
+        l_log_probs = torch.stack([self.l_mode_dists[m].log_prob(x_l, s_l[m]) for m in range(self.n_modes)]).t()
+        r_log_probs = torch.stack([self.r_mode_dists[m].log_prob(x_r, s_r[m]) for m in range(self.n_modes)]).t()
 
         # Compute log probability for all modes (summing over modes)
-        return torch.sum(l_log_probs) + torch.sum(r_log_probs)
+        return [l_log_probs, r_log_probs]
+
+    def r_params(self) -> list:
+        """ Mimicks the behavior of r_params for CondVAEDistribution objects. """
+
+        r_mode_params = itertools.chain(*[d.r_params() for d in self.r_mode_dists])
+        l_mode_params = itertools.chain(*[d.r_params() for d in self.l_mode_dists])
+
+        return list(itertools.chain(r_mode_params, l_mode_params))
+
+    def s_params(self) -> list:
+        """ Mimicks the behavior of s_params for CondVAEDistribution objects. """
+
+        r_mode_params = itertools.chain(*[d.s_params() for d in self.r_mode_dists])
+        l_mode_params = itertools.chain(*[d.s_params() for d in self.l_mode_dists])
+
+        return list(itertools.chain(r_mode_params, l_mode_params))
+
+
 
 
 class CondSpikeSlabDistribution(CondVAEDistriubtion):
@@ -474,3 +534,9 @@ class CondSpikeSlabDistribution(CondVAEDistriubtion):
             nz_vls = None
 
         return [n_smps, support, nz_vls]
+
+    def r_params(self) -> list:
+        return self.slab_d.r_params()
+
+    def s_params(self) -> list:
+        return self.spike_d.s_params()
