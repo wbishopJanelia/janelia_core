@@ -249,12 +249,14 @@ class CondGaussianDistribution(CondVAEDistriubtion):
         if len(y.shape) == 1:
             y = y.unsqueeze(1)
 
+        d_y = y.shape[1]
+
         mn = self.mn_f(x)
         std = self.std_f(x)
 
         ll = -.5*torch.sum(((y - mn)/std)**2, 1)
         ll -= torch.sum(torch.log(std), 1)
-        ll -= .5*d_x*torch.log(torch.tensor([math.pi]))
+        ll -= .5*d_y*torch.log(torch.tensor([math.pi]))
 
         return ll
 
@@ -374,6 +376,34 @@ class CondLowRankMatrixDistribution(torch.nn.Module):
         # Compute log probability for all modes (summing over modes)
         return [l_log_probs, r_log_probs]
 
+    def form_matrix(self, smp):
+        """ Forms a matrix representation of a sample from a compact representation of the sample.
+
+        Args:
+             smp: The compact representation of the sample, as returned by sample()
+
+        Returns:
+            m: The matrix representation of the sample
+        """
+
+        l_modes = smp[0]
+        r_modes = smp[1]
+
+        n = l_modes[0][0]
+        m = l_modes[0][0]
+
+        mat = torch.zeros((n, m))
+
+        n_modes = len(l_modes)
+        for m_i in range(n_modes):
+            l = self.l_mode_dists[m_i].form_standard_sample(l_modes[m_i])
+            r = self.r_mode_dists[m_i].form_standard_sample(r_modes[m_i])
+            l = l.view([n, 1])
+            r = r.view([m, 1])
+            mat += torch.matmul(l, r.t())
+
+        return mat
+
     def r_params(self) -> list:
         """ Mimicks the behavior of r_params for CondVAEDistribution objects. """
 
@@ -389,8 +419,6 @@ class CondLowRankMatrixDistribution(torch.nn.Module):
         l_mode_params = itertools.chain(*[d.s_params() for d in self.l_mode_dists])
 
         return list(itertools.chain(r_mode_params, l_mode_params))
-
-
 
 
 class CondSpikeSlabDistribution(CondVAEDistriubtion):
@@ -414,7 +442,7 @@ class CondSpikeSlabDistribution(CondVAEDistriubtion):
         self.slab_d = slab_d
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes log P(y| x).
+        """ Computes  E(y| x).
 
         Args:
             x: Data we condition on.  Of shape n_smps*d_x
@@ -422,7 +450,7 @@ class CondSpikeSlabDistribution(CondVAEDistriubtion):
             y: Values we desire the log probability for.  Of shape nSmps*d_y.
 
         Returns:
-            ll: Log-likelihood of each sample. Of shape n_smps.
+            mn: Conditional expectation. Of shape n_smps*d_y
 
         """
         n_smps = x.shape[0]
@@ -455,7 +483,7 @@ class CondSpikeSlabDistribution(CondVAEDistriubtion):
         n_smps = x.shape[0]
         support = self.spike_d.form_standard_sample(self.spike_d.sample(x))
         if any(support):
-            nz_vls = self.slab_d.sample(x[support, :]).squeeze()
+            nz_vls = self.slab_d.sample(x[support, :])
         else:
             nz_vls = None
 
