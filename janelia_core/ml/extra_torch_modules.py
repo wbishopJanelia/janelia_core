@@ -41,7 +41,7 @@ class ConstantBoundedFcn(torch.nn.Module):
 
         Args:
             lower_bound, upper_bound: the lower and upper bounds the output of the function can take on.  These
-            should be arrays providing a the bounds for each dimension of output.
+            should be arrays providing the bounds for each dimension of output.
 
             init_value: If provided, this is the constant output the function is initialized to.  Should be an
             array providing initial values for each dimension. If not provided, the constant value will be initialized

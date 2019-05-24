@@ -276,9 +276,9 @@ class CondGaussianDistribution(CondVAEDistriubtion):
         std = self.std_f(x)
 
         n_smps = mn.shape[0]
-        d_x = mn.shape[1]
+        d_y = mn.shape[1]
 
-        z = torch.randn(n_smps, d_x)
+        z = torch.randn(n_smps, d_y)
 
         return mn + z*std
 
