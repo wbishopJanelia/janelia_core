@@ -34,7 +34,7 @@ class LatentRegModel(torch.nn.Module):
     The transformed latents are mapped to a high-dimensional vector z_h = u_h tran_h, where z_h \in R^{d_out^h}.
 
     A (possibly) non-linear function s_h is applied to form o_h = s_h(z_h) \in R^{d_out^h}. s_h can
-    again have it's own parameters. s_h can general function mapping from R^{d_out^h} to R^{d_out^h},
+    again have it's own parameters. s_h can be a general function mapping from R^{d_out^h} to R^{d_out^h},
     but in many cases, it may be a composite function which just applies the same function element-wise.
 
     The user can also specify pairs (g, h) when d_in^g = d_out^h, where there is a direct mapping from x_g to a
@@ -144,6 +144,26 @@ class LatentRegModel(torch.nn.Module):
 
         Returns:
             y: A sequence of outputs. y[h] contains the output for group h.  y[h] will be of shape n_smps*d_out[h]
+        """
+
+        return self.cond_forward(x, self.p, self.u)
+
+    def cond_forward(self, x: list, p: list, u: list):
+        """ Computes means given x and a set of projection matrices down and up.
+
+        When this function is called, the internal p and u parameters are ignored.
+
+        Args:
+
+            x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of
+            shape n_smps*d_in[g]
+
+            p: A sequence of tensors.  p[g] contains p_g
+
+            u: A sequence of tensors.  u[h] contains u_h
+
+        Returns:
+            y: A sequence of outputs. y[h] contains the means for group h.  y[h] will be of shape n_smps*d_out[h]
 
         Raises:
             ValueError: if x is not a list
@@ -152,9 +172,9 @@ class LatentRegModel(torch.nn.Module):
         if not isinstance(x, list):
             raise(ValueError('x must be a list'))
 
-        proj = [torch.matmul(x_g, p_g) for x_g, p_g in zip(x, self.p)]
+        proj = [torch.matmul(x_g, p_g) for x_g, p_g in zip(x, p)]
         tran = self.m(proj)
-        z = [torch.matmul(t_h, u_h.t()) for t_h, u_h in zip(tran, self.u)]
+        z = [torch.matmul(t_h, u_h.t()) for t_h, u_h in zip(tran, u)]
 
         v = [s_h(z_h) for s_h, z_h in zip(self.s, z)]
 
@@ -231,7 +251,7 @@ class LatentRegModel(torch.nn.Module):
             learning_rates=.01, adam_params: dict = {}, min_var: float = 0.0, update_int: int = 1000,
             parameters: list = None, l1_p_lambda: list = None, l1_u_lambda: list = None):
 
-        """ Fits a model to data.
+        """ Fits a model to data with maximum likelihood.
 
         This function performs stochastic optimization with the ADAM algorithm.  The weights of the model
         should be initialized before calling this function.
