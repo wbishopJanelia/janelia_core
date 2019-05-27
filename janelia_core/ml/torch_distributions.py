@@ -389,15 +389,22 @@ class CondLowRankMatrixDistribution(torch.nn.Module):
         l_modes = smp[0]
         r_modes = smp[1]
 
-        n = l_modes[0][0]
-        m = l_modes[0][0]
+        l0 = self.l_mode_dists[0].form_standard_sample(l_modes[0])
+        r0 = self.r_mode_dists[0].form_standard_sample(r_modes[0])
+        n = l0.numel()
+        m = r0.numel()
 
         mat = torch.zeros((n, m))
 
         n_modes = len(l_modes)
         for m_i in range(n_modes):
-            l = self.l_mode_dists[m_i].form_standard_sample(l_modes[m_i])
-            r = self.r_mode_dists[m_i].form_standard_sample(r_modes[m_i])
+            if m_i > 0:
+                l = self.l_mode_dists[m_i].form_standard_sample(l_modes[m_i])
+                r = self.r_mode_dists[m_i].form_standard_sample(r_modes[m_i])
+            else:
+                # Save computation since we already form the standard sample for the first modes
+                l = l0
+                r = r0
             l = l.view([n, 1])
             r = r.view([m, 1])
             mat += torch.matmul(l, r.t())
