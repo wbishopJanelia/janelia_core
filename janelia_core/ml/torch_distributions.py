@@ -18,7 +18,7 @@ class CondVAEDistriubtion(torch.nn.Module):
         """ Creates a CondVAEDistribution object. """
         super().__init__()
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.tensor) -> torch.tensor:
         """ Computes the conditional mean of the distribtion at different samples.
 
         Args:
@@ -29,7 +29,7 @@ class CondVAEDistriubtion(torch.nn.Module):
         """
         raise NotImplementedError
 
-    def sample(self, x: torch.Tensor) -> object:
+    def sample(self, x: torch.tensor) -> object:
         """ Samples from a conditional distribution.
 
         When possible, samples should be generated from a reparameterized distribution.
@@ -49,7 +49,7 @@ class CondVAEDistriubtion(torch.nn.Module):
         """
         raise NotImplementedError
 
-    def form_standard_sample(self, smp: object) -> torch.Tensor:
+    def form_standard_sample(self, smp: object) -> torch.tensor:
         """ Forms a standard representation of a sample from the output of sample.
 
         Args:
@@ -60,7 +60,7 @@ class CondVAEDistriubtion(torch.nn.Module):
         """
         raise NotImplementedError
 
-    def form_compact_sample(self, smp: torch.Tensor) -> object:
+    def form_compact_sample(self, smp: torch.tensor) -> object:
         """ Forms a compact representation of a sample given a standard representation.
 
         Args:
@@ -71,7 +71,7 @@ class CondVAEDistriubtion(torch.nn.Module):
         """
         raise NotImplementedError
 
-    def log_prob(self, x: torch.Tensor, y: object) -> torch.Tensor:
+    def log_prob(self, x: torch.tensor, y: object) -> torch.tensor:
         """ Computes the conditional log probability of individual samples.
 
         Args:
@@ -84,6 +84,43 @@ class CondVAEDistriubtion(torch.nn.Module):
             ll: Conditional log probability of each sample. Of shape n_smps.
         """
         raise NotImplementedError
+
+    def kl(self, d_2, x: torch.tensor, smp: Sequence = None):
+        """ Computes the KL divergence between this object and another of the same type conditioned on input.
+
+        Specifically computes:
+
+            KL(p_1(y_i|x_i), p_2(y_i|x_i)),
+
+        where p_1(y_i | x_i) represents the conditional distributions for each sample.  Here, p_1 is the conditional
+        distribution represented by this object and p_2 is the distribution represented by another object of the same
+        type.
+
+        Args:
+            d_2: The other conditional distribution in the KL divergence.  Must be of the same type as this object.  If
+            a multivariate distribution, must also be over random variables as the same size as the random variables
+            the distribution for this object is over.
+
+            x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
+
+            smp: An set samples of shape n_smps*d_y. smp[i,:] should be drawn from p(y_i|x[i,:]). This is an optional
+            input that is provided because sometimes it may not be possible to compute the KL divergence
+            between two distributions analytically.  In these cases, an object may still implement the kl method
+            by computing an empirical estimate of the kl divergence as log p_1(y_i'|x_i) - log p_2(y_i'| x_i),
+            where y_i' is drawn from p_1(y_i|x_i). This is the base behavior of this method.  Objects for which kl
+            can be computed analytically should override this method.
+
+        Returns:
+            kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th sample.
+
+        Raises:
+            ValueError: if d2 is not the same type as this object
+        """
+        if type(d_2) != type(self):
+            raise(ValueError('KL divergence must be computed between distributions of the same type.'))
+
+        kl = self.log_prob(x, smp) - d_2.log_prob(x, smp)
+        return kl.squeeze()
 
     def r_params(self) -> list:
         """ Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
@@ -219,6 +256,8 @@ class CondGaussianDistribution(CondVAEDistriubtion):
         self.mn_f = mn_f
         self.std_f = std_f
 
+        self.register_buffer('log_2_pi', torch.log(torch.tensor(2*math.pi)))
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """ Computes conditional mean given samples.
 
@@ -237,7 +276,7 @@ class CondGaussianDistribution(CondVAEDistriubtion):
         Args:
             x: Data we condition on.  Of shape n_smps*d_x
 
-            y: Values we desire the log probability for.  Of shape nSmps*d_y.
+            y: Values we desire the log probability for.  Of shape n_smps*d_y.
 
         Returns:
             ll: Log-likelihood of each sample. Of shape n_smps.
@@ -256,7 +295,7 @@ class CondGaussianDistribution(CondVAEDistriubtion):
 
         ll = -.5*torch.sum(((y - mn)/std)**2, 1)
         ll -= torch.sum(torch.log(std), 1)
-        ll -= .5*d_y*torch.log(torch.tensor([math.pi]))
+        ll -= .5*d_y*self.log_2_pi
 
         return ll
 
@@ -278,6 +317,30 @@ class CondGaussianDistribution(CondVAEDistriubtion):
         z = torch.randn_like(std)
 
         return mn + z*std
+
+    def kl(self, d_2, x: torch.tensor, smp: Sequence = None):
+        if type(d_2) != type(self):
+            raise(ValueError('KL divergence must be computed between distributions of the same type.'))
+
+        mn_1 = self.mn_f(x)
+        std_1 = self.std_f(x)
+
+        mn_2 = d_2.mn_f(x)
+        std_2 = d_2.std_f(x)
+
+        d = mn_1.shape[1]
+
+        log_det_1 = 2*torch.sum(torch.log(std_1), dim=1)
+        log_det_2 = 2*torch.sum(torch.log(std_2), dim=1)
+        log_det_diff = log_det_2 - log_det_1
+
+        sigma_ratio_sum = torch.sum((std_1**2)/(std_2**2), dim=1)
+
+        mn_diff = torch.sum(((mn_2 - mn_1)/std_2)**2, dim=1)
+
+        kl = .5*(log_det_diff - d + sigma_ratio_sum + mn_diff)
+
+        return kl.squeeze()
 
     def form_standard_sample(self, smp):
         return smp

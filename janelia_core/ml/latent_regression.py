@@ -673,6 +673,10 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
     n_smps = x[0].shape[0]
     batch_ratio = float(n_smps)/batch_size
 
+    # See how many input and output groups we have
+    n_input_grps = len(q_p_dists)
+    n_output_grps = len(q_u_dists)
+
     # Setup variables we will need for fitting
     cur_it = 0
     start_time = time.time()
@@ -718,7 +722,7 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
             # Send data to device in small chunks (if send_size < batch_size) to calculate negative log-likelhood
             start_ind = 0
             end_ind = np.min([batch_size, send_size])
-            neg_elbo = 0
+            neg_ll = 0
             while True:
                 sent_x = [batch_x_g[start_ind:end_ind, :].to(device) for batch_x_g in batch_x]
                 sent_y = [batch_y_h[start_ind:end_ind, :].to(device) for batch_y_h in batch_y]
@@ -730,7 +734,7 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
 
                 # We call backward on each sent chunk of data but we still need to accumulate our
                 # total negative log likelihood term for the elbo
-                neg_elbo += sent_nll.detach().cpu().numpy()
+                neg_ll += sent_nll.detach().cpu().numpy()
 
                 if end_ind == batch_size:
                     break
@@ -738,8 +742,43 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
                 start_ind = end_ind
                 end_ind = np.min([batch_size, start_ind + send_size])
 
+            # Calculate kl divergence between conditional posterior and priors for p modes
+            kl_p = [None]*n_input_grps # Keep track of KL divergence for each mode for diagnostic purposes
+            for g in range(n_input_grps):
+                q_p_mode_dists = q_p_dists[g]
+                prior_p_mode_dists = prior_p_dists[g]
+
+                n_p_mode_dists = len(q_p_mode_dists)
+                p_mode_kls = np.zeros(n_p_mode_dists)
+                for m_i in range(n_p_mode_dists):
+                    mode_kl = torch.sum(q_p_mode_dists[m_i].kl(d_2=prior_p_mode_dists[m_i], x=x_props[g],
+                                                               smp=q_p_smps[g][m_i]))
+                    mode_kl.backward()
+                    p_mode_kls[m_i] = mode_kl.detach().cpu().numpy()
+                kl_p[g] = p_mode_kls
+
+            # Calculate kl divergence between conditional posterior and priors for u modes
+            kl_u = [None]*n_output_grps
+            for g in range(n_output_grps):
+                q_u_mode_dists = q_u_dists[g]
+                prior_u_mode_dists = prior_u_dists[g]
+
+                n_u_mode_dists = len(q_u_mode_dists)
+                u_mode_kls = np.zeros(n_u_mode_dists)
+                for m_i in range(n_u_mode_dists):
+                    mode_kl = torch.sum(q_u_mode_dists[m_i].kl(d_2=prior_u_mode_dists[m_i], x=x_props[g],
+                                                               smp=q_u_smps[g][m_i]))
+                    mode_kl.backward()
+                    u_mode_kls[m_i] = mode_kl.detach().cpu().numpy()
+                kl_u[g] = u_mode_kls
+
             # Take a step here
             optimizer.step()
+
+            # Calculate the value of the ELBO here
+            kl_p_sum = np.sum([np.sum(kl_p_g) for kl_p_g in kl_p])
+            kl_u_sum = np.sum([np.sum(kl_u_g) for kl_u_g in kl_u])
+            neg_elbo = neg_ll + kl_p_sum + kl_u_sum
 
             # Correct any noise variances that are too small
             with torch.no_grad():
@@ -757,16 +796,19 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
                     cur_gpu_mem_usage = torch.cuda.memory_allocated()
                 else:
                     cur_gpu_mem_usage = np.nan
-                print(str(cur_it) + ': Elapsed fitting time ' + str(elapsed_time) +
+                print('It: ' + str(cur_it) + ': Elapsed fitting time ' + str(elapsed_time) +
                       ', elbo: ' + str(-1*neg_elbo) + ', lr: ' + str(cur_learning_rate) +
                       ', GPU mem. usage: ' + str(cur_gpu_mem_usage) + ' bytes')
+                print('    ll: ' + str(-1*neg_ll) + ', kl_p_sum: ' + str(kl_p_sum) + ', kl_u_sum: ' + str(kl_u_sum))
+
             cur_it += 1
 
     # Give final fitting results (if we have not already)
     if (cur_it - 1) % update_int != 0:
-        print(str(cur_it - 1) + ': Elapsed fitting time ' + str(elapsed_time) +
+        print('It: ' + str(cur_it - 1) + ': Elapsed fitting time ' + str(elapsed_time) +
               ', elbo: ' + str(-1*neg_elbo) + ', lr: ' + str(cur_learning_rate) +
               ', GPU mem. usage: ' + str(cur_gpu_mem_usage) + ' bytes')
+        print('    ll: ' + str(-1*neg_ll) + ', kl_p_sum: ' + str(kl_p_sum) + ', kl_u_sum: ' + str(kl_u_sum))
 
     # Format output
     log = {'elapsed_time': elapsed_time_log, 'elbo': elbo_log}
