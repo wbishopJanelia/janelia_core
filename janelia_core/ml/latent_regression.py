@@ -723,6 +723,9 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
             start_ind = 0
             end_ind = np.min([batch_size, send_size])
             neg_ll = 0
+
+            elbo_db = 0
+
             while True:
                 sent_x = [batch_x_g[start_ind:end_ind, :].to(device) for batch_x_g in batch_x]
                 sent_y = [batch_y_h[start_ind:end_ind, :].to(device) for batch_y_h in batch_y]
@@ -730,7 +733,8 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
                 sent_y_hat = l_mdl.cond_forward(x=sent_x, p=q_p_smps_t, u=q_u_smps_t)
                 sent_nll = batch_ratio*l_mdl.neg_ll(sent_y, sent_y_hat)
 
-                sent_nll.backward(retain_graph=True)
+                elbo_db += sent_nll
+                #sent_nll.backward(retain_graph=True)
 
                 # We call backward on each sent chunk of data but we still need to accumulate our
                 # total negative log likelihood term for the elbo
@@ -753,7 +757,8 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
                 for m_i in range(n_p_mode_dists):
                     mode_kl = torch.sum(q_p_mode_dists[m_i].kl(d_2=prior_p_mode_dists[m_i], x=x_props[g],
                                                                smp=q_p_smps[g][m_i]))
-                    mode_kl.backward()
+                    elbo_db += mode_kl
+                    #mode_kl.backward()
                     p_mode_kls[m_i] = mode_kl.detach().cpu().numpy()
                 kl_p[g] = p_mode_kls
 
@@ -768,11 +773,13 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
                 for m_i in range(n_u_mode_dists):
                     mode_kl = torch.sum(q_u_mode_dists[m_i].kl(d_2=prior_u_mode_dists[m_i], x=x_props[h],
                                                                smp=q_u_smps[h][m_i]))
-                    mode_kl.backward()
+                    elbo_db += mode_kl
+                    #mode_kl.backward()
                     u_mode_kls[m_i] = mode_kl.detach().cpu().numpy()
                 kl_u[h] = u_mode_kls
 
             # Take a step here
+            elbo_db.backward()
             optimizer.step()
 
             # Calculate the value of the ELBO here
