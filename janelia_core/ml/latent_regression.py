@@ -759,18 +759,18 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
 
             # Calculate kl divergence between conditional posterior and priors for u modes
             kl_u = [None]*n_output_grps
-            for g in range(n_output_grps):
-                q_u_mode_dists = q_u_dists[g]
-                prior_u_mode_dists = prior_u_dists[g]
+            for h in range(n_output_grps):
+                q_u_mode_dists = q_u_dists[h]
+                prior_u_mode_dists = prior_u_dists[h]
 
                 n_u_mode_dists = len(q_u_mode_dists)
                 u_mode_kls = np.zeros(n_u_mode_dists)
                 for m_i in range(n_u_mode_dists):
-                    mode_kl = torch.sum(q_u_mode_dists[m_i].kl(d_2=prior_u_mode_dists[m_i], x=x_props[g],
-                                                               smp=q_u_smps[g][m_i]))
+                    mode_kl = torch.sum(q_u_mode_dists[m_i].kl(d_2=prior_u_mode_dists[m_i], x=x_props[h],
+                                                               smp=q_u_smps[h][m_i]))
                     mode_kl.backward()
                     u_mode_kls[m_i] = mode_kl.detach().cpu().numpy()
-                kl_u[g] = u_mode_kls
+                kl_u[h] = u_mode_kls
 
             # Take a step here
             optimizer.step()

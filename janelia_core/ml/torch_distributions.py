@@ -318,7 +318,7 @@ class CondGaussianDistribution(CondVAEDistriubtion):
 
         return mn + z*std
 
-    def kl(self, d_2, x: torch.tensor, smp: Sequence = None):
+    def other_kl(self, d_2, x: torch.tensor, smp: Sequence = None):
         if type(d_2) != type(self):
             raise(ValueError('KL divergence must be computed between distributions of the same type.'))
 
