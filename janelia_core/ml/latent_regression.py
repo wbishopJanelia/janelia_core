@@ -556,7 +556,7 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
                              prior_u_dists: Sequence[Sequence[CondVAEDistriubtion]],
                              x: Sequence[torch.Tensor], y: Sequence[torch.Tensor], x_props: Sequence[torch.Tensor],
                              batch_size: int=100, send_size: int=100, max_its: int=10, learning_rates=.01,
-                             adam_params: dict = {}, min_var: float=0.0, update_int: int=100):
+                             adam_params: dict = {}, min_var: float=0.0, update_int: int=100, fit_priors: bool = True):
 
     """ A function for fitting a latent regression model and a prior over it's mode with variational inference.
 
@@ -609,6 +609,10 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
         will be clamped to this value.
 
         update_int: The interval that updates should be printed
+
+        fit_priors: If false, fitting is done where the only term that is optimized is negative log-likelihood (KL
+        divergence between priors and q is omitted).  Setting this to false, may be helpful for doing an initial run to
+        fit model parameters.
 
     Returns:
         log: A dictionary logging progress.  Will have the enries:
@@ -746,45 +750,50 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
                 start_ind = end_ind
                 end_ind = np.min([batch_size, start_ind + send_size])
 
-            # Calculate kl divergence between conditional posterior and priors for p modes
-            kl_p = [None]*n_input_grps # Keep track of KL divergence for each mode for diagnostic purposes
-            for g in range(n_input_grps):
-                q_p_mode_dists = q_p_dists[g]
-                prior_p_mode_dists = prior_p_dists[g]
+            if fit_priors:
+                # Calculate kl divergence between conditional posterior and priors for p modes
+                kl_p = [None]*n_input_grps # Keep track of KL divergence for each mode for diagnostic purposes
+                for g in range(n_input_grps):
+                    q_p_mode_dists = q_p_dists[g]
+                    prior_p_mode_dists = prior_p_dists[g]
 
-                n_p_mode_dists = len(q_p_mode_dists)
-                p_mode_kls = np.zeros(n_p_mode_dists)
-                for m_i in range(n_p_mode_dists):
-                    mode_kl = torch.sum(q_p_mode_dists[m_i].kl(d_2=prior_p_mode_dists[m_i], x=x_props[g],
+                    n_p_mode_dists = len(q_p_mode_dists)
+                    p_mode_kls = np.zeros(n_p_mode_dists)
+                    for m_i in range(n_p_mode_dists):
+                        mode_kl = torch.sum(q_p_mode_dists[m_i].kl(d_2=prior_p_mode_dists[m_i], x=x_props[g],
                                                                smp=q_p_smps[g][m_i]))
-                    elbo_db += mode_kl
-                    #mode_kl.backward()
-                    p_mode_kls[m_i] = mode_kl.detach().cpu().numpy()
-                kl_p[g] = p_mode_kls
+                        elbo_db += mode_kl
+                        #mode_kl.backward()
+                        p_mode_kls[m_i] = mode_kl.detach().cpu().numpy()
+                    kl_p[g] = p_mode_kls
 
-            # Calculate kl divergence between conditional posterior and priors for u modes
-            kl_u = [None]*n_output_grps
-            for h in range(n_output_grps):
-                q_u_mode_dists = q_u_dists[h]
-                prior_u_mode_dists = prior_u_dists[h]
+                # Calculate kl divergence between conditional posterior and priors for u modes
+                kl_u = [None]*n_output_grps
+                for h in range(n_output_grps):
+                    q_u_mode_dists = q_u_dists[h]
+                    prior_u_mode_dists = prior_u_dists[h]
 
-                n_u_mode_dists = len(q_u_mode_dists)
-                u_mode_kls = np.zeros(n_u_mode_dists)
-                for m_i in range(n_u_mode_dists):
-                    mode_kl = torch.sum(q_u_mode_dists[m_i].kl(d_2=prior_u_mode_dists[m_i], x=x_props[h],
-                                                               smp=q_u_smps[h][m_i]))
-                    elbo_db += mode_kl
-                    #mode_kl.backward()
-                    u_mode_kls[m_i] = mode_kl.detach().cpu().numpy()
-                kl_u[h] = u_mode_kls
+                    n_u_mode_dists = len(q_u_mode_dists)
+                    u_mode_kls = np.zeros(n_u_mode_dists)
+                    for m_i in range(n_u_mode_dists):
+                        mode_kl = torch.sum(q_u_mode_dists[m_i].kl(d_2=prior_u_mode_dists[m_i], x=x_props[h],
+                                                                smp=q_u_smps[h][m_i]))
+                        elbo_db += mode_kl
+                        #mode_kl.backward()
+                        u_mode_kls[m_i] = mode_kl.detach().cpu().numpy()
+                    kl_u[h] = u_mode_kls
 
             # Take a step here
             elbo_db.backward()
             optimizer.step()
 
             # Calculate the value of the ELBO here
-            kl_p_sum = np.sum([np.sum(kl_p_g) for kl_p_g in kl_p])
-            kl_u_sum = np.sum([np.sum(kl_u_g) for kl_u_g in kl_u])
+            if fit_priors:
+                kl_p_sum = np.sum([np.sum(kl_p_g) for kl_p_g in kl_p])
+                kl_u_sum = np.sum([np.sum(kl_u_g) for kl_u_g in kl_u])
+            else:
+                kl_p_sum = 0
+                kl_u_sum = 0
             neg_elbo = neg_ll + kl_p_sum + kl_u_sum
 
             # Correct any noise variances that are too small
