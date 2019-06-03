@@ -519,31 +519,67 @@ class IdentityMap(torch.nn.Module):
         return x
 
 
+class GroupScalarTransform(torch.nn.Module):
+    """ Mapping which forms output by multiplying each entry in group input vectors by a seperate scalar."""
+
+    def __init__(self, d: Sequence[int]):
+        """ Creates a GroupScalarTransform object.
+
+        Args:
+           d: d[i] gives the dimensionality of group i
+        """
+        super().__init__()
+
+        n_grps = len(d)
+
+        self.v = [None]*n_grps
+        for g in range(n_grps):
+            param_name = 'v' + str(g)
+            self.v[g] = torch.nn.Parameter(torch.ones(d[g]), requires_grad=True)
+            self.register_parameter(param_name, self.v[g])
+
+    def forward(self, x: Sequence[torch.Tensor]) -> Sequence[torch.Tensor]:
+        """" Computes output given input.
+
+        Args:
+            x: Input. x[g] gives the input for group g as a tensor of shape n_smps*n_dims
+
+        Returns:
+            y: Output. y[g] gives the output for group g as a tensor of shampe n_smps*n_dims
+
+        """
+
+        return [x_g*v_g for v_g, x_g in zip(self.v, x)]
+
+
 class GroupMatrixMultiply(torch.nn.Module):
     """ Mapping which applies a matrix multiply seperately to each input vector to form output vectors."""
 
-    def __init__(self, group_input_dims: Sequence[int], group_output_dims: Sequence[int], w_gain: float = 1.0)
+    def __init__(self, d_in: Sequence[int], d_out: Sequence[int], w_gain: float = 1.0):
         """ Creates a GroupMatrixMultiply object.
 
         Args:
-            group_input_dims: group_input_dims[i] gives the input dimension of group i
+            d_in: d_in[i] gives the input dimension of group i
 
-            group_ouput_dims: group_output_dims[i] gives the output dimension of group i
-            
+            d_out: d_out[i] gives the output dimension of group i
+
             w_gain: Gain to apply when initializing matrix weights
 
         """
 
         super().__init__()
 
-        n_grps = len(group_input_dims)
+        n_grps = len(d_in)
 
         self.n_grps = n_grps
-        self.group_input_dims = group_input_dims
-        self.group_output_dims = group_output_dims
+        self.d_in = d_in
+        self.d_out = d_out
 
         self.w = [None]*n_grps
-        for g, d_i, d_o in enumerate(zip(group_input_dims, group_output_dims)):
+        for g, dims in enumerate(zip(d_in, d_out)):
+
+            d_i = dims[0]
+            d_o = dims[1]
 
             w_g = torch.nn.Parameter(torch.zeros(d_i, d_o), requires_grad=True)
             torch.nn.init.xavier_normal_(w_g, gain=w_gain)
@@ -558,6 +594,7 @@ class GroupMatrixMultiply(torch.nn.Module):
         Args:
             x: Input. x[g] gives the input for group g as a tensor of shape n_smps*n_dims
 
+        Returns:
             y: Output. y[g] gives the output for group g as a tensor of shampe n_smps*n_dims
         """
 
