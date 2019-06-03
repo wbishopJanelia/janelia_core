@@ -450,7 +450,11 @@ class LatentRegModel(torch.nn.Module):
 
 
 class LinearMap(torch.nn.Module):
-    """ Wraps torch.nn.Linear for use with a latent mapping. """
+    """ Wraps torch.nn.Linear for use with a latent mapping.
+
+     All inputs are concatenated together before being passed through the mapping to form output.
+
+     """
 
     def __init__(self, d_in: Sequence, d_out: Sequence, bias=False):
         """ Creates a LinearMap object.
@@ -509,10 +513,55 @@ class IdentityMap(torch.nn.Module):
             x: Input.  x[g] gives the input for input group g as a tensor of shape n_smps*n_dims
 
         Returns:
-            y: Output.  y[h] gives the output for output group h as a tensor or shape n_smps*n_dims
+            y: Output.  y[g] gives the output for output group h as a tensor or shape n_smps*n_dims
         """
 
         return x
+
+
+class GroupMatrixMultiply(torch.nn.Module):
+    """ Mapping which applies a matrix multiply seperately to each input vector to form output vectors."""
+
+    def __init__(self, group_input_dims: Sequence[int], group_output_dims: Sequence[int], w_gain: float = 1.0)
+        """ Creates a GroupMatrixMultiply object.
+
+        Args:
+            group_input_dims: group_input_dims[i] gives the input dimension of group i
+
+            group_ouput_dims: group_output_dims[i] gives the output dimension of group i
+            
+            w_gain: Gain to apply when initializing matrix weights
+
+        """
+
+        super().__init__()
+
+        n_grps = len(group_input_dims)
+
+        self.n_grps = n_grps
+        self.group_input_dims = group_input_dims
+        self.group_output_dims = group_output_dims
+
+        self.w = [None]*n_grps
+        for g, d_i, d_o in enumerate(zip(group_input_dims, group_output_dims)):
+
+            w_g = torch.nn.Parameter(torch.zeros(d_i, d_o), requires_grad=True)
+            torch.nn.init.xavier_normal_(w_g, gain=w_gain)
+            self.w[g] = w_g
+
+            param_name = 'w_' + str(g)
+            self.register_parameter(param_name, w_g)
+
+    def forward(self, x: Sequence[torch.Tensor]) -> Sequence[torch.Tensor]:
+        """ Computes output given input.
+
+        Args:
+            x: Input. x[g] gives the input for group g as a tensor of shape n_smps*n_dims
+
+            y: Output. y[g] gives the output for group g as a tensor of shampe n_smps*n_dims
+        """
+
+        return [torch.matmul(x_g, w_g.t()) for w_g, x_g in zip(self.w, x)]
 
 
 class ConcatenateMap(torch.nn.Module):
