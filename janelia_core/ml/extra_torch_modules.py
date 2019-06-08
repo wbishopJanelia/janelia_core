@@ -1,6 +1,8 @@
 """ Contains basic torch modules, supplementing those natviely in Torch.
 """
 
+from typing import Sequence
+
 import numpy as np
 import torch
 from torch.nn.functional import relu
@@ -81,6 +83,137 @@ class ConstantBoundedFcn(torch.nn.Module):
         vl = (.5*torch.tanh(self.v) + .5)*(self.upper_bound - self.lower_bound) + self.lower_bound
 
         return vl.unsqueeze(0).expand(n_smps, self.n_dims)
+
+
+class DenseLayer(torch.nn.Module):
+    """ A layer which concatenates its input to it's output. """
+
+    def __init__(self, m: torch.nn.Module):
+        """ Creates a DenseLayer object.
+
+        Args:
+
+            m: The module which input is passed through.  The output of this module is concatenated to
+            the input to form the final output of the module.
+        """
+
+        super().__init__()
+        self.m = m
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes input from output. """
+
+        return torch.cat((x, self.m(x)), dim=1)
+
+
+class DenseLNLNet(torch.nn.Module):
+    """ A network of densely connected linear, non-linear units. """
+
+    def __init__(self, nl_class: type, d_in: int, n_layers: int, growth_rate: int, bias: bool = False):
+        """ Creates a DenseLNLNet object.
+
+        Args:
+              nl_class: The class to construct the non-linear activation functions from, e.g., torch.nn.ReLU
+
+              d_in: Input dimensionality to the network
+
+              n_layers: The number of layers in the network.
+
+              growth_rate: The number of unique features computed by each layer.  The output dimensionality of
+              the network will be: d_in + n_layers*growth_rate.
+
+              bias: True if linear layers should have a bias.
+
+        """
+
+        super().__init__()
+
+        for i in range(n_layers):
+
+            linear_layer = torch.nn.Linear(in_features=d_in + i*growth_rate, out_features=growth_rate, bias=bias)
+
+            dense_layer = DenseLayer(torch.nn.Sequential(linear_layer, nl_class()))
+
+            self.add_module('dense_lnl_' + str(i), dense_layer) # Add linear layer
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes input given output. """
+
+        for module in self._modules.values():
+            x = module(x)
+
+        return x
+
+
+class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
+    """ A module to represent a function which is a sum of tiled hypercube basis functions. """
+
+    def __init__(self, n_cubes_per_dim: Sequence[int], dim_ranges: np.ndarray, b_w: Sequence[float]):
+        """
+
+       Args:
+            n_cubes_per_dim: n_cubes_per_dim[i] gives how many bump functions to tile dim i with.
+
+            dim_ranges: dim_ranges[i,0] gives the lower limit for dim i and dim[i,1] gives the upper limit.
+
+            basis_f: The b_f(x)
+
+            b_w
+        """
+
+        super().__init__()
+
+        self.n_dims = len(n_cubes_per_dim)
+        self.n_cubes_per_dim = n_cubes_per_dim
+
+        self.b_w = b_w
+
+        # Setup the centers of each bump function along each dimension
+        b_c = [torch.linspace(dim_range[0], dim_range[1], n_bumps) for n_bumps, dim_range
+               in zip(n_cubes_per_dim, dim_ranges)]
+
+        for i, b_c_i in enumerate(b_c):
+            self.register_buffer('b_c_' + str(i), b_c_i)
+
+        self.b_c = b_c
+
+        # Initialize the magnitudes of each bump function.  We initialize to zero so that if there is never
+        # any training data that falls within the support of a bump, that bump will have a zero magnitude
+        self.b_m = torch.nn.Parameter(torch.zeros(n_cubes_per_dim, requires_grad=True)) # TODO: Consider making this sparse
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+
+        n_smps = x.shape[0]
+
+        # See what bump functions are active alone each dimension for each point
+        dim_vls = [None]*self.n_dims
+
+        for d_i in range(self.n_dims):
+            n_dim_bumps = self.n_cubes_per_dim[d_i]
+
+            dim_vls[d_i] = torch.zeros(n_smps, n_dim_bumps)  # TODO: Look into making this sparse
+
+            for b_i in range(n_dim_bumps):
+
+                # Find points in the support of this bump
+                ctr = self.b_c[d_i][b_i]
+                lower_lim = ctr - self.b_w[d_i]
+                upper_lim = ctr + self.b_w[d_i]
+
+                # TODO: Because bump centers are ordered, we can re-use calculations from previous bumps here
+                active_pts = (x[:, d_i] >= lower_lim) & (x[:, d_i] <= upper_lim)
+                dim_vls[d_i][active_pts, b_i] = 1
+
+        # Compute final output for each point here
+        y = torch.zeros(n_smps, 1)
+        for s_i in range(n_smps):
+
+            s_active_dim_bumps = [torch.nonzero(d_v[s_i, :]) for d_v in dim_vls]
+            s_active_dim_bumps = [slice(s_a[0], s_a[-1]) for s_a in s_active_dim_bumps]
+
+            y[s_i] = torch.sum(self.b_m[s_active_dim_bumps])
+
+        return y
 
 
 class IndSmpConstantBoundedFcn(torch.nn.Module):
