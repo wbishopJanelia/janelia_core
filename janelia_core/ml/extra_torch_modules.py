@@ -166,16 +166,18 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         self.n_dims = len(n_cubes_per_dim)
         self.n_cubes_per_dim = n_cubes_per_dim
 
-        self.b_w = b_w
+        self.register_buffer('b_w', torch.Tensor(b_w))
 
         # Setup the centers of each bump function along each dimension
-        b_c = [torch.linspace(dim_range[0], dim_range[1], n_bumps) for n_bumps, dim_range
-               in zip(n_cubes_per_dim, dim_ranges)]
+        for d_i in range(self.n_dims):
+            ctrs = torch.linspace(dim_ranges[d_i][0], dim_ranges[d_i][1], n_cubes_per_dim[d_i])
+            self.register_buffer('b_c_' + str(d_i), ctrs)
 
-        for i, b_c_i in enumerate(b_c):
-            self.register_buffer('b_c_' + str(i), b_c_i)
 
-        self.b_c = b_c
+       # b_c = [torch.linspace(dim_range[0], dim_range[1], n_bumps) for n_bumps, dim_range
+        #       in zip(n_cubes_per_dim, dim_ranges)]
+
+        #self.b_c = b_c
 
         # Initialize the magnitudes of each bump function.  We initialize to zero so that if there is never
         # any training data that falls within the support of a bump, that bump will have a zero magnitude
@@ -193,10 +195,12 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
 
             dim_vls[d_i] = torch.zeros(n_smps, n_dim_bumps)  # TODO: Look into making this sparse
 
+            dim_ctrs = getattr(self, 'b_c_' + str(d_i))
+
             for b_i in range(n_dim_bumps):
 
                 # Find points in the support of this bump
-                ctr = self.b_c[d_i][b_i]
+                ctr = dim_ctrs[b_i]
                 lower_lim = ctr - self.b_w[d_i]
                 upper_lim = ctr + self.b_w[d_i]
 
@@ -205,7 +209,7 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
                 dim_vls[d_i][active_pts, b_i] = 1
 
         # Compute final output for each point here
-        y = torch.zeros(n_smps, 1)
+        y = torch.zeros(n_smps, 1, device = x.device)
         for s_i in range(n_smps):
 
             s_active_dim_bumps = [torch.nonzero(d_v[s_i, :]) for d_v in dim_vls]

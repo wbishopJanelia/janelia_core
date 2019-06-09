@@ -100,5 +100,3 @@ class GroupedStackedImageVisualizer(QWidget):
         self.show()
 
 
-
-
