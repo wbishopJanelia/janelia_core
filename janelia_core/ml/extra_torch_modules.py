@@ -12,16 +12,18 @@ from janelia_core.math.basic_functions import int_to_arb_base
 class Bias(torch.nn.ModuleList):
     """ Applies a bias transformation to the data y = x + o """
 
-    def __init__(self, d: int):
+    def __init__(self, d: int, init_std: float = .1):
         """ Creates a Bias object.
 
         Args:
             d: The dimensionality of the input and output
+
+            init_std: The standard deviation of the normal distribution initial biases are pulled from.
         """
 
         super().__init__()
         o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-        torch.nn.init.normal_(o, std=5)
+        torch.nn.init.normal_(o, std=init_std)
         self.register_parameter('o', o)
 
     def forward(self, x: torch.Tensor) -> torch.tensor:
