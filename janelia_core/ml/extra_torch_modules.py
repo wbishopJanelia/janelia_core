@@ -147,32 +147,58 @@ class DenseLNLNet(torch.nn.Module):
 
 
 class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
-    """ A module to represent a function which is a sum of tiled hypercube basis functions. """
+    """ A module to represent a function which is a sum of tiled hypercube basis functions.
 
-    def __init__(self, n_divisions_per_dim: Sequence[int], dim_ranges: np.ndarray, n_div_per_bump_per_dim: np.ndarray):
+        The hypercubes tile, in an overlapping fashion, a volume.  To specify a layout of hypercubes the user:
+
+            (1) Specifies the range of each dimension that should be covered
+
+            (2) Specifies a number of divisions to break the range of each dimension into (see illustration below). These
+            divisions *do not* directly correspond to hypercubes.  (See 3)
+
+            (3) Specifies how many divisions make up the side of a hypercube in each dimension.  For non-overlapping
+            hypercubes 1 division makes up the side of 1 hypercube.  Increasing the number of divisions per side of each
+            hypercube results in overlapping hypercubes (see illustration below).
+
+            (4) Final hypercubes are constructed to respect the hypercube sides set for each dimension.  Each hypercube
+            has it's own learnable magnitude.
+
+            Example of breaking up a dimension into divsions and overlapping hypercube sides with 2 divisions per
+            hypercube side:
+
+                |-|-|-|-|-|-|-|-| : Each block a division (e.g., 8 divisions)
+                ^               ^
+                |               |
+                start_range     end_range
+                |               |
+                |               |
+                |               |
+                |               |
+              |- -|             |   : (Notice padding so that first and last hypercubes run over the valid range)
+                |- -|           |
+                  |- -|         |
+                       ...      |
+                              |- -|
+
+
+         Note: This object has been optimized for speed.  Specifically, by having hypercubes defined with respect to
+         a base set of divisions, it is possible to take an input point and use an efficient hashing function to
+         determine all hypercubes that it falls in.  More ever, by including padding of the hypercubes, we ensure
+         that each input point to the function anywhere in the user specified range falls within the *same* number of
+         hypercubes.  These two things make forward evaluation of the function efficient.
+     """
+
+    def __init__(self, n_divisions_per_dim: Sequence[int], dim_ranges: np.ndarray, n_div_per_hc_side_per_dim: np.ndarray):
         """
-
-        Here is the layout:
-
-          |-|-|-|-|-|-|-|-| : Each block a division (e.g., 8 divisions)
-          ^               ^
-          |               |
-          start_range     end_range
-          |               |
-                          |
-        Example for two divisions per bump
-          |               |
-          |               |
-        |- -|             |
-          |- -|           |
-            |- -|         |
-                 ...      |
-                        |- -|
-
+        Creates a SumOfTiledHyperCubeBasisFcns object.
 
         Args:
 
-            dim_ranges: dim_ranges[i,0] gives the lower limit for dim i and dim[i,1] gives the upper limit.
+            n_divisions_per_dim: n_divisions_per_dim[i] gives the number of divisions for dimension i.
+
+            dim_ranges: The range for dimension i is dim_ranges[i,0] <= x[i] < dim_ranges[i,1]
+
+            n_div_per_hc_side_per_dim: The number of divisions per hypercube side for each dimension
 
         """
 
@@ -187,22 +213,18 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         self.register_buffer('min_dim_ranges', torch.Tensor(dim_ranges[:, 0]))
         self.register_buffer('max_dim_ranges', torch.Tensor(dim_ranges[:, 1]))
 
-        self.register_buffer('n_div_per_bump_per_dim', torch.Tensor(n_div_per_bump_per_dim).long())
-
         # Determine the order of dimensions for the purposes of linearalization - we want the dimension
-        # which will have the most active bump functions for a given point to be last.
-        #
-        # Note: The number of divisions per bump is equal to the number of bumps that will be active for each point
-        dim_order = np.argsort(n_div_per_bump_per_dim)
+        # which will have the most active bump functions for a given point to be last.  This will allow us
+        # to specify the largest contiguous chunks of the array holding bump function magnitudes.
+        dim_order = np.argsort(n_div_per_hc_side_per_dim)
         self.register_buffer('dim_order', torch.Tensor(dim_order).long())
 
-        # Determine how many bump functions per dimension there are - we save this in the order we will encode
-        # the dimensions in
+        # Determine how many bump functions per dimension there are - we order this according to dim_order
         n_bump_fcns_per_dim = np.asarray([n_div + n_div_per_block - 1 for n_div, n_div_per_block in
-                                  zip(n_divisions_per_dim, n_div_per_bump_per_dim)])
+                                          zip(n_divisions_per_dim, n_div_per_hc_side_per_dim)])
         n_bump_fcns_per_dim = n_bump_fcns_per_dim[dim_order]
 
-        # Pre-calculate factors we need for linearalization - saved in order we encode dimensions
+        # Pre-calculate factors we need for linearalization - saved in order according to dim_order
         dim_factors = np.ones(n_dims)
         for d_i in range(n_dims-2, -1, -1):
             dim_factors[d_i] = dim_factors[d_i + 1]*n_bump_fcns_per_dim[d_i + 1]
@@ -212,19 +234,19 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         # can be added to the linear index of the first active bump function for a point to get the indices of
         # all active bump functions for that point
 
-        n_active_bump_fcns = (np.cumprod(n_div_per_bump_per_dim)[-1]).astype('long')
+        n_active_bump_fcns = (np.cumprod(n_div_per_hc_side_per_dim)[-1]).astype('long')
 
         if n_dims > 1:
-            n_minor_dim_repeats = np.cumprod(n_div_per_bump_per_dim[0:-1])[-1]
+            n_minor_dim_repeats = np.cumprod(n_div_per_hc_side_per_dim[0:-1])[-1]
         else:
             n_minor_dim_repeats = 1
 
-        bump_ind_offsets = torch.arange(n_div_per_bump_per_dim[-1]).repeat(n_minor_dim_repeats).long()
+        bump_ind_offsets = torch.arange(n_div_per_hc_side_per_dim[-1]).repeat(n_minor_dim_repeats).long()
         cur_chunk_size = 1
         for d_i in range(n_dims-2, -1, -1):
-            cur_chunk_size = cur_chunk_size*n_div_per_bump_per_dim[d_i + 1]
+            cur_chunk_size = cur_chunk_size * n_div_per_hc_side_per_dim[d_i + 1]
             cur_n_chunks = int(n_active_bump_fcns/cur_chunk_size)
-            cur_n_stacked_chunks = n_div_per_bump_per_dim[d_i]
+            cur_n_stacked_chunks = n_div_per_hc_side_per_dim[d_i]
             for c_i in range(cur_n_chunks):
                 cur_chunk_start_ind = c_i*cur_chunk_size
                 cur_chunk_end_ind = cur_chunk_start_ind + cur_chunk_size
@@ -237,8 +259,7 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         # any training data that falls within the support of a bump, that bump will have a zero magnitude.
         # Also, we put all magnitudes in a single 1-d vector for fast indexing
 
-        n_bump_fcns = np.cumprod(n_bump_fcns_per_dim)
-        n_bump_fcns = n_bump_fcns[-1]
+        n_bump_fcns = np.cumprod(n_bump_fcns_per_dim)[-1]
         self.b_m = torch.nn.Parameter(torch.zeros(n_bump_fcns), requires_grad=True)
 
     def _x_to_idx(self, x: torch.Tensor, run_checks: bool = True):
@@ -263,7 +284,7 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         if run_checks:
             if n_x_dims != self.n_dims:
                 raise(ValueError('x does not have expected number of dimensions.'))
-            if torch.any(x < self.min_dim_ranges) | torch.any(x > self.max_dim_ranges):
+            if torch.any(x < self.min_dim_ranges) | torch.any(x >= self.max_dim_ranges):
                 raise(ValueError('One or more x values falls outside of the valid range for the function.'))
 
         # Determine the division along each dimension each point falls into
@@ -280,6 +301,15 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         return dim_first_bin_inds + self.bump_ind_offsets
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes input given output.
+
+        Args:
+            x: Input of shape n_smps*d_x.  Each x point should be within the region specified when creating the
+            SumOfTiledHyperCubeBasisFcns object.
+
+        Returns:
+            y: Output of shape n_smps*1.
+        """
         n_smps = x.shape[0]
         return torch.sum(self.b_m[self._x_to_idx(x)], dim=1).view([n_smps, 1])
 
