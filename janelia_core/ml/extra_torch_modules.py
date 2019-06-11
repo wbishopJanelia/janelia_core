@@ -7,6 +7,7 @@ import numpy as np
 import torch
 from torch.nn.functional import relu
 
+from janelia_core.math.basic_functions import int_to_arb_base
 
 class Bias(torch.nn.ModuleList):
     """ Applies a bias transformation to the data y = x + o """
@@ -148,76 +149,139 @@ class DenseLNLNet(torch.nn.Module):
 class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
     """ A module to represent a function which is a sum of tiled hypercube basis functions. """
 
-    def __init__(self, n_cubes_per_dim: Sequence[int], dim_ranges: np.ndarray, b_w: Sequence[float]):
+    def __init__(self, n_divisions_per_dim: Sequence[int], dim_ranges: np.ndarray, n_div_per_bump_per_dim: np.ndarray):
         """
 
-       Args:
-            n_cubes_per_dim: n_cubes_per_dim[i] gives how many bump functions to tile dim i with.
+        Here is the layout:
+
+          |-|-|-|-|-|-|-|-| : Each block a division (e.g., 8 divisions)
+          ^               ^
+          |               |
+          start_range     end_range
+          |               |
+                          |
+        Example for two divisions per bump
+          |               |
+          |               |
+        |- -|             |
+          |- -|           |
+            |- -|         |
+                 ...      |
+                        |- -|
+
+
+        Args:
 
             dim_ranges: dim_ranges[i,0] gives the lower limit for dim i and dim[i,1] gives the upper limit.
 
-            basis_f: The b_f(x)
-
-            b_w
         """
 
         super().__init__()
 
-        self.n_dims = len(n_cubes_per_dim)
-        self.n_cubes_per_dim = n_cubes_per_dim
+        n_dims = dim_ranges.shape[0]
+        self.register_buffer('n_dims', torch.Tensor([n_dims]))
 
-        self.register_buffer('b_w', torch.Tensor(b_w))
+        div_widths = (dim_ranges[:, 1] - dim_ranges[:, 0])/n_divisions_per_dim
+        self.register_buffer('div_widths', torch.Tensor(div_widths))
 
-        # Setup the centers of each bump function along each dimension
-        for d_i in range(self.n_dims):
-            ctrs = torch.linspace(dim_ranges[d_i][0], dim_ranges[d_i][1], n_cubes_per_dim[d_i])
-            self.register_buffer('b_c_' + str(d_i), ctrs)
+        self.register_buffer('min_dim_ranges', torch.Tensor(dim_ranges[:, 0]))
+        self.register_buffer('max_dim_ranges', torch.Tensor(dim_ranges[:, 1]))
 
+        self.register_buffer('n_div_per_bump_per_dim', torch.Tensor(n_div_per_bump_per_dim).long())
 
-       # b_c = [torch.linspace(dim_range[0], dim_range[1], n_bumps) for n_bumps, dim_range
-        #       in zip(n_cubes_per_dim, dim_ranges)]
+        # Determine the order of dimensions for the purposes of linearalization - we want the dimension
+        # which will have the most active bump functions for a given point to be last.
+        #
+        # Note: The number of divisions per bump is equal to the number of bumps that will be active for each point
+        dim_order = np.argsort(n_div_per_bump_per_dim)
+        self.register_buffer('dim_order', torch.Tensor(dim_order).long())
 
-        #self.b_c = b_c
+        # Determine how many bump functions per dimension there are - we save this in the order we will encode
+        # the dimensions in
+        n_bump_fcns_per_dim = np.asarray([n_div + n_div_per_block - 1 for n_div, n_div_per_block in
+                                  zip(n_divisions_per_dim, n_div_per_bump_per_dim)])
+        n_bump_fcns_per_dim = n_bump_fcns_per_dim[dim_order]
+
+        # Pre-calculate factors we need for linearalization - saved in order we encode dimensions
+        dim_factors = np.ones(n_dims)
+        for d_i in range(n_dims-2, -1, -1):
+            dim_factors[d_i] = dim_factors[d_i + 1]*n_bump_fcns_per_dim[d_i + 1]
+        self.register_buffer('dim_factors', torch.Tensor(dim_factors).long())
+
+        # Calculate offset vector for looking up active bump functions for each point.  This offset vector
+        # can be added to the linear index of the first active bump function for a point to get the indices of
+        # all active bump functions for that point
+
+        n_active_bump_fcns = (np.cumprod(n_div_per_bump_per_dim)[-1]).astype('long')
+
+        if n_dims > 1:
+            n_minor_dim_repeats = np.cumprod(n_div_per_bump_per_dim[0:-1])[-1]
+        else:
+            n_minor_dim_repeats = 1
+
+        bump_ind_offsets = torch.arange(n_div_per_bump_per_dim[-1]).repeat(n_minor_dim_repeats).long()
+        cur_chunk_size = 1
+        for d_i in range(n_dims-2, -1, -1):
+            cur_chunk_size = cur_chunk_size*n_div_per_bump_per_dim[d_i + 1]
+            cur_n_chunks = int(n_active_bump_fcns/cur_chunk_size)
+            cur_n_stacked_chunks = n_div_per_bump_per_dim[d_i]
+            for c_i in range(cur_n_chunks):
+                cur_chunk_start_ind = c_i*cur_chunk_size
+                cur_chunk_end_ind = cur_chunk_start_ind + cur_chunk_size
+                mod_i = c_i % cur_n_stacked_chunks
+                bump_ind_offsets[cur_chunk_start_ind:cur_chunk_end_ind] += dim_factors[d_i]*mod_i
+
+        self.register_buffer('bump_ind_offsets', bump_ind_offsets)
 
         # Initialize the magnitudes of each bump function.  We initialize to zero so that if there is never
-        # any training data that falls within the support of a bump, that bump will have a zero magnitude
-        self.b_m = torch.nn.Parameter(torch.zeros(n_cubes_per_dim, requires_grad=True)) # TODO: Consider making this sparse
+        # any training data that falls within the support of a bump, that bump will have a zero magnitude.
+        # Also, we put all magnitudes in a single 1-d vector for fast indexing
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        n_bump_fcns = np.cumprod(n_bump_fcns_per_dim)
+        n_bump_fcns = n_bump_fcns[-1]
+        self.b_m = torch.nn.Parameter(torch.zeros(n_bump_fcns), requires_grad=True)
+
+    def _x_to_idx(self, x: torch.Tensor, run_checks: bool = True):
+        """ Given x data computes the indices of active bump functions for each point.
+
+        Args:
+            x: Input data of shape n_smps*d_x
+
+            run_checks: True if input should be checked for expected properties
+
+        Returns:
+            idx: Indices of active bump functions for each point.  Of shape n_smps*n_active,
+            where n_active is the number of active bump functions for each point.
+
+        Raises:
+            ValueError: If check_range is true and one or more x values are not in the valid range for the function.
+        """
 
         n_smps = x.shape[0]
+        n_x_dims = x.shape[1]
 
-        # See what bump functions are active alone each dimension for each point
-        dim_vls = [None]*self.n_dims
+        if run_checks:
+            if n_x_dims != self.n_dims:
+                raise(ValueError('x does not have expected number of dimensions.'))
+            if torch.any(x < self.min_dim_ranges) | torch.any(x > self.max_dim_ranges):
+                raise(ValueError('One or more x values falls outside of the valid range for the function.'))
 
-        for d_i in range(self.n_dims):
-            n_dim_bumps = self.n_cubes_per_dim[d_i]
+        # Determine the division along each dimension each point falls into
+        dim_div_inds = torch.floor((x - self.min_dim_ranges)/self.div_widths).long()
 
-            dim_vls[d_i] = torch.zeros(n_smps, n_dim_bumps)  # TODO: Look into making this sparse
+        # Sort dimensions in encoding order
+        dim_div_inds = dim_div_inds[:, self.dim_order]
 
-            dim_ctrs = getattr(self, 'b_c_' + str(d_i))
+        # Determine the first function that is active for each point in each dimension.
+        # We define bin indices so that the index of the first bin that is active in a dimension is equal to the
+        # division index.
+        dim_first_bin_inds = torch.sum(dim_div_inds*self.dim_factors, dim=1).view([n_smps, 1])
 
-            for b_i in range(n_dim_bumps):
+        return dim_first_bin_inds + self.bump_ind_offsets
 
-                # Find points in the support of this bump
-                ctr = dim_ctrs[b_i]
-                lower_lim = ctr - self.b_w[d_i]
-                upper_lim = ctr + self.b_w[d_i]
-
-                # TODO: Because bump centers are ordered, we can re-use calculations from previous bumps here
-                active_pts = (x[:, d_i] >= lower_lim) & (x[:, d_i] <= upper_lim)
-                dim_vls[d_i][active_pts, b_i] = 1
-
-        # Compute final output for each point here
-        y = torch.zeros(n_smps, 1, device = x.device)
-        for s_i in range(n_smps):
-
-            s_active_dim_bumps = [torch.nonzero(d_v[s_i, :]) for d_v in dim_vls]
-            s_active_dim_bumps = [slice(s_a[0], s_a[-1]) for s_a in s_active_dim_bumps]
-
-            y[s_i] = torch.sum(self.b_m[s_active_dim_bumps])
-
-        return y
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        n_smps = x.shape[0]
+        return torch.sum(self.b_m[self._x_to_idx(x)], dim=1).view([n_smps, 1])
 
 
 class IndSmpConstantBoundedFcn(torch.nn.Module):

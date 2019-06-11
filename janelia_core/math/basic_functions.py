@@ -303,3 +303,65 @@ def select_subslice(s1: slice, s2: slice) -> slice:
 
     return subslice
 
+
+def int_to_arb_base(base_10_vl: np.ndarray, max_digit_vls: Sequence[int]) -> np.ndarray:
+    """ This is a function to convert non-zero integers to an arbitrary base.
+
+    The base can be arbitrary in that each digit can take on a different number of values.
+
+    Args:
+
+        base_10_vl: The values to convert
+
+        max_digit_vls: The length of max_digit_vls gives the length of the output representation.  max_digit_vls[i]
+        gives the max value that digit i can take on.  All digit values start at 0.
+
+    Returns:
+        rep: The values in the converted format.  The least significant digit is at location 0. rep[i,:] is the
+        converted value for base_10_vl[i].
+
+    Raises:
+        ValueError: If the dtype of base_10_vl is not int
+
+        ValueError: If base_10_vl contains negative values
+
+        ValueError: If any value in base_10_vl is too larger to represent in the base given
+    """
+
+    n_vls = len(base_10_vl)
+    n_digits = len(max_digit_vls)
+
+    cum_digit_prods = np.cumprod(max_digit_vls + 1)
+    max_poss_vl = cum_digit_prods[-1] - 1
+
+    if base_10_vl.dtype != np.int:
+        raise(ValueError('Input array must be interger array.'))
+    if any(base_10_vl < 0):
+        raise(ValueError('Values to convert must be non-negative.'))
+    if any(base_10_vl > max_poss_vl):
+        raise(ValueError('One or more values is too large to represent in the specified base.'))
+
+    res = base_10_vl
+
+    rep = np.zeros([n_vls, n_digits], dtype=np.int)
+    for d_i in range(n_digits-1, -1, -1):
+        if d_i == 0:
+            cur_digit_vl = 1
+        else:
+            cur_digit_vl = cum_digit_prods[d_i-1]
+
+        cur_digit = np.floor(res/cur_digit_vl).astype('int')
+        res -= cur_digit*cur_digit_vl
+        rep[:, d_i] = cur_digit
+
+    return rep
+
+
+
+
+
+
+
+
+
+
