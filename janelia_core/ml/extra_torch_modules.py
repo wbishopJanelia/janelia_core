@@ -223,12 +223,18 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         n_bump_fcns_per_dim = np.asarray([n_div + n_div_per_block - 1 for n_div, n_div_per_block in
                                           zip(n_divisions_per_dim, n_div_per_hc_side_per_dim)])
         n_bump_fcns_per_dim = n_bump_fcns_per_dim[dim_order]
+        print('n_bump_fcns_per_dim: ' + str(n_bump_fcns_per_dim))
+
+        # Order n_div_per_hs_side_per_dim according to dim_order too - the rest of the code
+        # in this function will assume this order
+        n_div_per_hc_side_per_dim = n_div_per_hc_side_per_dim[dim_order]
 
         # Pre-calculate factors we need for linearalization - saved in order according to dim_order
         dim_factors = np.ones(n_dims)
         for d_i in range(n_dims-2, -1, -1):
             dim_factors[d_i] = dim_factors[d_i + 1]*n_bump_fcns_per_dim[d_i + 1]
         self.register_buffer('dim_factors', torch.Tensor(dim_factors).long())
+        print('dim_factors: ' + str(dim_factors))
 
         # Calculate offset vector for looking up active bump functions for each point.  This offset vector
         # can be added to the linear index of the first active bump function for a point to get the indices of
@@ -240,6 +246,8 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
             n_minor_dim_repeats = np.cumprod(n_div_per_hc_side_per_dim[0:-1])[-1]
         else:
             n_minor_dim_repeats = 1
+
+        print('n_minor_dim_repeats: ' + str(n_minor_dim_repeats))
 
         bump_ind_offsets = torch.arange(n_div_per_hc_side_per_dim[-1]).repeat(n_minor_dim_repeats).long()
         cur_chunk_size = 1
