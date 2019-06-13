@@ -417,7 +417,7 @@ class IndSmpConstantRealFcn(torch.nn.Module):
     conditional Gaussian distribution.
     """
 
-    def __init__(self, n: int, init_value: float = .01):
+    def __init__(self, n: int, init_mn: float = 0.0, init_std: float = 0.1):
         """ Creates a IndSmpConstantBoundedFcn object.
 
         Args:
@@ -428,7 +428,8 @@ class IndSmpConstantRealFcn(torch.nn.Module):
 
         super().__init__()
         self.n = n
-        self.f = ConstantRealFcn(.01*np.ones(n))
+        self.f = ConstantRealFcn(np.zeros(n))
+        torch.nn.init.normal_(self.f.vl, mean=init_mn, std=init_std)
 
     def forward(self, x):
         """ Assigns a value to each sample in x.

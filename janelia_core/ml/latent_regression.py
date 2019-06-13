@@ -518,6 +518,23 @@ class IdentityMap(torch.nn.Module):
 
         return x
 
+class ElementWiseTransformedGroupLatents(torch.nn.Module):
+    """ Output is formed by applying a function elementwise to input for each group. """
+
+    def __init__(self, f: torch.nn.Module):
+        """ Creates an ElementWiseTransformedGroupLatents object.
+
+        Args:
+            f: The function to apply to each element of output for each group.
+        """
+
+        super().__init__()
+        self.f = f
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes output from input. """
+        return [self.f(x_i) for x_i in x]
+
 
 class GroupScalarTransform(torch.nn.Module):
     """ Mapping which forms output by multiplying each entry in group input vectors by a seperate scalar."""
