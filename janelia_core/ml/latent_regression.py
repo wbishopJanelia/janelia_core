@@ -625,7 +625,7 @@ class ConcatenateMap(torch.nn.Module):
     """
 
     def __init__(self, conc_grps: np.ndarray):
-        """ Creates an IdentityMap object.
+        """ Creates a ConcatenateMap object.
 
         Args:
             conc_grps: A binary array.  conc_grps[h, :] is a vector indicating which groups of projected
