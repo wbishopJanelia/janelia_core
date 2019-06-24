@@ -223,10 +223,12 @@ class LatentRegModel(torch.nn.Module):
 
         return y
 
-    def neg_ll(self, y: list, mn: list) -> torch.Tensor:
+    def neg_ll(self, y: list, mn: list, w: torch.Tensor = None) -> torch.Tensor:
 
         """
         Calculates the negative log likelihood of outputs given predicted means.
+
+        The negative log likelihood of each group can be optionally be weighted.
 
         Args:
 
@@ -235,6 +237,10 @@ class LatentRegModel(torch.nn.Module):
 
             mns: A sequence of predicted means.  mns[h] contains the predicted means for group h.  mns[h]
             should be of shape n_smps*d_out[h]
+
+            w: If None, no weighting of the log-likelihood for each group of outputs is performed.  If a tensor, w[i]
+            is the weight for output group i. By weighting, if nll = -log P(Y_1) + -log P(Y_2) is the log likelihood
+            for two ouput groups, the weighted negative log-likelihood is nll_w = -w[0]*log P(Y_0) - w[1] * log P(Y_2).
 
         Returns:
             The calculated negative log-likelihood for the sample
@@ -247,15 +253,19 @@ class LatentRegModel(torch.nn.Module):
         if not isinstance(mn, list):
             raise(ValueError('mn must be a list'))
 
+        if w is None:
+            n_grps = len(y)
+            w = torch.ones(n_grps, device=self.psi[0].device)
+
         neg_ll = float(0)
 
         n_smps = y[0].shape[0]
         log_2_pi = float(np.log(2*np.pi))
 
-        for mn_h, y_h, psi_h in zip(mn, y, self.psi):
-            neg_ll += .5*mn_h.nelement()*log_2_pi
-            neg_ll += .5*n_smps*torch.sum(torch.log(psi_h))
-            neg_ll += .5*torch.sum(((y_h - mn_h)**2)/psi_h)
+        for mn_h, y_h, psi_h, w_i in zip(mn, y, self.psi, w):
+            neg_ll += w_i*.5*mn_h.nelement()*log_2_pi
+            neg_ll += w_i*.5*n_smps*torch.sum(torch.log(psi_h))
+            neg_ll += w_i*.5*torch.sum(((y_h - mn_h)**2)/psi_h)
 
         return neg_ll
 
@@ -658,10 +668,11 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
                              prior_p_dists: Sequence[Sequence[CondVAEDistriubtion]],
                              prior_u_dists: Sequence[Sequence[CondVAEDistriubtion]],
                              x: Sequence[torch.Tensor], y: Sequence[torch.Tensor], x_props: Sequence[torch.Tensor],
-                             batch_size: int=100, send_size: int=100, max_its: int=10, learning_rates=.01,
-                             adam_params: dict = {}, min_var: float=0.0, update_int: int=100, fit_priors: bool = True):
+                             y_props: Sequence[torch.Tensor], batch_size: int=100, send_size: int=100, max_its: int=10,
+                             learning_rates=.01, adam_params: dict = {}, min_var: float=0.0, update_int: int=100,
+                             fit_priors: bool = True, grp_w: torch.Tensor = None):
 
-    """ A function for fitting a latent regression model and a prior over it's mode with variational inference.
+    """ A function for fitting a latent regression model and a prior over it's modes with variational inference.
 
     Note: When calling this function the values of the p and u parameters of the latent regression model are
     ignored (since these represent point values and this function fits a distribution over the modes).
@@ -686,9 +697,12 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
         y: A sequence of outputs.  y[h] contains the output tensor for group h.  y[h] should be of
         shape n_smps*d_out[h]
 
-        x_props: A sequence of properties for each variable in x.  (E.g., if x is neural activity, this is the
+        x_props: A sequence of properties for variables in x.  (E.g., if x is neural activity, this is the
         properties, such as position, for each neuron.)  x_props[g][j,:] contains the properties for variable j in
         group g.
+
+        y_props: A sequence of properties for variables in y. y_props[h][j,:] contains the properties for variable j
+        in group h.
 
         batch_size: The number of samples to train on during each iteration
 
@@ -717,6 +731,9 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
         divergence between priors and q is omitted).  Setting this to false, may be helpful for doing an initial run to
         fit model parameters.
 
+        grp_w: grp_w[i] is the weight to apply for group i when summing log-likelihoods across groups.
+        If None, no weighting will be used.
+
     Returns:
         log: A dictionary logging progress.  Will have the enries:
             'elapsed_time': log['elapsed_time'][i] contains the elapsed time from the beginning of optimization to
@@ -729,14 +746,10 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
 
         ValueError: If send_size is larger than batch size
 
-        ValueError: If learning_rates is a not an int, float or list
     """
 
     if send_size > batch_size:
         raise(ValueError('send_size must be less than or equal to batch size'))
-
-    if not isinstance(learning_rates, (int, float, list)):
-            raise (ValueError('learning_rates must be of type int, float or list.'))
 
     # Format and check learning rates - no matter the input format this outputs learning rates in a standard format
     # where the learning rate starting at iteration 0 is guaranteed to be listed first
@@ -762,6 +775,7 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
 
     # Move property data to the device
     x_props = [props.to(device) for props in x_props]
+    y_props = [props.to(device) for props in y_props]
 
     # See what memory usage on GPU is after sending neuron properties
     if run_on_gpu:
@@ -822,23 +836,21 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
                         for q_p_g_dists, g_props in zip(q_p_dists, x_props)]
             q_p_smps_t = [torch.cat(smps_g, dim=1) for smps_g in q_p_smps]
 
-            q_u_smps = [[d.form_standard_sample(d.sample(g_props))for d in q_u_g_dists]
-                        for q_u_g_dists, g_props in zip(q_u_dists, x_props)]
+            q_u_smps = [[d.form_standard_sample(d.sample(g_props)) for d in q_u_g_dists]
+                        for q_u_g_dists, g_props in zip(q_u_dists, y_props)]
             q_u_smps_t = [torch.cat(smps_g, dim=1) for smps_g in q_u_smps]
 
             # Send data to device in small chunks (if send_size < batch_size) to calculate negative log-likelhood
             start_ind = 0
             end_ind = np.min([batch_size, send_size])
             neg_ll = 0
-
             elbo_db = 0
-
             while True:
                 sent_x = [batch_x_g[start_ind:end_ind, :].to(device) for batch_x_g in batch_x]
                 sent_y = [batch_y_h[start_ind:end_ind, :].to(device) for batch_y_h in batch_y]
 
                 sent_y_hat = l_mdl.cond_forward(x=sent_x, p=q_p_smps_t, u=q_u_smps_t)
-                sent_nll = batch_ratio*l_mdl.neg_ll(sent_y, sent_y_hat)
+                sent_nll = batch_ratio*l_mdl.neg_ll(y=sent_y, mn=sent_y_hat, w=grp_w)
 
                 elbo_db += sent_nll
                 #sent_nll.backward(retain_graph=True)
@@ -879,7 +891,7 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
                     n_u_mode_dists = len(q_u_mode_dists)
                     u_mode_kls = np.zeros(n_u_mode_dists)
                     for m_i in range(n_u_mode_dists):
-                        mode_kl = torch.sum(q_u_mode_dists[m_i].kl(d_2=prior_u_mode_dists[m_i], x=x_props[h],
+                        mode_kl = torch.sum(q_u_mode_dists[m_i].kl(d_2=prior_u_mode_dists[m_i], x=y_props[h],
                                                                 smp=q_u_smps[h][m_i]))
                         elbo_db += mode_kl
                         #mode_kl.backward()
