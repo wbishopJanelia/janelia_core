@@ -5,6 +5,7 @@
 """
 
 from typing import Sequence
+import re
 
 import numpy as np
 
@@ -357,7 +358,28 @@ def int_to_arb_base(base_10_vl: np.ndarray, max_digit_vls: Sequence[int]) -> np.
     return rep
 
 
+def find_binary_runs(seq: np.ndarray):
+    """ Finds runs of contiguous True values in a 1-d numpy array.
 
+    Inputs:
+        seq: Array of binary values.
+
+    Returns:
+        slices: slices[0] contains a slice object for a contiguous portion of seq with all True values.
+
+    Raises:
+        ValueError: If seq is not a 1-d array.
+    """
+
+    if len(seq.shape) != 1:
+        raise(RuntimeError('seq must be a 1-d numpy array.'))
+
+    seq_b = bytearray(seq)
+    matched_seqs = re.finditer(b'\x01' + b'+', seq_b)
+
+    slices = [slice(m.span()[0], m.span()[1]) for m in matched_seqs]
+
+    return slices
 
 
 
