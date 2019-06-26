@@ -355,139 +355,6 @@ class CondGaussianDistribution(CondVAEDistriubtion):
         return list()
 
 
-class CondLowRankMatrixDistribution(torch.nn.Module):
-
-    """ Represents a conditional product distribution over the left and right components of a low-rank matrix.
-    """
-
-    def __init__(self, l_mode_dists: Sequence[CondVAEDistriubtion], r_mode_dists: Sequence[CondVAEDistriubtion]):
-        """ Creates a CondLowRankMatrixDistribution object.
-
-        This distribution represents a conditional distribution over matrices of the form M = LR^T for L \in R^n*p
-        and R^m*p.
-
-        Rows or L and R are conditioned on properties contained in the matrices X_L \in R^n*d_l and
-        X_R \in R^m*d_r.
-
-        The probability of a pair L, R can then be written as:
-
-            P(L, R | X_L, X_R) =  (\prod_i=1^n P(L[i,:] | X_L[i,:])) * (\prod_j=1^m P(R[j,:] | X_R[j,:])).
-
-        Likewise P(L[i,:] | X_L[i,:]) can be written as:
-
-            P(L[i,:] | X_L[i,:]) = \prod_k=1^p P(L[i,k] | X_L[i,:]).
-
-        And P(R[j,:] | X_R[j,:]) can be written in a similar manner.
-
-        Args:
-            l_mode_dists: l_mode_dists[i] gives the conditional distribution specifying P(L[i,:] | X_L[i,:]).
-
-            r_mode_dists: r_mode_dists[j] gives the conditional distribution specifying P(R[j,:] | X_R[j,:])
-        """
-
-        super().__init__()
-
-        self.n_modes = len(l_mode_dists)
-
-        self.l_mode_dists = l_mode_dists
-        self.r_mode_dists = r_mode_dists
-
-    def sample(self, x_l: torch.Tensor, x_r: torch.Tensor) -> list:
-        """ Returns a compact representation of samples for each mode conditioned on x_l and x_r.
-
-        Args:
-            x_l: X_L tensor to condition on.
-
-            x_r: X_R tensor to condition on.
-
-        Returns:
-            s_l: s_l[m] contains a compact representation of the sample for the entries of L[:,m].
-
-            s_r: s_r[m] contains a compact representation of the sample for the entries of R[:,m].
-        """
-
-        s_l = [self.l_mode_dists[m].sample(x_l) for m in range(self.n_modes)]
-        s_r = [self.r_mode_dists[m].sample(x_r) for m in range(self.n_modes)]
-
-        return [s_l, s_r]
-
-    def log_prob(self, x_l: torch.Tensor, x_r: torch.Tensor, s_l: list, s_r: list) -> list:
-        """ Computes the log conditional probability of L and R matrices given X_L and X_R.
-
-        Args:
-            x_l: X_L tensor to condition on.
-
-            x_r: X_R tensor to condition on.
-
-            s_l: s_l[i] contains the compact representation (as returned by sample) of entries of L[:, i]
-
-            s_r: s_r[i] contains the compact representation (as returned by sample) of entries of R[:, i]
-
-        Returns:
-            l_log_probs: l_log_probs[j,i] gives the conditional log probability for L[j,i]
-
-            r_log_probs: r_log_probs[j,i] gives the conditional log probability for R[j,i]
-        """
-
-        # Compute log probability for each mode (summing over entries)
-        l_log_probs = torch.stack([self.l_mode_dists[m].log_prob(x_l, s_l[m]) for m in range(self.n_modes)]).t()
-        r_log_probs = torch.stack([self.r_mode_dists[m].log_prob(x_r, s_r[m]) for m in range(self.n_modes)]).t()
-
-        # Compute log probability for all modes (summing over modes)
-        return [l_log_probs, r_log_probs]
-
-    def form_matrix(self, smp):
-        """ Forms a matrix representation of a sample from a compact representation of the sample.
-
-        Args:
-             smp: The compact representation of the sample, as returned by sample()
-
-        Returns:
-            m: The matrix representation of the sample
-        """
-
-        l_modes = smp[0]
-        r_modes = smp[1]
-
-        l0 = self.l_mode_dists[0].form_standard_sample(l_modes[0])
-        r0 = self.r_mode_dists[0].form_standard_sample(r_modes[0])
-        n = l0.numel()
-        m = r0.numel()
-
-        mat = torch.zeros((n, m))
-
-        n_modes = len(l_modes)
-        for m_i in range(n_modes):
-            if m_i > 0:
-                l = self.l_mode_dists[m_i].form_standard_sample(l_modes[m_i])
-                r = self.r_mode_dists[m_i].form_standard_sample(r_modes[m_i])
-            else:
-                # Save computation since we already form the standard sample for the first modes
-                l = l0
-                r = r0
-            l = l.view([n, 1])
-            r = r.view([m, 1])
-            mat += torch.matmul(l, r.t())
-
-        return mat
-
-    def r_params(self) -> list:
-        """ Mimicks the behavior of r_params for CondVAEDistribution objects. """
-
-        r_mode_params = itertools.chain(*[d.r_params() for d in self.r_mode_dists])
-        l_mode_params = itertools.chain(*[d.r_params() for d in self.l_mode_dists])
-
-        return list(itertools.chain(r_mode_params, l_mode_params))
-
-    def s_params(self) -> list:
-        """ Mimicks the behavior of s_params for CondVAEDistribution objects. """
-
-        r_mode_params = itertools.chain(*[d.s_params() for d in self.r_mode_dists])
-        l_mode_params = itertools.chain(*[d.s_params() for d in self.l_mode_dists])
-
-        return list(itertools.chain(r_mode_params, l_mode_params))
-
-
 class CondSpikeSlabDistribution(CondVAEDistriubtion):
     """ Represents a condition spike and slab distriubtion. """
 
@@ -635,3 +502,118 @@ class CondSpikeSlabDistribution(CondVAEDistriubtion):
 
     def s_params(self) -> list:
         return self.spike_d.s_params()
+
+
+class CondMatrixDistribution(CondVAEDistriubtion):
+    """ An abstract base class for representing conditional distributions over matrices.
+
+    """
+
+class CondMatrixProductDistribution(CondVAEDistriubtion):
+    """ Represents conditional distributions over matrices.
+
+    Consider a matrix, W, with N rows and M columns.  Given a tensor X with N rows and P columns of conditioning data,
+    this object represents:
+
+            P(W|X) = \prod_i=1^N P_i(W[i,:]| X[i, :]),
+
+        where:
+
+            P_i(W[i,:] | X[i, :]) = \prod_j=1^M P_j(W[i,j] | X[i,j]),
+
+        where the P_j distributions are specified by the user.
+
+    In other words, we model all entries of W as conditionally independent of X, where entries of X are modeled as
+    distributed according to a different conditional distribution depending on what column they are in.
+
+
+    """
+
+    def __init__(self, dists: Sequence[CondVAEDistriubtion]):
+        """ Creates a new CondMatrixProductDistribution object.
+
+        Args:
+            dists: dists[j] is P_j, that is the conditional distribution to use for column j.
+        """
+        super().__init__()
+        self.dists = torch.nn.ModuleList(dists)
+
+    def forward(self, x: torch.tensor) -> torch.tensor:
+        """ Computes the conditional mean of the distribtion at different samples.
+
+        Args:
+            x: A tensor of shape n_rows*d_x.
+
+        Returns:
+            mn: mn[i, :] is the mean conditioned on x[i, :]
+        """
+
+        return torch.cat([d(x) for d in self.dists], dim=1)
+
+    def sample(self, x: torch.tensor) -> torch.tensor:
+        """ Samples from a conditional distribution.
+
+        Note: Sample is represented in compact form.  Use form_standard_sample to form
+        the sample into it's matrix representation.
+
+        Args:
+            x: A tensor of shape n_rows*d_x.  x[i,:] is what row i is conditioned on.
+
+        Returns:
+            smp: smp[j] is the compact representation of the sample for column j.
+        """
+
+        return [d.sample(x) for d in self.dists]
+
+    def form_standard_sample(self, smp: object) -> torch.tensor:
+        """ Forms a standard representation of a sample from the output of sample.
+
+        Args:
+            smp: Compact representation of a sample.
+
+        Returns:
+            formed_smp: The sample represented as a matrix
+        """
+
+        return torch.cat([d.form_standard_sample(s) for s, d in zip(smp, self.dists)], dim=1)
+
+    def form_compact_sample(self, smp: torch.tensor) -> object:
+        """ Forms a compact representation of a sample given a standard representation.
+
+        Args:
+            smp: The standard representation of the sample as a matrix.
+
+        Returns:
+            formed_smp: The compact representation of the sample.
+        """
+
+        # Break up our columns of the matrix, making sure they have the right shape
+        n_rows, n_cols = smp.shape
+        col_smps = [smp[:, c_i].view([n_rows, 1]) for c_i in range(n_cols)]
+
+        # Now call form standard sample on each column with the appropriate distribution
+        return [d.form_standard_sample(c_s) for c_s, d in zip(col_smps, self.dists)]
+
+    def log_prob(self, x: torch.tensor, y: Sequence) -> torch.tensor:
+        """ Computes the conditional log probability of individual rows.
+
+        Args:
+            x: Data we condition on.  Of shape n_rows*d_x
+
+            y: Compact representation of the samples we desire the probability for.  Compact representation means the
+            form of a sample as output by the sample() function.
+
+        Returns:
+            ll: Conditional log probability of each row. Of shape n_rows.
+        """
+
+        # Calculate the log-likelihood of each entry in the matrix
+        n_rows = x.shape[0]
+        entry_ll = torch.cat([d.log_prob(x, c_s).view([n_rows, 1]) for c_s, d in zip(y, self.dists)], dim=1)
+        return torch.sum(entry_ll, dim=1)
+
+    def r_params(self):
+        return list(self.parameters())
+
+    def s_params(self) -> list:
+        return list()
