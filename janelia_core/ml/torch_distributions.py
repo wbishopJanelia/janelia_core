@@ -504,11 +504,6 @@ class CondSpikeSlabDistribution(CondVAEDistriubtion):
         return self.spike_d.s_params()
 
 
-class CondMatrixDistribution(CondVAEDistriubtion):
-    """ An abstract base class for representing conditional distributions over matrices.
-
-    """
-
 class CondMatrixProductDistribution(CondVAEDistriubtion):
     """ Represents conditional distributions over matrices.
 
