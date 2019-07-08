@@ -190,7 +190,7 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
          hypercubes.  These two things make forward evaluation of the function efficient.
      """
 
-    def __init__(self, n_divisions_per_dim: Sequence[int], dim_ranges: np.ndarray, n_div_per_hc_side_per_dim: np.ndarray):
+    def __init__(self, n_divisions_per_dim: Sequence[int], dim_ranges: np.ndarray, n_div_per_hc_side_per_dim: Sequence[int]):
         """
         Creates a SumOfTiledHyperCubeBasisFcns object.
 
@@ -218,6 +218,7 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         # Determine the order of dimensions for the purposes of linearalization - we want the dimension
         # which will have the most active bump functions for a given point to be last.  This will allow us
         # to specify the largest contiguous chunks of the array holding bump function magnitudes.
+        n_div_per_hc_side_per_dim  = np.asarray(n_div_per_hc_side_per_dim)
         dim_order = np.argsort(n_div_per_hc_side_per_dim)
         self.register_buffer('dim_order', torch.Tensor(dim_order).long())
 
@@ -556,3 +557,29 @@ class LogGaussianBumpFcn(torch.nn.Module):
             x_dist = x_ctr_scaled**2
 
         return log_gain + -1*x_dist
+
+
+class FixedOffsetExp(torch.nn.Module):
+    """ Computes y = exp(x) + o, where o is a fixed, non-learnable offset. """
+
+    def __init__(self, o:float):
+        """ Creates a new FixedOffsetExp object.
+
+        Args:
+            o: The offset to apply
+        """
+        super().__init__()
+        self.register_buffer('o', torch.Tensor([o]))
+
+    def forward(self, x: torch.Tensor):
+        """ Computes input from output.
+
+        Args:
+            x: Input tensor
+
+        Returns:
+            y: Computed output
+        """
+
+        return torch.exp(x) + self.o
+

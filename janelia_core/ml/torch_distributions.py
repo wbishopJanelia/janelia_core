@@ -4,11 +4,16 @@ Note: These are *not* subclasses of the torch.distributions.
 
  """
 
-import itertools
+import math
 from typing import Sequence
 
+import numpy as np
 import torch
-import math
+
+from janelia_core.ml.extra_torch_modules import FixedOffsetExp
+from janelia_core.ml.extra_torch_modules import IndSmpConstantBoundedFcn
+from janelia_core.ml.extra_torch_modules import IndSmpConstantRealFcn
+from janelia_core.ml.extra_torch_modules import SumOfTiledHyperCubeBasisFcns
 
 
 class CondVAEDistriubtion(torch.nn.Module):
@@ -612,3 +617,135 @@ class CondMatrixProductDistribution(CondVAEDistriubtion):
 
     def s_params(self) -> list:
         return list()
+
+
+class MatrixGaussianProductDistribution(CondMatrixProductDistribution):
+    """ Represents a distribution over matrices where each entry is pulled iid from a separate Gaussian distribution.
+
+    For a matrix, W, with N rows and M columns, we model:
+
+        P(W) = \prod_i=1^N \prod_j=1^M P_ij(W[i,j]),
+
+    where P_ij is a Gaussian distribution with mean mu_ij and standard deviation std_ij.
+
+    Note: This function extends CondMatrixProductDistribution, allowing this distribution to be used in
+    code where conditional distributions are required, so that the resulting "conditional distributions"
+    are the same irrespective of conditioning input.
+
+    """
+
+    def __init__(self, shape: Sequence[int], mn_mn: float = 0.0, mn_std: float = .01,
+                 std_lb: float = .000001, std_ub: float = 10.0, std_iv: float = .01):
+        """ Creates a new MatrixGaussianProductDistribution.
+
+        Args:
+            shape: The shape of matrices this represents distributions over.
+
+            mn_mn, std_mn: The mean and standard deviation to use when generating random initial values for the
+            mean distribution for each entry.
+
+            std_lb, std_ub, std_iv: lower & upper bounds for standard deviation values and the initial value
+            for the standard deviation for the distribution for each entry.
+
+        """
+
+        # Generate the distributions for each column
+        n_rows, n_cols = shape
+        col_dists = [None]*n_cols
+        for c_i in range(n_cols):
+            mn_f = IndSmpConstantRealFcn(n=n_rows, init_mn=mn_mn, init_std=mn_std)
+            std_f = IndSmpConstantBoundedFcn(n=n_rows, lower_bound=std_lb, upper_bound=std_ub, init_value=std_iv)
+            col_dists[c_i] = CondGaussianDistribution(mn_f=mn_f, std_f=std_f)
+
+        # Create the object
+        super().__init__(dists=col_dists)
+        self.n_rows = n_rows
+
+    def forward(self, x: torch.tensor = None):
+        """ Overwrites parent forward so x does not have to be provided. """
+        return super().forward(x=torch.zeros([self.n_rows, 1]))
+
+    def sample(self, x: torch.tensor = None):
+        """ Overwrites parent sample so x does not have to be provided. """
+        return super().sample(x=torch.zeros([self.n_rows, 1]))
+
+    def log_prob(self, x: torch.tensor = None, y: Sequence = None):
+        """ Overwrites parent log_prob so x does not have to be provided.
+
+        Raises:
+            ValueError: If y is None.
+        """
+        if y is None:
+            raise(ValueError('y value cannot be none'))
+
+        return super().log_prob(x=torch.zeros([self.n_rows, 1]), y=y)
+
+
+class CondMatrixHypercubePrior(CondMatrixProductDistribution):
+    """ Extends CondMatrixProductDistribution so distribution for each column is a Gaussian with mean and standard
+    deviation functions which are sums of tiled hypercube basis functions.
+
+    Specifically, For a matrix, W, under a CondMatrixProductDistribution, we model:
+
+        W[i,j] ~ P_j(W[i,j] | X[i,:]).
+
+    Here, we specify that P_j is a conditional Gaussian distribution with mean given by m(X[i,:]) and standard
+    deviation by s(X[i,:]). Specifically, m() is a SumOfTiledHyperCubeBasisFcns function and s() is an exponentiated
+    SumOfTiledHyperCubeBasisFcns function plus an offset.
+
+    """
+
+    def __init__(self, shape: Sequence[int], mn_hc_params: dict, std_hc_params: dict, min_std: float,
+                 mn_init: float = 0.0, std_init: float = .01):
+        """ Creates a CondMatrixHypercubePrior object
+
+        Args:
+            shape: The shape of the matrices to represent distributions over.
+
+            mn_hc_params: A dictionary with parameters for passing into the init() function of
+            SumOfTiledHyperCubeBasisFcns when creating the hypercube function for the mean function for each P_j.
+
+            std_hc_params: A dictionary with parameters for passing into the init() function of
+            SumOfTiledHyperCubeBasisFcns when creating the hypercube function which will be exponentiated and offset
+            to form the final standard deviation function for each P_j.
+
+            min_std: The min standard deviation any P_j can take on.
+
+            mn_init: The initial value for the mean function. The mean will take on this value everywhere.
+
+            std_init: The initial value for the standard deviation function.  The standard deviation will take
+            on this value everywhere. Must be greater than min_std
+
+        Raises:
+            ValueError: If std_init is not greater than min_std.
+
+        """
+
+        if std_init <= min_std:
+            raise(ValueError('std_init must be greater than min_std'))
+
+        # Form each P_j
+        n_rows, n_cols = shape
+        col_dists = [None]*n_cols
+        for c_i in range(n_cols):
+
+            # Create mean function, setting it's initial value
+            mn_f = SumOfTiledHyperCubeBasisFcns(**mn_hc_params)
+            n_basis_fcns_per_mn_cube = np.cumprod(mn_hc_params['n_div_per_hc_side_per_dim'])[-1]
+            mn_cube_vl = mn_init/n_basis_fcns_per_mn_cube
+            mn_f.b_m.data = mn_cube_vl*torch.ones_like(mn_f.b_m.data)
+
+            # Create standard deviation function, setting it's initial value
+            std_hc_f = SumOfTiledHyperCubeBasisFcns(**std_hc_params)
+
+            n_basis_fcns_per_std_cube = np.cumprod(std_hc_params['n_div_per_hc_side_per_dim'])[-1]
+            std_cube_vl = np.log(std_init - min_std)/n_basis_fcns_per_std_cube
+            std_hc_f.b_m.data = std_cube_vl*torch.ones_like(std_hc_f.b_m.data)
+
+            std_f = torch.nn.Sequential(std_hc_f, FixedOffsetExp(min_std))
+
+            # Create the distribution for the column
+            col_dists[c_i] = CondGaussianDistribution(mn_f=mn_f, std_f=std_f)
+
+        super().__init__(dists=col_dists)
+
