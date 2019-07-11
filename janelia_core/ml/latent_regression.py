@@ -14,6 +14,7 @@ import numpy as np
 import torch
 
 from janelia_core.ml.torch_distributions import CondVAEDistriubtion
+from janelia_core.ml.torch_distributions import CondMatrixProductDistribution
 from janelia_core.ml.utils import format_and_check_learning_rates
 
 
@@ -945,3 +946,63 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
     log = {'elapsed_time': elapsed_time_log, 'elbo': elbo_log}
 
     return log
+
+
+class SingleSubjectCollection():
+    """ Holds the likelihood and posterior distributions as well as data for a latent regression model for one subject.
+
+     This is a useful container to make working with all of the different objects and data that are used for fitting
+     models for a single subject easier.
+
+     Args:
+         l_mdl: The latent regression model for the subject.
+
+         p_dist, u_dist: Distributions on the p and u modes for the subject
+
+         ts_data: Time series data.
+
+         x_props, y_props: The x and y property data for the subject.
+
+     """
+
+    def __init__(self, l_mdl: LatentRegModel, p_dist: CondMatrixProductDistribution,
+                 u_dist: CondMatrixProductDistribution, ts_data: Sequence[torch.Tensor],
+                 x_props: Sequence[torch.Tensor], y_props: Sequence[torch.Tensor]):
+
+        self.l_mdl = l_mdl
+        self.p_dist = p_dist
+        self.u_dist = u_dist
+        self.ts_data = ts_data
+        self.x_props = x_props
+        self.y_props = y_props
+
+
+class MultiSubjectVIFitter():
+    """ For performing variational inference to fit multiple latent regression models tied together through a prior. """
+
+    def __init__(self, ss: Sequence[SingleSubjectCollection], p_dist: CondMatrixProductDistribution,
+                 u_dist: CondMatrixProductDistribution, devices: Sequence):
+        """ Creates a MultiSubjectVIFitter object.
+
+        Args:
+            ss: ss[i] holds the SingleSubjectCollection object for subject i.
+
+            p_dist, u_dist: The conditional prior distributions on the p and u modes.
+
+            devices: devices[i] is the i^th device available for computation.
+        """
+        raise(NotImplementedError())
+
+    def distribute(self) -> list:
+        """ Distributes latent regression and posterior models for each subject as well as priors across devices.
+
+        Returns:
+            subject_devices: subject_devices[i] contains the device the latent regression model as well as the posterior
+            distribution for subject i is on.
+
+            prior_device: the device the conditional prior distribtions are on
+        """
+        raise(NotImplementedError())
+
+    
+
