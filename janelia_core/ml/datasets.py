@@ -34,14 +34,16 @@ class TimeSeriesBatch:
         self.i_orig = i_orig
 
     def pin_memory(self):
-        """ Puts this objects data into pinned memory. """
+        """ Puts this object's data into pinned memory. """
 
-        for t in self.data:
-            t.pin_memory()
+        for i in range(len(self.data)):
+            self.data[i] = self.data[i].pin_memory()
 
-        self.i_x.pin_memory()
-        self.i_y.pin_memory()
-        self.i_orig.pin_memory()
+        self.i_x = self.i_x.pin_memory()
+        self.i_y = self.i_y.pin_memory()
+        self.i_orig = self.i_orig.pin_memory()
+
+        return self
 
 
 class TimeSeriesDataset(torch.utils.data.Dataset):
