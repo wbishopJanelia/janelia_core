@@ -1,0 +1,1 @@
+""" Package for fitting and working with latent regression models. """
