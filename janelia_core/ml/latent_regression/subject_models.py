@@ -1,10 +1,15 @@
 """ Defines the class for single subject latent-regression models. """
 
+import copy
+import itertools
 import re
+import time
 from typing import Sequence
 
 import numpy as np
 import torch
+
+from janelia_core.ml.utils import format_and_check_learning_rates
 
 
 class LatentRegModel(torch.nn.Module):
@@ -96,6 +101,7 @@ class LatentRegModel(torch.nn.Module):
                 torch.nn.init.xavier_normal_(p[g], gain=w_gain)
                 self.register_parameter(param_name, p[g])
             self.p = p
+            self.p_trainable = np.ones(n_input_groups, dtype=bool) # All projection matrices are by default trainiable
 
         # Initialize projection matrices up
             u = [None]*n_output_groups
@@ -105,6 +111,7 @@ class LatentRegModel(torch.nn.Module):
                 torch.nn.init.xavier_normal_(u[h], gain=w_gain)
                 self.register_parameter(param_name, u[h])
             self.u = u
+            self.u_trainable = np.ones(n_output_groups, dtype=bool) # All projection matrices are by default trainable
         else:
             self.p = None
             self.u = None
@@ -213,6 +220,73 @@ class LatentRegModel(torch.nn.Module):
 
         return y
 
+    def recursive_generate(self, x: Sequence, r_map: list = None) -> Sequence:
+        """ Recursively generates output for a given number of time steps.
+
+        The concept behind this function is that to simulate T samples from the model, we specify
+        T sets of initial conditions (one set for each sample).  If the initial conditions are
+        fully specified (no NAN values) then this function is equivalent to generate(). However,
+        if some initial conditions are left unspecified for certain time points, then the output
+        of the model from the previous time steps will be used as the initial conditions.
+        This gives users the flexibility of simulating scenarios where variables in a model may
+        be selectively "clamped" at different points in time.
+
+        Args:
+            x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] is
+            of shape [n_smps, d_x], where n_smps is the number of samples we simulate
+            output for.  Specifically, x[g][t, :] contains the initial conditions for group g and
+            time point t.  Any nan values indicate the initial conditions for that variable should
+            be pulled from the output of the model from the previous time step.
+
+            r_map: Specifies which output groups should be mapped to which input groups when
+            recursively generating data.  Any input group which does not have output mapped to
+            must have all values in it's entry in x fully specified.  r_map[i] is a tuple of
+            the form (h,g) specifying that the output of group h should be recursively mapped
+            to the input of group g.
+
+        Returns:
+            y: A sequence of outputs.  y[h] contains the output for group h.  Will be of shape n_smps*d_y.
+
+        Raises:
+            ValueError: If any initial conditions contain nan values.
+
+            ValueError: If any input group which does not recursively receive output does not
+            have all of its values in x specified.
+
+        """
+
+        # Make sure initial conditions are fully specified
+        for x_g in x:
+            if torch.any(torch.isnan(x_g[0, :])):
+                raise(ValueError('First row of each x tensor must not contain any nan values.'))
+
+        # Make sure any input groups which are not recursively generated have all input values specified
+        n_input_grps = len(self.d_in)
+        mapped_input_grps = set([m_i[1] for m_i in r_map])
+        unmapped_input_grps = set(range(n_input_grps)).difference(mapped_input_grps)
+        for g in unmapped_input_grps:
+            if torch.any(torch.isnan(x[g])):
+                raise(ValueError('The x tensors for all input groups which do not receive recursively generated ' +
+                                  ' output must contain no nan values.'))
+
+        # Recursively generate output
+        n_smps = x[0].shape[0]
+        y = [torch.zeros([n_smps, d]) + np.nan for d in self.d_out]  # Add nan to see if we failed to assign values
+
+        x = copy.deepcopy(x)
+        for i in range(n_smps):
+            cur_x = [x_g[None, i, :] for x_g in x]
+
+            # Fill in the values of nan values here
+            for h, g in r_map:
+                nan_vars = torch.nonzero(torch.isnan(cur_x[g])).squeeze()
+                cur_x[g][0, nan_vars] = y[h][i-1, nan_vars]
+
+            output = self.generate(cur_x)
+            for h, o_h in enumerate(output):
+                y[h][i, :] = o_h
+        return y
+
     def neg_ll(self, y: list, mn: list, w: torch.Tensor = None) -> torch.Tensor:
 
         """
@@ -259,9 +333,35 @@ class LatentRegModel(torch.nn.Module):
 
         return neg_ll
 
+    def trainable_parameters(self):
+        """ Gets all trainable parameters of the model.
+
+        Trainable parameters are those in the s modules, in m, psi, direct weights and all p and u matrices
+        for which their entry in self.p_trainable and self.u_trainable is set to true.
+        """
+
+        if self.p is not None:
+            p_params = [self.p[i] for i, trainable in enumerate(self.p_trainable) if trainable]
+        else:
+            p_params = []
+        if self.u is not None:
+            u_params = [self.u[i] for i, trainable in enumerate(self.u_trainable) if trainable]
+        else:
+            u_params = []
+
+        m_params = self.m.parameters()
+        if self.direct_mappings is not None:
+            c_params = [dm_dict['c'] for dm_dict in self.direct_mappings]
+        else:
+            c_params = []
+        psi_params = self.psi
+        s_params = self.s.parameters()
+
+        return list(itertools.chain(p_params, u_params, m_params, c_params, psi_params, s_params))
+
     def fit(self, x: Sequence[torch.Tensor], y: Sequence[torch.Tensor],
             batch_size: int=100, send_size: int=100, max_its: int=10,
-            learning_rates=.01, adam_params: dict = {}, min_var: float = 0.0, update_int: int = 1000,
+            learning_rates=.01, adam_params: dict = {}, min_var: float = 0.000001, update_int: int = 1000,
             parameters: list = None, l1_p_lambda: list = None, l1_u_lambda: list = None):
 
         """ Fits a model to data with maximum likelihood.
@@ -327,7 +427,7 @@ class LatentRegModel(torch.nn.Module):
         device = self.p[0].device
 
         if parameters is None:
-            parameters = self.parameters()
+            parameters = self.trainable_parameters()
         # Convert generator to list (since we need to reference parameters multiple times in the code below)
         parameters = [p for p in parameters]
 

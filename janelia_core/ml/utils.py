@@ -5,6 +5,7 @@
 """
 
 import numpy as np
+import torch
 
 
 def format_and_check_learning_rates(learning_rates):
@@ -55,3 +56,21 @@ def format_and_check_learning_rates(learning_rates):
     learning_rate_values = learning_rate_values[sort_order]
 
     return [learning_rate_its, learning_rate_values]
+
+
+def torch_mod_to_fcn(m: torch.nn.Module):
+    """ Converts a torch Module to a standard python function.
+
+    Returns a new python function which:
+        1) Takes numpy input and converts that input to a torch Tensor
+        2) Calls the forward method of the torch module on that input (in the context of no_grad)
+        3) Converts the output to a numpy array
+    """
+
+    def wrapper_fcn(x):
+        x_t = torch.Tensor(x)
+        with torch.no_grad():
+            y_t = m(x_t)
+        return y_t.numpy()
+
+    return wrapper_fcn

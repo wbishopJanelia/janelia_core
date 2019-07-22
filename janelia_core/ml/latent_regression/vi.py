@@ -4,12 +4,18 @@ import itertools
 import time
 from typing import Sequence
 
+
 import numpy as np
 import torch
 
+from janelia_core.ml.datasets import TimeSeriesDataset
 from janelia_core.ml.latent_regression.subject_models import LatentRegModel
 from janelia_core.ml.torch_distributions import CondVAEDistriubtion
+from janelia_core.ml.torch_distributions import CondMatrixProductDistribution
+
+from janelia_core.ml.datasets import cat_time_series_batches
 from janelia_core.ml.utils import format_and_check_learning_rates
+
 
 def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence[CondVAEDistriubtion]],
                              q_u_dists: Sequence[Sequence[CondVAEDistriubtion]],
@@ -83,7 +89,7 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
         If None, no weighting will be used.
 
     Returns:
-        log: A dictionary logging progress.  Will have the enries:
+        log: A dictionary logging progress.  Will have the entries:
             'elapsed_time': log['elapsed_time'][i] contains the elapsed time from the beginning of optimization to
             the end of iteration i
 
@@ -293,3 +299,296 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
     log = {'elapsed_time': elapsed_time_log, 'elbo': elbo_log}
 
     return log
+
+
+class SubjectVICollection():
+    """ Holds data, likelihood models and posteriors for fitting data to a single subject with variational inference."""
+
+    def __init__(self, s_mdl: LatentRegModel, p_dists: Sequence, u_dists: Sequence, data: TimeSeriesDataset,
+                 input_grps: Sequence, output_grps: Sequence, props: Sequence, input_props: Sequence,
+                 output_props: Sequence):
+        """ Creates a new SubjectVICollection object.
+
+        Args:
+            s_mdl: The likelihood model for the subject.
+
+            u_dists: The posterior distributions for the u modes.  u_modes[h] is either:
+                1) A janelia_core.ml.torch_distributions import CondVAEDistriubtion
+                2) A torch tensor (if there is no distribution for the u modes for group h
+
+            p_dists: The posterior distributions for the p modes.  Same form as u_dists.
+
+            data: Data for the subject
+
+            input_grps: input_grps[g] is the index into data.data for the g^th input group
+
+            output_grps: output_grps[h] is the index into data.data for the h^th output group
+
+            props: props[i] is a tensor of properties for one or more input or output groups of variables
+
+            input_props: input_props[g] is the index into props for the properties for the g^th input group.  If
+            the modes for the g^th input group are fixed, then input_props[g] should be None.
+
+            output_props: output_props[h[ is the index into props for the properties of the g^th output group.  If
+            the modes for the h^th output group are fixed, then outpout_props[h] should be None.
+
+        """
+
+        self.s_mdl = s_mdl
+        self.p_dists = p_dists
+        self.u_dists = u_dists
+        self.data = data
+        self.input_grps = input_grps
+        self.output_grps = output_grps
+        self.props = props
+        self.input_props = input_props
+        self.output_props = output_props
+
+    def trainable_parameters(self) -> Sequence:
+        """ Returns all trainable parameters for the collection.
+
+        Returns:
+            params: The list of parameters.
+        """
+
+        p_dist_params = itertools.chain(*[d.parameters() for d in self.p_dists if not isinstance(d, torch.Tensor)])
+        u_dist_params = itertools.chain(*[d.parameters() for d in self.u_dists if not isinstance(d, torch.Tensor)])
+
+        return list(itertools.chain(p_dist_params, u_dist_params, self.s_mdl.trainable_parameters()))
+
+
+class MultiSubjectVIFitter():
+    """ Object for fitting a collection of latent regression models with variational inference.
+
+    """
+
+    def __init__(self, p_priors: Sequence[CondMatrixProductDistribution],
+                 u_priors: Sequence[CondMatrixProductDistribution], s_collections: Sequence[SubjectVICollection]):
+        """ Creates a new MultiSubjectVIFitter object.
+
+        Args:
+            s_collections: A set of SubjectVICollections to use when fitting data.
+
+            p_priors: The conditional priors for the p modes of each input group.  If the modes for a
+            group are fixed, the entry in p_priors for that group should be None.
+
+            u_priors: The conditional priors for the u modes for each output group, same format as p_priors.
+        """
+
+        self.s_collections = s_collections
+        self.p_priors = p_priors
+        self.u_priors = u_priors
+
+    def trainable_parameters(self, s_inds: Sequence[int] = None) -> Sequence:
+        """ Gets all trainable parameters for fitting priors and a set of subjects.
+
+        Args:
+            s_inds: Specifies the indices of subjects that will be fit.  Subject indices correspond to their
+            original order in s_collections when the fitter was created. If None, all subjects used.
+
+        Returns:
+             params: Requested parameters.
+        """
+
+        if s_inds is None:
+            s_inds = range(len(self.s_collections))
+
+        p_params = itertools.chain(*[d.parameters() for d in self.p_priors if d is not None])
+        u_params = itertools.chain(*[d.parameters() for d in self.u_priors if d is not None])
+        collection_params = itertools.chain(*[self.s_collections[s_i].trainable_parameters() for s_i in s_inds])
+
+        return list(itertools.chain(p_params, u_params, collection_params))
+
+    def generate_data_loaders(self, n_batches: int, s_inds: Sequence[int] = None,
+                              pin_memory: bool = False) -> Sequence:
+        """ Generates data loaders for the data for a given set of subjects.
+
+        This will return data loaders which return random samples in a given number of batches.  If different
+        subjects have different numbers of total samples, the number of samples returned per batch for each
+        subject will be different so that the total dataset for each subject is cycled through in the specified
+        number of batches.
+
+        Args:
+            n_batches: The number of batches to break the data up for each subject into.
+
+            s_inds: Specifies the indices of subjects that will be fit.  Subject indices correspond to their
+            original order in s_collections when the fitter was created. If None, s_inds = range(n_subjects).
+
+            pin_memory: True if data loaders should return data in pinned memory
+
+        Returns:
+            data_loaders: data_loaders[i] is the data loader for the i^th subject in s_inds.
+
+        Raises:
+            ValueError: If n_batches is greater than the number of samples for any requested subject.
+        """
+        if s_inds is None:
+            s_inds = range(len(self.s_collections))
+
+        n_smps = [len(self.s_collections[s_i].data) for s_i in s_inds]
+
+        for i, n_s in enumerate(n_smps):
+            if n_s < n_batches:
+                raise(ValueError('Subject ' + str(s_inds[i]) + ' has only ' + str(n_s) + ' samples, while '
+                      + str(n_batches) + ' batches requested.'))
+
+        batch_sizes = [int(np.ceil(float(n_s)/n_batches)) for n_s in n_smps]
+        return [torch.utils.data.DataLoader(dataset=self.s_collections[s_i].data, batch_size=batch_sizes[i],
+                                            collate_fn=cat_time_series_batches, pin_memory=pin_memory,
+                                            shuffle=True)
+                for i, s_i in enumerate(s_inds)]
+
+    def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
+            adam_params: dict = {}, s_inds: Sequence[int] = None, pin_memory: bool = False,
+            update_int: int = 1, print_mdl_nlls: bool = True):
+        """
+
+        Args:
+
+            n_epochs: The number of epochs to run fitting for.
+
+            n_batches: The number of batches to break the training data up into per epoch.  When multiple subjects have
+            different numbers of total training samples, the batch size for each subject will be selected so we go
+            through the entire training set for each subject after processing n_batches each epoch.
+
+            learning_rates: If a single number, this is the learning rate to use for all epochs.  Alternatively, this
+            can be a list of tuples.  Each tuple is of the form (epoch, learning_rate), which gives the learning rate
+            to use from that epoch onwards, until another tuple specifies another learning rate to use at a different
+            epoch on.  E.g., learning_rates = [(0, .01), (1000, .001), (10000, .0001)] would specify a learning
+            rate of .01 from epoch 0 to 999, .001 from epoch 1000 to 9999 and .0001 from epoch 10000 onwards.
+
+            adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object.
+            Note that if learning rate is specified here *it will be ignored.* (Use the learning_rates option instead).
+
+            s_inds: Specifies the indices of subjects to fit to.  Subject indices correspond to their
+            original order in s_collections when the fitter was created. If None, all subjects used.
+
+            pin_memory: True if data for training should be copied to CUDA pinned memory
+
+            update_int: Fitting status will be printed to screen every update_int number of epochs
+
+            print_mdl_nlls: If true, when fitting status is printed to screen, the negative log likelihood of each
+            evaluated model will be printed to screen.
+
+        Return:
+            log: A dictionary with the following entries:
+
+                'elapsed_time': A numpy array of the elapsed time for completion of each epoch
+
+                'mdl_nll': mdl_nll[e, i] is the negative log likelihood for the subject model s_inds[i] at the start
+                of epoch e (that is when the objective has been calculated but before parameters have been updated)
+
+                nelbo: nelbo[e] contains the negative elbo at the start of epoch e
+
+
+        """
+
+        t_start = time.time()  # Get starting time
+
+        # Format and check learning rates - no matter the input format this outputs learning rates in a standard format
+        # where the learning rate starting at iteration 0 is guaranteed to be listed first
+        learning_rate_its, learning_rate_values = format_and_check_learning_rates(learning_rates)
+
+        # Determine what subjects we are fitting for
+        if s_inds is None:
+            n_subjects = len(self.s_collections)
+            s_inds = range(n_subjects)
+        n_fit_subjects = len(s_inds)
+
+        # Get data loaders for the subjects
+        data_loaders = self.generate_data_loaders(n_batches=n_batches, s_inds=s_inds, pin_memory=pin_memory)
+
+        # Setup optimizer
+        parameters = self.trainable_parameters(s_inds)
+        optimizer = torch.optim.Adam(parameters, lr=learning_rate_values[0], **adam_params)
+
+        # Setup everything for logging
+        epoch_elapsed_time = np.zeros(n_epochs)
+        epoch_nll = np.zeros([n_epochs, n_fit_subjects])
+        epoch_nelbo = np.zeros(n_epochs)
+
+        # Perform fitting
+        prev_learning_rate = learning_rate_values[0]
+        for e_i in range(n_epochs):
+
+            # Set the learning rate
+            cur_learing_rate_ind = np.nonzero(learning_rate_its <= e_i)[0]
+            cur_learing_rate_ind = cur_learing_rate_ind[-1]
+            cur_learning_rate = learning_rate_values[cur_learing_rate_ind]
+            if cur_learning_rate != prev_learning_rate:
+                # We reset the whole optimizer because ADAM is an adaptive optimizer
+                optimizer = torch.optim.Adam(parameters, lr=cur_learning_rate, **adam_params)
+                prev_learning_rate = cur_learning_rate
+
+            # Setup the iterators to go through the current data for this epoch in a random order
+            epoch_data_iterators = [dl.__iter__() for dl in data_loaders]
+
+            # Process each batch
+            for b_i in range(n_batches):
+
+                batch_obj = 0
+                # Zero gradients
+                optimizer.zero_grad()
+
+                batch_nll = np.zeros([n_fit_subjects])
+                for i, s_i in enumerate(s_inds):
+
+                    s_coll = self.s_collections[s_i]
+
+                    # Get the data for this batch for this subject
+                    batch_data = epoch_data_iterators[i].next()
+                    batch_x = [batch_data.data[i_g][batch_data.i_x,:] for i_g in s_coll.input_grps]
+                    batch_y = [batch_data.data[i_h][batch_data.i_y,:] for i_h in s_coll.output_grps]
+
+                    # Sample the posterior distributions of modes for this subject
+                    q_p_modes = [d if isinstance(d, torch.Tensor)
+                                 else d.form_standard_sample(d.sample(s_coll.props[s_coll.input_props[g]]))
+                                 for g, d in enumerate(s_coll.p_dists)]
+
+                    q_u_modes = [d if isinstance(d, torch.Tensor)
+                                 else d.form_standard_sample(d.sample(s_coll.props[s_coll.output_props[h]]))
+                                 for h, d in enumerate(s_coll.u_dists)]
+
+                    # Calculate the conditional log-likelihood for this subject
+                    y_pred = s_coll.s_mdl.cond_forward(x=batch_x, p=q_p_modes, u=q_u_modes)
+                    nll = s_coll.s_mdl.neg_ll(y=batch_y, mn=y_pred)
+                    print('Still need to scale nll')
+
+                    # Record the log likelihood for each fit model for logging (we currently only
+                    # save this for the last batch in an epoch
+                    if b_i == n_batches - 1:
+                        batch_nll[i] = nll.detach().cpu().numpy()
+
+                    batch_obj += nll
+
+                # Take a gradient step
+                batch_obj.backward()
+                optimizer.step()
+
+                # Make sure no private variance values are too small
+                print('Still need to clamp private variance values')
+
+            # Take care of logging everything
+            batch_obj_log = batch_obj.detach().cpu().numpy()
+            elapsed_time = time.time() - t_start
+            epoch_elapsed_time[e_i] = elapsed_time
+            epoch_nll[e_i,:] = batch_nll
+            epoch_nelbo[e_i] = batch_obj_log
+
+            if e_i % update_int == 0:
+                print('Epoch ' + str(e_i) + ' complete.  Obj: ' + str(batch_obj_log) + ', LR: '  +
+                      str(cur_learning_rate))
+                if print_mdl_nlls:
+                    nll_str = ''
+                    for v_i, vl in enumerate(batch_nll):
+                        nll_str += 's_' + str(s_inds[v_i]) + ': ' + str(vl) + ', '
+                print('Model NLLs: ' + nll_str)
+
+
+
+        # Return logs
+        log = {'elapsed_time': epoch_elapsed_time, 'mdl_nll': epoch_nll, 'nelbo': epoch_nelbo}
+        return log
+
+
+
