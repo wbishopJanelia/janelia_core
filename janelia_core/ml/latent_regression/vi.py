@@ -17,6 +17,38 @@ from janelia_core.ml.datasets import cat_time_series_batches
 from janelia_core.ml.utils import format_and_check_learning_rates
 
 
+def format_output_list(base_str: str, it_str: str, vls: Sequence[float], inds: Sequence[int]):
+    """ Produces a string to display a list of outputs.
+
+    String will be of the format:
+
+        base_str + ' ' + it_str+ints[0] + ': ' + str(vls[0]) + ', ' + it_str+inds[1] + ': ' + str(vls[1]) + ...
+
+    Args:
+        base_str: The base string that preceeds everything else on the string
+
+        it_str: The string that should come befor each printed value
+
+        vls: The values that should be printed
+
+        inds: The indices to associate with each printed value
+
+    Returns:
+        f_str: The formatted string
+    """
+
+    n_vls = len(vls)
+
+    f_str = base_str + ' '
+
+    for i, vl in enumerate(vls):
+        f_str += it_str + str(inds[i]) + ': ' + str(vl)
+        if i < n_vls - 1:
+            f_str += ', '
+
+    return f_str
+
+
 def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence[CondVAEDistriubtion]],
                              q_u_dists: Sequence[Sequence[CondVAEDistriubtion]],
                              prior_p_dists: Sequence[Sequence[CondVAEDistriubtion]],
@@ -306,7 +338,7 @@ class SubjectVICollection():
 
     def __init__(self, s_mdl: LatentRegModel, p_dists: Sequence, u_dists: Sequence, data: TimeSeriesDataset,
                  input_grps: Sequence, output_grps: Sequence, props: Sequence, input_props: Sequence,
-                 output_props: Sequence):
+                 output_props: Sequence, min_var: Sequence[float]):
         """ Creates a new SubjectVICollection object.
 
         Args:
@@ -332,6 +364,8 @@ class SubjectVICollection():
             output_props: output_props[h[ is the index into props for the properties of the g^th output group.  If
             the modes for the h^th output group are fixed, then outpout_props[h] should be None.
 
+            min_var: min_var[h] is the minimum variance for the additive noise variables for output group h
+
         """
 
         self.s_mdl = s_mdl
@@ -343,6 +377,7 @@ class SubjectVICollection():
         self.props = props
         self.input_props = input_props
         self.output_props = output_props
+        self.min_var = min_var
 
     def trainable_parameters(self) -> Sequence:
         """ Returns all trainable parameters for the collection.
@@ -440,7 +475,7 @@ class MultiSubjectVIFitter():
 
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, pin_memory: bool = False,
-            update_int: int = 1, print_mdl_nlls: bool = True):
+            update_int: int = 1, print_mdl_nlls: bool = True, print_sub_kls: bool = True):
         """
 
         Args:
@@ -470,6 +505,9 @@ class MultiSubjectVIFitter():
             print_mdl_nlls: If true, when fitting status is printed to screen, the negative log likelihood of each
             evaluated model will be printed to screen.
 
+            print_sub_kls: If true, when fitting status is printed to screen, the kl divergence for the p and u modes
+            for each fit subject will be printed to screen.
+
         Return:
             log: A dictionary with the following entries:
 
@@ -478,8 +516,13 @@ class MultiSubjectVIFitter():
                 'mdl_nll': mdl_nll[e, i] is the negative log likelihood for the subject model s_inds[i] at the start
                 of epoch e (that is when the objective has been calculated but before parameters have been updated)
 
-                nelbo: nelbo[e] contains the negative elbo at the start of epoch e
+                'sub_p_kl': sub_p_kl[e,i] is the kl divergence between the posterior and conditional prior for the p
+                modes for subject i at the start of epoch e.
 
+                'sub_u_kl': sub_u_kl[e,i] is the kl divergence between the posterior and conditional prior the u modes
+                for subject i at the start of epoch e.
+
+                nelbo: nelbo[e] contains the negative elbo at the start of epoch e
 
         """
 
@@ -497,6 +540,7 @@ class MultiSubjectVIFitter():
 
         # Get data loaders for the subjects
         data_loaders = self.generate_data_loaders(n_batches=n_batches, s_inds=s_inds, pin_memory=pin_memory)
+        n_smp_data_points = [len(self.s_collections[s_i].data) for s_i in s_inds]
 
         # Setup optimizer
         parameters = self.trainable_parameters(s_inds)
@@ -505,6 +549,8 @@ class MultiSubjectVIFitter():
         # Setup everything for logging
         epoch_elapsed_time = np.zeros(n_epochs)
         epoch_nll = np.zeros([n_epochs, n_fit_subjects])
+        epoch_sub_p_kl = np.zeros([n_epochs, n_fit_subjects])
+        epoch_sub_u_kl = np.zeros([n_epochs, n_fit_subjects])
         epoch_nelbo = np.zeros(n_epochs)
 
         # Perform fitting
@@ -530,7 +576,9 @@ class MultiSubjectVIFitter():
                 # Zero gradients
                 optimizer.zero_grad()
 
-                batch_nll = np.zeros([n_fit_subjects])
+                batch_nll = np.zeros(n_fit_subjects)
+                batch_sub_p_kl = np.zeros(n_fit_subjects)
+                batch_sub_u_kl = np.zeros(n_fit_subjects)
                 for i, s_i in enumerate(s_inds):
 
                     s_coll = self.s_collections[s_i]
@@ -539,55 +587,90 @@ class MultiSubjectVIFitter():
                     batch_data = epoch_data_iterators[i].next()
                     batch_x = [batch_data.data[i_g][batch_data.i_x,:] for i_g in s_coll.input_grps]
                     batch_y = [batch_data.data[i_h][batch_data.i_y,:] for i_h in s_coll.output_grps]
+                    n_batch_data_pts = batch_x[0].shape[0]
 
                     # Sample the posterior distributions of modes for this subject
                     q_p_modes = [d if isinstance(d, torch.Tensor)
-                                 else d.form_standard_sample(d.sample(s_coll.props[s_coll.input_props[g]]))
+                                 else d.sample(s_coll.props[s_coll.input_props[g]])
                                  for g, d in enumerate(s_coll.p_dists)]
 
                     q_u_modes = [d if isinstance(d, torch.Tensor)
-                                 else d.form_standard_sample(d.sample(s_coll.props[s_coll.output_props[h]]))
+                                 else d.sample(s_coll.props[s_coll.output_props[h]])
                                  for h, d in enumerate(s_coll.u_dists)]
 
-                    # Calculate the conditional log-likelihood for this subject
-                    y_pred = s_coll.s_mdl.cond_forward(x=batch_x, p=q_p_modes, u=q_u_modes)
-                    nll = s_coll.s_mdl.neg_ll(y=batch_y, mn=y_pred)
-                    print('Still need to scale nll')
+                    q_p_modes_standard = [smp if isinstance(s_coll.p_dists[g], torch.Tensor)
+                                          else s_coll.p_dists[g].form_standard_sample(smp)
+                                          for g, smp in enumerate(q_p_modes)]
 
-                    # Record the log likelihood for each fit model for logging (we currently only
+
+                    q_u_modes_standard = [smp if isinstance(s_coll.u_dists[h], torch.Tensor)
+                                          else s_coll.u_dists[h].form_standard_sample(smp)
+                                          for h, smp in enumerate(q_u_modes)]
+
+                    # Calculate the conditional log-likelihood for this subject
+                    y_pred = s_coll.s_mdl.cond_forward(x=batch_x, p=q_p_modes_standard, u=q_u_modes_standard)
+                    nll = (float(n_smp_data_points[i])/n_batch_data_pts)*s_coll.s_mdl.neg_ll(y=batch_y, mn=y_pred)
+
+                    batch_obj += nll
+
+                    # Calculate KL diverengences between posteriors on modes and priors for this subject
+                    s_p_kl = 0
+                    for g, d in enumerate(self.p_priors):
+                        if d is not None:
+                            s_p_kl += torch.sum(s_coll.p_dists[g].kl(d_2=d, x=s_coll.props[s_coll.input_props[g]],
+                                                           smp=q_p_modes[g]))
+                    batch_obj += s_p_kl
+
+                    s_u_kl = 0
+                    for h, d in enumerate(self.u_priors):
+                        if d is not None:
+                            s_u_kl += torch.sum(s_coll.u_dists[h].kl(d_2=d, x=s_coll.props[s_coll.output_props[h]],
+                                                           smp=q_u_modes[h]))
+                    batch_obj += s_u_kl
+
+                    # Record the log likelihood and kl divergences for each fit model for logging (we currently only
                     # save this for the last batch in an epoch
                     if b_i == n_batches - 1:
                         batch_nll[i] = nll.detach().cpu().numpy()
-
-                    batch_obj += nll
+                        batch_sub_p_kl[i] = s_p_kl.detach().cpu().numpy()
+                        batch_sub_u_kl[i] = s_u_kl.detach().cpu().numpy()
 
                 # Take a gradient step
                 batch_obj.backward()
                 optimizer.step()
 
                 # Make sure no private variance values are too small
-                print('Still need to clamp private variance values')
+                with torch.no_grad():
+                    for s_j in s_inds:
+                        s_coll = self.s_collections[s_j]
+                        s_min_var = s_coll.min_var
+                        s_mdl = s_coll.s_mdl
+                        for h in range(s_mdl.n_output_groups):
+                            small_psi_inds = torch.nonzero(s_mdl.psi[h] < s_min_var[h])
+                            s_mdl.psi[h].data[small_psi_inds] = s_min_var[h]
 
             # Take care of logging everything
             batch_obj_log = batch_obj.detach().cpu().numpy()
             elapsed_time = time.time() - t_start
             epoch_elapsed_time[e_i] = elapsed_time
             epoch_nll[e_i,:] = batch_nll
+            epoch_sub_p_kl[e_i,:] = batch_sub_p_kl
+            epoch_sub_u_kl[e_i,:] = batch_sub_u_kl
             epoch_nelbo[e_i] = batch_obj_log
 
             if e_i % update_int == 0:
+                print('*****************************************************')
                 print('Epoch ' + str(e_i) + ' complete.  Obj: ' + str(batch_obj_log) + ', LR: '  +
                       str(cur_learning_rate))
                 if print_mdl_nlls:
-                    nll_str = ''
-                    for v_i, vl in enumerate(batch_nll):
-                        nll_str += 's_' + str(s_inds[v_i]) + ': ' + str(vl) + ', '
-                print('Model NLLs: ' + nll_str)
-
-
+                    print(format_output_list(base_str='Model NLLs: ', it_str='s_', vls=batch_nll, inds=s_inds))
+                if print_sub_kls:
+                    print(format_output_list(base_str='Subj P KLs: ', it_str='s_', vls=batch_sub_p_kl, inds=s_inds))
+                    print(format_output_list(base_str='Subj U KLs: ', it_str='s_', vls=batch_sub_u_kl, inds=s_inds))
 
         # Return logs
-        log = {'elapsed_time': epoch_elapsed_time, 'mdl_nll': epoch_nll, 'nelbo': epoch_nelbo}
+        log = {'elapsed_time': epoch_elapsed_time, 'mdl_nll': epoch_nll, 'sub_p_kl': epoch_sub_p_kl,
+               'sub_u_kl': epoch_sub_u_kl, 'nelbo': epoch_nelbo}
         return log
 
 

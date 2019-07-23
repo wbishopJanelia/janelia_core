@@ -9,6 +9,7 @@ import numpy as np
 import torch
 
 from janelia_core.ml.datasets import TimeSeriesDataset
+from janelia_core.ml.extra_torch_modules import FixedOffsetExp
 from janelia_core.ml.extra_torch_modules import IndSmpConstantBoundedFcn
 from janelia_core.ml.extra_torch_modules import IndSmpConstantRealFcn
 from janelia_core.ml.extra_torch_modules import SumOfTiledHyperCubeBasisFcns
@@ -284,7 +285,8 @@ class BumpInputWithRecursiveDynamicsScenario():
                                    output_grps=[1],
                                    props=[self.subject_mdls[s_i].neuron_pos],
                                    input_props=[None, 0],
-                                   output_props=[0])
+                                   output_props=[0],
+                                   min_var=[.00001])
 
     def generate_training_subject_posteriors(self, s_i: int, mn_init_mn:float = 0, mn_init_std:float = .01,
                                              std_init_vl:float = .01) -> Sequence:
@@ -311,7 +313,7 @@ class BumpInputWithRecursiveDynamicsScenario():
         n_neurons = self.subject_mdls[s_i].neuron_pos.shape[0]
 
         # The input p tensor is fixed
-        input_p = torch.eye(2)
+        input_p = torch.eye(self.n_modes)
 
         # Generate the distribution over internal p modes
         internal_p_mode_dists = [None]*self.n_modes
@@ -335,7 +337,7 @@ class BumpInputWithRecursiveDynamicsScenario():
         return [[input_p, internal_p_dist], [u_dist]]
 
     def generate_fitting_priors(self, n_divisions_per_dim: int = 50, n_div_per_hc_side_per_dim: int = 3,
-                               init_std: float = .001) -> Sequence:
+                               init_std: float = .001, min_std = .00001) -> Sequence:
         """
         Generates priors for fitting multiple models with variational inference.
 
@@ -352,11 +354,23 @@ class BumpInputWithRecursiveDynamicsScenario():
             init_std: The initial standard deviation for the conditional distribution for each mode.  The standard
             deviation will take on this value everywhere.
 
+            min_std: The minimum standard deviation the prior distributions can take on.
+
         Returns:
             dists: dists[0] is the distributions for the p modes.  dists[0][0] is None to indicate there is no
             prior distribution over the input p modes and dists[0][1] is the distribution over the internal p modes.
             dists[1][0] is the distribution over the u modes.
+
+        Raises:
+            ValueError: If min_std or init_std is less than 0
+            ValueError: If init_std is less than min_std
        """
+        if init_std < 0:
+            raise(ValueError('init_std must be greater than 0'))
+        if min_std < 0:
+            raise(ValueError('min_std must be greater than 0'))
+        if init_std < min_std:
+            raise(ValueError('min_std must be less than init_std'))
 
         n_div_per_dim = [n_divisions_per_dim]*self.n_dims
         dim_ranges = np.zeros([self.n_dims, 2])
@@ -368,10 +382,10 @@ class BumpInputWithRecursiveDynamicsScenario():
         for m_i in range(self.n_modes):
             mn_f = SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=n_div_per_dim, dim_ranges=dim_ranges,
                                                 n_div_per_hc_side_per_dim=n_div_per_hc)
-            std_f = SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=n_div_per_dim, dim_ranges=dim_ranges,
-                                                n_div_per_hc_side_per_dim=n_div_per_hc)
+            std_f = torch.nn.Sequential(SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=n_div_per_dim, dim_ranges=dim_ranges,
+                                                n_div_per_hc_side_per_dim=n_div_per_hc), FixedOffsetExp(o=min_std))
             # Set the initial standard deviation
-            std_f.b_m.data[:] = init_std/(n_div_per_hc_side_per_dim**self.n_dims)
+            std_f[0].b_m.data[:] = np.log(init_std - min_std)/(n_div_per_hc_side_per_dim**self.n_dims)
 
             internal_p_mode_dists[m_i] = CondGaussianDistribution(mn_f=mn_f, std_f=std_f)
 
@@ -382,10 +396,10 @@ class BumpInputWithRecursiveDynamicsScenario():
         for m_i in range(2*self.n_modes):
             mn_f = SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=n_div_per_dim, dim_ranges=dim_ranges,
                                                 n_div_per_hc_side_per_dim=n_div_per_hc)
-            std_f = SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=n_div_per_dim, dim_ranges=dim_ranges,
-                                                n_div_per_hc_side_per_dim=n_div_per_hc)
+            std_f = torch.nn.Sequential(SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=n_div_per_dim, dim_ranges=dim_ranges,
+                                                n_div_per_hc_side_per_dim=n_div_per_hc), FixedOffsetExp(o=min_std))
             # Set the initial standard deviation
-            std_f.b_m.data[:] = init_std/(n_div_per_hc_side_per_dim**self.n_dims)
+            std_f[0].b_m.data[:] = np.log(init_std - min_std)/(n_div_per_hc_side_per_dim**self.n_dims)
 
             u_mode_dists[m_i] = CondGaussianDistribution(mn_f=mn_f, std_f=std_f)
 
