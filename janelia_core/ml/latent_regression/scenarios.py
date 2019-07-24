@@ -464,6 +464,31 @@ class BumpInputWithRecursiveDynamicsScenario():
         input = [input_std*torch.randn([n_smps, self.n_modes]) for n_smps in n_smps_per_subject]
         return self.generate_data(stimuli=input)
 
+    def generate_one_input_mode_random_input_data(self, n_smps_per_subject: Sequence[int],
+                                               input_std: float = 1.0) -> Sequence[Sequence]:
+        """ Generates data where only one input mode is excited with random input per subject.
+
+        Args:
+            n_smps_per_subject: n_smps_per_subject[i] is the number of random input samples to generate from subject
+            i.
+
+            input_std: The standard deviation of the input signals.
+
+        Returns:
+           data: data[i] is the data for subject i, the formatted described in generate_data()
+        """
+
+        n_subjects = len(n_smps_per_subject)
+
+        input = [None]*n_subjects
+        for s_i, n_smps in enumerate(n_smps_per_subject):
+            mode_i = s_i % self.n_modes
+            s_input = torch.zeros([n_smps, self.n_modes])
+            s_input[:, mode_i] = input_std*torch.randn([n_smps])
+            input[s_i] = s_input
+
+        return self.generate_data(stimuli=input)
+
 
 def plot_2d_conditional_prior(priors: CondMatrixProductDistribution,
                               dim_sampling: Sequence[Sequence] = [[0, 1, .01], [0, 1, .01]],
