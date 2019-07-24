@@ -2,7 +2,7 @@
 
 import itertools
 import time
-from typing import Sequence
+from typing import Sequence, Union
 
 
 import numpy as np
@@ -378,6 +378,8 @@ class SubjectVICollection():
         self.input_props = input_props
         self.output_props = output_props
         self.min_var = min_var
+        self.device = None # Initially we don't specify which device everything is on (allowing things to potentially
+                           # be on multiple devices).
 
     def trainable_parameters(self) -> Sequence:
         """ Returns all trainable parameters for the collection.
@@ -390,6 +392,25 @@ class SubjectVICollection():
         u_dist_params = itertools.chain(*[d.parameters() for d in self.u_dists if not isinstance(d, torch.Tensor)])
 
         return list(itertools.chain(p_dist_params, u_dist_params, self.s_mdl.trainable_parameters()))
+
+    def to(self, device: Union[torch.device, int]):
+        """ Moves all relevant attributes of the collection to the specified device.
+
+        This will move the subject model, posterior distributions for the p & u modes and variable
+        properties to the device.
+
+        Note that fitting data will not be moved to the device (as we expect in general the full set
+        of training data will be too large to move to GPU memory).
+
+        Args:
+            device: The device to move attributes to.
+        """
+
+        self.s_mdl = self.s_mdl.to(device)
+        self.p_dists = [d.to(device) for d in self.p_dists]
+        self.u_dists = [d.to(device) for d in self.u_dists]
+        self.props = [p.to(device) for p in self.props]
+        self.device = device
 
 
 class MultiSubjectVIFitter():
@@ -413,6 +434,40 @@ class MultiSubjectVIFitter():
         self.s_collections = s_collections
         self.p_priors = p_priors
         self.u_priors = u_priors
+
+        # Attributes for keeping track of which devices everything is on
+        self.prior_device = None
+        self.s_collection_devices = [None]*len(self.s_collections)
+        self.distributed = False # Keep track if we have distributed everything yet
+
+    def distribute(self, devices: Sequence[Union[torch.device, int]], s_inds: Sequence[int] = None):
+        """ Distributes prior collections as well as 0 or more subject models across devices.
+
+        Args:
+            devices: Devices that priors and subject collections should be distributed across.
+
+            s_inds: Indices into self.s_collections for subject models which should be distributed across devices.
+            If none, all subject models will be distributed.
+
+        """
+        if s_inds is None:
+            s_inds = range(len(self.s_collections))
+
+        n_devices = len(devices)
+        n_dist_mdls = len(s_inds)
+
+        # By convention priors go onto first device
+        self.p_priors = [d.to(devices[0]) if d is not None else None for d in self.p_priors]
+        self.u_priors = [d.to(devices[0]) if d is not None else None for d in self.u_priors]
+        self.prior_device = devices[0]
+
+        # Distribute subject collections
+        for i in range(n_dist_mdls):
+            device_ind = i % n_devices
+            self.s_collections[s_inds[i]].to(devices[device_ind])
+            self.s_collection_devices[s_inds[i]] = devices[device_ind]
+
+        self.distributed = True
 
     def trainable_parameters(self, s_inds: Sequence[int] = None) -> Sequence:
         """ Gets all trainable parameters for fitting priors and a set of subjects.
@@ -524,7 +579,13 @@ class MultiSubjectVIFitter():
 
                 nelbo: nelbo[e] contains the negative elbo at the start of epoch e
 
+        Raises:
+            RuntimeError: If distribute() has not been called before fitting.
+
         """
+
+        #if not self.distributed:
+         #   raise(RuntimeError('self.distribute() must be called before fitting.'))
 
         t_start = time.time()  # Get starting time
 
