@@ -157,7 +157,7 @@ class CondVAEDistriubtion(torch.nn.Module):
         smp_d_2 = d_2.sample_to(smp=smp, device=d_2_device)
         x_d_2 = x.to(device=d_2_device)
 
-        kl = self.log_prob(x=x_self, y=smp_self).to(return_device) - d_2.log_prob(x=x_d_2, y=smp_d_2)
+        kl = self.log_prob(x=x_self, y=smp_self).to(return_device) - d_2.log_prob(x=x_d_2, y=smp_d_2).to(return_device)
         return kl.squeeze()
 
     def r_params(self) -> list:

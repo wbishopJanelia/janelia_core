@@ -642,7 +642,6 @@ class MultiSubjectVIFitter():
                 batch_sub_u_kl = np.zeros(n_fit_subjects)
                 for i, s_i in enumerate(s_inds):
 
-
                     s_coll = self.s_collections[s_i]
 
                     # Get the data for this batch for this subject
