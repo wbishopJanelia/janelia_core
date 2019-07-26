@@ -57,7 +57,7 @@ class TimeSeriesBatch:
             non_blocking: If the .to() command should be passed the non_blocking option.
         """
 
-        self.data = self.data.to(device, non_blocking=non_blocking)
+        self.data = [t.to(device, non_blocking=non_blocking) for t in self.data]
         self.i_x = self.i_x.to(device, non_blocking=non_blocking)
         self.i_y = self.i_y.to(device, non_blocking=non_blocking)
         if move_i_orig:
