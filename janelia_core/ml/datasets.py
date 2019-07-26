@@ -45,6 +45,24 @@ class TimeSeriesBatch:
 
         return self
 
+    def to(self, device:torch.device, move_i_orig: bool = False, non_blocking:bool =False):
+        """ Moves data to the specified device.
+
+        Args:
+            device: The device to move the data to.
+
+            move_i_orig: If true, i_orig will be moved to the device.  If false, only data, i_x and i_y will be
+            moved to the device.
+
+            non_blocking: If the .to() command should be passed the non_blocking option.
+        """
+
+        self.data = self.data.to(device, non_blocking=non_blocking)
+        self.i_x = self.i_x.to(device, non_blocking=non_blocking)
+        self.i_y = self.i_y.to(device, non_blocking=non_blocking)
+        if move_i_orig:
+            self.i_orig = self.i_orig.to(device, non_blocking=non_blocking)
+
 
 class TimeSeriesDataset(torch.utils.data.Dataset):
     """ Extends torch's Dataset object specifically for time series data.

@@ -646,9 +646,16 @@ class MultiSubjectVIFitter():
 
                     # Get the data for this batch for this subject
                     batch_data = epoch_data_iterators[i].next()
+
+                    # Send the data to the GPU if needed
+                    batch_data.to(device=self.s_collection_devices[s_i], non_blocking=)
+
+                    # Form x and y for the batch
                     batch_x = [batch_data.data[i_g][batch_data.i_x,:] for i_g in s_coll.input_grps]
                     batch_y = [batch_data.data[i_h][batch_data.i_y,:] for i_h in s_coll.output_grps]
                     n_batch_data_pts = batch_x[0].shape[0]
+
+
 
                     # Sample the posterior distributions of modes for this subject
                     q_p_modes = [d if isinstance(d, torch.Tensor)
