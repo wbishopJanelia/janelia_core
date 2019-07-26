@@ -463,7 +463,7 @@ class MultiSubjectVIFitter():
 
         # Distribute subject collections
         for i in range(n_dist_mdls):
-            device_ind = i % n_devices
+            device_ind = (i+1) % n_devices
             self.s_collections[s_inds[i]].to(devices[device_ind])
             self.s_collection_devices[s_inds[i]] = devices[device_ind]
 
@@ -528,9 +528,22 @@ class MultiSubjectVIFitter():
                                             shuffle=True)
                 for i, s_i in enumerate(s_inds)]
 
+    def get_device_memory_usage(self) -> Sequence:
+        """ Returns the memory usage of each device in the fitter.
+
+        The memory usage for cpu devices will be nan.
+
+        Returns:
+            m_usage: m_usage[i] is the amount of memory used on the i^th device
+        """
+
+        all_devices = set(self.s_collection_devices + [self.prior_device])
+        return [torch.cuda.memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in all_devices]
+
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, pin_memory: bool = False,
-            update_int: int = 1, print_mdl_nlls: bool = True, print_sub_kls: bool = True):
+            update_int: int = 1, print_mdl_nlls: bool = True, print_sub_kls: bool = True,
+            print_memory_usage: bool = True):
         """
 
         Args:
@@ -563,6 +576,9 @@ class MultiSubjectVIFitter():
             print_sub_kls: If true, when fitting status is printed to screen, the kl divergence for the p and u modes
             for each fit subject will be printed to screen.
 
+            print_memory_usage: If true, when fitting status is printed to screen, the memory usage of each
+            device will be printed to streen.
+
         Return:
             log: A dictionary with the following entries:
 
@@ -584,8 +600,8 @@ class MultiSubjectVIFitter():
 
         """
 
-        #if not self.distributed:
-         #   raise(RuntimeError('self.distribute() must be called before fitting.'))
+        if not self.distributed:
+            raise(RuntimeError('self.distribute() must be called before fitting.'))
 
         t_start = time.time()  # Get starting time
 
@@ -649,7 +665,6 @@ class MultiSubjectVIFitter():
 
                     # Send the data to the GPU if needed
                     batch_data.to(device=s_coll.device, non_blocking=s_coll.device.type == 'cuda')
-
                     # Form x and y for the batch
                     batch_x = [batch_data.data[i_g][batch_data.i_x,:] for i_g in s_coll.input_grps]
                     batch_y = [batch_data.data[i_h][batch_data.i_y,:] for i_h in s_coll.output_grps]
@@ -734,6 +749,10 @@ class MultiSubjectVIFitter():
                 if print_sub_kls:
                     print(format_output_list(base_str='Subj P KLs: ', it_str='s_', vls=batch_sub_p_kl, inds=s_inds))
                     print(format_output_list(base_str='Subj U KLs: ', it_str='s_', vls=batch_sub_u_kl, inds=s_inds))
+                if print_memory_usage:
+                    device_memory_usage = self.get_device_memory_usage()
+                    print(format_output_list(base_str='Device memory usage: ', it_str='d_',
+                          vls=device_memory_usage, inds=range(len(device_memory_usage))))
                 print('Elapsed time: ' + str(elapsed_time))
 
         # Return logs
