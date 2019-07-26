@@ -76,6 +76,20 @@ class CondVAEDistriubtion(torch.nn.Module):
         """
         raise NotImplementedError
 
+    def sample_to(self, smp: object, device: torch.device) -> object:
+        """ Moves a sample in compact form to a given device.
+
+        This function is provided because different distributions may return samples in arbitrary objects,
+        so a custom function may be needed to move a sample to a device.
+
+        Args:
+            smp: The sample to move.
+
+            device: The device to move the sample to.
+
+        """
+        raise(NotImplementedError)
+
     def log_prob(self, x: torch.tensor, y: object) -> torch.tensor:
         """ Computes the conditional log probability of individual samples.
 
@@ -90,7 +104,7 @@ class CondVAEDistriubtion(torch.nn.Module):
         """
         raise NotImplementedError
 
-    def kl(self, d_2, x: torch.tensor, smp: Sequence = None):
+    def kl(self, d_2, x: torch.tensor, smp: Sequence = None, return_device: torch.device = None):
         """ Computes the KL divergence between this object and another of the same type conditioned on input.
 
         Specifically computes:
@@ -100,6 +114,10 @@ class CondVAEDistriubtion(torch.nn.Module):
         where p_1(y_i | x_i) represents the conditional distributions for each sample.  Here, p_1 is the conditional
         distribution represented by this object and p_2 is the distribution represented by another object of the same
         type.
+
+        Note: This function will move the conditioning data (x) and the sample (smp) to the appropriate device(s)
+        so calculations can be carried out without needing to move this object or the other conditional
+        distribution between devices.
 
         Args:
             d_2: The other conditional distribution in the KL divergence.  Must be of the same type as this object.  If
@@ -115,16 +133,31 @@ class CondVAEDistriubtion(torch.nn.Module):
             where y_i' is drawn from p_1(y_i|x_i). This is the base behavior of this method.  Objects for which kl
             can be computed analytically should override this method.
 
+            return_device: The device the calculated kl tensor should be returned to.  If None, this will
+            be the device the first parameter of this object is on.
+
         Returns:
             kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th sample.
 
         Raises:
             ValueError: if d2 is not the same type as this object
         """
+
+        self_device = next(self.parameters()).device
+        d_2_device = next(d_2.parameters()).device
+
+        if return_device is None:
+            return_device = self_device
+
         if type(d_2) != type(self):
             raise(ValueError('KL divergence must be computed between distributions of the same type.'))
 
-        kl = self.log_prob(x, smp) - d_2.log_prob(x, smp)
+        smp_self = self.sample_to(smp=smp, device=self_device)
+        x_self = x.to(device=self_device)
+        smp_d_2 = d_2.sample_to(smp=smp, device=d_2_device)
+        x_d_2 = x.to(device=d_2_device)
+
+        kl = self.log_prob(x=x_self, y=smp_self).to(return_device) - d_2.log_prob(x=x_d_2, y=smp_d_2)
         return kl.squeeze()
 
     def r_params(self) -> list:
@@ -352,6 +385,20 @@ class CondGaussianDistribution(CondVAEDistriubtion):
 
     def form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor:
         return smp
+
+    def sample_to(self, smp: object, device: torch.device):
+        """ Moves a sample in compact form to a given device.
+
+        This function is provided because different distributions may return samples in arbitrary objects,
+        so a custom function may be needed to move a sample to a device.
+
+        Args:
+            smp: The sample to move.
+
+            device: The device to move the sample to.
+
+        """
+        return smp.to(device)
 
     def r_params(self):
         return list(self.parameters())
@@ -593,6 +640,17 @@ class CondMatrixProductDistribution(CondVAEDistriubtion):
 
         # Now call form standard sample on each column with the appropriate distribution
         return [d.form_standard_sample(c_s) for c_s, d in zip(col_smps, self.dists)]
+
+    def sample_to(self, smp: object, device: torch.device):
+        """ Moves a sample in compact form to a given device.
+
+        Args:
+            smp: The sample to move.
+
+            device: The device to move the sample to.
+
+        """
+        return [d.sample_to(s, device) for s, d in zip(smp, self.dists)]
 
     def log_prob(self, x: torch.tensor, y: Sequence) -> torch.tensor:
         """ Computes the conditional log probability of individual rows.

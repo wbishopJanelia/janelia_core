@@ -633,7 +633,7 @@ class MultiSubjectVIFitter():
             # Process each batch
             for b_i in range(n_batches):
 
-                batch_obj = 0
+                batch_obj_log = 0
                 # Zero gradients
                 optimizer.zero_grad()
 
@@ -678,7 +678,8 @@ class MultiSubjectVIFitter():
                     y_pred = s_coll.s_mdl.cond_forward(x=batch_x, p=q_p_modes_standard, u=q_u_modes_standard)
                     nll = (float(n_smp_data_points[i])/n_batch_data_pts)*s_coll.s_mdl.neg_ll(y=batch_y, mn=y_pred)
 
-                    batch_obj += nll
+                    nll.backward(retain_graph=True)
+                    batch_obj_log += nll.detach().cpu().numpy()
 
                     # Calculate KL diverengences between posteriors on modes and priors for this subject
                     s_p_kl = 0
@@ -686,14 +687,16 @@ class MultiSubjectVIFitter():
                         if d is not None:
                             s_p_kl += torch.sum(s_coll.p_dists[g].kl(d_2=d, x=s_coll.props[s_coll.input_props[g]],
                                                            smp=q_p_modes[g]))
-                    batch_obj += s_p_kl
+                            s_p_kl.backward()
+                            batch_obj_log += s_p_kl.detach().cpu().numpy()
 
                     s_u_kl = 0
                     for h, d in enumerate(self.u_priors):
                         if d is not None:
                             s_u_kl += torch.sum(s_coll.u_dists[h].kl(d_2=d, x=s_coll.props[s_coll.output_props[h]],
                                                            smp=q_u_modes[h]))
-                    batch_obj += s_u_kl
+                            s_u_kl.backward()
+                            batch_obj_log += s_u_kl.detach().cpu().numpy()
 
                     # Record the log likelihood and kl divergences for each fit model for logging (we currently only
                     # save this for the last batch in an epoch
@@ -703,7 +706,6 @@ class MultiSubjectVIFitter():
                         batch_sub_u_kl[i] = s_u_kl.detach().cpu().numpy()
 
                 # Take a gradient step
-                batch_obj.backward()
                 optimizer.step()
 
                 # Make sure no private variance values are too small
@@ -717,7 +719,6 @@ class MultiSubjectVIFitter():
                             s_mdl.psi[h].data[small_psi_inds] = s_min_var[h]
 
             # Take care of logging everything
-            batch_obj_log = batch_obj.detach().cpu().numpy()
             elapsed_time = time.time() - t_start
             epoch_elapsed_time[e_i] = elapsed_time
             epoch_nll[e_i,:] = batch_nll
@@ -734,6 +735,7 @@ class MultiSubjectVIFitter():
                 if print_sub_kls:
                     print(format_output_list(base_str='Subj P KLs: ', it_str='s_', vls=batch_sub_p_kl, inds=s_inds))
                     print(format_output_list(base_str='Subj U KLs: ', it_str='s_', vls=batch_sub_u_kl, inds=s_inds))
+                print('Elapsed time: ' + str(elapsed_time))
 
         # Return logs
         log = {'elapsed_time': epoch_elapsed_time, 'mdl_nll': epoch_nll, 'sub_p_kl': epoch_sub_p_kl,
