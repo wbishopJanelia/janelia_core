@@ -7,7 +7,7 @@ import torch
 import torch.utils.data
 
 
-class TimeSeriesBatch:
+class TimeSeriesBatch(torch.utils.data.Dataset):
     """ An object to represent a batch of samples from time series data.
 
     Each sample in the batch is a pair consisting of data at time t-1 and data at time t.
@@ -62,6 +62,40 @@ class TimeSeriesBatch:
         self.i_y = self.i_y.to(device, non_blocking=non_blocking)
         if move_i_orig:
             self.i_orig = self.i_orig.to(device, non_blocking=non_blocking)
+
+    def __len__(self):
+        """ Returns the number of samples in the dataset. """
+        return len(self.i_x)
+
+    def __getitem__(self, index):
+        """ Returns requested samples from the dataset.
+
+        Args:
+            index: Integer index or slice indicating requested samples.
+            The index is specifically into the i_x and i_y attributes.
+
+        Returns:
+            smps: The requested samples.
+        """
+
+        # Get unique list of i_orig values for the samples we are to keep
+        keep_i_orig_x = self.i_orig[self.i_x[index].numpy()]
+        keep_i_orig_y = self.i_orig[self.i_y[index].numpy()]
+
+        keep_i_orig = np.unique(np.concatenate((keep_i_orig_x, keep_i_orig_y)))
+
+        # Find out where the i_orig values that we are keeping come from in the original data array
+        pull_inds = torch.tensor(tuple(np.nonzero(self.i_orig == ind)[0] for ind in keep_i_orig)).long()
+
+        # Pull the values for the new data and i_orig
+        pulled_data = [t[pull_inds] for t in self.data]
+        pulled_i_orig = self.i_orig[pull_inds]
+
+        # Form the new i_x and i_y
+        pulled_i_x = torch.tensor(tuple(np.nonzero(pulled_i_orig == i)[0] for i in keep_i_orig_x)).long()
+        pulled_i_y = torch.tensor(tuple(np.nonzero(pulled_i_orig == i)[0] for i in keep_i_orig_y)).long()
+
+        return TimeSeriesBatch(data=pulled_data, i_x=pulled_i_x, i_y=pulled_i_y, i_orig=pulled_i_orig)
 
 
 class TimeSeriesDataset(torch.utils.data.Dataset):
