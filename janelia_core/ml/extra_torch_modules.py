@@ -9,6 +9,7 @@ from torch.nn.functional import relu
 
 from janelia_core.math.basic_functions import int_to_arb_base
 
+
 class Bias(torch.nn.ModuleList):
     """ Applies a bias transformation to the data y = x + o """
 
@@ -36,6 +37,45 @@ class Bias(torch.nn.ModuleList):
             y: Output tensor
         """
         return x + self.o
+
+
+class BiasAndScale(torch.nn.ModuleList):
+    """ Applies a bias and scale transformation to the data y = w*x + o.
+
+    Here w is the same length of o so w*o indicates element-wise product.
+    """
+
+    def __init__(self, d: int, o_init_std: float = .1, w_init_std: float = .1):
+        """ Creates a Bias object.
+
+        Args:
+            d: The dimensionality of the input and output
+
+            o_init_std: The standard deviation of the normal distribution initial biases are pulled from.
+
+            w_init_std: The standard deviation of the normal distribution initial weights are pulled from.
+        """
+
+        super().__init__()
+
+        w = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(w, std=w_init_std)
+        self.register_parameter('w', w)
+
+        o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(o, std=o_init_std)
+        self.register_parameter('o', o)
+
+    def forward(self, x: torch.Tensor) -> torch.tensor:
+        """ Computes output given input.
+
+        Args:
+            x: Input tensor
+
+        Returns:
+            y: Output tensor
+        """
+        return self.w*x + self.o
 
 
 class ConstantBoundedFcn(torch.nn.Module):
@@ -86,6 +126,136 @@ class ConstantBoundedFcn(torch.nn.Module):
         vl = (.5*torch.tanh(self.v) + .5)*(self.upper_bound - self.lower_bound) + self.lower_bound
 
         return vl.unsqueeze(0).expand(n_smps, self.n_dims)
+
+
+class IndSmpConstantBoundedFcn(torch.nn.Module):
+    """ For representing a function which assigns different bounded constant scalar values to given samples.
+
+    This is useful, for example, when wanting to have a function which provides a different standard deviation for
+    each sample in a conditional Gaussian distribution.
+    """
+
+    def __init__(self, n: int, lower_bound: float = -1.0, upper_bound: float = 1.0, init_value: float = .05):
+        """
+        Creates an IndSmpConstantBoundedFcn object.
+
+        Args:
+
+            n: The number of samples this function will assign values to.
+
+            lower_bound, upper_bound: lower and upper bounds the function can represent.  All samples will have the same
+            bounds.
+
+            init_value: The initial value to assign to each sample.  All samples will have the same initial value.
+
+        """
+        super().__init__()
+
+        self.n = n
+
+        l_bounds = lower_bound*np.ones(n, dtype=np.float32)
+        u_bounds = upper_bound*np.ones(n, dtype=np.float32)
+        init_vls = init_value*np.ones(n, dtype=np.float32)
+
+        self.f = ConstantBoundedFcn(lower_bound=l_bounds, upper_bound=u_bounds, init_value=init_vls)
+
+    def forward(self, x):
+        """ Assigns a value to each sample in x.
+
+        Args:
+            x: input of shape n_smps*d_x
+
+        Returns:
+            y: output of shape n_smps*1
+
+        Raises:
+            ValueError: If the number of samples in x does not match the the number of samples the function represents.
+        """
+
+        if self.n != x.shape[0]:
+            raise(ValueError(' Number of input samples does not match number of output values.'))
+
+        place_holder_input = torch.zeros(1)
+        return self.f(place_holder_input).t()
+
+
+class ConstantRealFcn(torch.nn.Module):
+    """ Object for representing function which is constant w.r.t to input and take values anywhere in the reals.
+
+    This is useful when working with modules which need a submodule which is a function with trainable parameters and
+    you desire to use a constant in place of the function.  For example, when working with conditional distributions
+    intsead of predicting the conditional mean with a neural network, you might want a constant conditional mean.
+    """
+
+    def __init__(self, init_vl: np.ndarray):
+        """ Creates a ConstantRealFcn object.
+
+        Args:
+            init_vl: The initial value to initialize the function with.  The length of init_vl determines the number
+            of dimensions of the output of the function.
+        """
+
+        super().__init__()
+
+        self.n_dims = len(init_vl)
+
+        self.vl = torch.nn.Parameter(torch.zeros(self.n_dims), requires_grad=True)
+        self.vl.data = torch.from_numpy(init_vl)
+        self.vl.data = self.vl.data.float()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Produces constant output given input.
+
+        Args:
+            x: Input data of shape nSmps*d_in.
+
+        Returns:
+            y: output of shape nSmps*d_out
+        """
+
+        n_smps = x.shape[0]
+        return self.vl.unsqueeze(0).expand(n_smps, self.n_dims)
+
+
+class IndSmpConstantRealFcn(torch.nn.Module):
+    """ For representing a function which assigns different real-valued constant scalar values to given samples.
+
+    This is useful, for example, when wanting to have a function which provides a different mean for each sample in a
+    conditional Gaussian distribution.
+    """
+
+    def __init__(self, n: int, init_mn: float = 0.0, init_std: float = 0.1):
+        """ Creates a IndSmpConstantBoundedFcn object.
+
+        Args:
+            n: The number of samples this function will assign values to.
+
+            init_value: The initial value to assign to each sample.
+        """
+
+        super().__init__()
+        self.n = n
+        self.f = ConstantRealFcn(np.zeros(n))
+        torch.nn.init.normal_(self.f.vl, mean=init_mn, std=init_std)
+
+    def forward(self, x):
+        """ Assigns a value to each sample in x.
+
+        Args:
+            x: Input of shape n_smps*d_x
+
+        Returns:
+            y: Output of shape n_smps*1
+
+        Raises:
+            ValueError: If the number of samples in x does not match the the number of samples the function represents.
+        """
+
+        if self.n != x.shape[0]:
+            raise(ValueError('Number of input samples does not match number of output samples.'))
+
+        place_holder_input = torch.zeros(1)
+        return self.f(place_holder_input).t()
 
 
 class DenseLayer(torch.nn.Module):
@@ -320,136 +490,6 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         """
         n_smps = x.shape[0]
         return torch.sum(self.b_m[self._x_to_idx(x)], dim=1).view([n_smps, 1])
-
-
-class IndSmpConstantBoundedFcn(torch.nn.Module):
-    """ For representing a function which assigns different bounded constant scalar values to given samples.
-
-    This is useful, for example, when wanting to have a function which provides a different standard deviation for
-    each sample in a conditional Gaussian distribution.
-    """
-
-    def __init__(self, n: int, lower_bound: float = -1.0, upper_bound: float = 1.0, init_value: float = .05):
-        """
-        Creates an IndSmpConstantBoundedFcn object.
-
-        Args:
-
-            n: The number of samples this function will assign values to.
-
-            lower_bound, upper_bound: lower and upper bounds the function can represent.  All samples will have the same
-            bounds.
-
-            init_value: The initial value to assign to each sample.  All samples will have the same initial value.
-
-        """
-        super().__init__()
-
-        self.n = n
-
-        l_bounds = lower_bound*np.ones(n, dtype=np.float32)
-        u_bounds = upper_bound*np.ones(n, dtype=np.float32)
-        init_vls = init_value*np.ones(n, dtype=np.float32)
-
-        self.f = ConstantBoundedFcn(lower_bound=l_bounds, upper_bound=u_bounds, init_value=init_vls)
-
-    def forward(self, x):
-        """ Assigns a value to each sample in x.
-
-        Args:
-            x: input of shape n_smps*d_x
-
-        Returns:
-            y: output of shape n_smps*1
-
-        Raises:
-            ValueError: If the number of samples in x does not match the the number of samples the function represents.
-        """
-
-        if self.n != x.shape[0]:
-            raise(ValueError(' Number of input samples does not match number of output values.'))
-
-        place_holder_input = torch.zeros(1)
-        return self.f(place_holder_input).t()
-
-
-class ConstantRealFcn(torch.nn.Module):
-    """ Object for representing function which is constant w.r.t to input and take values anywhere in the reals.
-
-    This is useful when working with modules which need a submodule which is a function with trainable parameters and
-    you desire to use a constant in place of the function.  For example, when working with conditional distributions
-    intsead of predicting the conditional mean with a neural network, you might want a constant conditional mean.
-    """
-
-    def __init__(self, init_vl: np.ndarray):
-        """ Creates a ConstantRealFcn object.
-
-        Args:
-            init_vl: The initial value to initialize the function with.  The length of init_vl determines the number
-            of dimensions of the output of the function.
-        """
-
-        super().__init__()
-
-        self.n_dims = len(init_vl)
-
-        self.vl = torch.nn.Parameter(torch.zeros(self.n_dims), requires_grad=True)
-        self.vl.data = torch.from_numpy(init_vl)
-        self.vl.data = self.vl.data.float()
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Produces constant output given input.
-
-        Args:
-            x: Input data of shape nSmps*d_in.
-
-        Returns:
-            y: output of shape nSmps*d_out
-        """
-
-        n_smps = x.shape[0]
-        return self.vl.unsqueeze(0).expand(n_smps, self.n_dims)
-
-
-class IndSmpConstantRealFcn(torch.nn.Module):
-    """ For representing a function which assigns different real-valued constant scalar values to given samples.
-
-    This is useful, for example, when wanting to have a function which provides a different mean for each sample in a
-    conditional Gaussian distribution.
-    """
-
-    def __init__(self, n: int, init_mn: float = 0.0, init_std: float = 0.1):
-        """ Creates a IndSmpConstantBoundedFcn object.
-
-        Args:
-            n: The number of samples this function will assign values to.
-
-            init_value: The initial value to assign to each sample.
-        """
-
-        super().__init__()
-        self.n = n
-        self.f = ConstantRealFcn(np.zeros(n))
-        torch.nn.init.normal_(self.f.vl, mean=init_mn, std=init_std)
-
-    def forward(self, x):
-        """ Assigns a value to each sample in x.
-
-        Args:
-            x: Input of shape n_smps*d_x
-
-        Returns:
-            y: Output of shape n_smps*1
-
-        Raises:
-            ValueError: If the number of samples in x does not match the the number of samples the function represents.
-        """
-
-        if self.n != x.shape[0]:
-            raise(ValueError('Number of input samples does not match number of output samples.'))
-
-        place_holder_input = torch.zeros(1)
-        return self.f(place_holder_input).t()
 
 
 class Relu(torch.nn.ModuleList):

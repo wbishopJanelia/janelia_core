@@ -216,3 +216,60 @@ class ConcatenateMap(torch.nn.Module):
              for h in range(n_output_grps)]
 
         return y
+
+
+class ConcatenateAndSelectMap(torch.nn.Module):
+    """ Concatenates input from all input groups and then selects entries of the result for different output groups.
+    """
+
+    def __init__(self, d_in: Sequence[int], output_inds: Sequence[Sequence[torch.Tensor]]):
+        """ Creates a ConcatenateAndSelectMap object.
+
+        Args:
+            d_in: d_in[g] is the dimensionality of the g^th input group
+
+            output_inds: output_inds[h][g] is a torch tensor of dtype long indicating which entries of
+            the g^th input group should be in the h^th output group.  The output of each group will be formed
+            by concatenating the included entries for all input groups.  The order of concatenating groups follows
+            the order of the input groups. The value None indicates no entries from input g should be selected.
+
+        """
+
+        super().__init__()
+
+        # Form indices for selecting input
+        n_input_grps = len(d_in)
+        n_output_grps = len(output_inds)
+        input_offsets = np.zeros(n_input_grps)
+
+        for g in range(1, n_input_grps):
+            input_offsets[g] = input_offsets[g-1] + d_in[g - 1]
+        input_offsets = input_offsets.astype('long')
+
+        sel_tensors = [torch.cat([inds + input_offsets[g] for g, inds in enumerate(input_grp_inds) if inds is not None])
+                       for input_grp_inds in output_inds]
+
+        # Register the indices for selecting input as buffers
+        self.sel_tensors = []
+        for h, sel_t in enumerate(sel_tensors):
+            buffer_name = 'sel_tensor' + str(h)
+            self.register_buffer(buffer_name, sel_t)
+            self.sel_tensors.append(getattr(self, buffer_name))
+
+    def forward(self, x: Sequence[torch.Tensor]) -> Sequence[torch.Tensor]:
+        """ Forms output from input.
+
+        Args:
+            x: x[g] is the input for the g^th group of shape n_smps*d_g
+
+        Returns:
+            y: y[h] is the output for the h^th group of shape n_smps*d_h
+        """
+
+        # Concatenate all input
+        x_conc = torch.cat(x, dim=1)
+        return [x_conc[:, inds] for inds in self.sel_tensors]
+
+
+
+

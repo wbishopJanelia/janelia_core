@@ -1,6 +1,6 @@
-""" Torch modules for working with distributions.
+""" Torch modules and tools for working with distributions.
 
-Note: These are *not* subclasses of the torch.distributions.
+Note: The distribution objects defined here are *not* subclasses of the torch.distributions.
 
  """
 
@@ -740,7 +740,7 @@ class MatrixGaussianProductDistribution(CondMatrixProductDistribution):
 
 
 class CondMatrixHypercubePrior(CondMatrixProductDistribution):
-    """ Extends CondMatrixProductDistribution so distribution for each column is a Gaussian with mean and standard
+    """ Extends CondMatrixProductDistribution so the distribution for each column is a Gaussian with mean and standard
     deviation functions which are sums of tiled hypercube basis functions.
 
     Specifically, For a matrix, W, under a CondMatrixProductDistribution, we model:
@@ -753,12 +753,12 @@ class CondMatrixHypercubePrior(CondMatrixProductDistribution):
 
     """
 
-    def __init__(self, shape: Sequence[int], mn_hc_params: dict, std_hc_params: dict, min_std: float,
+    def __init__(self, n_cols: int, mn_hc_params: dict, std_hc_params: dict, min_std: float,
                  mn_init: float = 0.0, std_init: float = .01):
         """ Creates a CondMatrixHypercubePrior object
 
         Args:
-            shape: The shape of the matrices to represent distributions over.
+            n_cols: The number of columns in the matrices we represent distributions over.
 
             mn_hc_params: A dictionary with parameters for passing into the init() function of
             SumOfTiledHyperCubeBasisFcns when creating the hypercube function for the mean function for each P_j.
@@ -783,7 +783,6 @@ class CondMatrixHypercubePrior(CondMatrixProductDistribution):
             raise(ValueError('std_init must be greater than min_std'))
 
         # Form each P_j
-        n_rows, n_cols = shape
         col_dists = [None]*n_cols
         for c_i in range(n_cols):
 
@@ -806,4 +805,3 @@ class CondMatrixHypercubePrior(CondMatrixProductDistribution):
             col_dists[c_i] = CondGaussianDistribution(mn_f=mn_f, std_f=std_f)
 
         super().__init__(dists=col_dists)
-
