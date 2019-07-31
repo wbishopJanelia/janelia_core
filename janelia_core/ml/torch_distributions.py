@@ -120,9 +120,7 @@ class CondVAEDistriubtion(torch.nn.Module):
         distribution between devices.
 
         Args:
-            d_2: The other conditional distribution in the KL divergence.  Must be of the same type as this object.  If
-            a multivariate distribution, must also be over random variables as the same size as the random variables
-            the distribution for this object is over.
+            d_2: The other conditional distribution in the KL divergence.
 
             x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
 
@@ -139,8 +137,6 @@ class CondVAEDistriubtion(torch.nn.Module):
         Returns:
             kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th sample.
 
-        Raises:
-            ValueError: if d2 is not the same type as this object
         """
 
         self_device = next(self.parameters()).device
@@ -148,9 +144,6 @@ class CondVAEDistriubtion(torch.nn.Module):
 
         if return_device is None:
             return_device = self_device
-
-        if type(d_2) != type(self):
-            raise(ValueError('KL divergence must be computed between distributions of the same type.'))
 
         smp_self = self.sample_to(smp=smp, device=self_device)
         x_self = x.to(device=self_device)

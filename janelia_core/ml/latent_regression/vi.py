@@ -9,6 +9,7 @@ import numpy as np
 import torch
 
 from janelia_core.ml.datasets import TimeSeriesDataset
+from janelia_core.ml.datasets import TimeSeriesBatch
 from janelia_core.ml.latent_regression.subject_models import LatentRegModel
 from janelia_core.ml.torch_distributions import CondVAEDistriubtion
 from janelia_core.ml.torch_distributions import CondMatrixProductDistribution
@@ -42,9 +43,12 @@ def format_output_list(base_str: str, it_str: str, vls: Sequence[float], inds: S
     f_str = base_str + ' '
 
     for i, vl in enumerate(vls):
-        f_str += it_str + str(inds[i]) + ': ' + str(vl)
+        f_str += it_str + str(inds[i]) + ': {' + str(i) + ':e}'
         if i < n_vls - 1:
             f_str += ', '
+
+    # Format values
+    f_str = f_str.format(*vls)
 
     return f_str
 
@@ -336,9 +340,9 @@ def vae_fit_latent_reg_model(l_mdl: LatentRegModel, q_p_dists: Sequence[Sequence
 class SubjectVICollection():
     """ Holds data, likelihood models and posteriors for fitting data to a single subject with variational inference."""
 
-    def __init__(self, s_mdl: LatentRegModel, p_dists: Sequence, u_dists: Sequence, data: TimeSeriesDataset,
-                 input_grps: Sequence, output_grps: Sequence, props: Sequence, input_props: Sequence,
-                 output_props: Sequence, min_var: Sequence[float]):
+    def __init__(self, s_mdl: LatentRegModel, p_dists: Sequence, u_dists: Sequence,
+                 data: Union[TimeSeriesBatch, TimeSeriesDataset], input_grps: Sequence, output_grps: Sequence,
+                 props: Sequence, input_props: Sequence, output_props: Sequence, min_var: Sequence[float]):
         """ Creates a new SubjectVICollection object.
 
         Args:
@@ -350,7 +354,7 @@ class SubjectVICollection():
 
             p_dists: The posterior distributions for the p modes.  Same form as u_dists.
 
-            data: Data for the subject
+            data: Data for the subject.
 
             input_grps: input_grps[g] is the index into data.data for the g^th input group
 
@@ -438,7 +442,7 @@ class MultiSubjectVIFitter():
         # Attributes for keeping track of which devices everything is on
         self.prior_device = None
         self.s_collection_devices = [None]*len(self.s_collections)
-        self.distributed = False # Keep track if we have distributed everything yet
+        self.distributed = False  # Keep track if we have distributed everything yet
 
     def distribute(self, devices: Sequence[Union[torch.device, int]], s_inds: Sequence[int] = None):
         """ Distributes prior collections as well as 0 or more subject models across devices.
