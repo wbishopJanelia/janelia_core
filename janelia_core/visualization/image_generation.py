@@ -143,4 +143,96 @@ def generate_dot_image(image_shape: Sequence, dot_ctrs: np.ndarray, dot_clrs: np
     return img
 
 
+def generate_image_from_fcn(f, dim_sampling: Sequence[Sequence]):
+    """ Generates a multi-d image from a function.
 
+    The main use for this function is generating images for visualization.
+
+    Args:
+        f: The function to plot.
+
+        dim_sampling: Each entry of dim_sampling specifies how to sample a dimension in the
+        domain of the fuction.  Each entry is of the form [start, stop, int] where start and
+        and stop are the start and stop of the range of values to sample from and int
+        is the interval values are sampled from.
+
+    Returns:
+
+        im: The image
+
+        coords: A list of coordinates along each dimension the function was sampled at.
+
+    """
+
+    # Determine coordinates we will sample from along each dimension
+    coords = [np.arange(ds[0], ds[1], ds[2]) for ds in dim_sampling]
+    n_coords_per_dim = [len(c) for c in coords]
+
+    # Form coordinates of each point we will sample from in a single numpy array
+    grid = np.meshgrid(*coords, indexing='ij')
+    n_pts = grid[0].size
+    flat_grid = np.concatenate([g.reshape([n_pts,1]) for g in grid], axis=1)
+
+    # Evaluate the function
+    y = f(flat_grid)
+
+    # Shape y into the appropriate image size
+    im = y.reshape(n_coords_per_dim)
+
+    return [im, coords]
+
+
+def generate_binary_color_rgba_image(a: np.ndarray, neg_clr: Sequence[float] = None, pos_clr: Sequence[float] = None):
+    """ Generates an RGBA image of two colors from a 2-d numpy array.
+
+    Negative values will be one color while positive values will be another.
+
+    The alpha channel will be equal to the absolute value of entries of a, so all values of a must be in [-1, 1].
+
+    The negative color will be assigned to entries strictly less than 0, while the positive channel will be assigned
+    to entries greater than or equal to 0.
+
+    Args:
+        a: The array to binarize.
+
+        neg_clr: A sequence of floats specifying the RGB values for the negative color.  All value should in [0, 1].
+        If None, the negative color will be red.
+
+        pos_clr: A sequence of floats specifying the RGB values for the positive color.  All value should in [0, 1].
+        If None, the positive color will be green.
+
+    Returns:
+        im: The image of shape [a.shape[0], a.shape[1], 4]
+
+    Raises:
+         ValueError: If any entry in a is outside of [-1, 1]
+         ValueError: If a is not a 2-d array.
+    """
+
+    if np.any(np.abs(a) > 1):
+        raise(ValueError('All values in a must be in the range [-1, 1].'))
+
+    if a.ndim != 2:
+        raise(ValueError('Input a must be a 2-d array.'))
+
+    im = np.zeros([a.shape[0], a.shape[1], 4])
+
+    if neg_clr is None:
+        neg_clr = np.asarray([1, 0, 0])
+    else:
+        neg_clr = np.asarray(neg_clr)
+
+    if pos_clr is None:
+        pos_clr = np.asarray([0, 1, 0])
+    else:
+        pos_clr = np.asarray(pos_clr)
+
+    neg_vls = a < 0
+    im[neg_vls, 0:3] = neg_clr
+
+    pos_vls = a >= 0
+    im[pos_vls, 0:3] = pos_clr
+
+    im[:,:,3] = np.abs(a)
+
+    return im

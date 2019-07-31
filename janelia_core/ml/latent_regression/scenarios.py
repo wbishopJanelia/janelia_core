@@ -19,7 +19,7 @@ from janelia_core.ml.latent_regression.vi import SubjectVICollection
 from janelia_core.ml.torch_distributions import CondGaussianDistribution
 from janelia_core.ml.torch_distributions import CondMatrixProductDistribution
 from janelia_core.ml.utils import torch_mod_to_fcn
-from janelia_core.visualization.utils import generate_image_from_fcn
+from janelia_core.visualization.image_generation import generate_image_from_fcn
 
 
 class GaussianBumpFcn(torch.nn.Module):
