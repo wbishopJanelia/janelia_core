@@ -18,7 +18,7 @@ def r_squared(truth: np.ndarray, pred: np.ndarray) -> np.ndarray:
 
     Returns:
 
-        r_sq: r_sq[i] contains the r-squared value for pred[i]
+        r_sq: r_sq[i] contains the r-squared value for pred[:, i]
     """
 
     if pred.ndim == 1:

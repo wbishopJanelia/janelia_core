@@ -544,6 +544,18 @@ class MultiSubjectVIFitter():
         all_devices = set(self.s_collection_devices + [self.prior_device])
         return [torch.cuda.memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in all_devices]
 
+    def get_device_max_memory_allocated(self) -> Sequence:
+        """ Returns the max memory usage of each device in the fitter.
+
+        The memory usage for cpu devices will be nan.
+
+        Returns:
+            m_usage: m_usage[i] is the max amount of memory used on the i^th device
+        """
+
+        all_devices = set(self.s_collection_devices + [self.prior_device])
+        return [torch.cuda.max_memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in all_devices]
+
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, pin_memory: bool = False,
             update_int: int = 1, print_mdl_nlls: bool = True, print_sub_kls: bool = True,
@@ -757,6 +769,11 @@ class MultiSubjectVIFitter():
                     device_memory_usage = self.get_device_memory_usage()
                     print(format_output_list(base_str='Device memory usage: ', it_str='d_',
                           vls=device_memory_usage, inds=range(len(device_memory_usage))))
+                    device_max_memory_usage = self.get_device_max_memory_allocated()
+                    print(format_output_list(base_str='Device max memory usage: ', it_str='d_',
+                          vls=device_max_memory_usage, inds=range(len(device_max_memory_usage))))
+
+
                 print('Elapsed time: ' + str(elapsed_time))
 
         # Return logs
