@@ -2,7 +2,6 @@
 
 from typing import Sequence
 
-import copy
 import matplotlib.pyplot as plt
 import matplotlib.transforms
 import numpy as np
@@ -598,6 +597,7 @@ def plot_single_2d_conditional_prior(priors: CondMatrixProductDistribution, mode
     plot_axes.yaxis.set_visible(False)
     plt.colorbar(mappable=plotted_im, ax=plot_axes)
 
+
 def plot_2d_conditional_prior(priors: CondMatrixProductDistribution,
                               dim_sampling: Sequence[Sequence] = [[0, 1, .01], [0, 1, .01]],
                               mn_range: float = None, std_range: float = None):
@@ -657,12 +657,11 @@ def plot_2d_conditional_prior(priors: CondMatrixProductDistribution,
         if m_i == n_modes - 1:
             plt.colorbar(mappable=std_im, ax=std_axes[m_i])
 
+
 def plot_single_2d_mode(mode: np.ndarray, neuron_p: np.ndarray, vl_range: float = None,
                                   dim_range: Sequence[Sequence] = [[0, 1], [0, 1]],
-                                  plot_axes: matplotlib.axes = None):
+                                  plot_axes: matplotlib.axes = None, plot_color_bar: bool = True):
     """ Plots the mode loadings for a single mode for neurons positioned in 2-d space.
-
-    Modes will be plotted in a row, followed by a colorbar.  All modes will be plotted on the same color scale.
 
     Args:
         mode: The mode to plot as a 1-d array of length n_neurons.
@@ -675,6 +674,8 @@ def plot_single_2d_mode(mode: np.ndarray, neuron_p: np.ndarray, vl_range: float 
         dim_range: The spatial range to generate plots for.
 
         plot_axes: The axes to plot into.  If none, one will be provided
+
+        plot_color_bar: True if a color bar should be added to the plot.
     """
 
     if vl_range is None:
@@ -694,15 +695,17 @@ def plot_single_2d_mode(mode: np.ndarray, neuron_p: np.ndarray, vl_range: float 
     plot_axes.xaxis.set_visible(False)
     plot_axes.yaxis.set_visible(False)
 
-    cb = plt.colorbar(mappable=sp)
+    if plot_color_bar:
+        cb = plt.colorbar(mappable=sp)
 
 
 def plot_single_2d_mode_posterior(post: CondMatrixProductDistribution, mode: int, neuron_p: np.ndarray,
                                   vl_range: float = None, dim_range: Sequence[Sequence] = [[0, 1], [0, 1]],
-                                  plot_axes: matplotlib.axes = None, plot_mn: bool = True, t: np.ndarray = None):
-    """ Plots the mode loadings for a single mode for neurons positioned in 2-d space.
+                                  plot_axes: matplotlib.axes = None, plot_mn: bool = True, t: np.ndarray = None,
+                                  plot_color_bar: bool = True):
+    """ Plots the mean or standard deviation of mode loadings for a single mode for neurons positioned in 2-d space.
 
-    Modes will be plotted in a row, followed by a colorbar.  All modes will be plotted on the same color scale.
+    The distribution can be transformed before plotting.
 
     Args:
         post: The posterior distribution over modes.
@@ -719,6 +722,10 @@ def plot_single_2d_mode_posterior(post: CondMatrixProductDistribution, mode: int
         plot_axes: Axes to plot into.  If None, one will be created.
 
         plot_mn: If true, the mean is plotted.  If false, the standard deviation is plotted.
+
+        t: The transition matrix to apply to the distribution if it should be transformed before plotting.
+
+        plot_color_bar: True if a color bar should be added to the plot.
 
     """
 
@@ -769,7 +776,8 @@ def plot_single_2d_mode_posterior(post: CondMatrixProductDistribution, mode: int
     plot_axes.xaxis.set_visible(False)
     plot_axes.yaxis.set_visible(False)
 
-    cb = plt.colorbar(mappable=sp)
+    if plot_color_bar:
+        cb = plt.colorbar(mappable=sp)
 
 
 def plot_2d_modes(modes: np.ndarray, neuron_p: np.ndarray, vl_range: float = None,
@@ -826,7 +834,24 @@ def plot_2d_modes(modes: np.ndarray, neuron_p: np.ndarray, vl_range: float = Non
 
 def learn_prior_transformation(d0, d1, dim_sampling: Sequence[Sequence] = [[0, 1, .01], [0, 1, .01]],
                                d0_slice: slice = None, d1_slice: slice = None):
-    pass
+    """ Learns a transformation between two the means of two prior distributions.
+
+    The transformation is learned based on sampling both conditional distributions.
+
+    Args:
+        d0: The distribution to transform *to*
+
+        d1: The distribution to transform *from*
+
+        dim_sampling: Each entry of dim_sampling specifies how to sample the conditional prior.  Each entry is
+        of the form [start, stop, int] where start and and stop are the start and stop of the range of values to
+        sample from and int is the interval values are sampled from.
+
+        d0_slice: A slice indicating which modes of d0 to learn the transformation to.
+
+        d1_slice: A slice indicating which modes of d1 to learn the transformation from.
+
+    """
 
     # Determine coordinates we will sample from along each dimension
     coords = [np.arange(ds[0], ds[1], ds[2]) for ds in dim_sampling]
