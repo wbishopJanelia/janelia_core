@@ -134,7 +134,10 @@ class BumpInputWithRecursiveDynamicsScenario():
 
     def __init__(self, n_subjects, n_modes: int, n_neuron_range: Sequence[int], prior_std: float = .02,
                  bump_max_range: Sequence[float] = [.09, .2], bump_std_range: Sequence[int] = [.2, .4],
-                 noise_range: Sequence[float] = [.1, .2], n_dims: int = 2, pos_neg_modes: bool = True):
+                 noise_range: Sequence[float] = [.1, .2], n_dims: int = 2, pos_neg_modes: bool = True,
+                 input_bump_ctrs: np.ndarray = None, input_bump_stds: np.ndarray = None,
+                 input_bump_gains: np.ndarray = None, int_bump_ctrs: np.ndarray = None, int_bump_stds: np.ndarray = None,
+                 int_bump_gains: np.ndarray = None):
 
         """ Creates a new BumpInputWithRecursiveDynamicsScenario object.
 
@@ -163,7 +166,22 @@ class BumpInputWithRecursiveDynamicsScenario():
             pos_neg_modes: If true, the sign of the peak of modes can be either positive or negative (with 50%
             probability)
 
+            input_bump_ctrs: If not None, the parameters of the bump function forming the means for the input mode
+            couplings (and internal p couplings) will not be randomly generated but will instead be specified by the
+            user.  input_bump_ctrs[:, i] gives the center for the bump function for the i^th mode.
+
+            input_bump_stds: If not randomly generating parameters for the input mean functions, input_bump_stds[:, i]
+            gives the dimension standard deviations for the i^th mode.
+
+            input_bump_gains: If not randomly generating parameters for the input mean functions, input_bump_gains[i]
+            gives the gain for the i^th mode.
+
+            int_bump_ctrs, int_bump_stds, int_bump_gains: Analagous to the same for the input modes but specifying the
+            parameters of the mean functions for the internal u modes.
+
         """
+
+        use_fixed_params = [input_bump_ctrs is not None, int_bump_ctrs is not None]
 
         # Generate the prior distribution for the input & internal u modes
         bump_gain_int_width = bump_max_range[1] - bump_max_range[0]
@@ -174,14 +192,25 @@ class BumpInputWithRecursiveDynamicsScenario():
             for m_i in range(n_modes):
 
                 # Create the conditional mean bump function
-                gain = np.random.rand(1)*bump_gain_int_width + bump_max_range[0]
-                if pos_neg_modes:
-                    sign  = 2*np.random.binomial(1, .5) - 1.0
+                if not use_fixed_params[inp_int_i]:
+                    gain = np.random.rand(1)*bump_gain_int_width + bump_max_range[0]
+                    if pos_neg_modes:
+                        sign  = 2*np.random.binomial(1, .5) - 1.0
+                    else:
+                        sign = 1.0
+                    gain = sign*gain
+                    dim_stds = torch.Tensor(np.random.rand(n_dims)*bump_std_int_width + bump_std_range[0])
+                    ctr = torch.Tensor(np.random.rand(n_dims))
                 else:
-                    sign = 1.0
-                gain = sign*gain
-                dim_stds = torch.Tensor(np.random.rand(n_dims)*bump_std_int_width + bump_std_range[0])
-                ctr = torch.Tensor(np.random.rand(n_dims))
+                    if inp_int_i == 0:
+                        gain = input_bump_gains[m_i]
+                        ctr = torch.Tensor(input_bump_ctrs[:, m_i])
+                        dim_stds = torch.Tensor(input_bump_stds[:, m_i])
+                    else:
+                        gain = int_bump_gains[m_i]
+                        ctr = torch.Tensor(int_bump_ctrs[:, m_i])
+                        dim_stds = torch.Tensor(int_bump_stds[:, m_i])
+
                 mn_f = GaussianBumpFcn(ctr=ctr, std=dim_stds, peak_vl=gain)
 
                 # Create the standard deviation function
@@ -224,6 +253,7 @@ class BumpInputWithRecursiveDynamicsScenario():
         self.n_modes = n_modes
         self.n_dims = n_dims
         self.input_u_prior = input_u_prior
+        self.internal_p_prior = internal_p_prior
         self.internal_u_prior = internal_u_prior
         self.subject_mdls = subject_mdls
 
@@ -490,6 +520,84 @@ class BumpInputWithRecursiveDynamicsScenario():
         return self.generate_data(stimuli=input)
 
 
+def plot_single_2d_conditional_prior(priors: CondMatrixProductDistribution, mode: int,
+                                     dim_sampling: Sequence[Sequence] = [[0, 1, .01], [0, 1, .01]],
+                                     range: float = None, plot_mn: bool = True, t: np.ndarray = None):
+    """ Plots a prior distribution of a neuron's loading given neuron's location in a 2-d space for a single mode.
+
+    Args:
+        priors: The conditional prior distribution over modes.
+
+        mode: The index of the mode for the prior to plot.
+
+        dim_sampling: Each entry of dim_sampling specifies how to sample a dimension in the
+        domain of the function.  Each entry is of the form [start, stop, int] where start and
+        and stop are the start and stop of the range of values to sample from and int
+        is the interval values are sampled from.
+
+        range: If provided, colors for values will saturate at +/- range.  If not provided, this
+        is set based on the values to be plotted.
+
+        plot_mn: If true, the mean will be plotted.  If false, the standard deviation is plotted.
+    """
+
+    # Determine coordinates we will sample from along each dimension
+    coords = [np.arange(ds[0], ds[1], ds[2]) for ds in dim_sampling]
+
+    # Form coordinates of each point we will sample from in a single numpy array
+    grid = np.meshgrid(*coords, indexing='ij')
+    n_pts = grid[0].size
+    flat_grid = torch.Tensor(np.concatenate([g.reshape([n_pts,1]) for g in grid], axis=1))
+    n_coords_per_dim = [len(c) for c in coords]
+
+    # Get the mean and standard deviation of the unrotated modes at each point in the grid
+    mode_mn = priors(flat_grid).cpu().detach().numpy()
+    mode_std = torch.cat([d(flat_grid) for d in priors.dists], dim=1).cpu().detach().numpy()
+
+    # Rotate modes
+    if t is None:
+        n_modes = mode_mn.shape[1]
+        t = np.eye(n_modes)
+
+    mode_mn = np.matmul(mode_mn, t)
+    mode_std = np.sqrt(np.matmul(mode_std**2, t**2))
+
+    # Get the mode we are to plot
+    mode_mn = mode_mn[:, mode]
+    mode_std = mode_std[:, mode]
+
+    # Put the mean and standard deviation in images
+    mode_mn = mode_mn.reshape(n_coords_per_dim)
+    mode_std = mode_std.reshape(n_coords_per_dim)
+
+    # Determine the axes ratio of the images we will plot
+    aspect_ratio = float(dim_sampling[0][2])/float(dim_sampling[1][2])
+
+    # Get the mean or std image
+    if plot_mn:
+        img = mode_mn.transpose()
+    else:
+        img = mode_std.transpose()
+
+    # Get the max absolute values for the images
+    if range is None:
+        range = np.max(np.abs(img))
+
+    if plot_mn:
+        vmin = -range
+        cmap = 'PiYG'
+    else:
+        vmin = 0
+        cmap = 'cool'
+    vmax = range
+
+    # Plot image
+    plot_axes = plt.axes()
+    plotted_im = plot_axes.imshow(img, cmap=cmap, vmin=vmin, vmax=vmax, origin='lower')
+    plot_axes.xaxis.set_visible(False)
+    plot_axes.yaxis.set_visible(False)
+    plt.colorbar(mappable=plotted_im, ax=plot_axes)
+
 def plot_2d_conditional_prior(priors: CondMatrixProductDistribution,
                               dim_sampling: Sequence[Sequence] = [[0, 1, .01], [0, 1, .01]],
                               mn_range: float = None, std_range: float = None):
@@ -549,6 +657,120 @@ def plot_2d_conditional_prior(priors: CondMatrixProductDistribution,
         if m_i == n_modes - 1:
             plt.colorbar(mappable=std_im, ax=std_axes[m_i])
 
+def plot_single_2d_mode(mode: np.ndarray, neuron_p: np.ndarray, vl_range: float = None,
+                                  dim_range: Sequence[Sequence] = [[0, 1], [0, 1]],
+                                  plot_axes: matplotlib.axes = None):
+    """ Plots the mode loadings for a single mode for neurons positioned in 2-d space.
+
+    Modes will be plotted in a row, followed by a colorbar.  All modes will be plotted on the same color scale.
+
+    Args:
+        mode: The mode to plot as a 1-d array of length n_neurons.
+
+        neuron_p: The position of each neuron.  Shape is n_neurons*2.
+
+        vl_range: The min and max value to clip values at when assigning colors.  If not provided, will be
+        assigned based on the values in modes.
+
+        dim_range: The spatial range to generate plots for.
+
+        plot_axes: The axes to plot into.  If none, one will be provided
+    """
+
+    if vl_range is None:
+        vl_range = np.max(np.abs(mode))
+
+    if plot_axes is None:
+        plot_axes = plt.axes()
+
+    # Plot the mode
+    sp = plot_axes.scatter(x=neuron_p[:,0], y=neuron_p[:,1], marker='o', c=mode,
+                               cmap='PiYG', vmin=-vl_range, vmax=vl_range)
+
+    plot_axes.set_xlim(dim_range[0])
+    plot_axes.set_ylim(dim_range[1])
+    plot_axes.set_aspect('equal')
+
+    plot_axes.xaxis.set_visible(False)
+    plot_axes.yaxis.set_visible(False)
+
+    cb = plt.colorbar(mappable=sp)
+
+
+def plot_single_2d_mode_posterior(post: CondMatrixProductDistribution, mode: int, neuron_p: np.ndarray,
+                                  vl_range: float = None, dim_range: Sequence[Sequence] = [[0, 1], [0, 1]],
+                                  plot_axes: matplotlib.axes = None, plot_mn: bool = True, t: np.ndarray = None):
+    """ Plots the mode loadings for a single mode for neurons positioned in 2-d space.
+
+    Modes will be plotted in a row, followed by a colorbar.  All modes will be plotted on the same color scale.
+
+    Args:
+        post: The posterior distribution over modes.
+
+        mode: The index of the mode to plot the posterior over.
+
+        neuron_p: The position of each neuron.  Shape is n_neurons*2.
+
+        vl_range: The min and max value to clip values at when assigning colors.  If not provided, will be
+        assigned based on the values in modes.
+
+        dim_range: The spatial range to generate plots for.
+
+        plot_axes: Axes to plot into.  If None, one will be created.
+
+        plot_mn: If true, the mean is plotted.  If false, the standard deviation is plotted.
+
+    """
+
+    # Get means and standard deviations for unrotated modes
+    mode_mn = post(neuron_p).cpu().detach().numpy()
+    mode_std = torch.cat([d(neuron_p) for d in post.dists], dim=1).cpu().detach().numpy()
+
+    # Rotate modes
+    if t is None:
+        n_modes = mode_mn.shape[1]
+        t = np.eye(n_modes)
+
+    mode_mn = np.matmul(mode_mn, t)
+    mode_std = np.sqrt(np.matmul(mode_std**2, t**2))
+
+    # Get the mode we are to plot
+    mode_mn = mode_mn[:, mode]
+    mode_std = mode_std[:, mode]
+
+    # Plot either the mean or standard deviation
+    if plot_mn:
+        mode_im = mode_mn
+    else:
+        mode_im = mode_std
+
+    # Get the max absolute values for the images
+    if vl_range is None:
+        vl_range = np.max(np.abs(mode_im))
+
+    if plot_mn:
+        vmin = -vl_range
+        cmap = 'PiYG'
+    else:
+        vmin = 0
+        cmap = 'cool'
+    vmax = vl_range
+
+    # Plot the mode
+    if plot_axes is None:
+        plot_axes = plt.axes()
+    sp = plot_axes.scatter(x=neuron_p[:,0], y=neuron_p[:,1], marker='o', c=mode_im,
+                               cmap=cmap, vmin=vmin, vmax=vmax)
+
+    plot_axes.set_xlim(dim_range[0])
+    plot_axes.set_ylim(dim_range[1])
+    plot_axes.set_aspect('equal')
+
+    plot_axes.xaxis.set_visible(False)
+    plot_axes.yaxis.set_visible(False)
+
+    cb = plt.colorbar(mappable=sp)
+
 
 def plot_2d_modes(modes: np.ndarray, neuron_p: np.ndarray, vl_range: float = None,
                   dim_range: Sequence[Sequence] = [[0, 1], [0, 1]]):
@@ -601,5 +823,28 @@ def plot_2d_modes(modes: np.ndarray, neuron_p: np.ndarray, vl_range: float = Non
             new_cb_pos = matplotlib.transforms.Bbox(points=new_cb_points)
             mode_axes[m_i+1].set_position(new_cb_pos)
 
+
+def learn_prior_transformation(d0, d1, dim_sampling: Sequence[Sequence] = [[0, 1, .01], [0, 1, .01]],
+                               d0_slice: slice = None, d1_slice: slice = None):
+    pass
+
+    # Determine coordinates we will sample from along each dimension
+    coords = [np.arange(ds[0], ds[1], ds[2]) for ds in dim_sampling]
+
+    # Form coordinates of each point we will sample from in a single numpy array
+    grid = np.meshgrid(*coords, indexing='ij')
+    n_pts = grid[0].size
+    flat_grid = torch.Tensor(np.concatenate([g.reshape([n_pts,1]) for g in grid], axis=1))
+
+    mn_0 = d0(flat_grid).cpu().detach().numpy()
+    if d0_slice is not None:
+        mn_0 = mn_0[:, d0_slice]
+
+    mn_1 = d1(flat_grid).cpu().detach().numpy()
+    if d1_slice is not None:
+        mn_1 = mn_1[:, d1_slice]
+
+    solution = np.linalg.lstsq(mn_1, mn_0, rcond=None)
+    return solution[0]
 
 

@@ -707,7 +707,6 @@ class MultiSubjectVIFitter():
                     # Calculate the conditional log-likelihood for this subject
                     y_pred = s_coll.s_mdl.cond_forward(x=batch_x, p=q_p_modes_standard, u=q_u_modes_standard)
                     nll = (float(n_smp_data_points[i])/n_batch_data_pts)*s_coll.s_mdl.neg_ll(y=batch_y, mn=y_pred)
-
                     nll.backward(retain_graph=True)
                     batch_obj_log += nll.detach().cpu().numpy()
 
