@@ -712,6 +712,25 @@ class MatrixGaussianProductDistribution(CondMatrixProductDistribution):
         super().__init__(dists=col_dists)
         self.n_rows = n_rows
 
+    def initialize(self, mn_mn: float = 0.0, mn_std: float = .01, std_v: float = .01):
+        """ Initializes parameters of the distribution.
+
+        Args:
+            mn_mn, mn_std: The mean and standard deviation for the distribution values for the mean are drawn from
+
+            std_v: The value to set the standard deviation to everywhere
+        """
+        for d in self.dists:
+            torch.nn.init.normal_(d.mn_f.f.vl, mean=mn_mn, std=mn_std)
+
+            std_device = d.std_f.f.lower_bound.device
+            lower_bound = d.std_f.f.lower_bound.cpu().numpy()
+            upper_bound = d.std_f.f.upper_bound.cpu().numpy()
+            init_v = np.arctanh(2*(std_v - lower_bound)/(upper_bound - lower_bound) - 1)
+            init_v = torch.Tensor(init_v)
+            init_v = init_v.to(std_device)
+            d.std_f.f.v.data = init_v
+
     def forward(self, x: torch.tensor = None):
         """ Overwrites parent forward so x does not have to be provided. """
         return super().forward(x=torch.zeros([self.n_rows, 1]))

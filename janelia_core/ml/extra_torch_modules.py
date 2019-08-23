@@ -492,6 +492,50 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         return torch.sum(self.b_m[self._x_to_idx(x)], dim=1).view([n_smps, 1])
 
 
+class Exp(torch.nn.ModuleList):
+    """ Applies a  transformation to the data y = o + exp(g*x + s) """
+
+    def __init__(self, d: int, o_mn: float = 0.0, o_std: float = 0.1,
+                               g_mn: float = 0.0, g_std: float = 0.1,
+                               s_mn: float = 0.0, s_std: float = 0.1,):
+        """ Creates a Relu object.
+
+        Args:
+            d: The dimensionality of the input and output
+
+            o_mn, o_std: The mean and standard deviation for initializing o
+
+            g_mn, g_std: The mean and standard deviation for initializing g
+
+            s_mn, s_std: The mean and standard deviation for initializing s
+        """
+
+        super().__init__()
+
+        o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(o, mean=o_mn, std=o_std)
+        self.register_parameter('o', o)
+
+        s = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(s, mean=s_mn, std=s_std)
+        self.register_parameter('s', s)
+
+        g = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(g, mean=g_mn, std=g_std)
+        self.register_parameter('g', g)
+
+    def forward(self, x: torch.Tensor) -> torch.tensor:
+        """ Computes output given input.
+
+        Args:
+            x: Input tensor
+
+        Returns:
+            y: Output tensor
+        """
+        return torch.exp(self.g*x + self.s) + self.o
+
+
 class Relu(torch.nn.ModuleList):
     """ Applies a rectified linear transformation to the data y = o + relu(x + s) """
 

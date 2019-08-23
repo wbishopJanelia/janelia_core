@@ -43,7 +43,7 @@ def format_output_list(base_str: str, it_str: str, vls: Sequence[float], inds: S
     f_str = base_str + ' '
 
     for i, vl in enumerate(vls):
-        f_str += it_str + str(inds[i]) + ': {' + str(i) + ':e}'
+        f_str += it_str + str(inds[i]) + ': {' + str(i) + ':.2e}'
         if i < n_vls - 1:
             f_str += ', '
 
@@ -341,6 +341,7 @@ class SubjectVICollection():
     """ Holds data, likelihood models and posteriors for fitting data to a single subject with variational inference."""
 
     def __init__(self, s_mdl: LatentRegModel, p_dists: Sequence, u_dists: Sequence,
+                 p_ri_fcns: Sequence, u_ri_fcns: Sequence,
                  data: Union[TimeSeriesBatch, TimeSeriesDataset], input_grps: Sequence, output_grps: Sequence,
                  props: Sequence, input_props: Sequence, output_props: Sequence, min_var: Sequence[float]):
         """ Creates a new SubjectVICollection object.
@@ -353,6 +354,12 @@ class SubjectVICollection():
                 2) A torch tensor (if there is no distribution for the u modes for group h
 
             p_dists: The posterior distributions for the p modes.  Same form as u_dists.
+
+            p_ri_fcns: p_ri_fcns[g] contains a function to apply to re-initialize p_dists[g].  If p_dists[g]
+            is a tensor this should be none.
+
+            u_ri_fcns: u_ri_fcns[h] contains a function to apply to re-initialize u_dists[h].  If u_dists[h]
+            is a tensor this should be none.
 
             data: Data for the subject.
 
@@ -375,6 +382,8 @@ class SubjectVICollection():
         self.s_mdl = s_mdl
         self.p_dists = p_dists
         self.u_dists = u_dists
+        self.p_ri_fcns = p_ri_fcns
+        self.u_ri_fcns = u_ri_fcns
         self.data = data
         self.input_grps = input_grps
         self.output_grps = output_grps
@@ -559,7 +568,7 @@ class MultiSubjectVIFitter():
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, pin_memory: bool = False,
             update_int: int = 1, print_mdl_nlls: bool = True, print_sub_kls: bool = True,
-            print_memory_usage: bool = True):
+            print_memory_usage: bool = True, post_reinit_int: int = 10):
         """
 
         Args:
@@ -594,6 +603,10 @@ class MultiSubjectVIFitter():
 
             print_memory_usage: If true, when fitting status is printed to screen, the memory usage of each
             device will be printed to streen.
+
+            post_reinit_int: The interval at which posterior distributions should be re-initialized.  The posterior
+            distributions for one subject will be re-initialized every this many epochs.  Subjects are cycled
+            through for re-initialization.
 
         Return:
             log: A dictionary with the following entries:
@@ -648,6 +661,7 @@ class MultiSubjectVIFitter():
 
         # Perform fitting
         prev_learning_rate = learning_rate_values[0]
+        next_post_ri_ind = 0 # Index of next subject to re-initialize posteriors for
         for e_i in range(n_epochs):
 
             # Set the learning rate
@@ -661,6 +675,31 @@ class MultiSubjectVIFitter():
 
             # Setup the iterators to go through the current data for this epoch in a random order
             epoch_data_iterators = [dl.__iter__() for dl in data_loaders]
+
+            # Re-initialize a posterior if we are suppose to
+            if (e_i % post_reinit_int == 0) and (e_i != 0):
+                ri_s_ind = s_inds[next_post_ri_ind]
+
+                s_coll = self.s_collections[ri_s_ind]
+
+                ri_p_dists = s_coll.p_dists
+                ri_u_dists = s_coll.u_dists
+
+                for g, d in enumerate(ri_p_dists):
+                    if not isinstance(d, torch.Tensor):
+                        s_coll.p_ri_fcns[g](d)
+
+                for h, d in enumerate(ri_u_dists):
+                    if not isinstance(d, torch.Tensor):
+                        s_coll.u_ri_fcns[h](d)
+
+                print('*****************************************************')
+                print('Start of Epoch: ' + str(e_i) + ', Reinitialized posteriors for subject index: ' + str(ri_s_ind))
+
+                # Determine which subject we will re-initialize posteriors for next
+                next_post_ri_ind += 1
+                if next_post_ri_ind == n_fit_subjects:
+                    next_post_ri_ind = 0
 
             # Process each batch
             for b_i in range(n_batches):
@@ -699,10 +738,13 @@ class MultiSubjectVIFitter():
                                           else s_coll.p_dists[g].form_standard_sample(smp)
                                           for g, smp in enumerate(q_p_modes)]
 
-
                     q_u_modes_standard = [smp if isinstance(s_coll.u_dists[h], torch.Tensor)
                                           else s_coll.u_dists[h].form_standard_sample(smp)
                                           for h, smp in enumerate(q_u_modes)]
+
+                    # Make sure the m module is on the correct device for this subject, this is
+                    # important when subject models share an m function
+                    s_coll.s_mdl.m = s_coll.s_mdl.m.to(s_coll.device)
 
                     # Calculate the conditional log-likelihood for this subject
                     y_pred = s_coll.s_mdl.cond_forward(x=batch_x, p=q_p_modes_standard, u=q_u_modes_standard)
@@ -757,8 +799,9 @@ class MultiSubjectVIFitter():
 
             if e_i % update_int == 0:
                 print('*****************************************************')
-                print('Epoch ' + str(e_i) + ' complete.  Obj: ' + str(batch_obj_log) + ', LR: '  +
-                      str(cur_learning_rate))
+                print('Epoch ' + str(e_i) + ' complete.  Obj: ' +
+                      '{:.2e}'.format(float(batch_obj_log)) +
+                      ', LR: '  + str(cur_learning_rate))
                 if print_mdl_nlls:
                     print(format_output_list(base_str='Model NLLs: ', it_str='s_', vls=batch_nll, inds=s_inds))
                 if print_sub_kls:

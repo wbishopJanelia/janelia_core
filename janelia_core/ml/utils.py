@@ -74,3 +74,33 @@ def torch_mod_to_fcn(m: torch.nn.Module):
         return y_t.numpy()
 
     return wrapper_fcn
+
+
+def list_torch_devices(verbose: bool = True):
+    """ Returns a list of torch devices.  Will return *either* cpu or a list of GPUs.
+
+    If GPUs are available, will return a list of GPUs over returning the cpu. Will only
+    return cpu when no GPUs are available.
+
+    Args:
+        verbose: True if summary of found devices should be printed to screen.
+
+    Returns:
+        devices: List of devices
+
+        cuda_is_available: True if returned devices are GPU
+    """
+
+    if torch.cuda.is_available():
+        n_cuda_devices = torch.cuda.device_count()
+        if verbose:
+            print('Found ' + str(n_cuda_devices) + ' GPUs')
+        devices = [torch.device('cuda:' + str(i)) for i in range(n_cuda_devices)]
+        cuda_is_available = True
+    else:
+        if verbose:
+            print('No GPUs found.')
+        devices = [torch.device('cpu')]
+        cuda_is_available = False
+
+    return [devices, cuda_is_available]
