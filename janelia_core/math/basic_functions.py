@@ -382,6 +382,25 @@ def find_binary_runs(seq: np.ndarray):
     return slices
 
 
+def optimal_orthonormal_transform(m_0: np.ndarray, m_1: np.ndarray) -> np.ndarray:
+    """ Learns an optimal orthonormal transformation to transform one matrix to another.
+
+    We learn a matrix o^* = argmin_{o: oo^T = I} ||m_0 - m_1 o||_2.
+
+    Args:
+        m_0: The matrix to transform to
+
+        m_1: The matrix to transform from
+
+    Returns:
+        o: The optimal orthonormal matrix.
+
+    """
+
+    s = np.matmul(m_0.transpose(), m_1)
+    u, _, v_transpose = np.linalg.svd(s)
+    return (np.matmul(u, v_transpose)).transpose()
+
 
 
 

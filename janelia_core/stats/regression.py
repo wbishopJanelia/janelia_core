@@ -31,3 +31,7 @@ def r_squared(truth: np.ndarray, pred: np.ndarray) -> np.ndarray:
 
     r_sq = np.squeeze(1 - residual_ss/true_ss)
     return r_sq
+
+
+
+
