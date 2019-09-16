@@ -21,6 +21,7 @@ def r_squared(truth: np.ndarray, pred: np.ndarray) -> np.ndarray:
         r_sq: r_sq[i] contains the r-squared value for pred[:, i]
     """
 
+
     if pred.ndim == 1:
         pred = np.expand_dims(pred, 1)
         truth = np.expand_dims(truth, 1)
