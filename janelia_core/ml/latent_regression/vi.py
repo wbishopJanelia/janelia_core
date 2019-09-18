@@ -341,7 +341,6 @@ class SubjectVICollection():
     """ Holds data, likelihood models and posteriors for fitting data to a single subject with variational inference."""
 
     def __init__(self, s_mdl: LatentRegModel, p_dists: Sequence, u_dists: Sequence,
-                 p_ri_fcns: Sequence, u_ri_fcns: Sequence,
                  data: Union[TimeSeriesBatch, TimeSeriesDataset], input_grps: Sequence, output_grps: Sequence,
                  props: Sequence, input_props: Sequence, output_props: Sequence, min_var: Sequence[float]):
         """ Creates a new SubjectVICollection object.
@@ -354,12 +353,6 @@ class SubjectVICollection():
                 2) A torch tensor (if there is no distribution for the u modes for group h
 
             p_dists: The posterior distributions for the p modes.  Same form as u_dists.
-
-            p_ri_fcns: p_ri_fcns[g] contains a function to apply to re-initialize p_dists[g].  If p_dists[g]
-            is a tensor this should be none.
-
-            u_ri_fcns: u_ri_fcns[h] contains a function to apply to re-initialize u_dists[h].  If u_dists[h]
-            is a tensor this should be none.
 
             data: Data for the subject.
 
@@ -382,8 +375,6 @@ class SubjectVICollection():
         self.s_mdl = s_mdl
         self.p_dists = p_dists
         self.u_dists = u_dists
-        self.p_ri_fcns = p_ri_fcns
-        self.u_ri_fcns = u_ri_fcns
         self.data = data
         self.input_grps = input_grps
         self.output_grps = output_grps
@@ -470,9 +461,10 @@ class MultiSubjectVIFitter():
         n_dist_mdls = len(s_inds)
 
         # By convention priors go onto first device
-        self.p_priors = [d.to(devices[0]) if d is not None else None for d in self.p_priors]
-        self.u_priors = [d.to(devices[0]) if d is not None else None for d in self.u_priors]
-        self.prior_device = devices[0]
+        if self.p_priors is not None:
+            self.p_priors = [d.to(devices[0]) if d is not None else None for d in self.p_priors]
+            self.u_priors = [d.to(devices[0]) if d is not None else None for d in self.u_priors]
+            self.prior_device = devices[0]
 
         # Distribute subject collections
         for i in range(n_dist_mdls):
@@ -496,11 +488,21 @@ class MultiSubjectVIFitter():
         if s_inds is None:
             s_inds = range(len(self.s_collections))
 
-        p_params = itertools.chain(*[d.parameters() for d in self.p_priors if d is not None])
-        u_params = itertools.chain(*[d.parameters() for d in self.u_priors if d is not None])
+        if self.p_priors is not None:
+            p_params = itertools.chain(*[d.parameters() for d in self.p_priors if d is not None])
+            u_params = itertools.chain(*[d.parameters() for d in self.u_priors if d is not None])
+        else:
+            p_params = []
+            u_params = []
+
         collection_params = itertools.chain(*[self.s_collections[s_i].trainable_parameters() for s_i in s_inds])
 
-        return list(itertools.chain(p_params, u_params, collection_params))
+        all_params = list(itertools.chain(p_params, u_params, collection_params))
+
+        # Clean up duplicate parameters.  Subject models might shared a posterior, for example, so we need to
+        # check for this
+        non_duplicate_params = set(all_params)
+        return list(non_duplicate_params)
 
     def generate_data_loaders(self, n_batches: int, s_inds: Sequence[int] = None,
                               pin_memory: bool = False) -> Sequence:
@@ -550,7 +552,11 @@ class MultiSubjectVIFitter():
             m_usage: m_usage[i] is the amount of memory used on the i^th device
         """
 
-        all_devices = set(self.s_collection_devices + [self.prior_device])
+        if self.p_priors is not None:
+            all_devices = set(self.s_collection_devices + [self.prior_device])
+        else:
+            all_devices = self.s_collection_devices
+
         return [torch.cuda.memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in all_devices]
 
     def get_device_max_memory_allocated(self) -> Sequence:
@@ -562,13 +568,17 @@ class MultiSubjectVIFitter():
             m_usage: m_usage[i] is the max amount of memory used on the i^th device
         """
 
-        all_devices = set(self.s_collection_devices + [self.prior_device])
+        if self.p_priors is not None:
+            all_devices = set(self.s_collection_devices + [self.prior_device])
+        else:
+            all_devices = self.s_collection_devices
+
         return [torch.cuda.max_memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in all_devices]
 
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, pin_memory: bool = False,
             update_int: int = 1, print_mdl_nlls: bool = True, print_sub_kls: bool = True,
-            print_memory_usage: bool = True, post_reinit_int: int = 10):
+            print_memory_usage: bool = True, enforce_priors: bool = True, sample_posteriors: bool = True):
         """
 
         Args:
@@ -604,9 +614,15 @@ class MultiSubjectVIFitter():
             print_memory_usage: If true, when fitting status is printed to screen, the memory usage of each
             device will be printed to streen.
 
-            post_reinit_int: The interval at which posterior distributions should be re-initialized.  The posterior
-            distributions for one subject will be re-initialized every this many epochs.  Subjects are cycled
-            through for re-initialization.
+            enforce_priors: If enforce priors is true, the KL between priors and posteriors is included in the
+            objective to be optimized (i.e., standard variational inference).  If False, the KL term is ignored
+            and only the expected negative log-likelihood term in the ELBO is optimized.
+
+            sample_posteriors: If true, posteriors will be sampled when fitting.  This is required for variational
+            inference.  However, if false, the mean of the posteriors will be used as the sample.  In this case,
+            this is equivalent to using a single function (the posterior mean) to set the loadings for each subject.
+            This may be helpful for initialization.  Note that if sample_posteriors is false, enforce_priors must
+            also be false.
 
         Return:
             log: A dictionary with the following entries:
@@ -626,11 +642,14 @@ class MultiSubjectVIFitter():
 
         Raises:
             RuntimeError: If distribute() has not been called before fitting.
+            ValueError: If sample_posteriors is False but enforce_priors is True.
 
         """
 
         if not self.distributed:
             raise(RuntimeError('self.distribute() must be called before fitting.'))
+        if (not sample_posteriors) and enforce_priors:
+            raise(ValueError('If sample posteriors is false, enforce_priors must also be false.'))
 
         t_start = time.time()  # Get starting time
 
@@ -661,7 +680,6 @@ class MultiSubjectVIFitter():
 
         # Perform fitting
         prev_learning_rate = learning_rate_values[0]
-        next_post_ri_ind = 0 # Index of next subject to re-initialize posteriors for
         for e_i in range(n_epochs):
 
             # Set the learning rate
@@ -675,31 +693,6 @@ class MultiSubjectVIFitter():
 
             # Setup the iterators to go through the current data for this epoch in a random order
             epoch_data_iterators = [dl.__iter__() for dl in data_loaders]
-
-            # Re-initialize a posterior if we are suppose to
-            if (e_i % post_reinit_int == 0) and (e_i != 0):
-                ri_s_ind = s_inds[next_post_ri_ind]
-
-                s_coll = self.s_collections[ri_s_ind]
-
-                ri_p_dists = s_coll.p_dists
-                ri_u_dists = s_coll.u_dists
-
-                for g, d in enumerate(ri_p_dists):
-                    if not isinstance(d, torch.Tensor):
-                        s_coll.p_ri_fcns[g](d)
-
-                for h, d in enumerate(ri_u_dists):
-                    if not isinstance(d, torch.Tensor):
-                        s_coll.u_ri_fcns[h](d)
-
-                print('*****************************************************')
-                print('Start of Epoch: ' + str(e_i) + ', Reinitialized posteriors for subject index: ' + str(ri_s_ind))
-
-                # Determine which subject we will re-initialize posteriors for next
-                next_post_ri_ind += 1
-                if next_post_ri_ind == n_fit_subjects:
-                    next_post_ri_ind = 0
 
             # Process each batch
             for b_i in range(n_batches):
@@ -720,27 +713,37 @@ class MultiSubjectVIFitter():
 
                     # Send the data to the GPU if needed
                     batch_data.to(device=s_coll.device, non_blocking=s_coll.device.type == 'cuda')
+
                     # Form x and y for the batch
-                    batch_x = [batch_data.data[i_g][batch_data.i_x,:] for i_g in s_coll.input_grps]
-                    batch_y = [batch_data.data[i_h][batch_data.i_y,:] for i_h in s_coll.output_grps]
+                    batch_x = [batch_data.data[i_g][batch_data.i_x, :] for i_g in s_coll.input_grps]
+                    batch_y = [batch_data.data[i_h][batch_data.i_y, :] for i_h in s_coll.output_grps]
                     n_batch_data_pts = batch_x[0].shape[0]
 
                     # Sample the posterior distributions of modes for this subject
-                    q_p_modes = [d if isinstance(d, torch.Tensor)
-                                 else d.sample(s_coll.props[s_coll.input_props[g]])
-                                 for g, d in enumerate(s_coll.p_dists)]
+                    if sample_posteriors:
+                        q_p_modes = [d if isinstance(d, torch.Tensor)
+                                     else d.sample(s_coll.props[s_coll.input_props[g]])
+                                     for g, d in enumerate(s_coll.p_dists)]
 
-                    q_u_modes = [d if isinstance(d, torch.Tensor)
-                                 else d.sample(s_coll.props[s_coll.output_props[h]])
-                                 for h, d in enumerate(s_coll.u_dists)]
+                        q_u_modes = [d if isinstance(d, torch.Tensor)
+                                     else d.sample(s_coll.props[s_coll.output_props[h]])
+                                     for h, d in enumerate(s_coll.u_dists)]
 
-                    q_p_modes_standard = [smp if isinstance(s_coll.p_dists[g], torch.Tensor)
-                                          else s_coll.p_dists[g].form_standard_sample(smp)
-                                          for g, smp in enumerate(q_p_modes)]
+                        q_p_modes_standard = [smp if isinstance(s_coll.p_dists[g], torch.Tensor)
+                                              else s_coll.p_dists[g].form_standard_sample(smp)
+                                              for g, smp in enumerate(q_p_modes)]
 
-                    q_u_modes_standard = [smp if isinstance(s_coll.u_dists[h], torch.Tensor)
-                                          else s_coll.u_dists[h].form_standard_sample(smp)
-                                          for h, smp in enumerate(q_u_modes)]
+                        q_u_modes_standard = [smp if isinstance(s_coll.u_dists[h], torch.Tensor)
+                                              else s_coll.u_dists[h].form_standard_sample(smp)
+                                              for h, smp in enumerate(q_u_modes)]
+                    else:
+                        q_p_modes_standard = [d if isinstance(d, torch.Tensor)
+                                              else d(s_coll.props[s_coll.input_props[g]])
+                                              for g, d in enumerate(s_coll.p_dists)]
+
+                        q_u_modes_standard = [d if isinstance(d, torch.Tensor)
+                                              else d(s_coll.props[s_coll.output_props[h]])
+                                              for h, d in enumerate(s_coll.u_dists)]
 
                     # Make sure the m module is on the correct device for this subject, this is
                     # important when subject models share an m function
@@ -753,28 +756,30 @@ class MultiSubjectVIFitter():
                     batch_obj_log += nll.detach().cpu().numpy()
 
                     # Calculate KL diverengences between posteriors on modes and priors for this subject
-                    s_p_kl = 0
-                    for g, d in enumerate(self.p_priors):
-                        if d is not None:
-                            s_p_kl += torch.sum(s_coll.p_dists[g].kl(d_2=d, x=s_coll.props[s_coll.input_props[g]],
-                                                           smp=q_p_modes[g]))
-                            s_p_kl.backward()
-                            batch_obj_log += s_p_kl.detach().cpu().numpy()
+                    if enforce_priors:
+                        s_p_kl = 0
+                        for g, d in enumerate(self.p_priors):
+                            if d is not None:
+                                s_p_kl += torch.sum(s_coll.p_dists[g].kl(d_2=d, x=s_coll.props[s_coll.input_props[g]],
+                                                                         smp=q_p_modes[g]))
+                                s_p_kl.backward()
+                                batch_obj_log += s_p_kl.detach().cpu().numpy()
 
-                    s_u_kl = 0
-                    for h, d in enumerate(self.u_priors):
-                        if d is not None:
-                            s_u_kl += torch.sum(s_coll.u_dists[h].kl(d_2=d, x=s_coll.props[s_coll.output_props[h]],
-                                                           smp=q_u_modes[h]))
-                            s_u_kl.backward()
-                            batch_obj_log += s_u_kl.detach().cpu().numpy()
+                        s_u_kl = 0
+                        for h, d in enumerate(self.u_priors):
+                            if d is not None:
+                                s_u_kl += torch.sum(s_coll.u_dists[h].kl(d_2=d, x=s_coll.props[s_coll.output_props[h]],
+                                                                         smp=q_u_modes[h]))
+                                s_u_kl.backward()
+                                batch_obj_log += s_u_kl.detach().cpu().numpy()
 
                     # Record the log likelihood and kl divergences for each fit model for logging (we currently only
                     # save this for the last batch in an epoch
                     if b_i == n_batches - 1:
                         batch_nll[i] = nll.detach().cpu().numpy()
-                        batch_sub_p_kl[i] = s_p_kl.detach().cpu().numpy()
-                        batch_sub_u_kl[i] = s_u_kl.detach().cpu().numpy()
+                        if enforce_priors:
+                            batch_sub_p_kl[i] = s_p_kl.detach().cpu().numpy()
+                            batch_sub_u_kl[i] = s_u_kl.detach().cpu().numpy()
 
                 # Take a gradient step
                 optimizer.step()
@@ -814,7 +819,6 @@ class MultiSubjectVIFitter():
                     device_max_memory_usage = self.get_device_max_memory_allocated()
                     print(format_output_list(base_str='Device max memory usage: ', it_str='d_',
                           vls=device_max_memory_usage, inds=range(len(device_max_memory_usage))))
-
 
                 print('Elapsed time: ' + str(elapsed_time))
 
