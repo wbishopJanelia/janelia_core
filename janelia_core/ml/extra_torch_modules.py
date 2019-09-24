@@ -42,7 +42,7 @@ class Bias(torch.nn.ModuleList):
 class BiasAndScale(torch.nn.ModuleList):
     """ Applies a bias and scale transformation to the data y = w*x + o.
 
-    Here w is the same length of o so w*o indicates element-wise product.
+    Here w is the same length of x so w*x indicates element-wise product.
     """
 
     def __init__(self, d: int, o_init_std: float = .1, w_init_std: float = .1):
@@ -106,7 +106,22 @@ class ConstantBoundedFcn(torch.nn.Module):
         if init_value is None:
             init_value = .5*(lower_bound + upper_bound)
 
-        init_v = np.arctanh(2*(init_value - lower_bound)/(upper_bound - lower_bound) - 1)
+        self.set_value(init_value)
+        # TODO: Remove commented code below if set_value call above is working
+        #init_v = np.arctanh(2*(init_value - lower_bound)/(upper_bound - lower_bound) - 1)
+        #self.v.data = torch.tensor(init_v)
+        #self.v.data = self.v.data.float()
+
+    def set_value(self, vl: torch.Tensor):
+        """ Sets the value of the function.
+
+        Note: Value will be cast to a float before setting.
+
+        Args:
+            vl: The value to set the function to.
+
+        """
+        init_v = np.arctanh(2*(vl - self.lower_bound)/(self.upper_bound - self.lower_bound) - 1)
         self.v.data = torch.tensor(init_v)
         self.v.data = self.v.data.float()
 
@@ -202,6 +217,16 @@ class ConstantRealFcn(torch.nn.Module):
         self.vl = torch.nn.Parameter(torch.zeros(self.n_dims), requires_grad=True)
         self.vl.data = torch.from_numpy(init_vl)
         self.vl.data = self.vl.data.float()
+
+    def set_vl(self, vl: torch.Tensor):
+        """ Sets the value of the function.
+
+        Note: Values will be cast to float before setting.
+
+        Args:
+            vl: The value to set the function to.
+        """
+        self.vl.data = vl.float()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """ Produces constant output given input.
