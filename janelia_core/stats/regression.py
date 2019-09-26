@@ -108,7 +108,9 @@ def visualize_boot_strap_results(bs_values: np.ndarray, var_strs: Sequence, thet
                                  plot_c_ints: bool = True, show_nz_sig: bool = True,
                                  plot_zero_line:bool = True,
                                  alpha: float = .05, theta_size: int = 5,
-                                 er_bar_pts: int = 2, sig_size:int = 5, ax:plt.axes = None) -> plt.axes:
+                                 er_bar_pts: int = 2, sig_size:int = 5, sig_y_vl: float = None,
+                                 ax:plt.axes = None) -> plt.axes:
+
     """ For visualizing the results of grouped_linear_regression_boot_strap.
 
     Args:
@@ -138,6 +140,8 @@ def visualize_boot_strap_results(bs_values: np.ndarray, var_strs: Sequence, thet
         er_bar_pts: The width of error bars to plot for confidence intervals.
 
         sig_size: The size of the marker to use when denoting which coefficients are significanly different 0.
+
+        sig_y_vl: If not None, this is the y-value used for showing significant stars.
 
         ax: The axis to plot into.  If none, one will be created.
 
@@ -189,10 +193,11 @@ def visualize_boot_strap_results(bs_values: np.ndarray, var_strs: Sequence, thet
 
         if show_nz_sig:
             y_lim = ax.get_ylim()
-            y_sig_vl = .02*(y_lim[1] - y_lim[0]) + y_lim[0]
+            if sig_y_vl is None:
+                sig_y_vl = .02*(y_lim[1] - y_lim[0]) + y_lim[0]
             for v_i in range(n_vars):
                 if stats['non_zero'][v_i]:
-                    plt.plot(v_i+1, y_sig_vl, 'k*', markersize=sig_size, color=var_clrs[v_i,:])
+                    plt.plot(v_i+1, sig_y_vl, 'k*', markersize=sig_size, color=var_clrs[v_i,:])
 
     # Show estimated point values
     if theta is not None:
