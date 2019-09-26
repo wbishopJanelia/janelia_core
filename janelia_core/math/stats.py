@@ -23,7 +23,7 @@ class HistogramFilter:
     histogram with 2 bins with a min value of 0 and a max value of 1, the bins will have edges [0, .5) and [.5, 1).
 
     Note: At the moment this function is optimized for speed when adding and removing values but can be subject to
-    floating point errors.  If more exact results are required, used other means of calculating histograms.
+    floating point errors.  If more exact results are required, use other means of calculating histograms.
 
     """
 
