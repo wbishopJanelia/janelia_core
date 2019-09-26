@@ -107,12 +107,8 @@ class ConstantBoundedFcn(torch.nn.Module):
             init_value = .5*(lower_bound + upper_bound)
 
         self.set_value(init_value)
-        # TODO: Remove commented code below if set_value call above is working
-        #init_v = np.arctanh(2*(init_value - lower_bound)/(upper_bound - lower_bound) - 1)
-        #self.v.data = torch.tensor(init_v)
-        #self.v.data = self.v.data.float()
 
-    def set_value(self, vl: torch.Tensor):
+    def set_value(self, vl: np.ndarray):
         """ Sets the value of the function.
 
         Note: Value will be cast to a float before setting.
@@ -121,7 +117,7 @@ class ConstantBoundedFcn(torch.nn.Module):
             vl: The value to set the function to.
 
         """
-        init_v = np.arctanh(2*(vl - self.lower_bound)/(self.upper_bound - self.lower_bound) - 1)
+        init_v = np.arctanh(2*(vl - self.lower_bound.numpy())/(self.upper_bound.numpy() - self.lower_bound.numpy()) - 1)
         self.v.data = torch.tensor(init_v)
         self.v.data = self.v.data.float()
 
@@ -193,6 +189,17 @@ class IndSmpConstantBoundedFcn(torch.nn.Module):
         place_holder_input = torch.zeros(1)
         return self.f(place_holder_input).t()
 
+    def set_value(self, vl: np.ndarray):
+        """ Sets the value of the function.
+
+        Args:
+
+            vl: The value to set.  Must be a 1-d array of length self.n
+
+        """
+
+        self.f.set_value(vl)
+
 
 class ConstantRealFcn(torch.nn.Module):
     """ Object for representing function which is constant w.r.t to input and take values anywhere in the reals.
@@ -215,10 +222,9 @@ class ConstantRealFcn(torch.nn.Module):
         self.n_dims = len(init_vl)
 
         self.vl = torch.nn.Parameter(torch.zeros(self.n_dims), requires_grad=True)
-        self.vl.data = torch.from_numpy(init_vl)
-        self.vl.data = self.vl.data.float()
+        self.set_vl(init_vl)
 
-    def set_vl(self, vl: torch.Tensor):
+    def set_vl(self, vl: np.ndarray):
         """ Sets the value of the function.
 
         Note: Values will be cast to float before setting.
@@ -226,6 +232,7 @@ class ConstantRealFcn(torch.nn.Module):
         Args:
             vl: The value to set the function to.
         """
+        vl = torch.Tensor(vl)
         self.vl.data = vl.float()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -281,6 +288,14 @@ class IndSmpConstantRealFcn(torch.nn.Module):
 
         place_holder_input = torch.zeros(1)
         return self.f(place_holder_input).t()
+
+    def set_value(self, vl: np.ndarray):
+        """ Sets the value of the function.
+
+        Args:
+            vl: The value to set. Should be a 1-d array of length self.n
+        """
+        self.f.set_vl(vl)
 
 
 class DenseLayer(torch.nn.Module):
