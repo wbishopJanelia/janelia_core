@@ -295,8 +295,10 @@ class MultiSubjectVIFitter():
 
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, pin_memory: bool = False,
+            weight_penalty: float = 0.0, weight_penalty_type = 'l2',
+            enforce_priors: bool = True, sample_posteriors: bool = True,
             update_int: int = 1, print_mdl_nlls: bool = True, print_sub_kls: bool = True,
-            print_memory_usage: bool = True, enforce_priors: bool = True, sample_posteriors: bool = True):
+            print_memory_usage: bool = True, print_sub_weight_penalties = True):
         """
 
         Args:
@@ -321,16 +323,12 @@ class MultiSubjectVIFitter():
 
             pin_memory: True if data for training should be copied to CUDA pinned memory
 
-            update_int: Fitting status will be printed to screen every update_int number of epochs
+            weight_penalty: If not 0, a penalty can be applied to the sampled weights for each subject.  See the
+            description of weight_penalty_type below for more information.
 
-            print_mdl_nlls: If true, when fitting status is printed to screen, the negative log likelihood of each
-            evaluated model will be printed to screen.
-
-            print_sub_kls: If true, when fitting status is printed to screen, the kl divergence for the p and u modes
-            for each fit subject will be printed to screen.
-
-            print_memory_usage: If true, when fitting status is printed to screen, the memory usage of each
-            device will be printed to streen.
+            weight_penalty_type: We apply penalties to the sampled modes for each subject of the form
+            \sum_g weight_penalty*||P_g|| + \sum_h weight_penalty*||U_h|| where ||o|| is a either the l1 or l2 norm.
+            The value of weight_penalty_type determines the type of norm.
 
             enforce_priors: If enforce priors is true, the KL between priors and posteriors is included in the
             objective to be optimized (i.e., standard variational inference).  If False, the KL term is ignored
@@ -341,6 +339,20 @@ class MultiSubjectVIFitter():
             this is equivalent to using a single function (the posterior mean) to set the loadings for each subject.
             This may be helpful for initialization.  Note that if sample_posteriors is false, enforce_priors must
             also be false.
+
+            update_int: Fitting status will be printed to screen every update_int number of epochs
+
+            print_mdl_nlls: If true, when fitting status is printed to screen, the negative log likelihood of each
+            evaluated model will be printed to screen.
+
+            print_sub_kls: If true, when fitting status is printed to screen, the kl divergence for the p and u modes
+            for each fit subject will be printed to screen.
+
+            print_sub_weight_penalties: If true, when fitting status is printed to screen, the weight penalties for
+            each fit subject will be printed to screen.
+
+            print_memory_usage: If true, when fitting status is printed to screen, the memory usage of each
+            device will be printed to streen.
 
         Return:
             log: A dictionary with the following entries:
@@ -356,11 +368,16 @@ class MultiSubjectVIFitter():
                 'sub_u_kl': sub_u_kl[e,i] is the kl divergence between the posterior and conditional prior the u modes
                 for subject i at the start of epoch e.
 
-                nelbo: nelbo[e] contains the negative elbo at the start of epoch e
+                'sub_weight_penalties': sub_weight_penalties[e, i] is the weight penalty for subject i at the start
+                of epoch e.
+
+                obj: obj[e] contains the objective value at the start of epoch e.  This is the negative evidence lower
+                bound + weight penalties.
 
         Raises:
             RuntimeError: If distribute() has not been called before fitting.
             ValueError: If sample_posteriors is False but enforce_priors is True.
+            ValueError: If weight_penalty_type is not 'l1' or 'l2'.
 
         """
 
@@ -394,7 +411,8 @@ class MultiSubjectVIFitter():
         epoch_nll = np.zeros([n_epochs, n_fit_subjects])
         epoch_sub_p_kl = np.zeros([n_epochs, n_fit_subjects])
         epoch_sub_u_kl = np.zeros([n_epochs, n_fit_subjects])
-        epoch_nelbo = np.zeros(n_epochs)
+        epoch_sub_weight_penalties = np.zeros([n_epochs, n_fit_subjects])
+        epoch_obj = np.zeros(n_epochs)
 
         # Perform fitting
         prev_learning_rate = learning_rate_values[0]
@@ -422,6 +440,7 @@ class MultiSubjectVIFitter():
                 batch_nll = np.zeros(n_fit_subjects)
                 batch_sub_p_kl = np.zeros(n_fit_subjects)
                 batch_sub_u_kl = np.zeros(n_fit_subjects)
+                batch_sub_weight_penalties = np.zeros(n_fit_subjects)
                 for i, s_i in enumerate(s_inds):
 
                     s_coll = self.s_collections[s_i]
@@ -473,6 +492,33 @@ class MultiSubjectVIFitter():
                     nll.backward(retain_graph=True)
                     batch_obj_log += nll.detach().cpu().numpy()
 
+                    # Apply penalties to modes for this subject if we are suppose to
+                    if weight_penalty != 0:
+                        s_w_pen = torch.zeros([1], device=s_coll.device)[0]  # Weird indexing is to get a scalar tensor
+
+                        # Calculate penalties for p modes
+                        for g, mode_g in enumerate(q_p_modes_standard):
+                            if not isinstance(s_coll.p_dists[g], torch.Tensor):
+                                if weight_penalty_type == 'l1':
+                                    s_w_pen += weight_penalty*torch.sum(torch.abs(mode_g))
+                                elif weight_penalty_type == 'l2':
+                                    s_w_pen += weight_penalty*torch.sum(mode_g**2)
+                                else:
+                                    raise(ValueError('weight_penalty type must be either l1 or l2'))
+
+                        # Calculate penalties for u modes
+                        for h, mode_h in enumerate(q_u_modes_standard):
+                            if not isinstance(s_coll.u_dists[h], torch.Tensor):
+                                if weight_penalty_type == 'l1':
+                                    s_w_pen += weight_penalty*torch.sum(torch.abs(mode_h))
+                                elif weight_penalty_type == 'l2':
+                                    s_w_pen += weight_penalty*torch.sum(mode_h**2)
+                                else:
+                                    raise(ValueError('weight_penalty type must be either l1 or l2'))
+
+                        s_w_pen.backward()
+                        batch_obj_log += s_w_pen.detach().cpu().numpy()
+
                     # Calculate KL diverengences between posteriors on modes and priors for this subject
                     if enforce_priors:
                         s_p_kl = torch.zeros([1], device=s_coll.device)[0]  # Weird indexing is to get a scalar tensor
@@ -491,13 +537,13 @@ class MultiSubjectVIFitter():
                                 s_u_kl.backward()
                                 batch_obj_log += s_u_kl.detach().cpu().numpy()
 
-                    # Record the log likelihood and kl divergences for each fit model for logging (we currently only
-                    # save this for the last batch in an epoch
-                    if b_i == n_batches - 1:
-                        batch_nll[i] = nll.detach().cpu().numpy()
-                        if enforce_priors:
-                            batch_sub_p_kl[i] = s_p_kl.detach().cpu().numpy()
-                            batch_sub_u_kl[i] = s_u_kl.detach().cpu().numpy()
+                    # Record the log likelihood, kl divergences and weight penalties for each subject for logging
+                    batch_nll[i] = nll.detach().cpu().numpy()
+                    if weight_penalty != 0:
+                        batch_sub_weight_penalties[i] = s_w_pen.detach().cpu().numpy()
+                    if enforce_priors:
+                        batch_sub_p_kl[i] = s_p_kl.detach().cpu().numpy()
+                        batch_sub_u_kl[i] = s_u_kl.detach().cpu().numpy()
 
                 # Take a gradient step
                 optimizer.step()
@@ -515,10 +561,11 @@ class MultiSubjectVIFitter():
             # Take care of logging everything
             elapsed_time = time.time() - t_start
             epoch_elapsed_time[e_i] = elapsed_time
-            epoch_nll[e_i,:] = batch_nll
-            epoch_sub_p_kl[e_i,:] = batch_sub_p_kl
-            epoch_sub_u_kl[e_i,:] = batch_sub_u_kl
-            epoch_nelbo[e_i] = batch_obj_log
+            epoch_nll[e_i, :] = batch_nll
+            epoch_sub_p_kl[e_i, :] = batch_sub_p_kl
+            epoch_sub_u_kl[e_i, :] = batch_sub_u_kl
+            epoch_sub_weight_penalties[e_i, :] = batch_sub_weight_penalties
+            epoch_obj[e_i] = batch_obj_log
 
             if e_i % update_int == 0:
                 print('*****************************************************')
@@ -530,6 +577,9 @@ class MultiSubjectVIFitter():
                 if print_sub_kls:
                     print(format_output_list(base_str='Subj P KLs: ', it_str='s_', vls=batch_sub_p_kl, inds=s_inds))
                     print(format_output_list(base_str='Subj U KLs: ', it_str='s_', vls=batch_sub_u_kl, inds=s_inds))
+                if print_sub_weight_penalties:
+                    print(format_output_list(base_str='Subj ' + weight_penalty_type + ' W Penalties: ', it_str='s_',
+                                             vls=batch_sub_weight_penalties, inds=s_inds))
                 if print_memory_usage:
                     device_memory_usage = self.get_device_memory_usage()
                     print(format_output_list(base_str='Device memory usage: ', it_str='d_',
@@ -542,7 +592,7 @@ class MultiSubjectVIFitter():
 
         # Return logs
         log = {'elapsed_time': epoch_elapsed_time, 'mdl_nll': epoch_nll, 'sub_p_kl': epoch_sub_p_kl,
-               'sub_u_kl': epoch_sub_u_kl, 'nelbo': epoch_nelbo}
+               'sub_u_kl': epoch_sub_u_kl, 'sub_weight_penalties': epoch_sub_weight_penalties, 'obj': epoch_obj}
         return log
 
 
