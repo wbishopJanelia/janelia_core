@@ -297,6 +297,7 @@ class MultiSubjectVIFitter():
             adam_params: dict = {}, s_inds: Sequence[int] = None, pin_memory: bool = False,
             weight_penalty: float = 0.0, weight_penalty_type = 'l2',
             enforce_priors: bool = True, sample_posteriors: bool = True,
+            num_data_loader_workers: int = 2,
             update_int: int = 1, print_mdl_nlls: bool = True, print_sub_kls: bool = True,
             print_memory_usage: bool = True, print_sub_weight_penalties = True):
         """
@@ -339,6 +340,8 @@ class MultiSubjectVIFitter():
             this is equivalent to using a single function (the posterior mean) to set the loadings for each subject.
             This may be helpful for initialization.  Note that if sample_posteriors is false, enforce_priors must
             also be false.
+
+            num_data_loader_workers: The number of works to use when creating data loaders.
 
             update_int: Fitting status will be printed to screen every update_int number of epochs
 
@@ -399,7 +402,8 @@ class MultiSubjectVIFitter():
         n_fit_subjects = len(s_inds)
 
         # Get data loaders for the subjects
-        data_loaders = self.generate_data_loaders(n_batches=n_batches, s_inds=s_inds, pin_memory=pin_memory)
+        data_loaders = self.generate_data_loaders(n_batches=n_batches, s_inds=s_inds, pin_memory=pin_memory,
+                                                  num_workers=num_data_loader_workers)
         n_smp_data_points = [len(self.s_collections[s_i].data) for s_i in s_inds]
 
         # Setup optimizer
@@ -455,6 +459,15 @@ class MultiSubjectVIFitter():
                     batch_x = [batch_data.data[i_g][batch_data.i_x, :] for i_g in s_coll.input_grps]
                     batch_y = [batch_data.data[i_h][batch_data.i_y, :] for i_h in s_coll.output_grps]
                     n_batch_data_pts = batch_x[0].shape[0]
+
+                    # Make sure the posterior is on the right GPU for this subject (important if we are
+                    # using a shared posterior)
+                    for d in s_coll.p_dists:
+                        if not isinstance(d, torch.Tensor):
+                            d.to(s_coll.device)
+                    for d in s_coll.u_dists:
+                        if not isinstance(d, torch.Tensor):
+                            d.to(s_coll.device)
 
                     # Sample the posterior distributions of modes for this subject
                     if sample_posteriors:
