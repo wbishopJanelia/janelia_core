@@ -529,7 +529,7 @@ class MultiSubjectVIFitter():
                                 else:
                                     raise(ValueError('weight_penalty type must be either l1 or l2'))
 
-                        s_w_pen.backward()
+                        s_w_pen.backward(retain_graph=True)
                         batch_obj_log += s_w_pen.detach().cpu().numpy()
 
                     # Calculate KL diverengences between posteriors on modes and priors for this subject
