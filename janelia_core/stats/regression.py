@@ -92,7 +92,10 @@ def grouped_linear_regression_boot_strap(y: np.ndarray, x: np.ndarray, g: np.nda
     for b_i in range(n_bs_smps):
 
         # Form sample
-        bs_inds = np.concatenate(np.random.choice(grp_inds, n_grps, replace=True))
+        smp_grp_inds = np.random.choice(np.arange(n_grps), n_grps, replace=True)
+        bs_inds = np.concatenate([grp_inds[smp_g_i] for smp_g_i in smp_grp_inds])
+
+        #bs_inds = np.concatenate(np.random.choice(grp_inds, n_grps, replace=True))
         bs_x_aug = x_aug[bs_inds, :]
         bs_y = y[bs_inds]
 

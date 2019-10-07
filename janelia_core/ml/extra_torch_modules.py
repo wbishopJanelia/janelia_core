@@ -139,6 +139,183 @@ class ConstantBoundedFcn(torch.nn.Module):
         return vl.unsqueeze(0).expand(n_smps, self.n_dims)
 
 
+class ConstantRealFcn(torch.nn.Module):
+    """ Object for representing function which is constant w.r.t to input and take values anywhere in the reals.
+
+    This is useful when working with modules which need a submodule which is a function with trainable parameters and
+    you desire to use a constant in place of the function.  For example, when working with conditional distributions
+    intsead of predicting the conditional mean with a neural network, you might want a constant conditional mean.
+    """
+
+    def __init__(self, init_vl: np.ndarray):
+        """ Creates a ConstantRealFcn object.
+
+        Args:
+            init_vl: The initial value to initialize the function with.  The length of init_vl determines the number
+            of dimensions of the output of the function.
+        """
+
+        super().__init__()
+
+        self.n_dims = len(init_vl)
+
+        self.vl = torch.nn.Parameter(torch.zeros(self.n_dims), requires_grad=True)
+        self.set_vl(init_vl)
+
+    def set_vl(self, vl: np.ndarray):
+        """ Sets the value of the function.
+
+        Note: Values will be cast to float before setting.
+
+        Args:
+            vl: The value to set the function to.
+        """
+        vl = torch.Tensor(vl)
+        self.vl.data = vl.float()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Produces constant output given input.
+
+        Args:
+            x: Input data of shape nSmps*d_in.
+
+        Returns:
+            y: output of shape nSmps*d_out
+        """
+
+        n_smps = x.shape[0]
+        return self.vl.unsqueeze(0).expand(n_smps, self.n_dims)
+
+
+class DenseLayer(torch.nn.Module):
+    """ A layer which concatenates its input to it's output. """
+
+    def __init__(self, m: torch.nn.Module):
+        """ Creates a DenseLayer object.
+
+        Args:
+
+            m: The module which input is passed through.  The output of this module is concatenated to
+            the input to form the final output of the module.
+        """
+
+        super().__init__()
+        self.m = m
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes input from output. """
+
+        return torch.cat((x, self.m(x)), dim=1)
+
+
+class DenseLNLNet(torch.nn.Module):
+    """ A network of densely connected linear, non-linear units. """
+
+    def __init__(self, nl_class: type, d_in: int, n_layers: int, growth_rate: int, bias: bool = False):
+        """ Creates a DenseLNLNet object.
+
+        Args:
+              nl_class: The class to construct the non-linear activation functions from, e.g., torch.nn.ReLU
+
+              d_in: Input dimensionality to the network
+
+              n_layers: The number of layers in the network.
+
+              growth_rate: The number of unique features computed by each layer.  The output dimensionality of
+              the network will be: d_in + n_layers*growth_rate.
+
+              bias: True if linear layers should have a bias.
+
+        """
+
+        super().__init__()
+
+        for i in range(n_layers):
+
+            linear_layer = torch.nn.Linear(in_features=d_in + i*growth_rate, out_features=growth_rate, bias=bias)
+
+            dense_layer = DenseLayer(torch.nn.Sequential(linear_layer, nl_class()))
+
+            self.add_module('dense_lnl_' + str(i), dense_layer) # Add linear layer
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes input given output. """
+
+        for module in self._modules.values():
+            x = module(x)
+
+        return x
+
+
+class Exp(torch.nn.ModuleList):
+    """ Applies a  transformation to the data y = o + exp(g*x + s) """
+
+    def __init__(self, d: int, o_mn: float = 0.0, o_std: float = 0.1,
+                               g_mn: float = 0.0, g_std: float = 0.1,
+                               s_mn: float = 0.0, s_std: float = 0.1,):
+        """ Creates a Relu object.
+
+        Args:
+            d: The dimensionality of the input and output
+
+            o_mn, o_std: The mean and standard deviation for initializing o
+
+            g_mn, g_std: The mean and standard deviation for initializing g
+
+            s_mn, s_std: The mean and standard deviation for initializing s
+        """
+
+        super().__init__()
+
+        o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(o, mean=o_mn, std=o_std)
+        self.register_parameter('o', o)
+
+        s = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(s, mean=s_mn, std=s_std)
+        self.register_parameter('s', s)
+
+        g = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(g, mean=g_mn, std=g_std)
+        self.register_parameter('g', g)
+
+    def forward(self, x: torch.Tensor) -> torch.tensor:
+        """ Computes output given input.
+
+        Args:
+            x: Input tensor
+
+        Returns:
+            y: Output tensor
+        """
+        return torch.exp(self.g*x + self.s) + self.o
+
+
+class FixedOffsetExp(torch.nn.Module):
+    """ Computes y = exp(x) + o, where o is a fixed, non-learnable offset. """
+
+    def __init__(self, o:float):
+        """ Creates a new FixedOffsetExp object.
+
+        Args:
+            o: The offset to apply
+        """
+        super().__init__()
+        self.register_buffer('o', torch.Tensor([o]))
+
+    def forward(self, x: torch.Tensor):
+        """ Computes input from output.
+
+        Args:
+            x: Input tensor
+
+        Returns:
+            y: Computed output
+        """
+
+        return torch.exp(x) + self.o
+
+
 class IndSmpConstantBoundedFcn(torch.nn.Module):
     """ For representing a function which assigns different bounded constant scalar values to given samples.
 
@@ -201,54 +378,6 @@ class IndSmpConstantBoundedFcn(torch.nn.Module):
         self.f.set_value(vl)
 
 
-class ConstantRealFcn(torch.nn.Module):
-    """ Object for representing function which is constant w.r.t to input and take values anywhere in the reals.
-
-    This is useful when working with modules which need a submodule which is a function with trainable parameters and
-    you desire to use a constant in place of the function.  For example, when working with conditional distributions
-    intsead of predicting the conditional mean with a neural network, you might want a constant conditional mean.
-    """
-
-    def __init__(self, init_vl: np.ndarray):
-        """ Creates a ConstantRealFcn object.
-
-        Args:
-            init_vl: The initial value to initialize the function with.  The length of init_vl determines the number
-            of dimensions of the output of the function.
-        """
-
-        super().__init__()
-
-        self.n_dims = len(init_vl)
-
-        self.vl = torch.nn.Parameter(torch.zeros(self.n_dims), requires_grad=True)
-        self.set_vl(init_vl)
-
-    def set_vl(self, vl: np.ndarray):
-        """ Sets the value of the function.
-
-        Note: Values will be cast to float before setting.
-
-        Args:
-            vl: The value to set the function to.
-        """
-        vl = torch.Tensor(vl)
-        self.vl.data = vl.float()
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Produces constant output given input.
-
-        Args:
-            x: Input data of shape nSmps*d_in.
-
-        Returns:
-            y: output of shape nSmps*d_out
-        """
-
-        n_smps = x.shape[0]
-        return self.vl.unsqueeze(0).expand(n_smps, self.n_dims)
-
-
 class IndSmpConstantRealFcn(torch.nn.Module):
     """ For representing a function which assigns different real-valued constant scalar values to given samples.
 
@@ -298,64 +427,162 @@ class IndSmpConstantRealFcn(torch.nn.Module):
         self.f.set_vl(vl)
 
 
-class DenseLayer(torch.nn.Module):
-    """ A layer which concatenates its input to it's output. """
+class LogGaussianBumpFcn(torch.nn.Module):
+    """ A module representing a log Gaussian "bump" function with trainable parameters of the form:
 
-    def __init__(self, m: torch.nn.Module):
-        """ Creates a DenseLayer object.
+            y = log(g*exp(-d(x,c)),
 
-        Args:
+        where d(x,c) is the distance of x from the center c defined as sqrt( (x - c)'S^-2(x-c) ), where
+        S is a diagonal matrix of standard deviations.
 
-            m: The module which input is passed through.  The output of this module is concatenated to
-            the input to form the final output of the module.
-        """
+    """
 
-        super().__init__()
-        self.m = m
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes input from output. """
-
-        return torch.cat((x, self.m(x)), dim=1)
-
-
-class DenseLNLNet(torch.nn.Module):
-    """ A network of densely connected linear, non-linear units. """
-
-    def __init__(self, nl_class: type, d_in: int, n_layers: int, growth_rate: int, bias: bool = False):
-        """ Creates a DenseLNLNet object.
+    def __init__(self, d_x: int, ctr_std_lb: float = .02, ctr_std_ub: float = 100.0, ctr_std_init: float =1.0,
+                 log_gain_lb: float = -3.0, log_gain_ub: float = 0.0, log_gain_init: float =-0.05,
+                 ctr_range: list = [0, 1]):
+        """ Creates a LogGaussianBumpFcn object.
 
         Args:
-              nl_class: The class to construct the non-linear activation functions from, e.g., torch.nn.ReLU
 
-              d_in: Input dimensionality to the network
+            d_x: The dimensionality of the domain of the function.
 
-              n_layers: The number of layers in the network.
+            ctr_stds_lb: Lower bound center standard deviations can take on
 
-              growth_rate: The number of unique features computed by each layer.  The output dimensionality of
-              the network will be: d_in + n_layers*growth_rate.
+            ctr_std_ub: Upper bound center standard deviations can take on
 
-              bias: True if linear layers should have a bias.
+            ctr_stds_init: Initial value for center standard deviations.  All dimensions are initialized to the same
+            value.
+
+            log_gain_lb: Lower bound the log gain value can take on
+
+            log_gain_ub: Upper bound the log gain value can take on
+
+            log_gain_init: Initial value for the log gain value
+
+            ctr_range: The range of the uniform distribution when randomly initializing the center.  All dimensions are
+            selected from the same Uniform distribution.
 
         """
 
         super().__init__()
 
-        for i in range(n_layers):
+        self.ctr = torch.nn.Parameter(torch.zeros(d_x), requires_grad=True)
+        torch.nn.init.uniform_(self.ctr, ctr_range[0], ctr_range[1])
 
-            linear_layer = torch.nn.Linear(in_features=d_in + i*growth_rate, out_features=growth_rate, bias=bias)
+        # Standard deviations determining how fast bumps fall off in each direction
+        self.ctr_stds = ConstantBoundedFcn(lower_bound=np.asarray([ctr_std_lb]), upper_bound=np.asarray(ctr_std_ub),
+                                           init_value=np.asarray([ctr_std_init]))
 
-            dense_layer = DenseLayer(torch.nn.Sequential(linear_layer, nl_class()))
+        self.log_gain_vl = ConstantBoundedFcn(lower_bound=np.asarray([log_gain_lb]), upper_bound=np.asarray([log_gain_ub]),
+                                              init_value=np.asarray([log_gain_init]))
 
-            self.add_module('dense_lnl_' + str(i), dense_layer) # Add linear layer
+    def forward(self, x:torch.Tensor):
+        """ Computes output of function given input.
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes input given output. """
+        Args:
+            x: Input of shape nSmps*d
 
-        for module in self._modules.values():
-            x = module(x)
+        Returns:
+            y: Output of shape nSmps
+        """
 
-        return x
+        place_holder_input = torch.zeros(1)
+
+        ctr_stds = self.ctr_stds(place_holder_input).squeeze()
+        log_gain = self.log_gain_vl(place_holder_input).squeeze()
+
+        x_ctr = x - self.ctr
+        x_ctr_scaled = x_ctr/ctr_stds
+
+        if len(x_ctr_scaled.shape) > 1:
+            x_dist = torch.sum(x_ctr_scaled**2, dim=1)
+        else:
+            x_dist = x_ctr_scaled**2
+
+        return log_gain + -1*x_dist
+
+
+class Relu(torch.nn.ModuleList):
+    """ Applies a rectified linear transformation to the data y = o + relu(x + s) """
+
+    def __init__(self, d: int):
+        """ Creates a Relu object.
+
+        Args:
+            d: The dimensionality of the input and output
+        """
+
+        super().__init__()
+
+        o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(o, std=5)
+        self.register_parameter('o', o)
+
+        s = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(s, std=5)
+        self.register_parameter('s', s)
+
+    def forward(self, x: torch.Tensor) -> torch.tensor:
+        """ Computes output given input.
+
+        Args:
+            x: Input tensor
+
+        Returns:
+            y: Output tensor
+        """
+        return relu(x + self.s) + self.o
+
+
+class SCC(torch.nn.Module):
+    """ A module which splits inputs, applies a function to that input (computes) and concatenates the results.
+
+    The acronym SCC is for Split, Compute, Concatenate.  This module will:
+
+        1) Split the input into different groups
+
+        2) Apply a different function to each of the groups
+
+        3) Concatenate the result
+
+    """
+
+    def __init__(self, group_inds: Sequence[torch.Tensor], group_modules: Sequence[torch.nn.Module]):
+        """ Creates a new SCC object.
+
+        Args:
+            group_inds: group_inds[i] is tensor of dtype long indicating which input dimensions are used to
+            form the data for group i.  Variables in the group will be ordered according their order in
+            group_inds[i]
+
+            group_modules: group_fcns[i] is the function to apply to data for group i.
+        """
+
+        super().__init__()
+
+        # Register the group indices as buffers - this ensures they get moved to the appropriate device when we move
+        # an SCC module
+        self.group_inds = []
+        for g_i, inds in enumerate(group_inds):
+            buffer_name = 'grp_inds' + str(g_i)
+            self.register_buffer(buffer_name, inds)
+            self.group_inds.append(getattr(self, buffer_name))
+
+        self.group_modules = torch.nn.ModuleList(group_modules)
+
+    def forward(self, x: torch.Tensor):
+        """ Computes input from output.
+
+        Args:
+            x: input of shape n_smps*d_x
+
+            y: output of shane n_smps*d_y, where d_y is the sum of the output dimensionalities of all
+            group functions.  Outputs from each group are concatenated (according to the order of the
+            groups) to form y.
+        """
+
+        grp_y = [m(x[:, inds]) for inds, m in zip(self.group_inds, self.group_modules)]
+        return torch.cat(grp_y, dim=1)
 
 
 class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
@@ -530,180 +757,4 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         """
         n_smps = x.shape[0]
         return torch.sum(self.b_m[self._x_to_idx(x)], dim=1).view([n_smps, 1])
-
-
-class Exp(torch.nn.ModuleList):
-    """ Applies a  transformation to the data y = o + exp(g*x + s) """
-
-    def __init__(self, d: int, o_mn: float = 0.0, o_std: float = 0.1,
-                               g_mn: float = 0.0, g_std: float = 0.1,
-                               s_mn: float = 0.0, s_std: float = 0.1,):
-        """ Creates a Relu object.
-
-        Args:
-            d: The dimensionality of the input and output
-
-            o_mn, o_std: The mean and standard deviation for initializing o
-
-            g_mn, g_std: The mean and standard deviation for initializing g
-
-            s_mn, s_std: The mean and standard deviation for initializing s
-        """
-
-        super().__init__()
-
-        o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-        torch.nn.init.normal_(o, mean=o_mn, std=o_std)
-        self.register_parameter('o', o)
-
-        s = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-        torch.nn.init.normal_(s, mean=s_mn, std=s_std)
-        self.register_parameter('s', s)
-
-        g = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-        torch.nn.init.normal_(g, mean=g_mn, std=g_std)
-        self.register_parameter('g', g)
-
-    def forward(self, x: torch.Tensor) -> torch.tensor:
-        """ Computes output given input.
-
-        Args:
-            x: Input tensor
-
-        Returns:
-            y: Output tensor
-        """
-        return torch.exp(self.g*x + self.s) + self.o
-
-
-class Relu(torch.nn.ModuleList):
-    """ Applies a rectified linear transformation to the data y = o + relu(x + s) """
-
-    def __init__(self, d: int):
-        """ Creates a Relu object.
-
-        Args:
-            d: The dimensionality of the input and output
-        """
-
-        super().__init__()
-
-        o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-        torch.nn.init.normal_(o, std=5)
-        self.register_parameter('o', o)
-
-        s = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-        torch.nn.init.normal_(s, std=5)
-        self.register_parameter('s', s)
-
-    def forward(self, x: torch.Tensor) -> torch.tensor:
-        """ Computes output given input.
-
-        Args:
-            x: Input tensor
-
-        Returns:
-            y: Output tensor
-        """
-        return relu(x + self.s) + self.o
-
-
-class LogGaussianBumpFcn(torch.nn.Module):
-    """ A module representing a log Gaussian "bump" function with trainable parameters of the form:
-
-            y = log(g*exp(-d(x,c)),
-
-        where d(x,c) is the distance of x from the center c defined as sqrt( (x - c)'S^-2(x-c) ), where
-        S is a diagonal matrix of standard deviations.
-
-    """
-
-    def __init__(self, d_x: int, ctr_std_lb: float = .02, ctr_std_ub: float = 100.0, ctr_std_init: float =1.0,
-                 log_gain_lb: float = -3.0, log_gain_ub: float = 0.0, log_gain_init: float =-0.05,
-                 ctr_range: list = [0, 1]):
-        """ Creates a LogGaussianBumpFcn object.
-
-        Args:
-
-            d_x: The dimensionality of the domain of the function.
-
-            ctr_stds_lb: Lower bound center standard deviations can take on
-
-            ctr_std_ub: Upper bound center standard deviations can take on
-
-            ctr_stds_init: Initial value for center standard deviations.  All dimensions are initialized to the same
-            value.
-
-            log_gain_lb: Lower bound the log gain value can take on
-
-            log_gain_ub: Upper bound the log gain value can take on
-
-            log_gain_init: Initial value for the log gain value
-
-            ctr_range: The range of the uniform distribution when randomly initializing the center.  All dimensions are
-            selected from the same Uniform distribution.
-
-        """
-
-        super().__init__()
-
-        self.ctr = torch.nn.Parameter(torch.zeros(d_x), requires_grad=True)
-        torch.nn.init.uniform_(self.ctr, ctr_range[0], ctr_range[1])
-
-        # Standard deviations determining how fast bumps fall off in each direction
-        self.ctr_stds = ConstantBoundedFcn(lower_bound=np.asarray([ctr_std_lb]), upper_bound=np.asarray(ctr_std_ub),
-                                           init_value=np.asarray([ctr_std_init]))
-
-        self.log_gain_vl = ConstantBoundedFcn(lower_bound=np.asarray([log_gain_lb]), upper_bound=np.asarray([log_gain_ub]),
-                                              init_value=np.asarray([log_gain_init]))
-
-    def forward(self, x:torch.Tensor):
-        """ Computes output of function given input.
-
-        Args:
-            x: Input of shape nSmps*d
-
-        Returns:
-            y: Output of shape nSmps
-        """
-
-        place_holder_input = torch.zeros(1)
-
-        ctr_stds = self.ctr_stds(place_holder_input).squeeze()
-        log_gain = self.log_gain_vl(place_holder_input).squeeze()
-
-        x_ctr = x - self.ctr
-        x_ctr_scaled = x_ctr/ctr_stds
-
-        if len(x_ctr_scaled.shape) > 1:
-            x_dist = torch.sum(x_ctr_scaled**2, dim=1)
-        else:
-            x_dist = x_ctr_scaled**2
-
-        return log_gain + -1*x_dist
-
-
-class FixedOffsetExp(torch.nn.Module):
-    """ Computes y = exp(x) + o, where o is a fixed, non-learnable offset. """
-
-    def __init__(self, o:float):
-        """ Creates a new FixedOffsetExp object.
-
-        Args:
-            o: The offset to apply
-        """
-        super().__init__()
-        self.register_buffer('o', torch.Tensor([o]))
-
-    def forward(self, x: torch.Tensor):
-        """ Computes input from output.
-
-        Args:
-            x: Input tensor
-
-        Returns:
-            y: Computed output
-        """
-
-        return torch.exp(x) + self.o
 

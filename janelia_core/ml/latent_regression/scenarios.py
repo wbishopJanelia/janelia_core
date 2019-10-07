@@ -1,6 +1,6 @@
 """ Tools for generating simulated latent regression models. """
 
-from typing import Sequence
+from typing import List, Sequence
 
 import matplotlib.pyplot as plt
 import matplotlib.transforms
@@ -11,8 +11,10 @@ from janelia_core.ml.datasets import TimeSeriesDataset
 from janelia_core.ml.extra_torch_modules import FixedOffsetExp
 from janelia_core.ml.extra_torch_modules import IndSmpConstantBoundedFcn
 from janelia_core.ml.extra_torch_modules import IndSmpConstantRealFcn
+from janelia_core.ml.extra_torch_modules import SCC
 from janelia_core.ml.extra_torch_modules import SumOfTiledHyperCubeBasisFcns
 from janelia_core.ml.latent_regression.group_maps import ConcatenateMap
+from janelia_core.ml.latent_regression.group_maps import IdentityMap
 from janelia_core.ml.latent_regression.subject_models import LatentRegModel
 from janelia_core.ml.latent_regression.vi import SubjectVICollection
 from janelia_core.ml.torch_distributions import CondGaussianDistribution
@@ -99,6 +101,50 @@ class IdentityS(torch.nn.Module):
 
     def forward(self, x):
         return x
+
+
+class FixedSumMod(torch.nn.Module):
+    """ Performs a sum along the second dimenstion. """
+    def forward(self, x):
+        return torch.sum(x, dim=1, keepdim=True)
+
+
+class ReducedExpMod(torch.nn.Module):
+    """ A module implementing y = s*exp(x) + o """
+
+    def __init__(self, d: int, o_mn: float = 0.0, o_std: float = 0.1,
+                               s_mn: float = 1.0, s_std: float = 0.1,):
+        """ Creates a Relu object.
+
+        Args:
+            d: The dimensionality of the input and output
+
+            o_mn, o_std: The mean and standard deviation for initializing o
+
+            s_mn, s_std: The mean and standard deviation for initializing s
+        """
+
+        super().__init__()
+
+        o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(o, mean=o_mn, std=o_std)
+        self.register_parameter('o', o)
+
+        s = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(s, mean=s_mn, std=s_std)
+        self.register_parameter('s', s)
+
+    def forward(self, x: torch.Tensor) -> torch.tensor:
+        """ Computes output given input.
+
+        Args:
+            x: Input tensor
+
+        Returns:
+            y: Output tensor
+        """
+        raise(Warning("Using tanh"))
+        return self.s*torch.tanh(x) + self.o
 
 
 class BumpInputWithRecursiveDynamicsScenario():
@@ -493,7 +539,7 @@ class BumpInputWithRecursiveDynamicsScenario():
             "time locked" that is the t^th point in the returned stimulus and the t^th point in
             the returned neural data is the data that generated the (t+1)^th data point in the neural
             data.  This requires discarding the first point in the provided stimulus, so there will
-            only by T-1 data points inthe returned dataset.
+            only by T-1 data points in the returned dataset.
         """
 
         n_subjects = len(stimuli)
@@ -558,6 +604,318 @@ class BumpInputWithRecursiveDynamicsScenario():
             input[s_i] = s_input
 
         return self.generate_data(stimuli=input)
+
+
+class SplitPropertiesScenario():
+    """ An object for simulating a scenario where neuron couplings depend on two or more sets of properties.
+
+    For simplicity, we simulate neuron properties as distributed uniformly in a unit hypercube in each property space.
+
+    Other than having neuron properties depend on two or more sets of properties, we try to keep everything
+    else in this scenario as simple as possible.  In particular, we simulate a model of neurons driving one
+    behavioral variable.  This means we have one p-mode per subject and fixed (scalar) u mode with value 1.  The
+    coefficients of the p-mode depend on two sets of properties.  We assume identiy m-module and s-modules.
+
+    To generating a p-mode coupling for a given subject's neuron , we pull from
+    a N(m(p_i^0, p_i^1, ..., p_i^J), \sigma^2) distribution where m() is of the form:
+
+        m(p_i^0, p_i^1, ..., p_i^J) = k*\prod_j^J b_j(p_i^j),
+
+    where b_j is an axis-aligned Gaussian bump function parameterized by a center and standard deviation along
+    each axis.
+
+    """
+
+    def _bmp_fcn(self, x_j, j):
+        return np.exp(-1*np.sum(((x_j - self.bump_centers[j])**2)/self.bump_stds[j], axis=1))
+
+    def _m(self, x):
+        return self.bump_k*np.prod(np.stack([self._bmp_fcn(x_j, j) for j, x_j in enumerate(x)],
+                                            axis=1),
+                                   axis=1)
+
+    def __init__(self, n_neurons: Sequence[int], bump_k: float,
+                 bump_centers: Sequence[np.ndarray], bump_stds: Sequence[np.ndarray],
+                 coupling_std: float, psi_noise_range: Sequence[float]):
+        """ Creates a new SplitPropertiesScenario object.
+
+        Args:
+
+            n_neurons: The length of n_neurons defines the number of subjects in the simulation. n_neurons[i]
+            is the number of neurons to simulate for subject i.
+
+            bump_k: The extreme value any coupling can take on.
+
+            bump_centers: bump_centers[j] is where b_j is centered.  The length of bump_centers defines how many
+            sets of properties there, and the length of bump_centers[j] implicitly defines the dimensionality of the
+            j^th property space.
+
+            bump_stds: Bump functions are axis aligned.  bump_stds[j][i] is the standard deviation of b_j along
+            dimension i.
+
+            coupling_std: The standard deviation of the distrubtion on couplings
+
+            psi_noise_range: The range to pull psi values from when generating the latent regression model for
+            each subject
+
+        """
+
+        n_subjects = len(n_neurons)
+        n_prop_spaces = len(bump_centers)
+        prop_dims = [len(b_c) for b_c in bump_centers]
+
+        self.n_subjects = n_subjects
+        self.n_neurons = n_neurons
+        self.bump_k = bump_k
+        self.bump_centers = bump_centers
+        self.bump_stds = bump_stds
+        self.coupling_std = coupling_std
+
+        # Generate subject models
+        self.subject_mdls = [None]*n_subjects
+        for s_i in range(n_subjects):
+                neuron_props_i = [np.random.rand(n_neurons[s_i], prop_dims[p_j]) for p_j in range(n_prop_spaces)]
+
+                mdl = LatentRegModel(d_in=[n_neurons[s_i]], d_out=[1], d_proj=[1], d_trans=[1],
+                                     m=IdentityMap(), s=[IdentityS()], noise_range=psi_noise_range)
+
+                # Concatenate properties, noting indices that form each set of properties
+                prop_set_inds = [np.arange(props_i.shape[1], dtype='long') for props_i in neuron_props_i]
+                prev_n_props = 0
+                for i in range(n_prop_spaces):
+                    prop_set_inds[i] = prop_set_inds[i] + prev_n_props
+                    prev_n_props += len(prop_set_inds[i])
+
+                mdl.neuron_prop_set_inds = prop_set_inds
+                mdl.neuron_props = torch.tensor(np.concatenate(neuron_props_i, axis=1), dtype=torch.float)
+
+                mdl.u[0].data[:] = 1
+
+                p_mode = self._m(neuron_props_i) + coupling_std*np.random.randn(n_neurons[s_i])
+                p_mode = np.reshape(p_mode, [n_neurons[s_i], 1])
+                mdl.p[0].data = torch.Tensor(p_mode)
+
+                self.subject_mdls[s_i] = mdl
+
+    def generate_data(self, n_tm_pts: Sequence[int]) -> List[TimeSeriesDataset]:
+        """ Generates simulated data for the scenario.
+
+        Args:
+            n_tm_pts: n_tm_pts[i] is the number of time points to generate for subject i
+
+        Returns:
+            data: data[i] is the data for subject i as a TimeSeriesDataset object.  The first entry in the .data
+            attribute of the object will be neural data and the second will be behavioral data.
+        """
+
+        data = [None]*self.n_subjects
+
+        for s_i in range(self.n_subjects):
+            neural_data = torch.randn(n_tm_pts[s_i] + 2, self.n_neurons[s_i])
+            beh_data = self.subject_mdls[s_i].generate([neural_data])
+            data[s_i] = TimeSeriesDataset([neural_data[1:-1, :], beh_data[0][0:-2, :]])
+
+        return data
+
+    def generate_training_subject_mdl(self, s_i: int, assign_p_u: bool = True,
+                                      psi_noise_range: Sequence[float] = [.1, .2]) -> LatentRegModel:
+        """ Generates a new subject model for training.
+
+        Args:
+            s_i: The subject to generate a model for
+
+            assign_p_u: True if p and u tensors should be created for the model.  Setting this to false
+            saves memory if the model will be fit with priors over the modes (in which case the p and u
+            modes in the subject model object are ignored.)
+
+            psi_noise_range: The range of values to initialize psi with
+
+            Returns:
+                mdl: The generated subject model
+        """
+
+        mdl = LatentRegModel(d_in=[self.n_neurons[s_i]], d_out=[1], d_proj=[1], d_trans=[1],
+                             m=IdentityMap(), s=[IdentityS()], noise_range=psi_noise_range)
+
+        if assign_p_u:
+            mdl.u[0].data[:] = 1
+            mdl.u_trainable[0] = False
+
+        return mdl
+
+    def generate_training_subject_posteriors(self, s_i: int, mn_init_mn:float = 0, mn_init_std:float = .01,
+                                             std_init_vl:float = .01) -> Sequence:
+        """ Generates the posterior distributions for a given subject for variational inference.
+
+        Because the u mode is assumed fixed and known, a tensor is returned in place of a distribution
+        for this mode.
+
+        Args:
+            s_i: The subject to generate posteriors for
+
+            mn_init_mn, mn_init_std: The mean and standard deviation of the normal distribution the initial values
+            for the mean of the distribution on the p mode are sampled from.
+
+            std_init_vl: The initial standard deviation for each entry in the p-mode.  The standard deviation is
+            initially the same for all neurons.
+
+        Returns:
+            p_dists: p_dists[0] is the distribtion on the p modes
+
+            u_dists: u_dists[0] is a 1*1 tensor with value 1.
+
+        """
+
+        # Generate the distribution over the p mode
+        mn_f = IndSmpConstantRealFcn(n=self.n_neurons[s_i], init_mn=mn_init_mn, init_std=mn_init_std)
+        std_f = IndSmpConstantBoundedFcn(n=self.n_neurons[s_i], lower_bound=.00001, upper_bound=10,
+                                         init_value=std_init_vl)
+
+        p_dists = [CondMatrixProductDistribution(dists=[CondGaussianDistribution(mn_f=mn_f, std_f=std_f)])]
+        u_dists = [torch.eye(1)]
+
+        return [p_dists, u_dists]
+
+    def generate_training_collection(self, s_i: int, data: TimeSeriesDataset,
+                                     mn_init_mn:float = 0, mn_init_std:float = .01,
+                                     std_init_vl:float = .01, post_dists: list = None) -> SubjectVICollection:
+        """ Generates a SubjectVICollection for fitting data to a given subject in the scenario.
+
+        Args:
+            s_i: The index of the subject to fit to.
+
+            data: The training data for the subject, as a TimeSeriesDataset in the same convention as returned by
+            generate_data()
+
+            mn_init_mn, mn_init_std, std_init_vl: Values for initializing distributions on modes.  See
+            generate_training_subject_posteriors for more information.
+
+            post_dists: If provided, these are the posterior distributions to use for this subject.  If not,
+            posterior distributions will be generated by self.generate_training_subject_posteriors. If provided,
+            post_dists[0] are the distributions for the p modes and post_dists[1] are the distributions for
+
+        Returns:
+            collection: The generated collection.
+        """
+
+        if post_dists is None:
+            post_dists = self.generate_training_subject_posteriors(s_i=s_i, mn_init_mn=mn_init_mn,
+                                                                   mn_init_std=mn_init_std, std_init_vl=std_init_vl)
+
+        return SubjectVICollection(s_mdl=self.generate_training_subject_mdl(s_i, assign_p_u=False),
+                                   data=data,
+                                   p_dists=post_dists[0],
+                                   u_dists=post_dists[1],
+                                   input_grps=[0],
+                                   output_grps=[1],
+                                   props=[self.subject_mdls[s_i].neuron_props],
+                                   input_props=[0],
+                                   output_props=[None],
+                                   min_var=[.00001])
+
+
+    def generate_fitting_priors(self, set_inds: Sequence[Sequence],
+                                n_divisions_per_dim: int = 50, n_div_per_hc_side_per_dim: int = 3,
+                                init_std: float = .001, min_std = .00001) -> Sequence:
+        """ Generates prior for fitting multiple models with variational inference.
+
+        The only mode to generate a prior for in this scenario is the single p mode.  For neuron i with properties
+        p_i^0, ... p_i^J, the prior conditioned on properties will be N(m(p_i^0, ... p_i^J), s^2(p_i^0, ... p_i^J)),
+        where m() is of the form:
+
+            m(p_i^0, ... p_i^J) = l*exp(\sum_{j=1}^J h_j^m(p_i^j) + d) + o,
+
+        where each h_j^m is a hypercube function, d is a shift, o is an offset and l is a scale.
+
+        The function s() is of the form:
+
+            s(p_i^0, ... p_i^J) = exp(\sum_{j=1}^J h_j^s(p_i^j)) + o_fixed,
+
+        where each h_j^s is again a hypercube function and o_fixed is a non-learnable parameter with a small
+        positive value to ensure the output of s() is strictly positive.
+
+        The priors will assume all of the properties have been concatenated together, and therefore, the
+        user has to specify which dimensions of the concatenated properties belong to each set (see set_inds below).
+
+        Note: Because u mode is assumed fixed and known, a prior is not generated for this mode
+        and the value None is returned in its place (see below).
+
+        Args:
+
+            set_inds: Priors are created assuming properties will be provided in a tensor of
+            shape n_neurons*n_total_prop_dims.  set_inds[i] gives the columns of the property tensor corresponding
+            to the properties for property space i.
+
+            n_divisions_per_dim: The number of divisons per dimension to use when generating hypercube functions.  There
+            will be the same number of divisions for each dimension.
+
+            n_div_per_hc_side_per_dim: The number of divisions per hypercube per dimension to use when generating
+            hypercube functions.  This will be the same for all dimensions.
+
+            init_mn: The initial mean for the conditional distribution for the p mode.  The mean will take on
+            this value everywhere.
+
+            init_std: The initial standard deviation for the conditional distribution for the p mode.  The standard
+            deviation will take on this value everywhere.
+
+            min_std: The minimum standard deviation the prior distributions can take on.
+
+        Raises:
+            ValueError: If min_std or init_std is less than 0
+            ValueError: If init_std is less than min_std
+
+        Returns:
+
+            p_dists: p_dists[0] is the distribution for the p mode
+
+            u_dists: u_dists[0] is None to signify there is no prior distribution over the u modes
+        """
+
+        if init_std < 0:
+            raise(ValueError('init_std must be greater than 0'))
+        if min_std < 0:
+            raise(ValueError('min_std must be greater than 0'))
+        if init_std < min_std:
+            raise(ValueError('min_std must be less than init_std'))
+
+        n_prop_spaces = len(set_inds)
+        prop_space_dims = [len(set_i) for set_i in set_inds]
+        space_dim_ranges = [np.zeros([d_i, 2]) for d_i in prop_space_dims]
+        for p_i in range(n_prop_spaces):
+            space_dim_ranges[p_i][:, 1] = 1.0
+
+        # Generate the hypercube basis functions for each property space for the mean and standard deviation
+        mean_hc_fcns = [SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=[n_divisions_per_dim]*prop_space_dims[p_i],
+                                                     dim_ranges = space_dim_ranges[p_i],
+                                                     n_div_per_hc_side_per_dim=[n_div_per_hc_side_per_dim]*prop_space_dims[p_i])
+                        for p_i in range(n_prop_spaces)]
+
+        std_hc_fcns = [SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=[n_divisions_per_dim]*prop_space_dims[p_i],
+                                                     dim_ranges = space_dim_ranges[p_i],
+                                                     n_div_per_hc_side_per_dim=[n_div_per_hc_side_per_dim]*prop_space_dims[p_i])
+                        for p_i in range(n_prop_spaces)]
+
+        # Set initial value of mn_hc_fcns
+
+        # Set initial value of std_hc_fcns
+        for p_i, fcn in enumerate(std_hc_fcns):
+            fcn.b_m.data[:] = np.log(init_std - min_std)/(n_prop_spaces*n_div_per_hc_side_per_dim**prop_space_dims[p_i])
+
+        set_inds = [torch.tensor(s_i, dtype=torch.long) for s_i in set_inds]
+
+        # Create the mean and standard deviation function for the p mode
+        mn_f = torch.nn.Sequential(SCC(group_inds=set_inds, group_modules=mean_hc_fcns),
+                                       FixedSumMod(), ReducedExpMod(1, s_mn=-10, s_std=.1,
+                                                                    o_mn=0.0, o_std=.01))
+
+        std_f = torch.nn.Sequential(SCC(group_inds=set_inds, group_modules=std_hc_fcns),
+                                      FixedSumMod(), FixedOffsetExp(min_std))
+
+        # Create the distribution over the p mode
+        p_dists = [CondMatrixProductDistribution(dists=[CondGaussianDistribution(mn_f=mn_f, std_f=std_f)])]
+        u_dists = [None]
+
+        return [p_dists, u_dists]
 
 
 def plot_single_2d_conditional_prior(priors: CondMatrixProductDistribution, mode: int,

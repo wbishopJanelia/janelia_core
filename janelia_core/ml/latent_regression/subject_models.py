@@ -183,6 +183,7 @@ class LatentRegModel(torch.nn.Module):
             raise(ValueError('x must be a list'))
 
         proj = [torch.matmul(x_g, p_g) for x_g, p_g in zip(x, p)]
+
         tran = self.m(proj)
         z = [torch.matmul(t_h, u_h.t()) for t_h, u_h in zip(tran, u)]
 
