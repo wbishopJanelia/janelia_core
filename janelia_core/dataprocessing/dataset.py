@@ -165,7 +165,7 @@ class ROIDataset(DataSet):
             roi_groups.  A dictionary holding ROI groups.  A "ROI group" is a group of ROIs whose values
                 are stored together in entries in ts_data.  One group can have values stored in multiple entries in
                 ts_data. Each entry in roi_groups is specified by a key giving the name of the group and a value which
-                is a dictioary with the keys:
+                is a dictionary with the keys:
                     1) rois: A list of ROI objects representing the rois in the group
                     2) ts_labels: A list of ts_data entries with data for this group of rois.
                     3) Optional keys the user may specify. For example, a "type" can be specified.

@@ -109,12 +109,12 @@ class FixedSumMod(torch.nn.Module):
         return torch.sum(x, dim=1, keepdim=True)
 
 
-class ReducedExpMod(torch.nn.Module):
-    """ A module implementing y = s*exp(x) + o """
+class ReducedTanhMod(torch.nn.Module):
+    """ A module implementing y = s*tanh(x) + o """
 
     def __init__(self, d: int, o_mn: float = 0.0, o_std: float = 0.1,
                                s_mn: float = 1.0, s_std: float = 0.1,):
-        """ Creates a Relu object.
+        """ Creates a ReducedTanhMod module.
 
         Args:
             d: The dimensionality of the input and output
@@ -143,7 +143,6 @@ class ReducedExpMod(torch.nn.Module):
         Returns:
             y: Output tensor
         """
-        raise(Warning("Using tanh"))
         return self.s*torch.tanh(x) + self.o
 
 
@@ -813,10 +812,9 @@ class SplitPropertiesScenario():
                                    output_props=[None],
                                    min_var=[.00001])
 
-
     def generate_fitting_priors(self, set_inds: Sequence[Sequence],
                                 n_divisions_per_dim: int = 50, n_div_per_hc_side_per_dim: int = 3,
-                                init_std: float = .001, min_std = .00001) -> Sequence:
+                                init_mn: float = .01, init_std: float = .001, min_std = .00001) -> Sequence:
         """ Generates prior for fitting multiple models with variational inference.
 
         The only mode to generate a prior for in this scenario is the single p mode.  For neuron i with properties
@@ -895,21 +893,25 @@ class SplitPropertiesScenario():
                                                      n_div_per_hc_side_per_dim=[n_div_per_hc_side_per_dim]*prop_space_dims[p_i])
                         for p_i in range(n_prop_spaces)]
 
-        # Set initial value of mn_hc_fcns
-
-        # Set initial value of std_hc_fcns
-        for p_i, fcn in enumerate(std_hc_fcns):
-            fcn.b_m.data[:] = np.log(init_std - min_std)/(n_prop_spaces*n_div_per_hc_side_per_dim**prop_space_dims[p_i])
-
         set_inds = [torch.tensor(s_i, dtype=torch.long) for s_i in set_inds]
 
         # Create the mean and standard deviation function for the p mode
         mn_f = torch.nn.Sequential(SCC(group_inds=set_inds, group_modules=mean_hc_fcns),
-                                       FixedSumMod(), ReducedExpMod(1, s_mn=-10, s_std=.1,
+                                       FixedSumMod(), ReducedTanhMod(1, s_mn=1, s_std=.1,
                                                                     o_mn=0.0, o_std=.01))
 
         std_f = torch.nn.Sequential(SCC(group_inds=set_inds, group_modules=std_hc_fcns),
-                                      FixedSumMod(), FixedOffsetExp(min_std))
+                                        FixedSumMod(), FixedOffsetExp(min_std))
+
+        # Set initial value of mn_hc_fcns
+        mn_o = mn_f[2].o.detach().numpy()[0]
+        mn_s = mn_f[2].s.detach().numpy()[0]
+        for p_i, fcn in enumerate(mean_hc_fcns):
+            fcn.b_m.data[:] = np.arctanh((init_mn - mn_o)/mn_s)/(n_prop_spaces*n_div_per_hc_side_per_dim**prop_space_dims[p_i])
+
+        # Set initial value of std_hc_fcns
+        for p_i, fcn in enumerate(std_hc_fcns):
+            fcn.b_m.data[:] = np.log(init_std - min_std)/(n_prop_spaces*n_div_per_hc_side_per_dim**prop_space_dims[p_i])
 
         # Create the distribution over the p mode
         p_dists = [CondMatrixProductDistribution(dists=[CondGaussianDistribution(mn_f=mn_f, std_f=std_f)])]
