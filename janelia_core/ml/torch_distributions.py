@@ -13,8 +13,10 @@ import torch
 from janelia_core.ml.extra_torch_modules import FixedOffsetExp
 from janelia_core.ml.extra_torch_modules import IndSmpConstantBoundedFcn
 from janelia_core.ml.extra_torch_modules import IndSmpConstantRealFcn
+from janelia_core.ml.extra_torch_modules import SCC
+from janelia_core.ml.extra_torch_modules import SumAlongDim
 from janelia_core.ml.extra_torch_modules import SumOfTiledHyperCubeBasisFcns
-
+from janelia_core.ml.extra_torch_modules import Tanh
 
 class CondVAEDistriubtion(torch.nn.Module):
     """ CondVAEDistribution is an abstract base class for distributions used by VAEs."""
@@ -817,3 +819,97 @@ class CondMatrixHypercubePrior(CondMatrixProductDistribution):
             col_dists[c_i] = CondGaussianDistribution(mn_f=mn_f, std_f=std_f)
 
         super().__init__(dists=col_dists)
+
+
+class GroupCondMatrixHypercubePrior(CondMatrixProductDistribution):
+    """ Extends CondMatrixProductDistribution so the distribution for each column is a Gaussian with
+    mean and standard deviation functions that depend on groups of properties.
+
+    Specifically, For a matrix, W, under a CondMatrixProductDistribution, we model:
+
+        W[i,j] ~ P_j(W[i,j] | X[i,:]).
+
+    Here, we specify that P_j is a conditional Gaussian distribution with mean given by m(X[i,:]) and standard
+    deviation by s(X[i,:]). For m(), we specify
+
+        m(X[i,:]) = s_mn*tanh( \sum_{ind_j \in inds} f^mn_j(X[i, ind_j]) ) + o_mn,
+
+    where each f_j() is a SumOfTiledHyperCubeBasisFcns function.
+
+    For s(), we specify
+
+        s(X[i,:]) = exp( \sum_{ind_j \in inds} f^std_j(X[i, ind_j]) ) + min_std,
+
+    where min_std is a fixed, small offset ensuring s() stays strictly positive.
+
+    """
+    def __init__(self, n_cols: int, group_inds: Sequence[Sequence[int]],
+                 mn_hc_params: Sequence[dict], std_hc_params: Sequence[dict],
+                 min_std: float, mn_init: float, std_init: float,
+                 tanh_init_opts: dict = None):
+        """ Creates a new GroupCondMatrixHypercubePrior object.
+
+        Args:
+            n_cols: The number of columns in the matrices we represent distributions over.
+
+            group_inds: group_inds[j] are the indices into the dimensions of X for properties for group j
+
+            mn_hc_params: mn_hc_params[j] is a dictionary with parameters for passing into the init() function of
+            SumOfTiledHyperCubeBasisFcns when creating the hypercube function for f^mn_j.
+
+            std_hc_params: std_hc_params[j] is a dictionary with parameters for passing into the init() function
+            of SumOfTiledHyperCubeBasisFcns when creating the hypercube function for f^std_j.
+
+            min_std: The min standard deviation any P_j can take on.
+
+            mn_init: The initial value for the mean function. The mean will take on this value everywhere.
+
+            std_init: The initial value for the standard deviation function.  The standard deviation will take
+            on this value everywhere. Must be greater than min_std
+
+            tanh_init_opts: Dictionary of additional options when initializing the Tanh module for
+            the mean function for each mode. If None, no options will be passed
+
+        Raises:
+            ValueError: If std_init is not greater than min_std.
+        """
+
+        if std_init <= min_std:
+            raise(ValueError('std_init must be greater than min_std'))
+
+        if tanh_init_opts is None:
+            tanh_init_opts = dict()
+
+        # Make sure group inds are of the appropriate type
+        group_inds = [torch.tensor(inds, dtype=torch.int64) for inds in group_inds]
+
+        n_prop_spaces = len(group_inds)
+
+        dists = [None]*n_cols
+        for c_i in range(n_cols):
+
+            # Setup mn function
+            mn_hc_fcns = [SumOfTiledHyperCubeBasisFcns(**params) for params in mn_hc_params]
+            mn_fcn = torch.nn.Sequential(SCC(group_inds=group_inds, group_modules=mn_hc_fcns),
+                                         SumAlongDim(dim=1), Tanh(d=1, **tanh_init_opts))
+
+            # Set initial value of mn_hc_fcns
+            mn_o = mn_fcn[2].o.detach().numpy()[0]
+            mn_s = mn_fcn[2].s.detach().numpy()[0]
+            for p_i, fcn in enumerate(mn_hc_fcns):
+                div_f = n_prop_spaces*np.prod(mn_hc_params[p_i]['n_div_per_hc_side_per_dim'])
+                fcn.b_m.data[:] = np.arctanh((mn_init - mn_o)/mn_s)/div_f
+
+            # Setup std function
+            std_hc_fcns = [SumOfTiledHyperCubeBasisFcns(**params) for params in std_hc_params]
+            std_fcn = torch.nn.Sequential(SCC(group_inds=group_inds, group_modules=std_hc_fcns),
+                                          SumAlongDim(dim=1), FixedOffsetExp(o=min_std))
+
+            # Set initial value of std_hc_fcns
+            for p_i, fcn in enumerate(std_hc_fcns):
+                div_f = n_prop_spaces*np.prod(mn_hc_params[p_i]['n_div_per_hc_side_per_dim'])
+                fcn.b_m.data[:] = np.log(std_init - min_std)/div_f
+
+            dists[c_i] = CondGaussianDistribution(mn_f=mn_fcn, std_f=std_fcn)
+
+            super().__init__(dists=dists)

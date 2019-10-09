@@ -11,7 +11,6 @@ from janelia_core.ml.datasets import TimeSeriesDataset
 from janelia_core.ml.extra_torch_modules import FixedOffsetExp
 from janelia_core.ml.extra_torch_modules import IndSmpConstantBoundedFcn
 from janelia_core.ml.extra_torch_modules import IndSmpConstantRealFcn
-from janelia_core.ml.extra_torch_modules import SCC
 from janelia_core.ml.extra_torch_modules import SumOfTiledHyperCubeBasisFcns
 from janelia_core.ml.latent_regression.group_maps import ConcatenateMap
 from janelia_core.ml.latent_regression.group_maps import IdentityMap
@@ -19,6 +18,7 @@ from janelia_core.ml.latent_regression.subject_models import LatentRegModel
 from janelia_core.ml.latent_regression.vi import SubjectVICollection
 from janelia_core.ml.torch_distributions import CondGaussianDistribution
 from janelia_core.ml.torch_distributions import CondMatrixProductDistribution
+from janelia_core.ml.torch_distributions import GroupCondMatrixHypercubePrior
 from janelia_core.ml.utils import torch_mod_to_fcn
 from janelia_core.visualization.image_generation import generate_image_from_fcn
 
@@ -103,47 +103,6 @@ class IdentityS(torch.nn.Module):
         return x
 
 
-class FixedSumMod(torch.nn.Module):
-    """ Performs a sum along the second dimenstion. """
-    def forward(self, x):
-        return torch.sum(x, dim=1, keepdim=True)
-
-
-class ReducedTanhMod(torch.nn.Module):
-    """ A module implementing y = s*tanh(x) + o """
-
-    def __init__(self, d: int, o_mn: float = 0.0, o_std: float = 0.1,
-                               s_mn: float = 1.0, s_std: float = 0.1,):
-        """ Creates a ReducedTanhMod module.
-
-        Args:
-            d: The dimensionality of the input and output
-
-            o_mn, o_std: The mean and standard deviation for initializing o
-
-            s_mn, s_std: The mean and standard deviation for initializing s
-        """
-
-        super().__init__()
-
-        o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-        torch.nn.init.normal_(o, mean=o_mn, std=o_std)
-        self.register_parameter('o', o)
-
-        s = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-        torch.nn.init.normal_(s, mean=s_mn, std=s_std)
-        self.register_parameter('s', s)
-
-    def forward(self, x: torch.Tensor) -> torch.tensor:
-        """ Computes output given input.
-
-        Args:
-            x: Input tensor
-
-        Returns:
-            y: Output tensor
-        """
-        return self.s*torch.tanh(x) + self.o
 
 
 class BumpInputWithRecursiveDynamicsScenario():
@@ -882,39 +841,16 @@ class SplitPropertiesScenario():
         for p_i in range(n_prop_spaces):
             space_dim_ranges[p_i][:, 1] = 1.0
 
-        # Generate the hypercube basis functions for each property space for the mean and standard deviation
-        mean_hc_fcns = [SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=[n_divisions_per_dim]*prop_space_dims[p_i],
-                                                     dim_ranges = space_dim_ranges[p_i],
-                                                     n_div_per_hc_side_per_dim=[n_div_per_hc_side_per_dim]*prop_space_dims[p_i])
-                        for p_i in range(n_prop_spaces)]
+        hc_params = [{'n_divisions_per_dim': [n_divisions_per_dim]*prop_space_dims[p_i],
+                      'dim_ranges': space_dim_ranges[p_i],
+                      'n_div_per_hc_side_per_dim': [n_div_per_hc_side_per_dim]*prop_space_dims[p_i]}
+                      for p_i in range(n_prop_spaces)]
 
-        std_hc_fcns = [SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=[n_divisions_per_dim]*prop_space_dims[p_i],
-                                                     dim_ranges = space_dim_ranges[p_i],
-                                                     n_div_per_hc_side_per_dim=[n_div_per_hc_side_per_dim]*prop_space_dims[p_i])
-                        for p_i in range(n_prop_spaces)]
+        p_dist = GroupCondMatrixHypercubePrior(n_cols=1, group_inds=set_inds,
+                                               mn_hc_params=hc_params, std_hc_params=hc_params,
+                                               min_std=min_std, mn_init=init_mn, std_init=init_std)
 
-        set_inds = [torch.tensor(s_i, dtype=torch.long) for s_i in set_inds]
-
-        # Create the mean and standard deviation function for the p mode
-        mn_f = torch.nn.Sequential(SCC(group_inds=set_inds, group_modules=mean_hc_fcns),
-                                       FixedSumMod(), ReducedTanhMod(1, s_mn=1, s_std=.1,
-                                                                    o_mn=0.0, o_std=.01))
-
-        std_f = torch.nn.Sequential(SCC(group_inds=set_inds, group_modules=std_hc_fcns),
-                                        FixedSumMod(), FixedOffsetExp(min_std))
-
-        # Set initial value of mn_hc_fcns
-        mn_o = mn_f[2].o.detach().numpy()[0]
-        mn_s = mn_f[2].s.detach().numpy()[0]
-        for p_i, fcn in enumerate(mean_hc_fcns):
-            fcn.b_m.data[:] = np.arctanh((init_mn - mn_o)/mn_s)/(n_prop_spaces*n_div_per_hc_side_per_dim**prop_space_dims[p_i])
-
-        # Set initial value of std_hc_fcns
-        for p_i, fcn in enumerate(std_hc_fcns):
-            fcn.b_m.data[:] = np.log(init_std - min_std)/(n_prop_spaces*n_div_per_hc_side_per_dim**prop_space_dims[p_i])
-
-        # Create the distribution over the p mode
-        p_dists = [CondMatrixProductDistribution(dists=[CondGaussianDistribution(mn_f=mn_f, std_f=std_f)])]
+        p_dists = [p_dist]
         u_dists = [None]
 
         return [p_dists, u_dists]

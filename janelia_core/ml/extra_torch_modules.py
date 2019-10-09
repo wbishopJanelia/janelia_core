@@ -585,6 +585,23 @@ class SCC(torch.nn.Module):
         return torch.cat(grp_y, dim=1)
 
 
+class SumAlongDim(torch.nn.Module):
+    """ Performs a sum along a given dimension of input. """
+
+    def __init__(self, dim: int):
+        """ Create a SumAlongDim object.
+
+        Args:
+            dim: The dimension to sum along
+        """
+
+        super().__init__()
+        self.dim = dim
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.sum(x, dim=self.dim, keepdim=True)
+
+
 class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
     """ A module to represent a function which is a sum of tiled hypercube basis functions.
 
@@ -757,4 +774,41 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         """
         n_smps = x.shape[0]
         return torch.sum(self.b_m[self._x_to_idx(x)], dim=1).view([n_smps, 1])
+
+
+class Tanh(torch.nn.Module):
+    """ A module implementing y = s*tanh(x) + o """
+
+    def __init__(self, d: int, o_mn: float = 0.0, o_std: float = 0.1,
+                               s_mn: float = 1.0, s_std: float = 0.1,):
+        """ Creates a Tanh module.
+
+        Args:
+            d: The dimensionality of the input and output
+
+            o_mn, o_std: The mean and standard deviation for initializing o
+
+            s_mn, s_std: The mean and standard deviation for initializing s
+        """
+
+        super().__init__()
+
+        o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(o, mean=o_mn, std=o_std)
+        self.register_parameter('o', o)
+
+        s = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(s, mean=s_mn, std=s_std)
+        self.register_parameter('s', s)
+
+    def forward(self, x: torch.Tensor) -> torch.tensor:
+        """ Computes output given input.
+
+        Args:
+            x: Input tensor
+
+        Returns:
+            y: Output tensor
+        """
+        return self.s*torch.tanh(x) + self.o
 
