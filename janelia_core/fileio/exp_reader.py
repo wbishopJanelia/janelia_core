@@ -74,7 +74,7 @@ def read_imaging_metadata(metadata_file: pathlib.Path) -> dict:
     This function does some very light processing of the data in the xml files.
 
     Note: Imaging metadata is stored as attributes of XML elements.  The attribute names will
-    be the keys in the crated dictionaries. Attribute names will be appended with '_#' when
+    be the keys in the created dictionaries. Attribute names will be appended with '_#' when
     needed to avoid duplicate keys in the dictionary.
 
     Args:

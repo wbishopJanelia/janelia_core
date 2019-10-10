@@ -157,14 +157,17 @@ class ROI():
         """
         n_dims = len(self.voxel_inds)
 
-        keep_inds = np.where(self.voxel_inds[dim] == plane_idx)[0]
+        exh_inds = self.list_all_voxel_inds()
+        exh_weights = self.list_all_weights()
 
-        new_voxel_inds = [self.voxel_inds[d][keep_inds] for d in range(n_dims)]
+        keep_inds = np.where(exh_inds[dim] == plane_idx)[0]
+
+        new_voxel_inds = [exh_inds[d][keep_inds] for d in range(n_dims)]
         if retain_dim is False:
             del new_voxel_inds[dim]
         new_voxel_inds = tuple(new_voxel_inds)
 
-        new_weights = self.weights[keep_inds]
+        new_weights = exh_weights[keep_inds]
 
         return ROI(new_voxel_inds, new_weights)
 
