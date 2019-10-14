@@ -4,6 +4,7 @@
     bishopw@hhmi.org
 """
 
+import copy
 from typing import Sequence
 
 import matplotlib.pyplot as plt
@@ -117,7 +118,7 @@ def visualize_boot_strap_results(bs_values: np.ndarray, var_strs: Sequence, thet
     """ For visualizing the results of grouped_linear_regression_boot_strap.
 
     Args:
-        bs_values: The coefficients for each bootstrap sample. bs_values[i,:] are the coefficients for bootstramp sample
+        bs_values: The coefficients for each bootstrap sample. bs_values[i,:] are the coefficients for bootstrap sample
         i.
 
         var_strs: The names of each of the coefficients in bs_values.
@@ -218,6 +219,9 @@ def grouped_linear_regression_boot_strap_stats(bs_values: np.ndarray, alpha:floa
         1) Confidence intervals for each coefficient.  Currently percentile confidence intervals are computed. See
         "All of Statistics" by Wasserman for more information on percentile confidence intervals for the bootstrap.
 
+        2) P-values that coefficients are significantly different than 0, based on inverting percentile confidence
+        intervals
+
 
     Args:
         bs_values: The results of grouped_linear_regresson_boot_strap.  bs_vls[i,:] are the coefficient for
@@ -229,16 +233,19 @@ def grouped_linear_regression_boot_strap_stats(bs_values: np.ndarray, alpha:floa
 
         stats: A dictionary with the following keys:
 
-            alpha: The alpha value for which statistics were calculated.
+            alpha: The alpha value for which confidence intervals were calculated.
 
             c_ints: Confidence intervals.  c_ints[:,i] is the 1-alpha percentile confidence interval for coefficient i.
 
+            non_zero_p: Indicates the p-value for null hypothesis that the coefficient is 0.
+
             non_zero: Indicates coefficients with 1-alpha confidence intervals which do not contain 0.  non_zero[i] is
             true if the confidence interval for coefficient i does not contain 0.
+
     """
 
     # Calculate percentile confidence intervals
-    n_coefs = bs_values.shape[1]
+    n_smps, n_coefs = bs_values.shape
     c_ints = np.zeros([2, n_coefs])
     c_ints[0, :] = np.percentile(bs_values, q=100*alpha/2, axis=0)
     c_ints[1, :] = np.percentile(bs_values, q=100*(1 - alpha/2), axis=0)
@@ -246,6 +253,25 @@ def grouped_linear_regression_boot_strap_stats(bs_values: np.ndarray, alpha:floa
     # See which confidence intervals do not contain zero
     non_zero = np.logical_not(np.logical_and(c_ints[0,:] <= 0, c_ints[1,:] >= 0))
 
-    return {'alpha': alpha, 'c_ints': c_ints, 'non_zero': non_zero}
+    # =============================================================================================
+    # Calculate p-values
+    # =============================================================================================
 
+    # Find smallest values greater than 0 for each coefficient
+    sm_search_vls = copy.copy(bs_values)
+    sm_search_vls[sm_search_vls < 0] = np.inf
+    sm_values = np.min(sm_search_vls, axis=0)
 
+    # Find largest value less than 0 for each coefficient
+    lg_search_values = copy.copy(bs_values)
+    lg_search_values[lg_search_values > 0] = -np.inf
+    lg_values = np.max(lg_search_values, axis=0)
+
+    # Get percentage of entries larger and smaller than values above
+    sm_p = np.sum(bs_values <= sm_values, axis=0)/n_smps
+    lg_p = np.sum(bs_values >= lg_values, axis=0)/n_smps
+
+    non_zero_p = 2*np.min(np.column_stack([sm_p, lg_p]), axis=1)
+
+    # Return results
+    return {'alpha': alpha, 'c_ints': c_ints, 'non_zero_p': non_zero_p, 'non_zero': non_zero}
