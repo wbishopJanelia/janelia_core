@@ -893,12 +893,8 @@ class GroupCondMatrixHypercubePrior(CondMatrixProductDistribution):
             mn_fcn = torch.nn.Sequential(SCC(group_inds=group_inds, group_modules=mn_hc_fcns),
                                          SumAlongDim(dim=1), Tanh(d=1, **tanh_init_opts))
 
-            # Set initial value of mn_hc_fcns
-            mn_o = mn_fcn[2].o.detach().numpy()[0]
-            mn_s = mn_fcn[2].s.detach().numpy()[0]
-            for p_i, fcn in enumerate(mn_hc_fcns):
-                div_f = n_prop_spaces*np.prod(mn_hc_params[p_i]['n_div_per_hc_side_per_dim'])
-                fcn.b_m.data[:] = np.arctanh((mn_init - mn_o)/mn_s)/div_f
+            # Set initial value of mean function
+            mn_fcn[2].o.data[:] = mn_init
 
             # Setup std function
             std_hc_fcns = [SumOfTiledHyperCubeBasisFcns(**params) for params in std_hc_params]
