@@ -7,6 +7,7 @@
 import warnings
 
 import numpy as np
+import numpy.matlib
 import PyQt5
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import pyqtSignal
