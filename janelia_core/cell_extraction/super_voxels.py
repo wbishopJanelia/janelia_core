@@ -1,5 +1,6 @@
 """ Tools for extracting super voxel ROIS from an imaging datset."""
 
+from typing import Callable
 
 import numpy as np
 import pyspark
@@ -11,7 +12,7 @@ from janelia_core.dataprocessing.utils import get_reg_image_data
 
 def extract_super_voxels_in_brain(images: list, voxel_size_per_dim: np.ndarray, brain_mask: np.ndarray,
                                   brain_mask_perc: float, image_slice: slice = slice(None, None, None),
-                                  t_dict: dict = None, h5_data_group='default',
+                                  preprocess_f: Callable = None, t_dict: dict = None, h5_data_group='default',
                                   sc: pyspark.SparkContext=None) -> list:
 
     """ Extracts super voxel ROIS from imaging data, checking to make sure ROIs are in the brain.
@@ -34,6 +35,9 @@ def extract_super_voxels_in_brain(images: list, voxel_size_per_dim: np.ndarray, 
         image_slice: A slice specifying which portion of images to load.  The shape of the image in the slice must
         match the brain mask shape.  If image registration is being used (see t_dict below) the coordinates of this
         slice are for after image registration.
+
+        preprocess_f: An optional function to apply independently to each image after registration but before
+        supervoxel extraction.  If None, the function x=f(x) is used.
 
         t_dict: A dictionary with information for performing image registration as images are loaded.  If set to None,
         no image registration will be performed.  t_dict should have two fields:
@@ -69,8 +73,12 @@ def extract_super_voxels_in_brain(images: list, voxel_size_per_dim: np.ndarray, 
         im0_transform = None
         full_image_shape = None
 
+    if preprocess_f is None:
+        def preprocess_f(x):
+            return x
+
     # Get the first full image
-    im0 = get_reg_image_data(images[0], image_slice, full_image_shape, im0_transform)
+    im0 = preprocess_f(get_reg_image_data(images[0], image_slice, full_image_shape, im0_transform))
     im_shape = im0.shape
     n_dims = len(im_shape)
     if n_dims != len(voxel_size_per_dim):
@@ -99,12 +107,12 @@ def extract_super_voxels_in_brain(images: list, voxel_size_per_dim: np.ndarray, 
 
     # Extract super voxels
     return extract_super_voxels(images=images, voxel_slices=brain_slices, image_slice=image_slice,
-                                t_dict=t_dict, h5_data_group=h5_data_group, sc=sc)
+                                preprocess_f=preprocess_f, t_dict=t_dict, h5_data_group=h5_data_group, sc=sc)
 
 
 def extract_super_voxels(images: list, voxel_slices: slice, image_slice = slice(None, None, None),
-                         t_dict: dict = None, h5_data_group='default', sc: pyspark.SparkContext=None,
-                         verbose=True) -> list:
+                         preprocess_f: Callable = None, t_dict: dict = None, h5_data_group='default',
+                         sc: pyspark.SparkContext=None, verbose=True) -> list:
 
     """ Extracts super voxel ROIS from imaging data.
 
@@ -120,6 +128,9 @@ def extract_super_voxels(images: list, voxel_slices: slice, image_slice = slice(
             image_slice: A slice specifying which portion of images to load.  The shape of the image in the slice must
             match the brain mask shape.  If image registration is being used (see t_dict below) the coordinates of this
             slice are for after image registration.
+
+            preprocess_f: An optional function to apply independently to each image after registration but before
+            supervoxel extraction.  If None, the function x=f(x) is used.
 
             t_dict: A dictionary with information for performing image registration as images are loaded.  If set to None,
             no image registration will be performed.  t_dict should have two fields:
@@ -145,11 +156,16 @@ def extract_super_voxels(images: list, voxel_slices: slice, image_slice = slice(
     n_images = len(images)
     n_super_voxels = len(voxel_slices)
 
+    if preprocess_f is None:
+        def preprocess_f(x):
+            return x
+
     if verbose:
         print('Extracting: ' + str(n_super_voxels) + ' super voxels from ' + str(n_images) + ' images.')
 
     # Extract ROI values
     def extract_rois_from_single_image(image):
+        image = preprocess_f(image)
         return np.asarray([np.mean(image[sv_slice]) for sv_slice in voxel_slices], dtype=np.float32)
 
     roi_vls = get_processed_image_data(images=images, func=extract_rois_from_single_image, img_slice=image_slice,
