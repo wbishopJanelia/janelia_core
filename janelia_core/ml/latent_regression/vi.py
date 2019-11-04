@@ -513,9 +513,9 @@ class MultiSubjectVIFitter():
                         for g, mode_g in enumerate(q_p_modes_standard):
                             if not isinstance(s_coll.p_dists[g], torch.Tensor):
                                 if weight_penalty_type == 'l1':
-                                    s_w_pen += weight_penalty*torch.sum(torch.abs(mode_g))
+                                    s_w_pen += float(n_smp_data_points[i])*weight_penalty*torch.sum(torch.abs(mode_g))
                                 elif weight_penalty_type == 'l2':
-                                    s_w_pen += weight_penalty*torch.sum(mode_g**2)
+                                    s_w_pen += float(n_smp_data_points[i])*weight_penalty*torch.sum(mode_g**2)
                                 else:
                                     raise(ValueError('weight_penalty type must be either l1 or l2'))
 
@@ -523,9 +523,9 @@ class MultiSubjectVIFitter():
                         for h, mode_h in enumerate(q_u_modes_standard):
                             if not isinstance(s_coll.u_dists[h], torch.Tensor):
                                 if weight_penalty_type == 'l1':
-                                    s_w_pen += weight_penalty*torch.sum(torch.abs(mode_h))
+                                    s_w_pen += float(n_smp_data_points[i])*weight_penalty*torch.sum(torch.abs(mode_h))
                                 elif weight_penalty_type == 'l2':
-                                    s_w_pen += weight_penalty*torch.sum(mode_h**2)
+                                    s_w_pen += float(n_smp_data_points[i])*weight_penalty*torch.sum(mode_h**2)
                                 else:
                                     raise(ValueError('weight_penalty type must be either l1 or l2'))
 
