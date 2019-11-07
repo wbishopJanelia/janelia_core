@@ -57,7 +57,7 @@ class SubjectVICollection():
     """ Holds data, likelihood models and posteriors for fitting data to a single subject with variational inference."""
 
     def __init__(self, s_mdl: LatentRegModel, p_dists: Sequence, u_dists: Sequence,
-                 data: Union[TimeSeriesBatch, TimeSeriesDataset], input_grps: Sequence, output_grps: Sequence,
+                 data: TimeSeriesBatch, input_grps: Sequence, output_grps: Sequence,
                  props: Sequence, input_props: Sequence, output_props: Sequence, min_var: Sequence[float]):
         """ Creates a new SubjectVICollection object.
 
@@ -113,17 +113,18 @@ class SubjectVICollection():
 
         return list(itertools.chain(p_dist_params, u_dist_params, self.s_mdl.trainable_parameters()))
 
-    def to(self, device: Union[torch.device, int]):
+    def to(self, device: Union[torch.device, int], distribute_data: bool = False):
         """ Moves all relevant attributes of the collection to the specified device.
 
         This will move the subject model, posterior distributions for the p & u modes and variable
         properties to the device.
 
-        Note that fitting data will not be moved to the device (as we expect in general the full set
-        of training data will be too large to move to GPU memory).
+        Note that by default fitting data will not be moved to the device.
 
         Args:
             device: The device to move attributes to.
+
+            distribute_data: True if fitting data should be moved to the device as well
         """
 
         self.s_mdl = self.s_mdl.to(device)
@@ -131,6 +132,9 @@ class SubjectVICollection():
         self.u_dists = [d.to(device) for d in self.u_dists]
         self.props = [p.to(device) for p in self.props]
         self.device = device
+
+        if distribute_data and self.data is not None:
+            self.data.to(device)
 
 
 class MultiSubjectVIFitter():
@@ -160,14 +164,19 @@ class MultiSubjectVIFitter():
         self.s_collection_devices = [None]*len(self.s_collections)
         self.distributed = False  # Keep track if we have distributed everything yet
 
-    def distribute(self, devices: Sequence[Union[torch.device, int]], s_inds: Sequence[int] = None):
-        """ Distributes prior collections as well as 0 or more subject models across devices.
+    def distribute(self, devices: Sequence[Union[torch.device, int]], s_inds: Sequence[int] = None,
+                   distribute_data: bool = False):
+        """ Distributes prior collections as well as 0 or more subject models and data across devices.
 
         Args:
             devices: Devices that priors and subject collections should be distributed across.
 
             s_inds: Indices into self.s_collections for subject models which should be distributed across devices.
             If none, all subject models will be distributed.
+
+            distribute_data: True if all training data should be distributed to devices.  If there is enough
+            device memory, this can speed up fitting.  If not, set this to false, and batches of data will
+            be sent to the device for each training iteration.
 
         """
         if s_inds is None:
@@ -185,7 +194,7 @@ class MultiSubjectVIFitter():
         # Distribute subject collections
         for i in range(n_dist_mdls):
             device_ind = (i+1) % n_devices
-            self.s_collections[s_inds[i]].to(devices[device_ind])
+            self.s_collections[s_inds[i]].to(devices[device_ind], distribute_data=distribute_data)
             self.s_collection_devices[s_inds[i]] = devices[device_ind]
 
         self.distributed = True
@@ -220,14 +229,8 @@ class MultiSubjectVIFitter():
         non_duplicate_params = set(all_params)
         return list(non_duplicate_params)
 
-    def generate_data_loaders(self, n_batches: int, s_inds: Sequence[int] = None,
-                              pin_memory: bool = False, num_workers: int = 2) -> Sequence:
-        """ Generates data loaders for the data for a given set of subjects.
-
-        This will return data loaders which return random samples in a given number of batches.  If different
-        subjects have different numbers of total samples, the number of samples returned per batch for each
-        subject will be different so that the total dataset for each subject is cycled through in the specified
-        number of batches.
+    def generate_batch_smp_inds(self, n_batches: int, s_inds: Sequence[int] = None):
+        """ Generates indices of random mini-batches of samples for each subject.
 
         Args:
             n_batches: The number of batches to break the data up for each subject into.
@@ -235,18 +238,14 @@ class MultiSubjectVIFitter():
             s_inds: Specifies the indices of subjects that will be fit.  Subject indices correspond to their
             original order in s_collections when the fitter was created. If None, s_inds = range(n_subjects).
 
-            pin_memory: True if data loaders should return data in pinned memory
-
-            num_workers: The number of workers to use for data loaders
-
         Returns:
-            data_loaders: data_loaders[i] is the data loader for the i^th subject in s_inds.
+            batch_smp_inds: batch_smp_inds[i][j] is the sample indices for the j^th batch for subject s_inds[i]
 
-        Raises:
-            ValueError: If n_batches is greater than the number of samples for any requested subject.
         """
         if s_inds is None:
             s_inds = range(len(self.s_collections))
+
+        n_subjects = len(s_inds)
 
         n_smps = [len(self.s_collections[s_i].data) for s_i in s_inds]
 
@@ -255,11 +254,20 @@ class MultiSubjectVIFitter():
                 raise(ValueError('Subject ' + str(s_inds[i]) + ' has only ' + str(n_s) + ' samples, while '
                       + str(n_batches) + ' batches requested.'))
 
-        batch_sizes = [int(np.ceil(float(n_s)/n_batches)) for n_s in n_smps]
-        return [torch.utils.data.DataLoader(dataset=self.s_collections[s_i].data, batch_size=batch_sizes[i],
-                                            collate_fn=cat_time_series_batches, pin_memory=pin_memory,
-                                            shuffle=True, num_workers=num_workers)
-                for i, s_i in enumerate(s_inds)]
+        batch_sizes = [int(np.floor(float(n_s)/n_batches)) for n_s in n_smps]
+
+        batch_smp_inds = [None]*n_subjects
+        for i in range(n_subjects):
+            subject_batch_smp_inds = [None]*n_batches
+            perm_inds = np.random.permutation(n_smps[i])
+            start_smp_ind = 0
+            for b_i in range(n_batches):
+                end_smp_ind = start_smp_ind+batch_sizes[i]
+                subject_batch_smp_inds[b_i] = perm_inds[start_smp_ind:end_smp_ind]
+                start_smp_ind = end_smp_ind
+            batch_smp_inds[i] = subject_batch_smp_inds
+
+        return batch_smp_inds
 
     def get_device_memory_usage(self) -> Sequence:
         """ Returns the memory usage of each device in the fitter.
@@ -294,10 +302,9 @@ class MultiSubjectVIFitter():
         return [torch.cuda.max_memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in all_devices]
 
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
-            adam_params: dict = {}, s_inds: Sequence[int] = None, pin_memory: bool = False,
+            adam_params: dict = {}, s_inds: Sequence[int] = None,
             weight_penalty: float = 0.0, weight_penalty_type = 'l2',
             enforce_priors: bool = True, sample_posteriors: bool = True,
-            num_data_loader_workers: int = 2,
             update_int: int = 1, print_mdl_nlls: bool = True, print_sub_kls: bool = True,
             print_memory_usage: bool = True, print_sub_weight_penalties = True):
         """
@@ -322,8 +329,6 @@ class MultiSubjectVIFitter():
             s_inds: Specifies the indices of subjects to fit to.  Subject indices correspond to their
             original order in s_collections when the fitter was created. If None, all subjects used.
 
-            pin_memory: True if data for training should be copied to CUDA pinned memory
-
             weight_penalty: If not 0, a penalty can be applied to the sampled weights for each subject.  See the
             description of weight_penalty_type below for more information.
 
@@ -340,8 +345,6 @@ class MultiSubjectVIFitter():
             this is equivalent to using a single function (the posterior mean) to set the loadings for each subject.
             This may be helpful for initialization.  Note that if sample_posteriors is false, enforce_priors must
             also be false.
-
-            num_data_loader_workers: The number of works to use when creating data loaders.
 
             update_int: Fitting status will be printed to screen every update_int number of epochs
 
@@ -401,9 +404,6 @@ class MultiSubjectVIFitter():
             s_inds = range(n_subjects)
         n_fit_subjects = len(s_inds)
 
-        # Get data loaders for the subjects
-        data_loaders = self.generate_data_loaders(n_batches=n_batches, s_inds=s_inds, pin_memory=pin_memory,
-                                                  num_workers=num_data_loader_workers)
         n_smp_data_points = [len(self.s_collections[s_i].data) for s_i in s_inds]
 
         # Setup optimizer
@@ -432,7 +432,7 @@ class MultiSubjectVIFitter():
                 prev_learning_rate = cur_learning_rate
 
             # Setup the iterators to go through the current data for this epoch in a random order
-            epoch_data_iterators = [dl.__iter__() for dl in data_loaders]
+            epoch_batch_smp_inds = self.generate_batch_smp_inds(n_batches=n_batches, s_inds=s_inds)
 
             # Process each batch
             for b_i in range(n_batches):
@@ -449,8 +449,13 @@ class MultiSubjectVIFitter():
 
                     s_coll = self.s_collections[s_i]
 
-                    # Get the data for this batch for this subject
-                    batch_data = epoch_data_iterators[i].next()
+                    # Get the data for this batch for this subject, using efficient indexing if all data is
+                    # already on the devices where the subject models are
+                    batch_inds = epoch_batch_smp_inds[i][b_i]
+                    if self.s_collections[s_i].data.data[0].device == self.s_collections[s_i].device:
+                        batch_data = self.s_collections[s_i].data.efficient_get_item(batch_inds)
+                    else:
+                        batch_data = self.s_collections[s_i].data[batch_inds]
 
                     # Send the data to the GPU if needed
                     batch_data.to(device=s_coll.device, non_blocking=s_coll.device.type == 'cuda')

@@ -71,7 +71,7 @@ class TimeSeriesBatch(torch.utils.data.Dataset):
         """ Returns requested samples from the dataset.
 
         Args:
-            index: Integer index or slice indicating requested samples.
+            index: Integer index, slice or numpy array indicating requested samples.
             The index is specifically into the i_x and i_y attributes.
 
         Returns:
@@ -103,6 +103,27 @@ class TimeSeriesBatch(torch.utils.data.Dataset):
 
         return TimeSeriesBatch(data=pulled_data, i_x=pulled_i_x, i_y=pulled_i_y, i_orig=pulled_i_orig)
 
+    def efficient_get_item(self, index):
+        """ A computational (but not memory) efficient way of indexing a TimeSeriesBatch object.
+
+        A new TimeSeriesBatch object will be returned with unmodified data and i_orig attributes.  The i_x
+        and i_y attributes will be updated to index the data and i_orig attributes.  By not discarding
+        any unused points in the data attribute, indexing can be done very quickly.
+
+        This function can be useful when seeking to index an existing TimeSeriesBatch object when we will not
+        need to copy the result to another place in memory (e.g., sending to a GPU when the indexed TimeSeriesBatch
+        object is on CPU).
+
+        Args:
+            index: Integer index, slice or numpy array indicating requested samples.
+            The index is specifically into the i_x and i_y attributes.
+
+        Returns:
+            smps: The requested samples in a TimeSeriesBatch object as described above.
+        """
+        if isinstance(index, int):
+            index = torch.Tensor([index]).long()
+        return TimeSeriesBatch(data=self.data, i_x=self.i_x[index], i_y=self.i_y[index], i_orig=self.i_orig)
 
 class TimeSeriesDataset(torch.utils.data.Dataset):
     """ Extends torch's Dataset object specifically for time series data.
