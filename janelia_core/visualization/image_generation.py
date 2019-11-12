@@ -63,51 +63,85 @@ def premultiplied_rgba_to_standard(img: np.ndarray) -> np.ndarray:
     alpha_mask = img[:,:,3] != 0
     img[alpha_mask, 0:3] = img[alpha_mask, 0:3]/alpha[alpha_mask,:]
 
-def generate_additive_dot_image(image_shape: Sequence[int], dot_ctrs: np.ndarray, dot_vls: np.ndarray,
-                                dot_p_axis_lengths: Sequence[int]) -> np.ndarray:
+
+def generate_mean_dot_image(image_shape: Sequence[int], dot_ctrs: np.ndarray, dot_vls: np.ndarray,
+                                sa_lengths: Sequence[int]) -> np.ndarray:
     """
-    Geneates a 3-d image of the sum of values in ellipsoids.
+    Generates a 2-3 or 3-d image of the mean of values in ellipsoids.
 
-
-    Generates an image by associating an ellipsoid with a set of 3-d locations. Each of these locations
-    has an associated value.  A pixel value in the final image is simply the sum of all all values associated
-    with locations with ellipsoids that contain that pixel.
+    Generates an image by associating an ellipsoid with a set of 2 or 3-d locations. Each of these locations
+    has an associated value.  A pixel value in the final image is simply the average of all the values associated
+    with ellipsoids that contain that pixel.
 
     Args:
-        image_shape: The shape of the image to generate. Must be of length 3.
+        image_shape: The shape of the image to generate. Must be of length 2 or 3.
 
-        dot_ctrs: The location of each ellipsoid center.  dot_ctrs[i,:] is the location
+        dot_ctrs: The location of each ellipsoid center.  dot_ctrs[i, :] is the location
         for dot i.
 
         dot_vls: The value to associate with the locations.  dot_vls[i] is associated with the location
         dot_ctrs[i, :]
 
-        dot_p_axis_lengths: The lengths of the principle axes of the ellipsoids to generate.
-        The value of dot_p_axis_lengths[j] is the length for dimension j. dot_p_axis_lengths must be odd.
+        sa_lengths: The lengths of the semi-axes of the ellipsoids to generate. The value of sa_lengths[j] is the
+        length for dimension j.  All values in sa_lengths must be odd.
 
     Returns:
         img: The generated image.  Any pixel outside of an ellipsoid will have a value of nan.
 
     Raises:
-        ValueError: If image_shape is not of length 3.
+        ValueError: If image_shape is not of length 2 or 3.
+        ValueError: If all values in sa_lengths are not odd
+        ValueError: If any dot centers are outside of the dimensions of the image to be generated
     """
 
-    if len(image_shape) != 2:
-        raise(ValueError('image must be 3-d'))
+    # Put image shape and sa_lengths into arrays
+    image_shape = np.asarray(image_shape).astype('int')
+    sa_lengths = np.asarray(sa_lengths).astype('int')
 
-    for l in dot_p_axis_lengths:
+    # Run checks
+    if len(image_shape) != 2 and len(image_shape) != 3:
+        raise(ValueError('image must be 2-d or 3-d'))
+
+    for l in sa_lengths:
         if l % 2 != 1:
-            raise(ValueError('dot_p_axis_lengths must all be odd'))
+            raise(ValueError('sa_lengths must all be odd'))
 
-    # Initialize the base image, setting all values initially to nan
-    img = np.zeros(image_shape)
-    img[:] = np.nan
+    if np.any(dot_ctrs < 0):
+        raise(ValueError('One or more dot centers are negative and therefore outside of the image.'))
+    if np.any(dot_ctrs > (image_shape-1)):
+        raise(ValueError('One or more dot centers exceed image shape values and are therefore outside of the image.'))
 
     # Generate the basic ellipsoid we convolve throughout the image
-    base_e_im_dims = [2*l for l in dot_p_axis_lengths]
-    base_e_im = np.zeros(base_e_im_dims)
+    base_e_coord_mats = np.meshgrid(*[np.arange(-l, l+1) for l in sa_lengths], indexing='ij')
+    base_e_coord_mats = [(m/l)**2 for m, l in zip(base_e_coord_mats, sa_lengths)]
+    base_e_coord_sum = np.zeros(base_e_coord_mats[0].shape)
+    for m in base_e_coord_mats:
+        base_e_coord_sum = base_e_coord_sum + m
+    base_e_im = base_e_coord_sum < 1
 
+    # Generate the empty expanded arrays we need for generating the image
+    expanded_im_dims = (image_shape + 2*sa_lengths)
+    expanded_im = np.zeros(expanded_im_dims)
+    expanded_cnts = np.zeros(expanded_im_dims)
 
+    # Fill the expanded arrays (this is where convolution with the ellipsoid occurs)
+    rounded_dot_ctrs = np.round(dot_ctrs)
+    rounded_shifted_dot_ctrs = rounded_dot_ctrs + sa_lengths
+    n_dots = len(dot_vls)
+    for d_i in range(n_dots):
+        cur_ctr = rounded_shifted_dot_ctrs[d_i, :]
+        cur_vl = dot_vls[d_i]
+        cur_slice = tuple(slice(c-l, c+l+1) for c, l in zip(cur_ctr, sa_lengths))
+
+        expanded_cnts[cur_slice][base_e_im] += 1
+        expanded_im[cur_slice][base_e_im] += cur_vl
+
+    # Produce the final image
+    expanded_im = np.divide(expanded_im, expanded_cnts, where=expanded_cnts != 0)
+    expanded_im[expanded_cnts == 0] = np.nan
+
+    final_slice = tuple(slice(l, l+d) for d, l in zip(image_shape, sa_lengths))
+    return expanded_im[final_slice]
 
 
 def generate_dot_image(image_shape: Sequence, dot_ctrs: np.ndarray, dot_clrs: np.ndarray,
