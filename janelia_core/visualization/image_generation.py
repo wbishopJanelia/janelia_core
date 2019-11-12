@@ -63,6 +63,52 @@ def premultiplied_rgba_to_standard(img: np.ndarray) -> np.ndarray:
     alpha_mask = img[:,:,3] != 0
     img[alpha_mask, 0:3] = img[alpha_mask, 0:3]/alpha[alpha_mask,:]
 
+def generate_additive_dot_image(image_shape: Sequence[int], dot_ctrs: np.ndarray, dot_vls: np.ndarray,
+                                dot_p_axis_lengths: Sequence[int]) -> np.ndarray:
+    """
+    Geneates a 3-d image of the sum of values in ellipsoids.
+
+
+    Generates an image by associating an ellipsoid with a set of 3-d locations. Each of these locations
+    has an associated value.  A pixel value in the final image is simply the sum of all all values associated
+    with locations with ellipsoids that contain that pixel.
+
+    Args:
+        image_shape: The shape of the image to generate. Must be of length 3.
+
+        dot_ctrs: The location of each ellipsoid center.  dot_ctrs[i,:] is the location
+        for dot i.
+
+        dot_vls: The value to associate with the locations.  dot_vls[i] is associated with the location
+        dot_ctrs[i, :]
+
+        dot_p_axis_lengths: The lengths of the principle axes of the ellipsoids to generate.
+        The value of dot_p_axis_lengths[j] is the length for dimension j. dot_p_axis_lengths must be odd.
+
+    Returns:
+        img: The generated image.  Any pixel outside of an ellipsoid will have a value of nan.
+
+    Raises:
+        ValueError: If image_shape is not of length 3.
+    """
+
+    if len(image_shape) != 2:
+        raise(ValueError('image must be 3-d'))
+
+    for l in dot_p_axis_lengths:
+        if l % 2 != 1:
+            raise(ValueError('dot_p_axis_lengths must all be odd'))
+
+    # Initialize the base image, setting all values initially to nan
+    img = np.zeros(image_shape)
+    img[:] = np.nan
+
+    # Generate the basic ellipsoid we convolve throughout the image
+    base_e_im_dims = [2*l for l in dot_p_axis_lengths]
+    base_e_im = np.zeros(base_e_im_dims)
+
+
+
 
 def generate_dot_image(image_shape: Sequence, dot_ctrs: np.ndarray, dot_clrs: np.ndarray,
                        dot_diameter: int) -> np.ndarray:

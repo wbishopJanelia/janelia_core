@@ -614,7 +614,7 @@ class MultiSubjectVIFitter():
         return log
 
 
-def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size: int = 100) -> List[torch.tensor]:
+def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size: int = 100) -> List[np.ndarray]:
     """ Predicts output given input from a model with posterior distributions over modes.
 
     When predicting output, the posterior mean for each mode is used.
