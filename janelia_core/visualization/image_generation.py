@@ -125,7 +125,7 @@ def generate_mean_dot_image(image_shape: Sequence[int], dot_ctrs: np.ndarray, do
     expanded_cnts = np.zeros(expanded_im_dims)
 
     # Fill the expanded arrays (this is where convolution with the ellipsoid occurs)
-    rounded_dot_ctrs = np.round(dot_ctrs)
+    rounded_dot_ctrs = np.round(dot_ctrs).astype('int')
     rounded_shifted_dot_ctrs = rounded_dot_ctrs + sa_lengths
     n_dots = len(dot_vls)
     for d_i in range(n_dots):
