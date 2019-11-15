@@ -351,27 +351,55 @@ class CondGaussianDistribution(CondVAEDistriubtion):
 
         return mn + z*std
 
-    def other_kl(self, d_2, x: torch.tensor, smp: Sequence = None):
-        if type(d_2) != type(self):
-            raise(ValueError('KL divergence must be computed between distributions of the same type.'))
+    def kl(self, d_2, x: torch.tensor, smp: Sequence = None, return_device: torch.device = None):
+        """ Computes the KL divergence between the conditional distribution represented by this object and another.
 
-        mn_1 = self.mn_f(x)
-        std_1 = self.std_f(x)
+        KL divergence is computed based on the closed form formula for KL divergence between two Gaussians.
 
-        mn_2 = d_2.mn_f(x)
-        std_2 = d_2.std_f(x)
+        Note: This function will move the conditioning data (x) to the appropriate device(s)
+            so calculations can be carried out without needing to move this object or the other conditional
+            distribution between devices.
+
+        Args:
+            d_2: The other conditional distribution in the KL divergence.
+
+            x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
+
+            smp: This input is ignored, as KL divergence is based on a closed form formula.
+
+            return_device: The device the calculated kl tensor should be returned to.  If None, this will
+            be the device the first parameter of this object is on.
+
+        Returns:
+            kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th sample.
+        """
+
+        self_device = next(self.parameters()).device
+        d_2_device = next(d_2.parameters()).device
+
+        x_self = x.to(self_device)
+        x_d_2 = x.to(d_2_device)
+
+        if return_device is None:
+            return_device = self_device
+
+        mn_1 = self.mn_f(x_self).to(return_device)
+        std_1 = self.std_f(x_self).to(return_device)
+
+        mn_2 = d_2.mn_f(x_d_2).to(return_device)
+        std_2 = d_2.std_f(x_d_2).to(return_device)
 
         d = mn_1.shape[1]
+
+        sigma_ratio_sum = torch.sum((std_1/std_2)**2, dim=1)
+
+        mn_diff = torch.sum(((mn_2 - mn_1)/std_2)**2, dim=1)
 
         log_det_1 = 2*torch.sum(torch.log(std_1), dim=1)
         log_det_2 = 2*torch.sum(torch.log(std_2), dim=1)
         log_det_diff = log_det_2 - log_det_1
 
-        sigma_ratio_sum = torch.sum((std_1**2)/(std_2**2), dim=1)
-
-        mn_diff = torch.sum(((mn_2 - mn_1)/std_2)**2, dim=1)
-
-        kl = .5*(log_det_diff - d + sigma_ratio_sum + mn_diff)
+        kl = .5*(sigma_ratio_sum + mn_diff + log_det_diff - d)
 
         return kl.squeeze()
 
@@ -561,11 +589,11 @@ class CondMatrixProductDistribution(CondVAEDistriubtion):
 
         where:
 
-            P_i(W[i,:] | X[i, :]) = \prod_j=1^M P_j(W[i,j] | X[i,j]),
+            P_i(W[i,:] | X[i, :]) = \prod_j=1^M P_j(W[i,j] | X[i,:]),
 
         where the P_j distributions are specified by the user.
 
-    In other words, we model all entries of W as conditionally independent of X, where entries of X are modeled as
+    In other words, we model all entries of W as conditionally independent given X, where entries of W are modeled as
     distributed according to a different conditional distribution depending on what column they are in.
 
 
@@ -629,7 +657,7 @@ class CondMatrixProductDistribution(CondVAEDistriubtion):
             formed_smp: The compact representation of the sample.
         """
 
-        # Break up our columns of the matrix, making sure they have the right shape
+        # Break up our columns of the matrix, making sure they have the right shap
         n_rows, n_cols = smp.shape
         col_smps = [smp[:, c_i].view([n_rows, 1]) for c_i in range(n_cols)]
 
@@ -664,6 +692,37 @@ class CondMatrixProductDistribution(CondVAEDistriubtion):
         n_rows = x.shape[0]
         entry_ll = torch.cat([d.log_prob(x, c_s).view([n_rows, 1]) for c_s, d in zip(y, self.dists)], dim=1)
         return torch.sum(entry_ll, dim=1)
+
+    def kl(self, d_2, x: torch.tensor, smp: Sequence = None, return_device: torch.device = None):
+        """ Computes the KL divergence between this object and another CondMatrixProductDistribution conditioned on input.
+
+        This function overrides the default kl function of CondVAEDistribution so that the KL divergence is
+        computed between distributions for the same column and then summed up. This is still mathematically
+        correct, but if the distributions for the columns also override kl, then distribution specific kl
+        calculations (perhaps analytical calculations) can be carried out.
+
+        Args:
+            d_2: The other conditional distribution in the KL divergence.
+
+            x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
+
+            smp: An set samples of shape n_smps*d_y. smp[i,:] should be drawn this objects distribution.  This input is
+            provided because some distributions for the columns may not analytically compute KL divergence.
+
+            return_device: The device the calculated kl tensor should be returned to.  If None, this will
+            be the device the first parameter of this object is on.
+
+        Returns:
+            kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th sample.
+
+        """
+
+        n_cols = len(self.dists)
+        kl = self.dists[0].kl(d_2.dists[0], x=x, smp=smp[0], return_device=return_device)
+        for c_i in range(1, n_cols):
+            kl += self.dists[c_i].kl(d_2.dists[c_i], x=x, smp=smp[c_i], return_device=return_device)
+
+        return kl
 
     def r_params(self):
         return list(self.parameters())
