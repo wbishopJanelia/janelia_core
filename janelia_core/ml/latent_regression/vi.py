@@ -53,6 +53,25 @@ def format_output_list(base_str: str, it_str: str, vls: Sequence[float], inds: S
     return f_str
 
 
+def compute_prior_penalty(mn: torch.Tensor, positions: torch.Tensor):
+    """ Computes a penalty for a sampled prior.
+
+    Args:
+    """
+
+    n_modes = mn.shape[1]
+    compute_device = mn.device
+
+    penalty = torch.zeros([1], device=compute_device)[0]  # Weird indexing is to get a scalar tensor
+    for m_i in range(n_modes):
+        mode_abs_vls = torch.abs(mn[:, m_i:m_i+1])
+        #mode_weighted_positions = positions*mode_abs_vls
+        #mode_weighted_center = torch.mean(mode_weighted_positions, dim=0)
+        #penalty += torch.sum(torch.sum((positions - mode_weighted_center)**2, dim=1)*torch.squeeze(mode_abs_vls))
+        penalty += torch.sum(mode_abs_vls)
+    return penalty
+
+
 class SubjectVICollection():
     """ Holds data, likelihood models and posteriors for fitting data to a single subject with variational inference."""
 
@@ -303,10 +322,11 @@ class MultiSubjectVIFitter():
 
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
             adam_params: dict = {}, s_inds: Sequence[int] = None,
-            weight_penalty: float = 0.0, weight_penalty_type = 'l2',
+            prior_weight_penalty: float = 0.0,
+            post_weight_penalty: float = 0.0, post_weight_penalty_type ='l2',
             enforce_priors: bool = True, sample_posteriors: bool = True,
             update_int: int = 1, print_mdl_nlls: bool = True, print_sub_kls: bool = True,
-            print_memory_usage: bool = True, print_sub_weight_penalties = True):
+            print_memory_usage: bool = True, print_sub_prior_penalties = True, print_sub_weight_penalties = True):
         """
 
         Args:
@@ -329,11 +349,13 @@ class MultiSubjectVIFitter():
             s_inds: Specifies the indices of subjects to fit to.  Subject indices correspond to their
             original order in s_collections when the fitter was created. If None, all subjects used.
 
-            weight_penalty: If not 0, a penalty can be applied to the sampled weights for each subject.  See the
-            description of weight_penalty_type below for more information.
+            prior_weight_penalty: If not 0, a penalty will be applied to the sampled prior means for each subject.
 
-            weight_penalty_type: We apply penalties to the sampled modes for each subject of the form
-            \sum_g weight_penalty*||P_g|| + \sum_h weight_penalty*||U_h|| where ||o|| is a either the l1 or l2 norm.
+            post_weight_penalty: If not 0, a penalty can be applied to the sampled weights for each subject.  See the
+            description of post_weight_penalty_type below for more information.
+
+            post_weight_penalty_type: We apply penalties to the sampled modes for each subject of the form
+            \sum_g post_weight_penalty*||P_g|| + \sum_h post_weight_penalty*||U_h|| where ||o|| is a either the l1 or l2 norm.
             The value of weight_penalty_type determines the type of norm.
 
             enforce_priors: If enforce priors is true, the KL between priors and posteriors is included in the
@@ -353,6 +375,9 @@ class MultiSubjectVIFitter():
 
             print_sub_kls: If true, when fitting status is printed to screen, the kl divergence for the p and u modes
             for each fit subject will be printed to screen.
+
+            print_sub_prior_penalties: If true, when fitting status is printed to screen, the weight penalties for
+            the sampled priors for each subject will be printed to screen.
 
             print_sub_weight_penalties: If true, when fitting status is printed to screen, the weight penalties for
             each fit subject will be printed to screen.
@@ -445,6 +470,8 @@ class MultiSubjectVIFitter():
                 batch_sub_p_kl = np.zeros(n_fit_subjects)
                 batch_sub_u_kl = np.zeros(n_fit_subjects)
                 batch_sub_weight_penalties = np.zeros(n_fit_subjects)
+                batch_sub_prior_p_penalties = np.zeros(n_fit_subjects)
+                batch_sub_prior_u_penalties = np.zeros(n_fit_subjects)
                 for i, s_i in enumerate(s_inds):
 
                     s_coll = self.s_collections[s_i]
@@ -510,29 +537,65 @@ class MultiSubjectVIFitter():
                     nll.backward(retain_graph=True)
                     batch_obj_log += nll.detach().cpu().numpy()
 
-                    # Apply penalties to modes for this subject if we are suppose to
-                    if weight_penalty != 0:
-                        s_w_pen = torch.zeros([1], device=s_coll.device)[0]  # Weird indexing is to get a scalar tensor
+                    # Apply penalties to prior modes for this subject if we are suppose to
+                    if prior_weight_penalty != 0:
+
+                        # Move a copy of properties for this subject to the device for the prior (we have to
+                        # use these properties multiple times, so we just copy and move them once here)
+                        s_p_props = [None if d is None
+                                     else s_coll.props[s_coll.input_props[g]].to(self.prior_device)
+                                     for g, d in enumerate(self.p_priors)]
+
+                        s_u_props = [None if d is None
+                                     else s_coll.props[s_coll.output_props[h]].to(self.prior_device)
+                                     for h, d in enumerate(self.u_priors)]
+
+                        # Sample means of the priors
+                        prior_p_means = [None if d is None else d(s_p_props[g]) for g, d in enumerate(self.p_priors)]
+                        prior_u_means = [None if d is None else d(s_u_props[h]) for h, d in enumerate(self.u_priors)]
+
+                        # Compute penalties for the sampled means
+                        s_prior_p_pen = torch.zeros([1], device=self.prior_device)[0]  # Weird indexing is to get a scalar tensor
+                        s_prior_u_pen = torch.zeros([1], device=self.prior_device)[0]
+
+                        for g, mn in enumerate(prior_p_means):
+                            if mn is not None:
+                                s_prior_p_pen += (float(n_smp_data_points[i]) * prior_weight_penalty *
+                                                  compute_prior_penalty(mn, s_p_props[g]))
+
+                        for h, mn in enumerate(prior_u_means):
+                            if mn is not None:
+                                s_prior_u_pen += (float(n_smp_data_points[i]) * prior_weight_penalty *
+                                                  compute_prior_penalty(mn, s_u_props[h]))
+
+                        # Back prop for the penalties on the priors and penalties to the total
+                        s_prior_penalty = s_prior_p_pen + s_prior_u_pen
+                        s_prior_penalty.backward()
+                        batch_obj_log += s_prior_p_pen.detach().cpu().numpy() + s_prior_u_pen.detach().cpu().numpy()
+
+                    # Apply penalties to posterior modes for this subject if we are suppose to
+                    if post_weight_penalty != 0:
+                        s_w_pen = torch.zeros([1], device=s_coll.device)[0]
 
                         # Calculate penalties for p modes
                         for g, mode_g in enumerate(q_p_modes_standard):
                             if not isinstance(s_coll.p_dists[g], torch.Tensor):
-                                if weight_penalty_type == 'l1':
-                                    s_w_pen += float(n_smp_data_points[i])*weight_penalty*torch.sum(torch.abs(mode_g))
-                                elif weight_penalty_type == 'l2':
-                                    s_w_pen += float(n_smp_data_points[i])*weight_penalty*torch.sum(mode_g**2)
+                                if post_weight_penalty_type == 'l1':
+                                    s_w_pen += float(n_smp_data_points[i]) * post_weight_penalty * torch.sum(torch.abs(mode_g))
+                                elif post_weight_penalty_type == 'l2':
+                                    s_w_pen += float(n_smp_data_points[i]) * post_weight_penalty * torch.sum(mode_g ** 2)
                                 else:
-                                    raise(ValueError('weight_penalty type must be either l1 or l2'))
+                                    raise(ValueError('post_weight_penalty type must be either l1 or l2'))
 
                         # Calculate penalties for u modes
                         for h, mode_h in enumerate(q_u_modes_standard):
                             if not isinstance(s_coll.u_dists[h], torch.Tensor):
-                                if weight_penalty_type == 'l1':
-                                    s_w_pen += float(n_smp_data_points[i])*weight_penalty*torch.sum(torch.abs(mode_h))
-                                elif weight_penalty_type == 'l2':
-                                    s_w_pen += float(n_smp_data_points[i])*weight_penalty*torch.sum(mode_h**2)
+                                if post_weight_penalty_type == 'l1':
+                                    s_w_pen += float(n_smp_data_points[i]) * post_weight_penalty * torch.sum(torch.abs(mode_h))
+                                elif post_weight_penalty_type == 'l2':
+                                    s_w_pen += float(n_smp_data_points[i]) * post_weight_penalty * torch.sum(mode_h ** 2)
                                 else:
-                                    raise(ValueError('weight_penalty type must be either l1 or l2'))
+                                    raise(ValueError('post_weight_penalty type must be either l1 or l2'))
 
                         s_w_pen.backward(retain_graph=True)
                         batch_obj_log += s_w_pen.detach().cpu().numpy()
@@ -557,7 +620,10 @@ class MultiSubjectVIFitter():
 
                     # Record the log likelihood, kl divergences and weight penalties for each subject for logging
                     batch_nll[i] = nll.detach().cpu().numpy()
-                    if weight_penalty != 0:
+                    if prior_weight_penalty != 0:
+                        batch_sub_prior_p_penalties[i] = s_prior_p_pen.detach().cpu().numpy()
+                        batch_sub_prior_u_penalties[i] = s_prior_u_pen.detach().cpu().numpy()
+                    if post_weight_penalty != 0:
                         batch_sub_weight_penalties[i] = s_w_pen.detach().cpu().numpy()
                     if enforce_priors:
                         batch_sub_p_kl[i] = s_p_kl.detach().cpu().numpy()
@@ -595,8 +661,13 @@ class MultiSubjectVIFitter():
                 if print_sub_kls:
                     print(format_output_list(base_str='Subj P KLs: ', it_str='s_', vls=batch_sub_p_kl, inds=s_inds))
                     print(format_output_list(base_str='Subj U KLs: ', it_str='s_', vls=batch_sub_u_kl, inds=s_inds))
+                if print_sub_prior_penalties:
+                    print(format_output_list(base_str='Subj Prior P Penalties: ', it_str='s_',
+                                             vls=batch_sub_prior_p_penalties, inds=s_inds))
+                    print(format_output_list(base_str='Subj Prior U Penalties: ', it_str='s_',
+                                             vls=batch_sub_prior_u_penalties, inds=s_inds))
                 if print_sub_weight_penalties:
-                    print(format_output_list(base_str='Subj ' + weight_penalty_type + ' W Penalties: ', it_str='s_',
+                    print(format_output_list(base_str='Subj ' + post_weight_penalty_type + ' W Penalties: ', it_str='s_',
                                              vls=batch_sub_weight_penalties, inds=s_inds))
                 if print_memory_usage:
                     device_memory_usage = self.get_device_memory_usage()
