@@ -54,7 +54,7 @@ def format_output_list(base_str: str, it_str: str, vls: Sequence[float], inds: S
 
 
 def compute_prior_penalty(mn: torch.Tensor, positions: torch.Tensor):
-    """ Computes a penalty for a sampled prior.
+    """ Computes a penalty for a sampled prior.  This is experimental.
 
     Args:
     """
@@ -64,11 +64,12 @@ def compute_prior_penalty(mn: torch.Tensor, positions: torch.Tensor):
 
     penalty = torch.zeros([1], device=compute_device)[0]  # Weird indexing is to get a scalar tensor
     for m_i in range(n_modes):
-        mode_abs_vls = torch.abs(mn[:, m_i:m_i+1])
+        mode_abs_vls = torch.sum(torch.abs(mn[:, m_i:m_i+1]))
+        mode_l2_norm_sq = torch.sum(mn[:, m_i:m_i+1]**2)
         #mode_weighted_positions = positions*mode_abs_vls
         #mode_weighted_center = torch.mean(mode_weighted_positions, dim=0)
         #penalty += torch.sum(torch.sum((positions - mode_weighted_center)**2, dim=1)*torch.squeeze(mode_abs_vls))
-        penalty += torch.sum(mode_abs_vls)
+        penalty += mode_abs_vls + (mode_l2_norm_sq - 10)**2
     return penalty
 
 

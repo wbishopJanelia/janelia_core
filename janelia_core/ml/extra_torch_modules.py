@@ -505,21 +505,30 @@ class LogGaussianBumpFcn(torch.nn.Module):
 class Relu(torch.nn.ModuleList):
     """ Applies a rectified linear transformation to the data y = o + relu(x + s) """
 
-    def __init__(self, d: int):
+    def __init__(self, d: int, o_mn: float = 0.0, o_std: float = .1,
+                               s_mn: float = 0.0, s_std: float = .1):
         """ Creates a Relu object.
 
         Args:
             d: The dimensionality of the input and output
+
+            o_mn: Mean of normal distribution for initializing offsets
+
+            o_std: Standard deviation of normal distribution for initializing offsets
+
+            s_mn: Mean of normal distribution for initializing shifts
+
+            s_std: Standard deviation of normal distribution for initializing shifts
         """
 
         super().__init__()
 
         o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-        torch.nn.init.normal_(o, std=5)
+        torch.nn.init.normal_(o, mean=o_mn, std=o_std)
         self.register_parameter('o', o)
 
         s = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-        torch.nn.init.normal_(s, std=5)
+        torch.nn.init.normal_(s, mean=s_mn, std=s_std)
         self.register_parameter('s', s)
 
     def forward(self, x: torch.Tensor) -> torch.tensor:
