@@ -968,3 +968,100 @@ class GroupCondMatrixHypercubePrior(CondMatrixProductDistribution):
             dists[c_i] = CondGaussianDistribution(mn_f=mn_fcn, std_f=std_fcn)
 
             super().__init__(dists=dists)
+
+
+class DistributionPenalizer(torch.nn.Module):
+    """ An abstract base class for creating distribution penalizer objects.
+
+    The main idea behind a penalizer object (vs. just applying a penalizer function) is that the ways we may
+    want to penalize a distribution may require keeping track of some penalty parameters (e.g., a set of locations
+    where we want to sample a distribution at).  Some of these parameters could even be optimizable.  Because of this,
+    we introduce this concept of penalizer objects which are torch modules, so we can keep track of these parameters,
+    easily move them between devices, etc...
+
+    """
+
+    def __init__(self):
+        """ Creates a DistributionPenalizer object. """
+        super().__init__()
+
+    def penalize(self, d: CondVAEDistriubtion) -> torch.tensor:
+        """ Calculates a penalty over a distribution.
+
+        Args:
+            d: The distribution to penalize
+
+        Returns:
+            penalty: The scalar penalty
+        """
+        raise(NotImplementedError)
+
+
+class MeanMatrixColumnLengthAndClusterPenalizer(DistributionPenalizer):
+    """ Penalizes columns of conditional means over matrices to encourage fixed length and clustering.
+
+    This object assumes conditional means are matrices and that each row of the matrix is the conditional mean of the
+    distribution conditioned on a different value of x.  For example, a CondMatrixProductDistribution is one
+    distribution that satisfies this assumption.
+
+    The penalty for each column is composed of two parts.  The first part penalizes the column for deviating from a
+    fixed length.  The second part encourages clustering - in particular it encourages all large entries of the
+    conditional mean matrix to be conditioned on clustered values of x.
+
+    This is experimental at the moment (hence the incomplete documentation).
+    """
+
+    def __init__(self, x: torch.tensor, tgt_l: float = 1.0, len_w: float = 1.0, cluster_w: float = 1.0):
+        """ Creates a MeanLengthClusterPenalizer object.
+
+        Args:
+            x: The values to condition on when calculating the penalty. Should be 2-d tensor, with each row
+            corresponding to a different value the conditional mean is calculated at.
+
+            tgt_l: The target length of each column of the conditional mean matrix.  A penalty will be applied to any
+            column that deviates from this target length.
+
+            len_w: The weight to apply to the length penalty
+
+            cluster_w: The weight to apply to the cluster penalty
+        """
+        super().__init__()
+
+        self.x = x
+        self.tgt_l = tgt_l
+        self.len_w = len_w
+        self.cluster_w = cluster_w
+
+    def penalize(self, d: CondVAEDistriubtion) -> torch.tensor:
+
+        # Move x to the device the distribution is on
+        #TODO: For speed, if x is large, might be faster to move d instead of x
+        d_device = next(d.parameters()).device
+        self.x = self.x.to(d_device)
+
+        # Get conditional mean
+        mn = d(self.x)
+
+        # Calculate penalties for each mode
+        n_neurons, n_modes = mn.shape
+        penalty = 0
+        for m_i in range(n_modes):
+            # Get the mean for this mode
+            mn_i = mn[:, [m_i]]
+
+            # Get weighted center of mode
+            weighted_pos_i = torch.abs(mn_i)*self.x
+            weighted_ctr_i = torch.mean(weighted_pos_i, dim=0)
+
+            # Penalize large weights which are far from center
+            cluster_pen = torch.sum((torch.squeeze(mn_i)**2)*torch.sum((self.x-weighted_ctr_i)**2, dim=1))
+
+            # Encourage the mode vector to have a fixed length
+            len_pen = (torch.sum(mn_i**2) - self.tgt_l)**2
+
+            # Calculate final penalty
+            penalty += (self.len_w*n_neurons*len_pen + self.cluster_w*cluster_pen)
+
+        return penalty
+        
+

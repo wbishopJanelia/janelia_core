@@ -4,8 +4,12 @@
     bishopw@hhmi.org
 """
 
+from typing import Sequence
+
 import numpy as np
 import torch
+
+
 
 
 def format_and_check_learning_rates(learning_rates):
@@ -104,3 +108,23 @@ def list_torch_devices(verbose: bool = True):
         cuda_is_available = False
 
     return [devices, cuda_is_available]
+
+
+def torch_devices_memory_usage(devices: Sequence[torch.device], type: str = 'max_memory_allocated')-> list:
+    """ Returns a list of memory usage on devices.
+
+    This function gets either memory allocated or max memory on torch devices, providing a value of nan if a device is
+    a cpu.
+
+    Args:
+        devices: List of devices
+
+        type: 'max_memory_allocated' to list max memory allocated; for any other string memory allocated is returned
+
+    Returns:
+        mem_usage: The list of memory usage
+    """
+    if str == 'max_memory_allocated':
+        return [torch.cuda.max_memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in devices]
+    else:
+        return [torch.cuda.memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in devices]

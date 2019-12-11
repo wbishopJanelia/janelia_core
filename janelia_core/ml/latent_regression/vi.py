@@ -8,14 +8,13 @@ from typing import List, Sequence, Union
 import numpy as np
 import torch
 
-from janelia_core.ml.datasets import TimeSeriesDataset
 from janelia_core.ml.datasets import TimeSeriesBatch
 from janelia_core.ml.latent_regression.subject_models import LatentRegModel
-from janelia_core.ml.torch_distributions import CondVAEDistriubtion
 from janelia_core.ml.torch_distributions import CondMatrixProductDistribution
+from janelia_core.ml.torch_distributions import DistributionPenalizer
 
-from janelia_core.ml.datasets import cat_time_series_batches
 from janelia_core.ml.utils import format_and_check_learning_rates
+from janelia_core.ml.utils import torch_devices_memory_usage
 
 
 def format_output_list(base_str: str, it_str: str, vls: Sequence[float], inds: Sequence[int]):
@@ -162,8 +161,11 @@ class MultiSubjectVIFitter():
 
     """
 
-    def __init__(self, p_priors: Sequence[CondMatrixProductDistribution],
-                 u_priors: Sequence[CondMatrixProductDistribution], s_collections: Sequence[SubjectVICollection]):
+    def __init__(self, s_collections: Sequence[SubjectVICollection],
+                 p_priors: Sequence[CondMatrixProductDistribution],
+                 u_priors: Sequence[CondMatrixProductDistribution],
+                 p_prior_penalizers: Sequence[DistributionPenalizer] = None,
+                 u_prior_penalizers: Sequence[DistributionPenalizer] = None):
         """ Creates a new MultiSubjectVIFitter object.
 
         Args:
@@ -173,15 +175,22 @@ class MultiSubjectVIFitter():
             group are fixed, the entry in p_priors for that group should be None.
 
             u_priors: The conditional priors for the u modes for each output group, same format as p_priors.
+
+            p_prior_penalizers: A sequence of penalizers to apply to the priors of each group of p modes.
+            The penalizer in p_prior_penalizers[g] is the penalizer for group g.  If group g is not penalized,
+            p_prior_penalizers[g] should be 0.
+
+            u_prior_penalizers: A sequence of penalizers to apply to the priors of each group of u modes in the same
+            manner as p_prior_penalizers
         """
 
         self.s_collections = s_collections
         self.p_priors = p_priors
         self.u_priors = u_priors
+        self.p_prior_penalizers = p_prior_penalizers
+        self.u_prior_penalizers = u_prior_penalizers
 
         # Attributes for keeping track of which devices everything is on
-        self.prior_device = None
-        self.s_collection_devices = [None]*len(self.s_collections)
         self.distributed = False  # Keep track if we have distributed everything yet
 
     def distribute(self, devices: Sequence[Union[torch.device, int]], s_inds: Sequence[int] = None,
@@ -205,17 +214,23 @@ class MultiSubjectVIFitter():
         n_devices = len(devices)
         n_dist_mdls = len(s_inds)
 
-        # By convention priors go onto first device
+        # Distribute priors; by convention priors go onto first device
         if self.p_priors is not None:
             self.p_priors = [d.to(devices[0]) if d is not None else None for d in self.p_priors]
             self.u_priors = [d.to(devices[0]) if d is not None else None for d in self.u_priors]
-            self.prior_device = devices[0]
+
+        # Distribute prior penalizers; we put these with the priors
+        if self.p_prior_penalizers is not None:
+            self.p_prior_penalizers = [penalizer.to(devices[0]) if penalizer is not None else None
+                                       for penalizer in self.p_prior_penalizers]
+        if self.u_prior_penalizers is not None:
+            self.u_prior_penalizers = [penalizer.to(devices[0]) if penalizer is not None else None
+                                       for penalizer in self.u_prior_penalizers]
 
         # Distribute subject collections
         for i in range(n_dist_mdls):
             device_ind = (i+1) % n_devices
             self.s_collections[s_inds[i]].to(devices[device_ind], distribute_data=distribute_data)
-            self.s_collection_devices[s_inds[i]] = devices[device_ind]
 
         self.distributed = True
 
@@ -289,45 +304,26 @@ class MultiSubjectVIFitter():
 
         return batch_smp_inds
 
-    def get_device_memory_usage(self) -> Sequence:
-        """ Returns the memory usage of each device in the fitter.
-
-        The memory usage for cpu devices will be nan.
+    def get_used_devices(self):
+        """ Lists the devices the subject models and priors are on.
 
         Returns:
-            m_usage: m_usage[i] is the amount of memory used on the i^th device
+            devices: The list of devices subject models and priors are on.
         """
 
+        s_coll_devices = [s_coll.device for s_coll in self.s_collections]
         if self.p_priors is not None:
-            all_devices = set(self.s_collection_devices + [self.prior_device])
-        else:
-            all_devices = self.s_collection_devices
+            p_prior_devices = [next(d.parameters()).device for d in self.p_priors if d is not None]
+        if self.u_priors is not None:
+            u_prior_devices = [next(d.parameters()).device for d in self.u_priors if d is not None]
 
-        return [torch.cuda.memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in all_devices]
-
-    def get_device_max_memory_allocated(self) -> Sequence:
-        """ Returns the max memory usage of each device in the fitter.
-
-        The memory usage for cpu devices will be nan.
-
-        Returns:
-            m_usage: m_usage[i] is the max amount of memory used on the i^th device
-        """
-
-        if self.p_priors is not None:
-            all_devices = set(self.s_collection_devices + [self.prior_device])
-        else:
-            all_devices = self.s_collection_devices
-
-        return [torch.cuda.max_memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in all_devices]
+        return list(set([*s_coll_devices, *p_prior_devices, *u_prior_devices]))
 
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
-            adam_params: dict = {}, s_inds: Sequence[int] = None,
-            prior_penalty_weight: float = 0.0, prior_penalty_fcns: Sequence[Sequence] = None,
-            post_weight_penalty: float = 0.0, post_weight_penalty_type ='l2',
-            enforce_priors: bool = True, sample_posteriors: bool = True,
-            update_int: int = 1, print_mdl_nlls: bool = True, print_sub_kls: bool = True,
-            print_memory_usage: bool = True, print_sub_prior_penalties = True, print_sub_weight_penalties = True):
+            adam_params: dict = {}, s_inds: Sequence[int] = None, prior_penalty_weight: float = 0.0,
+            enforce_priors: bool = True, sample_posteriors: bool = True, update_int: int = 1,
+            print_mdl_nlls: bool = True, print_sub_kls: bool = True, print_memory_usage: bool = True,
+            print_prior_penalties = True):
         """
 
         Args:
@@ -350,14 +346,8 @@ class MultiSubjectVIFitter():
             s_inds: Specifies the indices of subjects to fit to.  Subject indices correspond to their
             original order in s_collections when the fitter was created. If None, all subjects used.
 
-            prior_penalty_weight: If not 0, a penalty will be applied to the sampled prior means for each subject.
-
-            prior_penalty_fcns:  Functions to compute a penalty on the prior distributions.  prior_penalty_fcns[0][g]
-            is a penalty function to apply to prior over the p modes for input group g.  prior_penalty_fcns[1][h] is
-            a penalty function to apply to the prior over the u modes for output group h.  If a prior is None, no
-            penalty will be calculated and applied for the grouop of modes.  All penalty functions must accept two
-            inputs and output a scalar penalty. The first input is the prior distribution, and the second is a list of
-            subject properties.
+            prior_penalty_weight: If not 0, penalizers for each prior will be applied and the final penalty weighted
+            by this value.
 
             enforce_priors: If enforce priors is true, the KL between priors and posteriors is included in the
             objective to be optimized (i.e., standard variational inference).  If False, the KL term is ignored
@@ -377,8 +367,8 @@ class MultiSubjectVIFitter():
             print_sub_kls: If true, when fitting status is printed to screen, the kl divergence for the p and u modes
             for each fit subject will be printed to screen.
 
-            print_sub_prior_penalties: If true, when fitting status is printed to screen, the weight penalties for
-            the sampled priors for each subject will be printed to screen.
+            print_prior_penalties: If true, when fitting status is printed to screen, the calculated penalties for the
+            priors will be printed to screen.
 
             print_memory_usage: If true, when fitting status is printed to screen, the memory usage of each
             device will be printed to streen.
@@ -397,8 +387,11 @@ class MultiSubjectVIFitter():
                 'sub_u_kl': sub_u_kl[e,i] is the kl divergence between the posterior and conditional prior the u modes
                 for subject i at the start of epoch e.
 
-                'sub_weight_penalties': sub_weight_penalties[e, i] is the weight penalty for subject i at the start
-                of epoch e.
+                'p_prior_penalties': p_prior_penalties[e, :] is the penalty calculated for each group of p priors at the
+                start of epoch e.
+
+                'u_prior_penalties': u_prior_penalties[e, :] is the penalty calculated for each group of u priors at the
+                start of epoch e.
 
                 obj: obj[e] contains the objective value at the start of epoch e.  This is the negative evidence lower
                 bound + weight penalties.
@@ -414,6 +407,9 @@ class MultiSubjectVIFitter():
             raise(RuntimeError('self.distribute() must be called before fitting.'))
         if (not sample_posteriors) and enforce_priors:
             raise(ValueError('If sample posteriors is false, enforce_priors must also be false.'))
+
+        # See what devices we are using for fitting (this is so we can later query their memory usage)
+        all_devices = self.get_used_devices()
 
         t_start = time.time()  # Get starting time
 
@@ -570,25 +566,22 @@ class MultiSubjectVIFitter():
                 batch_p_prior_penalties = np.zeros(n_p_priors)
                 batch_u_prior_penalties = np.zeros(n_u_priors)
 
-                if prior_penalty_weight != 0:
-                    for g in range(n_p_priors):
-                        if prior_penalty_fcns[0][g] is not None:
-                            subj_props = [s_coll.props[s_coll.input_props[g]].to(self.prior_device)
-                                          for s_coll in self.s_collections]
-                            prior_penalty = prior_penalty_weight*prior_penalty_fcns[0][g](self.p_priors[g], subj_props)
+                if prior_penalty_weight != 0 and self.p_prior_penalizers is not None:
+                    for g, (prior_g, penalizer_g) in enumerate(zip(self.p_priors, self.p_prior_penalizers)):
+                        if penalizer_g is not None:
+                            prior_penalty = prior_penalty_weight*penalizer_g.penalize(d=prior_g)
                             prior_penalty.backward()
                             prior_penalty_np = prior_penalty.detach().cpu().numpy()
                             batch_p_prior_penalties[g] = prior_penalty_np
                             batch_obj_log += prior_penalty_np
 
-                    for h in range(n_u_priors):
-                        if prior_penalty_fcns[1][h] is not None:
-                            subj_props = [s_coll.props[s_coll.output_props[h]].to(self.prior_device)
-                                          for s_coll in self.s_collections]
-                            prior_penalty = prior_penalty_weight*prior_penalty_fcns[1][h](self.u_priors[h], subj_props)
+                if prior_penalty_weight != 0 and self.u_prior_penalizers is not None:
+                    for h, (prior_h, penalizer_h) in enumerate(zip(self.u_priors, self.u_prior_penalizers)):
+                        if penalizer_h is not None:
+                            prior_penalty = prior_penalty_weight*penalizer_h.penalize(d=prior_h)
                             prior_penalty.backward()
                             prior_penalty_np = prior_penalty.detach().cpu().numpy()
-                            batch_u_prior_penalties[h] = prior_penalty_np
+                            batch_p_prior_penalties[g] = prior_penalty_np
                             batch_obj_log += prior_penalty_np
 
                 # Take a gradient step
@@ -624,18 +617,18 @@ class MultiSubjectVIFitter():
                 if print_sub_kls:
                     print(format_output_list(base_str='Subj P KLs: ', it_str='s_', vls=batch_sub_p_kl, inds=s_inds))
                     print(format_output_list(base_str='Subj U KLs: ', it_str='s_', vls=batch_sub_u_kl, inds=s_inds))
-                if print_sub_prior_penalties:
+                if print_prior_penalties:
                     print(format_output_list(base_str='P prior penalties: ', it_str='g_',
                                              vls=batch_p_prior_penalties, inds=range(n_p_priors)))
                     print(format_output_list(base_str='U prior penalties: ', it_str='h_',
                                              vls=batch_u_prior_penalties, inds=range(n_u_priors)))
                 if print_memory_usage:
-                    device_memory_usage = self.get_device_memory_usage()
-                    print(format_output_list(base_str='Device memory usage: ', it_str='d_',
-                          vls=device_memory_usage, inds=range(len(device_memory_usage))))
-                    device_max_memory_usage = self.get_device_max_memory_allocated()
-                    print(format_output_list(base_str='Device max memory usage: ', it_str='d_',
-                          vls=device_max_memory_usage, inds=range(len(device_max_memory_usage))))
+                    device_memory_allocated = torch_devices_memory_usage(all_devices, type='memory_allocated')
+                    device_max_memory_allocated = torch_devices_memory_usage(all_devices, type='max_memory_allocated')
+                    print(format_output_list(base_str='Device memory allocated: ', it_str='d_',
+                          vls=device_memory_allocated, inds=range(len(device_memory_allocated))))
+                    print(format_output_list(base_str='Device max memory allocated: ', it_str='d_',
+                          vls=device_max_memory_allocated, inds=range(len(device_max_memory_allocated))))
 
                 print('Elapsed time: ' + str(elapsed_time))
 
