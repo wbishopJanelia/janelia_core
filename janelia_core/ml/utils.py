@@ -5,14 +5,13 @@
 """
 
 from typing import Sequence
+from typing import Union
 
 import numpy as np
 import torch
 
 
-
-
-def format_and_check_learning_rates(learning_rates):
+def format_and_check_learning_rates(learning_rates: Union[int, float, list]) -> [np.ndarray, np.ndarray]:
     """ Takes learning rates in different formats and puts them in a standard format, running basic checks.
 
     In iterative optimization routines, users may provide a single learning rate for all iterations or may provide a
@@ -20,17 +19,30 @@ def format_and_check_learning_rates(learning_rates):
     use on all iterations, or as a list of tuples (specifying a learning rate schedule, see below) and outputs, in all
     cases, a learning rate schedule which is checked for consistency and in a standard format.
 
+    This function also allows for the user to specify multiple learning rates which get updated (useful when different
+    learning rates are used for different sets of parameters).
+
     Args:
-        learning_rates: If a single number, this is the learning rate to use for all iteration.  Alternatively, this
-            can be a list of tuples.  Each tuple is of the form (iteration, learning_rate), which gives the learning rate
-            to use from that iteration onwards, until another tuple specifies another learning rate to use at a different
-            iteration on.  E.g., learning_rates = [(0, .01), (1000, .001), (10000, .0001)] would specify a learning
-            rate of .01 from iteration 0 to 999, .001 from iteration 1000 to 9999 and .0001 from iteration 10000 onwards.
+        learning_rates: If a single number, this is the learning rate to use for all iterations for all parameters.
+            Alternatively, this can be a list of tuples.  Each tuple is of the form
+            (iteration, learning_rate_vls0, learning_rate_vls1, ...), which gives sets of learning rates to use from that
+            iteration onwards, until another tuple specifies another set of learning rates to use at a different
+            iteration on. learning_rate_vlsi can be any object.
+
+            Example 1: learning_rates = [(0, .01, .2), (1000, .001, .3), (10000, .0001, .4)] would specify would specify
+            a schedule for a set of two learning rates with learning rate vallues of .01 and .2 from iteration 0 to 999,
+            .001 and .3 from iteration 1000 to 9999 and .0001 and .4 from iteration 10000 onwards.
+
+            Example 2: learning_rates = [(0, .01, {'fast':, 1}), (1000, .0001, {'fast': .1}] would specify to sets of
+            learning rates.  The first set (starting at epoch 0) has values .01 and then a dictionary value with the
+            key fast being set to 1.  The second set (starting at epoch 1000) has values .0001 and then a dictionary
+            value with key fast being set to .1.
 
     Returns:
         learning_rate_its: A sorted numpy array of the iterations each learning rate comes into effect on.
-        learning_rate_values: A numpy array of the corresponding learning rates for learning_rate_its.  Specifically,
-            learning_rate_values[i] comes into effect on iteration learning_rate_its[i]
+        learning_rate_values: A 2-d numpy array of the corresponding learning rates for learning_rate_its. Specifically,
+        learning_rate_values[i,j] specifies the value for the j^th learning rate which comes into effect on iteration
+        learning_rate_its[i].
 
     Raises:
         ValueError: If learning_rates specifies two or more learning rates for the same iteration
@@ -46,7 +58,7 @@ def format_and_check_learning_rates(learning_rates):
         learning_rates = [(0, learning_rates)]
 
     learning_rate_its = np.asarray([t[0] for t in learning_rates])
-    learning_rate_values = np.asarray([t[1] for t in learning_rates])
+    learning_rate_values = np.asarray([t[1:] for t in learning_rates])
 
     if len(learning_rate_its) != len(np.unique(learning_rate_its)):
         raise(ValueError('Two or more learning rates specified for the same iteration.'))

@@ -234,17 +234,23 @@ class MultiSubjectVIFitter():
 
         self.distributed = True
 
-    def trainable_parameters(self, s_inds: Sequence[int] = None) -> Sequence:
+    def trainable_parameters(self, s_inds: Sequence[int] = None) -> [list, list]:
         """ Gets all trainable parameters for fitting priors and a set of subjects.
+
+        This function returns seperate parameters for penalizer parameters and all other parameters, to faciltate
+        applying different learning rates to the penalizer parameters.
 
         Args:
             s_inds: Specifies the indices of subjects that will be fit.  Subject indices correspond to their
             original order in s_collections when the fitter was created. If None, all subjects used.
 
         Returns:
-             params: Requested parameters.
+             base_params: Parameters of priors, posteriors and subject models
+
+             penalizer_params: Parameters of any prior penalizers
         """
 
+        # Get base parameters
         if s_inds is None:
             s_inds = range(len(self.s_collections))
 
@@ -256,13 +262,58 @@ class MultiSubjectVIFitter():
             u_params = []
 
         collection_params = itertools.chain(*[self.s_collections[s_i].trainable_parameters() for s_i in s_inds])
+        base_params = list(itertools.chain(p_params, u_params, collection_params))
 
-        all_params = list(itertools.chain(p_params, u_params, collection_params))
-
-        # Clean up duplicate parameters.  Subject models might shared a posterior, for example, so we need to
+        # Clean for duplicate parameters.  Subject models might shared a posterior, for example, so we need to
         # check for this
-        non_duplicate_params = set(all_params)
-        return list(non_duplicate_params)
+        non_duplicate_base_params = list(set(base_params))
+
+        # Get penalizer parameters
+        non_duplicate_penalizer_params = self.get_penalizer_params()
+
+        return [non_duplicate_base_params, non_duplicate_penalizer_params]
+
+    def get_penalizer_params(self, keys: Union[str, Sequence[str]] = None) -> list:
+        """ Returns a list of penalizer parameters, optionally filtering by key.
+
+        Inputs:
+            keys: If provided, either a string of a single key that returned parameters should match or a
+            sequence of keys parameters can match.  Any parameters not matching the requested key(s), will
+            not be returned.  If keys is None, all penalizer parameters will be returned.
+
+        Returns:
+            params: A list of the requested parameters
+
+        """
+
+        # Put all penalizers into a single list
+        if self.p_prior_penalizers is not None:
+            p_prior_penalizers = list(self.p_prior_penalizers)
+        else:
+            p_prior_penalizers = []
+
+        if self.u_prior_penalizers is not None:
+            u_prior_penalizers = list(self.u_prior_penalizers)
+        else:
+            u_prior_penalizers = []
+
+        prior_penalizers = p_prior_penalizers + u_prior_penalizers
+
+        # Use all keys if user has not provided any
+        if keys is None:
+                keys = itertools.chain(*[p.list_param_keys() for p in prior_penalizers if p is not None])
+        elif isinstance(keys, str):
+            keys = [keys]
+
+        # Get requested parameters
+        keys = list(set(keys))
+        n_keys = len(keys)
+
+        params = itertools.chain(*[itertools.chain(*[p.get_marked_params(key) for p in p_prior_penalizers if p is not None])
+                  for key in keys])
+        params = list(set(list(params)))
+
+        return params
 
     def generate_batch_smp_inds(self, n_batches: int, s_inds: Sequence[int] = None):
         """ Generates indices of random mini-batches of samples for each subject.
@@ -323,7 +374,7 @@ class MultiSubjectVIFitter():
             adam_params: dict = {}, s_inds: Sequence[int] = None, prior_penalty_weight: float = 0.0,
             enforce_priors: bool = True, sample_posteriors: bool = True, update_int: int = 1,
             print_mdl_nlls: bool = True, print_sub_kls: bool = True, print_memory_usage: bool = True,
-            print_prior_penalties = True):
+            print_prior_penalties = True, print_penalizer_states = False):
         """
 
         Args:
@@ -334,14 +385,21 @@ class MultiSubjectVIFitter():
             different numbers of total training samples, the batch size for each subject will be selected so we go
             through the entire training set for each subject after processing n_batches each epoch.
 
-            learning_rates: If a single number, this is the learning rate to use for all epochs.  Alternatively, this
-            can be a list of tuples.  Each tuple is of the form (epoch, learning_rate), which gives the learning rate
-            to use from that epoch onwards, until another tuple specifies another learning rate to use at a different
-            epoch on.  E.g., learning_rates = [(0, .01), (1000, .001), (10000, .0001)] would specify a learning
-            rate of .01 from epoch 0 to 999, .001 from epoch 1000 to 9999 and .0001 from epoch 10000 onwards.
+            learning_rates: If a single number, this is the learning rate to use for all epochs and parameters.
+            Alternatively, this can be a list of tuples.  Each tuple is of the form
+            (epoch, base_lr, penalizer_lr_opts), where epoch is the epoch the learning rates come into effect on,
+            base_lr is the learning rate for all parameters other than the penalizer parameters and penalizer_lr_opts
+            is a dictionary with keys specifying prior-penalizer parameter keys and values giving the learning rate
+            for those parameters. Multiple tuples can be provided to give a schedule of learning rates.  Here is an
+            example learning_rates: [(0, .001, {'fast': 1, 'slow', .1}), (100, .0001, {'fast': .1, 'slow', .01}] that
+            starts with a base learning rates of .001, a learning rate of 1 for parameters of the penalizers that
+            should be assigned a fast learning rate and a learning rate of .1 for parameter of the penalizers that
+            should be assigned a slow learning rate.  At epoch 100, the learning rates are divided by 10 in this
+            example.
 
             adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object.
             Note that if learning rate is specified here *it will be ignored.* (Use the learning_rates option instead).
+            The options specified here will be applied to all parameters at all iterations.
 
             s_inds: Specifies the indices of subjects to fit to.  Subject indices correspond to their
             original order in s_collections when the fitter was created. If None, all subjects used.
@@ -372,6 +430,8 @@ class MultiSubjectVIFitter():
 
             print_memory_usage: If true, when fitting status is printed to screen, the memory usage of each
             device will be printed to streen.
+
+            print_penalizer_states: If true, the state of penalizers will be printed to screen.
 
         Return:
             log: A dictionary with the following entries:
@@ -434,9 +494,19 @@ class MultiSubjectVIFitter():
         else:
             n_u_priors = 0
 
-        # Setup optimizer
-        parameters = self.trainable_parameters(s_inds)
-        optimizer = torch.optim.Adam(parameters, lr=learning_rate_values[0], **adam_params)
+        # Pull out groups of parameters with different learning rates
+        base_parameters, _ = self.trainable_parameters(s_inds)
+        if len(learning_rate_values[0]) > 1: # Means learning rates specified for penalizers
+            penalizer_params = [(self.get_penalizer_params(key), learning_rate_values[0][1][key])
+                                for key in learning_rate_values[0][1].keys()]
+        else:
+            penalizer_params = [(self.get_penalizer_params(), learning_rate_values[0][-1])]
+
+        # Setup initial optimizer
+        params_with_lr = ([{'params': base_parameters, 'lr': learning_rate_values[0][0]}] +
+                          [{'params': t[0], 'lr': t[1]} for t in penalizer_params])
+
+        optimizer = torch.optim.Adam(params=params_with_lr, **adam_params)
 
         # Setup everything for logging
         epoch_elapsed_time = np.zeros(n_epochs)
@@ -448,17 +518,29 @@ class MultiSubjectVIFitter():
         epoch_obj = np.zeros(n_epochs)
 
         # Perform fitting
-        prev_learning_rate = learning_rate_values[0]
+        prev_learning_rates = learning_rate_values[0,:]
         for e_i in range(n_epochs):
 
             # Set the learning rate
             cur_learing_rate_ind = np.nonzero(learning_rate_its <= e_i)[0]
             cur_learing_rate_ind = cur_learing_rate_ind[-1]
-            cur_learning_rate = learning_rate_values[cur_learing_rate_ind]
-            if cur_learning_rate != prev_learning_rate:
+            cur_learning_rates = learning_rate_values[cur_learing_rate_ind, :]
+            if np.any(cur_learning_rates != prev_learning_rates):
+                print('Reseting!!!!')
                 # We reset the whole optimizer because ADAM is an adaptive optimizer
-                optimizer = torch.optim.Adam(parameters, lr=cur_learning_rate, **adam_params)
-                prev_learning_rate = cur_learning_rate
+
+                # Pull out groups of parameters with different learning rates
+                if len(cur_learning_rates) > 1: # Means learning rates specified for penalizers
+                    penalizer_params = [(self.get_penalizer_params(key), cur_learning_rates[1][key])
+                                        for key in cur_learning_rates[1].keys()]
+                else:
+                    penalizer_params = [(self.get_penalizer_params(), cur_learning_rates[-1])]
+
+                params_with_lr = ([{'params': base_parameters, 'lr': cur_learning_rates[0]}] +
+                          [{'params': t[0], 'lr': t[1]} for t in penalizer_params])
+
+                optimizer = torch.optim.Adam(params=params_with_lr, **adam_params)
+                prev_learning_rates = cur_learning_rates
 
             # Setup the iterators to go through the current data for this epoch in a random order
             epoch_batch_smp_inds = self.generate_batch_smp_inds(n_batches=n_batches, s_inds=s_inds)
@@ -611,7 +693,7 @@ class MultiSubjectVIFitter():
                 print('*****************************************************')
                 print('Epoch ' + str(e_i) + ' complete.  Obj: ' +
                       '{:.2e}'.format(float(batch_obj_log)) +
-                      ', LR: '  + str(cur_learning_rate))
+                      ', LR: '  + str(cur_learning_rates ))
                 if print_mdl_nlls:
                     print(format_output_list(base_str='Model NLLs: ', it_str='s_', vls=batch_nll, inds=s_inds))
                 if print_sub_kls:
@@ -629,6 +711,16 @@ class MultiSubjectVIFitter():
                           vls=device_memory_allocated, inds=range(len(device_memory_allocated))))
                     print(format_output_list(base_str='Device max memory allocated: ', it_str='d_',
                           vls=device_max_memory_allocated, inds=range(len(device_max_memory_allocated))))
+                if print_penalizer_states and self.p_prior_penalizers is not None:
+                    print('P-prior penalizer states:')
+                    for penalizer in self.p_prior_penalizers:
+                        if penalizer is not None:
+                            print(str(penalizer))
+                if print_penalizer_states and self.u_prior_penalizers is not None:
+                    print('U-prior penalizer states:')
+                    for penalizer in self.u_prior_penalizers:
+                        if penalizer is not None:
+                            print(str(penalizer))
 
                 print('Elapsed time: ' + str(elapsed_time))
 

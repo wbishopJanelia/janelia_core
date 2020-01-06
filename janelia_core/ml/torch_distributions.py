@@ -985,6 +985,25 @@ class DistributionPenalizer(torch.nn.Module):
         """ Creates a DistributionPenalizer object. """
         super().__init__()
 
+    def get_marked_params(self, key: str):
+        """ Returns all parameters marked with the key string.
+
+        Penalizers must associate each parameter with a unique key (e.g., fast_learning_rate_params). Each
+        parameter should be associated with only one key (though multiple parameters can use the same key).  This
+        function will return a list of parameters associated with the requested key.  If no parameters match the
+        key an empty list should be returned.
+
+        """
+        raise(NotImplementedError)
+
+    def list_param_keys(self):
+        """ Returns a list of keys associated with parameters.
+
+        Returns:
+            keys: The list of keys.
+        """
+        raise(NotImplementedError)
+
     def penalize(self, d: CondVAEDistriubtion) -> torch.tensor:
         """ Calculates a penalty over a distribution.
 
@@ -997,71 +1016,78 @@ class DistributionPenalizer(torch.nn.Module):
         raise(NotImplementedError)
 
 
-class MeanMatrixColumnLengthAndClusterPenalizer(DistributionPenalizer):
-    """ Penalizes columns of conditional means over matrices to encourage fixed length and clustering.
+class ColumnMeanClusterPenalizer(DistributionPenalizer):
 
-    This object assumes conditional means are matrices and that each row of the matrix is the conditional mean of the
-    distribution conditioned on a different value of x.  For example, a CondMatrixProductDistribution is one
-    distribution that satisfies this assumption.
-
-    The penalty for each column is composed of two parts.  The first part penalizes the column for deviating from a
-    fixed length.  The second part encourages clustering - in particular it encourages all large entries of the
-    conditional mean matrix to be conditioned on clustered values of x.
-
-    This is experimental at the moment (hence the incomplete documentation).
-    """
-
-    def __init__(self, x: torch.tensor, tgt_l: float = 1.0, len_w: float = 1.0, cluster_w: float = 1.0):
-        """ Creates a MeanLengthClusterPenalizer object.
-
-        Args:
-            x: The values to condition on when calculating the penalty. Should be 2-d tensor, with each row
-            corresponding to a different value the conditional mean is calculated at.
-
-            tgt_l: The target length of each column of the conditional mean matrix.  A penalty will be applied to any
-            column that deviates from this target length.
-
-            len_w: The weight to apply to the length penalty
-
-            cluster_w: The weight to apply to the cluster penalty
-        """
+    def __init__(self, init_ctrs: torch.tensor, x:torch.Tensor, init_scales: torch.tensor = None,
+                 scale_weight: float = None):
         super().__init__()
 
-        self.x = x
-        self.tgt_l = tgt_l
-        self.len_w = len_w
-        self.cluster_w = cluster_w
+        n_modes, n_cols = init_ctrs.shape
 
-    def penalize(self, d: CondVAEDistriubtion) -> torch.tensor:
+        # Setup centers
+        self.n_modes = n_modes
+        self.col_ctrs = torch.nn.Parameter(init_ctrs)
+        self.register_buffer('x', x)
 
-        # Move x to the device the distribution is on
-        #TODO: For speed, if x is large, might be faster to move d instead of x
+        # Setup weights
+        self.scale_weight = scale_weight
+        if scale_weight is not None: # Indicates we want to treat weights as a parameter
+            if init_scales is None:
+                init_scales = torch.ones([n_modes, n_cols])
+            self.scales = torch.nn.Parameter(init_scales)
+        else: # Indicates we will fix weights at 1 and not learn them
+            self.register_buffer('scales', torch.ones([n_modes, n_cols]))
+
+    def get_marked_params(self, key: str):
+        """ Returns parameters that should be assigned fast and slow learning rates.
+
+        Args:
+            key: The type of parameters that should be returned.  'fast' will return parameters that should be trained
+            with fast learning rates; 'slow' will return parameters that should be trained with slow training weights
+
+        Returns:
+            params: The list of parameters matching the key
+        """
+        if key == 'fast':
+            return [self.col_ctrs]
+        elif key == 'slow':
+            if self.scale_weight is not None:
+                return [self.scales]
+        else:
+            return []
+
+    def list_param_keys(self):
+        """ Returns the list of keys associated with parameters.
+
+        Returns:
+            keys: The keys
+        """
+        if self.scale_weight is not None:
+            return ['fast', 'slow']
+        else:
+            return ['fast']
+
+    def penalize(self, d: CondVAEDistriubtion):
+
         d_device = next(d.parameters()).device
-        self.x = self.x.to(d_device)
+        self.to(d_device)
 
-        # Get conditional mean
         mn = d(self.x)
-
-        # Calculate penalties for each mode
-        n_neurons, n_modes = mn.shape
         penalty = 0
-        for m_i in range(n_modes):
-            # Get the mean for this mode
-            mn_i = mn[:, [m_i]]
+        for m_i in range(self.n_modes):
 
-            # Get weighted center of mode
-            weighted_pos_i = torch.abs(mn_i)*self.x
-            weighted_ctr_i = torch.mean(weighted_pos_i, dim=0)
+            mn_i = torch.abs(mn[:, [m_i]])
+            norm_vl = torch.sum(mn_i) + .000001
+            dist_i_scaled_sq = torch.sum(((self.x - self.col_ctrs[m_i,:])**2)/((self.scales[m_i, :])**2 + .001), dim=1)
+            weighted_dist_i = (torch.squeeze(mn_i)/norm_vl)*dist_i_scaled_sq
+            penalty += torch.sum(weighted_dist_i)
 
-            # Penalize large weights which are far from center
-            cluster_pen = torch.sum((torch.squeeze(mn_i)**2)*torch.sum((self.x-weighted_ctr_i)**2, dim=1))
-
-            # Encourage the mode vector to have a fixed length
-            len_pen = (torch.sum(mn_i**2) - self.tgt_l)**2
-
-            # Calculate final penalty
-            penalty += (self.len_w*n_neurons*len_pen + self.cluster_w*cluster_pen)
+        # Penalize for weights
+        if self.scale_weight is not None and self.scale_weight != 0:
+            penalty += self.scale_weight*(torch.sum(self.scales**2))
 
         return penalty
-        
+
+    def __str__(self):
+        return 'Centers: \n' + str(self.col_ctrs) + '\n Scales: \n' + str(self.scales)
 
