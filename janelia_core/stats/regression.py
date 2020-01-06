@@ -37,7 +37,8 @@ def r_squared(truth: np.ndarray, pred: np.ndarray) -> np.ndarray:
     return r_sq
 
 
-def grouped_linear_regression_boot_strap(y: np.ndarray, x: np.ndarray, g: np.ndarray, n_bs_smps: int, include_mean: bool = True):
+def grouped_linear_regression_boot_strap(y: np.ndarray, x: np.ndarray, g: np.ndarray, n_bs_smps: int, include_mean: bool = True,
+                                         rcond: float = None):
     """ Fits a linear regression model, performing a grouped bootstrap to get confidence intervals on coefficients.
 
     By grouped boot-strap, we mean samples are selected in groups.
@@ -58,6 +59,8 @@ def grouped_linear_regression_boot_strap(y: np.ndarray, x: np.ndarray, g: np.nda
         n_bs_smps: The number of boot strap samples to draw
 
         include_mean: True if models should have a mean term included.  False if not.
+
+        rcond: The value of rcond to provide to the least squares fitting.  See np.linalg.lstsq.
 
     Returns:
 
@@ -84,7 +87,7 @@ def grouped_linear_regression_boot_strap(y: np.ndarray, x: np.ndarray, g: np.nda
         x_aug = x
 
     # Estimate beta
-    beta = np.linalg.lstsq(x_aug, y, rcond=None)
+    beta = np.linalg.lstsq(x_aug, y, rcond=rcond)
     beta = beta[0]
 
     # Perform bootstrap
@@ -101,7 +104,7 @@ def grouped_linear_regression_boot_strap(y: np.ndarray, x: np.ndarray, g: np.nda
         bs_y = y[bs_inds]
 
         # Estimate beta for bootstrap sample
-        beta_est = np.linalg.lstsq(bs_x_aug, bs_y, rcond=None)
+        beta_est = np.linalg.lstsq(bs_x_aug, bs_y, rcond=rcond)
         bs_beta[b_i, :] = beta_est[0]
 
     return [bs_beta, beta]
