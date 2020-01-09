@@ -1029,6 +1029,9 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
         self.col_ctrs = torch.nn.Parameter(init_ctrs)
         self.register_buffer('x', x)
 
+        self.last_weight_pen = 0
+        self.last_scale_pen = 0
+
         # Setup weights
         self.scale_weight = scale_weight
         if scale_weight is not None: # Indicates we want to treat weights as a parameter
@@ -1072,22 +1075,30 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
         d_device = next(d.parameters()).device
         self.to(d_device)
 
+        n_x = self.x.shape[0]
         mn = d(self.x)
         penalty = 0
         for m_i in range(self.n_modes):
 
             mn_i = torch.abs(mn[:, [m_i]])
-            norm_vl = torch.sum(mn_i) + .000001
+            #norm_vl = torch.sum(mn_i) + .000001
+            norm_vl = torch.sum(mn_i**2) + .000001
             dist_i_scaled_sq = torch.sum(((self.x - self.col_ctrs[m_i,:])**2)/((self.scales[m_i, :])**2 + .001), dim=1)
-            weighted_dist_i = (torch.squeeze(mn_i)/norm_vl)*dist_i_scaled_sq
+            weighted_dist_i = (torch.squeeze(mn_i)/torch.sqrt(norm_vl))*dist_i_scaled_sq
             penalty += torch.sum(weighted_dist_i)
+
+        self.last_weight_pen = penalty.detach().cpu().numpy()
 
         # Penalize for weights
         if self.scale_weight is not None and self.scale_weight != 0:
             penalty += self.scale_weight*(torch.sum(self.scales**2))
 
+        self.last_scale_pen = penalty.detach().cpu().numpy() - self.last_weight_pen
+
         return penalty
 
     def __str__(self):
-        return 'Centers: \n' + str(self.col_ctrs) + '\n Scales: \n' + str(self.scales)
+        return ('Weight penalty: ' + str(self.last_weight_pen) +
+                '\n Scale penalty: ' + str(self.last_scale_pen) +
+                '\n Centers: \n' + str(self.col_ctrs.t()) + '\n Scales: \n' + str(self.scales.t()))
 

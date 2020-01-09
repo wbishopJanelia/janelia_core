@@ -5,9 +5,47 @@
 """
 
 from typing import Sequence
+from typing import Union
 import re
 
 import numpy as np
+
+
+def combine_slices(slices: Sequence[slice]) -> Sequence[slice]:
+    """ Combines multiple simple slices into a potentially smaller number of simple slices.
+
+    This function identifies overlap in slices and then combines overlapping slices into a single slice. This function
+    will also get rid of slices which index nothing (have the same start and stop).
+
+    Args:
+        slices: A sequence of slice objects.  All slice objects must be simple (see is_simple_slice).
+
+    Returns:
+        c_slices: A sequence of combined slices.
+
+    Raises:
+        ValueError: If all slices are not simple.
+    """
+
+    # Handle the case of an empty list first
+    if len(slices) == 0:
+        return slices
+
+    if not is_simple_slice(slices):
+        raise(ValueError('All slices must be simple.'))
+
+    min_start = np.min([s.start for s in slices])
+    max_stop = np.max([s.stop for s in slices])
+
+    shifted_slices = [slice(s.start-min_start, s.stop-min_start) for s in slices]
+
+    bin_array = np.zeros(max_stop-min_start, dtype=np.bool)
+    for s in shifted_slices:
+        bin_array[s] = True
+
+    shifted_c_slices = find_binary_runs(bin_array)
+    c_slices = [slice(s.start+min_start, s.stop+min_start, 1) for s in shifted_c_slices]
+    return c_slices
 
 
 def divide_into_nearly_equal_parts(n, k) -> np.ndarray:
@@ -45,7 +83,7 @@ def find_binary_runs(seq: np.ndarray):
         seq: Array of binary values.
 
     Returns:
-        slices: slices[0] contains a slice object for a contiguous portion of seq with all True values.
+        slices: slices[i] contains a slice object for a contiguous portion of seq with all True values.
 
     Raises:
         ValueError: If seq is not a 1-d array.
@@ -179,7 +217,7 @@ def int_to_arb_base(base_10_vl: np.ndarray, max_digit_vls: Sequence[int]) -> np.
     return rep
 
 
-def is_fully_specified_slice(s: slice) -> bool:
+def is_fully_specified_slice(s: Union[slice, Sequence[slice]]) -> bool:
     """ Returns true if slice has non non-negative, non-None start and stop values.
 
     Accepts either a single slice object or a sequence of slice objects.
@@ -187,6 +225,9 @@ def is_fully_specified_slice(s: slice) -> bool:
     Args:
         s: A single slice object or sequence of slice objects.  If a sequence, this
         function will return true only if all slice objects have non-negative, non-None start and stop values.
+
+    Returns:
+        is_fully_specified: True if all slice objects are fully specified
     """
 
     def check_slice(s_i):
@@ -202,7 +243,36 @@ def is_fully_specified_slice(s: slice) -> bool:
         return passes
 
 
-def is_standard_slice(s: slice) -> bool:
+def is_simple_slice(s: Union[slice, Sequence[slice]]) -> bool:
+    """ Returns true if a slice is fully specified and has a step size of 1 or None; otherwise returns false.
+
+     Args:
+        s: A single slice object or sequence of slice objects.  If a sequence, this
+        function will return true only if all slice objects have non-negative, non-None start and stop values.
+
+    Returns:
+        is_simple: True if all slice objects are simple
+     """
+
+    def check_slice(s_i):
+        if not is_fully_specified_slice(s_i):
+            return False
+        elif not (s_i.step == 1 or s_i.step is None):
+            return False
+        else:
+            return True
+
+    if isinstance(s, slice):
+        return check_slice(s)
+    else:
+        for s_i in s:
+            passes = check_slice(s_i)
+            if not passes:
+                break
+        return passes
+
+
+def is_standard_slice(s: Union[slice, Sequence[slice]]) -> bool:
     """ Returns true if a slice has non-negative start and stop values.
 
     Accepts either a single slice object or a sequence of slice objects.

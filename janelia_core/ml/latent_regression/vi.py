@@ -526,7 +526,6 @@ class MultiSubjectVIFitter():
             cur_learing_rate_ind = cur_learing_rate_ind[-1]
             cur_learning_rates = learning_rate_values[cur_learing_rate_ind, :]
             if np.any(cur_learning_rates != prev_learning_rates):
-                print('Reseting!!!!')
                 # We reset the whole optimizer because ADAM is an adaptive optimizer
 
                 # Pull out groups of parameters with different learning rates
