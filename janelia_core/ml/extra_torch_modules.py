@@ -42,14 +42,19 @@ class Bias(torch.nn.ModuleList):
 class BiasAndScale(torch.nn.ModuleList):
     """ Applies a bias and scale transformation to the data y = w*x + o.
 
-    Here w is the same length of x so w*x indicates element-wise product.
+    Here w is the same length of x so w*x indicates element-wise product and likewise ... + o is element-wise addition.
     """
 
-    def __init__(self, d: int, o_init_std: float = .1, w_init_std: float = .1):
+    def __init__(self, d: int, o_init_mn: float = 0.0, w_init_mn: float = 0.0,
+                 o_init_std: float = .1, w_init_std: float = .1):
         """ Creates a Bias object.
 
         Args:
             d: The dimensionality of the input and output
+
+            o_init_mn: The mean of the normal distribution initial biases are pulled from.
+
+            w_init_mn: The mean of the normal distribtion initial weights are pulled from.
 
             o_init_std: The standard deviation of the normal distribution initial biases are pulled from.
 
@@ -59,11 +64,11 @@ class BiasAndScale(torch.nn.ModuleList):
         super().__init__()
 
         w = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-        torch.nn.init.normal_(w, std=w_init_std)
+        torch.nn.init.normal_(w, mean=w_init_mn, std=w_init_std)
         self.register_parameter('w', w)
 
         o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-        torch.nn.init.normal_(o, std=o_init_std)
+        torch.nn.init.normal_(o, mean=o_init_mn, std=o_init_std)
         self.register_parameter('o', o)
 
     def forward(self, x: torch.Tensor) -> torch.tensor:
@@ -314,6 +319,9 @@ class FixedOffsetExp(torch.nn.Module):
         """
 
         return torch.exp(x) + self.o
+
+
+
 
 
 class IndSmpConstantBoundedFcn(torch.nn.Module):

@@ -4,7 +4,7 @@ import itertools
 import time
 from typing import List, Sequence, Union
 
-
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
@@ -374,7 +374,7 @@ class MultiSubjectVIFitter():
             adam_params: dict = {}, s_inds: Sequence[int] = None, prior_penalty_weight: float = 0.0,
             enforce_priors: bool = True, sample_posteriors: bool = True, update_int: int = 1,
             print_mdl_nlls: bool = True, print_sub_kls: bool = True, print_memory_usage: bool = True,
-            print_prior_penalties = True, print_penalizer_states = False):
+            print_prior_penalties = True, print_penalizer_states = False) -> dict:
         """
 
         Args:
@@ -728,6 +728,41 @@ class MultiSubjectVIFitter():
                'sub_u_kl': epoch_sub_u_kl, 'p_prior_penalties': epoch_p_prior_penalties,
                'u_prior_penalties': epoch_u_prior_penalties, 'obj': epoch_obj}
         return log
+
+    @classmethod
+    def plot_log(cls, log: dict):
+        """ Produces a figure of the values in a log produced by fit().
+
+        Args:
+            log: The log to plot.
+        """
+        plt.figure()
+
+        plt.subplot(3, 2, 1)
+        plt.plot(log['elapsed_time'], log['obj'])
+        plt.title('Objective')
+
+        plt.subplot(3, 2, 2)
+        plt.plot(log['elapsed_time'], log['mdl_nll'])
+        plt.title('Model Negative Log Likelihoods')
+
+        plt.subplot(3, 2, 3)
+        plt.plot(log['elapsed_time'], log['sub_p_kl'])
+        plt.title('Subject P KL')
+
+        plt.subplot(3, 2, 4)
+        plt.plot(log['elapsed_time'], log['sub_u_kl'])
+        plt.title('Subject U KL')
+
+        plt.subplot(3, 2, 5)
+        plt.plot(log['elapsed_time'], log['p_prior_penalties'])
+        plt.title('P Prior Penalties')
+        plt.xlabel('Elapsed Time')
+
+        plt.subplot(3, 2, 6)
+        plt.plot(log['elapsed_time'], log['u_prior_penalties'])
+        plt.title('U Prior Penalties')
+        plt.xlabel('Elapsed Time')
 
 
 def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size: int = 100) -> List[np.ndarray]:
