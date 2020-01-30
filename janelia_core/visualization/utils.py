@@ -7,6 +7,7 @@
 import torch
 from typing import Sequence
 
+import matplotlib.colors as colors
 import numpy as np
 
 
@@ -79,3 +80,25 @@ def alpha_overlay(base_img: np.ndarray, overlay_inds: list, overlay_clrs: np.nda
 
     return new_image
 
+
+def make_red_green_c_map(n: int = 256) -> colors.LinearSegmentedColormap:
+    """ Generates a color map that linear goes from red to black and then black to green.
+
+    Args:
+        n: The number of values in the color map
+
+    Returns:
+        cmap: The generated color map.
+    """
+
+    cdict = {'red': [[0.0, 1.0, 1.0],
+                     [0.5, 0.0, 0.0],
+                     [1.0, 0.0, 0.0]],
+             'green': [[0.0, 0.0, 0.0],
+                       [0.5, 0.0, 0.0],
+                       [1.0, 1.0, 1.0]],
+             'blue': [[0.0, 0.0, 0.0],
+                      [0.5, 0.0, 0.0],
+                      [1.0, 0.0, 0.0]]}
+
+    return colors.LinearSegmentedColormap('red_green', cdict, N=256)
