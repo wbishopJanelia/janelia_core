@@ -275,9 +275,9 @@ class ROIDataset(DataSet):
         """ Extracts rois from a dataset.
 
         Args:
-            roi_inds: The indices of the dataset.rois to extract
-
             roi_group: The roi group of the rois to extract
+
+            roi_inds: The indices of the dataset.rois to extract
 
             labels: A list of labels of tsdata for the rois to pull out.
 
