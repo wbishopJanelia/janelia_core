@@ -9,11 +9,13 @@ import pathlib
 
 import h5py
 import numpy as np
+from scipy import stats
 
 import janelia_core.dataprocessing.dataset
 import janelia_core.dataprocessing.dataset as dataset
 from janelia_core.fileio.exp_reader import read_imaging_metadata
 from janelia_core.fileio.exp_reader import find_images
+from janelia_core.math.basic_functions import find_binary_runs
 
 # Constants for reading a stack frequency file
 STACK_FREQ_STACK_FREQ_LINE = 0
@@ -209,3 +211,70 @@ def read_seperated_exp(image_folders: list, image_labels: list, metadata_folder:
     metadata['stack_freq_info'] = stack_freq_info
 
     return dataset.DataSet(data_dict, metadata)
+
+
+def read_raw_ephys_data(in_file: str, num_channels: int =10):
+    """ Reads in raw ephys data from an Ahrens lab experiment.
+
+    Raw files may end in .10chFlt.
+
+    This code is based on a similar function by Davis Bennett.
+
+    Args:
+        in_file: The file to open
+
+        num_channels: The number of channels in the file
+
+    Returns:
+        data: Raw data in a matrix of shape channels by time
+    """
+
+    with open(in_file, "rb") as fd:
+        data = np.fromfile(file=fd, dtype=np.float32)
+
+    trim = data.size % num_channels
+
+    # transpose to make dimensions [channels, time]
+    data = data[: (data.size - trim)].reshape(data.size // num_channels, num_channels).T
+
+    if trim > 0:
+        raise(Warning('Data needed to be truncated!'))
+
+    return data
+
+
+def find_camera_triggers_in_ephys(sig: np.ndarray, th: float = 3.8, smp_tol: int = 2) -> np.ndarray:
+    """ Finds indices where the camera was triggered in the raw ephys data.
+
+    Args:
+        sig: 1-d array of camera trigger data
+
+        th: the threshold that indicates a camera threshold
+
+        smp_tol: After extracting camera triggers, we do a check and make sure all camera triggers are the
+        same number of samples apart +/- a tolerance; this is the tolerance
+
+    Returns:
+        inds: The indices of sig where values first pass th
+
+    Raises:
+        ValueError: If the first value of sig is greather than th (since then timing of the onset cannot be
+        determined)
+
+        RuntimeError: If the tolerance check is not passed
+
+    """
+
+    if sig[0] > th:
+        raise(ValueError('First value of signal greater than signal.'))
+
+    runs = find_binary_runs(sig > th)
+    inds = np.asarray([s.start for s in runs])
+
+    # Check to make sure we pass a data integrity check
+    inds_diff = np.diff(inds)
+    diff_mode = stats.mode(inds_diff).mode[0]
+    if np.any(np.abs(inds_diff - diff_mode) > smp_tol):
+        raise(RuntimeError('Extracted camera triggers failed timig tolerance check.'))
+
+    return inds
