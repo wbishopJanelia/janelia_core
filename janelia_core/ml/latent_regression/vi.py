@@ -178,7 +178,7 @@ class MultiSubjectVIFitter():
 
             p_prior_penalizers: A sequence of penalizers to apply to the priors of each group of p modes.
             The penalizer in p_prior_penalizers[g] is the penalizer for group g.  If group g is not penalized,
-            p_prior_penalizers[g] should be 0.
+            p_prior_penalizers[g] should be None.
 
             u_prior_penalizers: A sequence of penalizers to apply to the priors of each group of u modes in the same
             manner as p_prior_penalizers
