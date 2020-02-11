@@ -11,6 +11,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+def gen_two_param_rgb_image(vol_1: np.ndarray, vol_2: np.ndarray, two_param_c_map: dict):
+    """ Generates a sequence of RGB images for two parameters over a volume.
+
+    Args:
+        vol_1: The value of the first parameter over the volume of shape n_z*n_x*n_y
+
+        vol_2: The value of the second parameter over the volume; same shape as vol_1
+
+
+    """
+
 def make_z_plane_movie(volume: np.ndarray, save_path: pathlib.Path,
                        clim: Sequence[float] = None,
                        cmap: Union[str, matplotlib.colors.Colormap] = 'hot',
@@ -21,7 +32,7 @@ def make_z_plane_movie(volume: np.ndarray, save_path: pathlib.Path,
                        facecolor: Union[float] = (0, 0,0),
                        text_color: Union[float] = (1.0, 1.0, 1.0),
                        bitrate=-1,
-                       c_perc_limits: Sequence[float] = [.1, 99.9]):
+                       clim_percs: Sequence[float] = [.1, 99.9]):
     """
     Generates a movie of all the z-planes in a volume.
 
@@ -51,7 +62,7 @@ def make_z_plane_movie(volume: np.ndarray, save_path: pathlib.Path,
 
         bitrate: The bitrate to use when saving the video
 
-        c_perc_limits: The percentile limits to use if automatically setting clim between 0 and 100.
+        clims_percs: The percentile limits to use if automatically setting clim between 0 and 100.
         The value of c_perc_limits[0] is the lower limit and the value of c_perc_limits[1] is the upper
         limit.
 
@@ -65,13 +76,13 @@ def make_z_plane_movie(volume: np.ndarray, save_path: pathlib.Path,
 
     # If clim is None, calculate color limits
     if clim is None:
-        p_lower = np.percentile(volume, c_perc_limits[0])
-        p_upper = np.percentile(volume, c_perc_limits[1])
+        p_lower = np.percentile(volume, clim_percs[0])
+        p_upper = np.percentile(volume, clim_percs[1])
         c_range = np.max(np.abs([p_lower, p_upper]))
         clim = (-c_range, c_range)
 
     # Get the first frame of the video
-    frame0 = np.squeeze(volume[30, :, :])
+    frame0 = np.squeeze(volume[0, :, :])
     n_z_planes = volume.shape[0]
 
     # Setup the basic figure for plotting, showing the first frame
@@ -106,6 +117,7 @@ def make_z_plane_movie(volume: np.ndarray, save_path: pathlib.Path,
     # Save the movie
     plane_animation.save(save_path, writer=writer, savefig_kwargs={'facecolor':facecolor})
 
-
+    # Close the figure
+    plt.close(fig)
 
 
