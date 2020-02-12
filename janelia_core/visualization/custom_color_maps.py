@@ -3,6 +3,7 @@
 from typing import Sequence
 
 import matplotlib.colors
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -70,7 +71,8 @@ def generate_two_param_hsv_map(clr_param_range: np.ndarray, vl_param_range: np.n
 
     Args:
         clr_param_range: The range of values for parameter 0, which indexes into hue, in the form
-        (start_vl, stop_vl, step).
+        (start_vl, stop_vl, step). To have a reversed color scale, start_vl should be less than stop_vl and step should
+        be a negative value.
 
         vl_param_range: The range of values for parameter 1, which indexes into value of hsv colors, in the same form
         as clr_param_range.
@@ -81,6 +83,10 @@ def generate_two_param_hsv_map(clr_param_range: np.ndarray, vl_param_range: np.n
         clims: The lower and upper parameter values when indexing into p1_cmap.
 
         vllims: The lower and upper parameter values when indexing into value values.
+
+
+    To use a reversed color (value) scale, start_vl should be less than stop_vl and step should be a negative value
+    in clr_param_range (vl_param_range) and clims (vllims) should also be flipped so that clims[0] > clims[1].
     """
 
     clr_param_vls = np.arange(*clr_param_range)
@@ -94,7 +100,7 @@ def generate_two_param_hsv_map(clr_param_range: np.ndarray, vl_param_range: np.n
 
     # Get saturation values
     scaled_vl_param_vls = np.minimum(np.maximum((vl_param_vls - vllims[0]) /
-                                                 (vllims[1] - vllims[0]), 0), 1)
+                                                (vllims[1] - vllims[0]), 0), 1)
 
     # Generate array of color values in hsv format
     clrs_hsv = np.repeat(np.expand_dims(base_clrs_hsv, 1), n_vl_vls, axis=1)
@@ -108,8 +114,42 @@ def generate_two_param_hsv_map(clr_param_range: np.ndarray, vl_param_range: np.n
     return MultiParamCMap(param_vl_ranges=[clr_param_range, vl_param_range], clrs=clrs_rgb)
 
 
-def make_red_blue_green_c_map(n: int = 256) -> matplotlib.colors.LinearSegmentedColormap:
-    """ Generates a color map that linearly goes from red at -1 to blue at 0 and then to green at 1.
+def visualize_two_param_hsv_map(cmap: MultiParamCMap, plot_ax: plt.Axes = None):
+    """ Plots a visualization of a two-parameter MultiParamCMap, i.e., the 2-d version of making 1-d colorbar.
+
+    Args:
+        cmap: The color map to plot
+
+        plot_ax: The axis to produce the colormap in.  If None, a new figure with axes will be created.
+
+    Raises:
+        ValueError: If the colormap is not for two parameters
+    """
+
+    if cmap.n_params != 2:
+        raise(ValueError('The color map must be for two parameters.'))
+
+    if plot_ax is None:
+        plt.figure()
+        plot_ax = plt.subplot(1, 1, 1)
+
+    p0_vls = np.arange(*cmap.param_vl_ranges[0])
+    p1_vls = np.arange(*cmap.param_vl_ranges[1])
+
+    n_p0_smps = len(p0_vls)
+    n_p1_smps = len(p1_vls)
+
+    p0_smps = np.repeat(np.expand_dims(p0_vls, 1), n_p1_smps, 1)
+    p1_smps = np.repeat(np.expand_dims(p1_vls, 0), n_p0_smps, 0)
+
+    clr_smps = cmap[p0_smps, p1_smps]
+
+    a_ratio = np.abs(p1_vls[-1] - p1_vls[0]) / np.abs(p0_vls[-1] - p0_vls[0])
+    plot_ax.imshow(clr_smps, extent=[p1_vls[0], p1_vls[-1], p0_vls[-1], p0_vls[0]], aspect=a_ratio)
+
+
+def make_red_blue_green_c_map(n: int = 256, red_stop: float = .5, green_start: float = .5) -> matplotlib.colors.LinearSegmentedColormap:
+    """ Generates a color map that linearly goes from red at 0 to blue at .5 and then to green at 1.
 
     Args:
         n: The number of values in the color map
@@ -131,21 +171,26 @@ def make_red_blue_green_c_map(n: int = 256) -> matplotlib.colors.LinearSegmented
     return matplotlib.colors.LinearSegmentedColormap('red_green', cdict, N=256)
 
 
-def make_red_green_c_map(n: int = 256) -> matplotlib.colors.LinearSegmentedColormap:
-    """ Generates a color map that linearly goes from red at -1, to black at 0 and then to green at 1.
+def make_red_green_c_map(n: int = 256, red_stop: float = .5, green_start: float = .5) -> matplotlib.colors.LinearSegmentedColormap:
+    """ Generates a color map that linearly goes from red at 0, to black at .5 and then to green at 1.
 
     Args:
         n: The number of values in the color map
+
+        red_stop: The value that red stops at. By adjusting red_stop and green_start, the width and placement
+        of the black band in the middle of the color map can be adjusted.
+
+        green_start: The value that green starts at.
 
     Returns:
         cmap: The generated color map.
     """
 
     cdict = {'red': [[0.0, 1.0, 1.0],
-                     [0.5, 0.0, 0.0],
+                     [red_stop, 0.0, 0.0],
                      [1.0, 0.0, 0.0]],
              'green': [[0.0, 0.0, 0.0],
-                       [0.5, 0.0, 0.0],
+                       [green_start, 0.0, 0.0],
                        [1.0, 1.0, 1.0]],
              'blue': [[0.0, 0.0, 0.0],
                       [0.5, 0.0, 0.0],
