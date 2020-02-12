@@ -64,7 +64,7 @@ class MultiParamCMap():
         return self.clrs[inds]
 
 
-def generate_two_param_hsv_map(clr_param_range: np.ndarray, vl_param_range: np.ndarray,
+def generate_two_param_hsv_map(clr_param_range: Sequence, vl_param_range: Sequence,
                                       p1_cmap: matplotlib.colors.Colormap, clims: Sequence[float],
                                       vllims: Sequence[float]) -> MultiParamCMap:
     """ Generates a MultiParamCMap for two parameters, which index hue and value of hsv colors.
