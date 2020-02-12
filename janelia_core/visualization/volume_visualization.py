@@ -16,7 +16,8 @@ from janelia_core.visualization.custom_color_maps import visualize_two_param_hsv
 
 def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
                            title: str = None, fps: int = 10,
-                           cmap: MultiParamCMap = None, param_strs: Sequence[str] = None,
+                           cmap: MultiParamCMap = None, cmap_param_strs: Sequence[str] = None,
+                           cmap_param_vls: Sequence[Sequence] = None,
                            figsize: Sequence[int] = [7, 12],
                            facecolor: Union[float] = (0, 0, 0),
                            text_color: Union[float] = (1.0, 1.0, 1.0),
@@ -32,6 +33,15 @@ def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
         title: If not None, the title to display over the video
 
         fps: The frames per second of the generated movie.  Each plane is a different plane.
+
+        cmap: An optional color map used to generate the images.  If provided, this colormap will be plotted in the
+        video.
+
+        cmap_param_strs: String labels for parameter 0 and 1 in cmap.  Only used if cmap is provided.
+
+        cmap_param_vls: If not None, then cmap_param_vls[i] should contain a list of values for parameter i to plot
+        the color map at.  cmap_param_vls[i] can also be none, which means the range of values plotted will be the
+        range of values between the colormap saturation limits. Only used if cmap is provided.
 
         figsize: The size of the figure to make the video as [width, height] in inches
 
@@ -71,12 +81,18 @@ def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
     # Show the color map if we are suppose to
     if cmap is not None:
         cmap_im = plt.subplot2grid([10, 10], [9, 8], 2, 2)
-        visualize_two_param_hsv_map(cmap=cmap, plot_ax=cmap_im)
+        if cmap_param_vls is not None:
+            cmap_p0_vls = cmap_param_vls[0]
+            cmap_p1_vls = cmap_param_vls[1]
+        else:
+            cmap_p0_vls = None
+            cmap_p1_vls = None
+        visualize_two_param_hsv_map(cmap=cmap, plot_ax=cmap_im, p0_vls=cmap_p0_vls, p1_vls=cmap_p1_vls)
         cmap_im.axes.get_yaxis().set_tick_params(color=text_color, labelcolor=text_color)
         cmap_im.axes.get_xaxis().set_tick_params(color=text_color, labelcolor=text_color)
-        if param_strs is not None:
-            plt.xlabel(param_strs[1], color=text_color)
-            plt.ylabel(param_strs[0], color=text_color)
+        if cmap_param_strs is not None:
+            plt.xlabel(cmap_param_strs[1], color=text_color)
+            plt.ylabel(cmap_param_strs[0], color=text_color)
 
     z_im.axes.get_xaxis().set_visible(False)
     z_im.axes.get_yaxis().set_visible(False)

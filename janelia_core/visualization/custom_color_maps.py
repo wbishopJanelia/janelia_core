@@ -84,7 +84,6 @@ def generate_two_param_hsv_map(clr_param_range: np.ndarray, vl_param_range: np.n
 
         vllims: The lower and upper parameter values when indexing into value values.
 
-
     To use a reversed color (value) scale, start_vl should be less than stop_vl and step should be a negative value
     in clr_param_range (vl_param_range) and clims (vllims) should also be flipped so that clims[0] > clims[1].
     """
@@ -114,13 +113,18 @@ def generate_two_param_hsv_map(clr_param_range: np.ndarray, vl_param_range: np.n
     return MultiParamCMap(param_vl_ranges=[clr_param_range, vl_param_range], clrs=clrs_rgb)
 
 
-def visualize_two_param_hsv_map(cmap: MultiParamCMap, plot_ax: plt.Axes = None):
+def visualize_two_param_hsv_map(cmap: MultiParamCMap, plot_ax: plt.Axes = None, p0_vls: np.ndarray = None,
+                                p1_vls: np.ndarray = None):
     """ Plots a visualization of a two-parameter MultiParamCMap, i.e., the 2-d version of making 1-d colorbar.
 
     Args:
         cmap: The color map to plot
 
         plot_ax: The axis to produce the colormap in.  If None, a new figure with axes will be created.
+
+        p0_vls: A list of values to generate the colormap for.
+
+        p1_vls: A list of values to generate the colormpa for.
 
     Raises:
         ValueError: If the colormap is not for two parameters
@@ -133,8 +137,14 @@ def visualize_two_param_hsv_map(cmap: MultiParamCMap, plot_ax: plt.Axes = None):
         plt.figure()
         plot_ax = plt.subplot(1, 1, 1)
 
-    p0_vls = np.arange(*cmap.param_vl_ranges[0])
-    p1_vls = np.arange(*cmap.param_vl_ranges[1])
+    if p0_vls is None:
+        p0_vls = np.arange(*cmap.param_vl_ranges[0])
+    else:
+        p0_vls = np.sort(p0_vls)
+    if p1_vls is None:
+        p1_vls = np.arange(*cmap.param_vl_ranges[1])
+    else:
+        p1_vls = np.sort(p1_vls)
 
     n_p0_smps = len(p0_vls)
     n_p1_smps = len(p1_vls)
