@@ -446,3 +446,55 @@ def max_project_pts(dot_positions: np.ndarray, dot_vls: np.ndarray, box_position
     non_padded_im = im[d0_im_slice, d1_im_slice]
 
     return [non_padded_im, inds]
+
+
+def rgb_3d_max_project(vol: np.ndarray, axis: int =2) -> np.ndarray:
+    """ Computes 3d-max projection of RGB data.
+
+    The computation is done by converting the image to gray scale, finding max values of the gray scale image,
+    and the retaining the rgb information at these max values.
+
+    Args:
+        vol: The volume to max project.  Should be of shape [dx, dy, dz, 3], with the last dimension holding RGB values.
+
+        axis: The axis to project along
+
+    Returns:
+        proj: The projected image.  The first two dimensions will be the retained dimensions from the projection and
+        the last dimension will be of length 3, holding RGB values.
+
+    Raises:
+        ValueError: If the last dimension of vol is not of length 3.
+    """
+
+    if vol.shape[3] != 3:
+        raise(ValueError('vol must be an RGB image.'))
+
+    d_0, d_1, d_2, _ = vol.shape
+
+    # Convert rgb to gray scale using same formula as skimage.color.rgb2gray
+    gray_img = .2125*vol[:, :, :, 0] + .7154*vol[:, :, :, 1] + .0721*vol[:, :, :, 2]
+
+    # Find the max along the requested axis
+    max_inds = np.argmax(gray_img, axis=axis)
+
+    # Return the projection
+    inds_0 = np.arange(d_0).astype('int')
+    inds_1 = np.arange(d_1).astype('int')
+    inds_2 = np.arange(d_2).astype('int')
+
+    inds_0 = inds_0[:, np.newaxis]
+    if axis == 2:
+        inds_1 = inds_1[np.newaxis, :]
+    else:
+        inds_1 = inds_1[:, np.newaxis]
+    inds_2 = inds_2[np.newaxis, :]
+
+    inds_sel = [inds_0, inds_1, inds_2, slice(0, 3)]
+    inds_sel[axis] = max_inds
+    inds_sel = tuple(inds_sel)
+
+    return vol[inds_sel]
+
+
+
