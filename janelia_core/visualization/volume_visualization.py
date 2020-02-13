@@ -365,13 +365,13 @@ def visualize_rgb_max_project(vol: np.ndarray, cmap_im: np.ndarray = None,
             cmap_axes.imshow(cmap_im)
 
 
-    cmap_axes.get_yaxis().set_tick_params(color=textcolor, labelcolor=textcolor)
-    cmap_axes.get_xaxis().set_tick_params(color=textcolor, labelcolor=textcolor)
+        cmap_axes.get_yaxis().set_tick_params(color=textcolor, labelcolor=textcolor)
+        cmap_axes.get_xaxis().set_tick_params(color=textcolor, labelcolor=textcolor)
 
-    # Add labels to cmap if needed
-    if cmap_xlabel is not None:
-        plt.xlabel(cmap_xlabel, color=textcolor)
-    if cmap_ylabel is not None:
-        plt.ylabel(cmap_ylabel, color=textcolor)
+        # Add labels to cmap if needed
+        if cmap_xlabel is not None:
+            plt.xlabel(cmap_xlabel, color=textcolor)
+        if cmap_ylabel is not None:
+            plt.ylabel(cmap_ylabel, color=textcolor)
 
 
