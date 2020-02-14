@@ -1004,7 +1004,7 @@ class DistributionPenalizer(torch.nn.Module):
         """
         raise(NotImplementedError)
 
-    def penalize(self, d: CondVAEDistriubtion) -> torch.tensor:
+    def penalize(self, d: CondVAEDistriubtion) -> torch.Tensor:
         """ Calculates a penalty over a distribution.
 
         Args:
@@ -1017,9 +1017,49 @@ class DistributionPenalizer(torch.nn.Module):
 
 
 class ColumnMeanClusterPenalizer(DistributionPenalizer):
+    """ Penalizes the mean of a conditional distribution over matrices to encouraging clustering of column values.
 
-    def __init__(self, init_ctrs: torch.tensor, x:torch.Tensor, init_scales: torch.tensor = None,
+    Clustering here means clustering of values given what they are conditioned on.
+
+    In particular, we work with conditional distributions over matrices M \in R^{n \times p} conditioned on
+    input X \in R^{n \times q}, where each row of M is associated with the corresponding row of X.  Our goal is
+    to encourage large values in each column of M to be assoicated with values in X that are close in space.
+
+    We achieve this by:
+
+        1) Keeping track of a "center" parameter for each column c_j \in R^{1 \times q} and "scale"
+        parameter s_j \in R^{1 \times q} for each column j \in [1, p].  These parameters are learnable (but the
+        user can chose to fix the scales).
+
+        2) Let E_j be the expected value of column j conditioned on X.  We compute the cluster penalty for
+        column j as: k_j = \sum_i w_i*d_i, where w_i is the absolute value of E_j[j] after E_j has been normalized
+        to have a length of 1 and d_i is the square of scaled distance from c_j defined as
+        d_i = \sum_k=1^q ((X[i, k] - c_j[k])/s_j[k])**2.  To guard against division by zero, small offsets are
+        added as needed in the calculations.
+
+        3) The penalty can be made arbitrarily small by driving the scales to infinity.  To prevent this,
+        we calculate a term p = \sum_j \sum_q s_j[q]**2
+
+        4) The final penalty is scale_penalty*p + \sum_j k_j
+
+    """
+    def __init__(self, init_ctrs: torch.Tensor, x:torch.Tensor, init_scales: torch.Tensor = None,
                  scale_weight: float = None):
+        """ Creates a new ColumnMeanClusterPenalizer object.
+
+        Args:
+
+            init_ctrs: Initial centers for each mode.  Of shape [n_modes, n_cols]
+
+            x: The points at which we evaluate the mean of the distribution. Of shape [n_pts, n_cols].
+
+            init_scales: Initial scales for each mode. Of shape [n_modes, n_cols]. If None, initial scales will be set
+            to 1 for all dimensions and modes.
+
+            scale_weight: The weight to apply to the scale penalty if learning scales.  If None, the scales will be be
+            fixed at their init values and not learned.
+
+        """
         super().__init__()
 
         n_modes, n_cols = init_ctrs.shape
@@ -1038,8 +1078,8 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
             if init_scales is None:
                 init_scales = torch.ones([n_modes, n_cols])
             self.scales = torch.nn.Parameter(init_scales)
-        else: # Indicates we will fix weights at 1 and not learn them
-            self.register_buffer('scales', torch.ones([n_modes, n_cols]))
+        else: # Indicates we will fix weights at initial values and not learn them
+            self.register_buffer('scales', torch.tensor(init_scales))
 
     def get_marked_params(self, key: str):
         """ Returns parameters that should be assigned fast and slow learning rates.
@@ -1070,8 +1110,10 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
         else:
             return ['fast']
 
-    def penalize(self, d: CondVAEDistriubtion):
+    def penalize(self, d: CondVAEDistriubtion) -> torch.Tensor:
+        """ Calculates the penalty for a distribution. """
 
+        # Move the penalizer to the same device as the distribution
         d_device = next(d.parameters()).device
         self.to(d_device)
 
@@ -1081,7 +1123,6 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
         for m_i in range(self.n_modes):
 
             mn_i = torch.abs(mn[:, [m_i]])
-            #norm_vl = torch.sum(mn_i) + .000001
             norm_vl = torch.sum(mn_i**2) + .000001
             dist_i_scaled_sq = torch.sum(((self.x - self.col_ctrs[m_i,:])**2)/((self.scales[m_i, :])**2 + .001), dim=1)
             weighted_dist_i = (torch.squeeze(mn_i)/torch.sqrt(norm_vl))*dist_i_scaled_sq
@@ -1089,7 +1130,7 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
 
         self.last_weight_pen = penalty.detach().cpu().numpy()
 
-        # Penalize for weights
+        # Penalize for scale
         if self.scale_weight is not None and self.scale_weight != 0:
             penalty += self.scale_weight*(torch.sum(self.scales**2))
 
@@ -1098,6 +1139,7 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
         return penalty
 
     def __str__(self):
+        """ Returns a string of the current state of the penalizer, including the last weight and scale penalty values. """
         return ('Weight penalty: ' + str(self.last_weight_pen) +
                 '\n Scale penalty: ' + str(self.last_scale_pen) +
                 '\n Centers: \n' + str(self.col_ctrs.t()) + '\n Scales: \n' + str(self.scales.t()))
