@@ -63,6 +63,16 @@ class MultiParamCMap():
         inds = tuple(inds)
         return self.clrs[inds]
 
+    def to_dict(self):
+        """ Returns the attributes of the colormap as a dictionary for serialization."""
+        return vars(self)
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        """ Creates a MultiParamCMap from a dictionary. """
+        return cls(param_vl_ranges=d['param_vl_ranges'], clrs=d['clrs'])
+
+
 
 def generate_two_param_hsv_map(clr_param_range: Sequence, vl_param_range: Sequence,
                                       p1_cmap: matplotlib.colors.Colormap, clims: Sequence[float],
@@ -155,7 +165,7 @@ def visualize_two_param_hsv_map(cmap: MultiParamCMap, plot_ax: plt.Axes = None, 
     clr_smps = cmap[p0_smps, p1_smps]
 
     a_ratio = np.abs(p1_vls[-1] - p1_vls[0]) / np.abs(p0_vls[-1] - p0_vls[0])
-    plot_ax.imshow(clr_smps, extent=[p1_vls[0], p1_vls[-1], p0_vls[-1], p0_vls[0]], aspect=a_ratio)
+    plot_ax.imshow(clr_smps, extent=[p1_vls[0], p1_vls[-1], p0_vls[0], p0_vls[-1]], aspect=a_ratio, origin='lower')
 
 
 def make_red_blue_green_c_map(n: int = 256, red_stop: float = .5, green_start: float = .5) -> matplotlib.colors.LinearSegmentedColormap:

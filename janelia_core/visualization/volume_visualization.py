@@ -23,7 +23,7 @@ def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
                            figsize: Sequence[int] = [7, 12],
                            facecolor: Union[float] = (0, 0, 0),
                            text_color: Union[float] = (1.0, 1.0, 1.0),
-                           bitrate=-1):
+                           bitrate=-1, one_index_z_plane: bool = False):
     """ Generates a sequence of movie of z-plane images already in RGB space.
 
     Args:
@@ -53,12 +53,19 @@ def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
 
         bitrate: The bitrate to use when saving the video
 
+        one_index_z_plane: True if z-plane numbers should start at 1 instead of 0 when generating titles for each plane
+
     """
 
     # Define a helper function
     def update_image(z, images, im_h, title_h, title_s):
+        if one_index_z_plane:
+            z_title = z + 1
+        else:
+            z_title = z
+
         im_h.set_data(images[z])
-        title_h.set_text(title_s + 'z = ' + str(z))
+        title_h.set_text(title_s + 'z = ' + str(z_title))
         return im_h,
 
     # Get the first frame of the video
@@ -214,7 +221,7 @@ def make_z_plane_movie(volume: np.ndarray, save_path: str,
     plt.close(fig)
 
 
-def visualize_rgb_max_project(vol: np.ndarray, cmap_im: np.ndarray = None,
+def visualize_rgb_max_project(vol: np.ndarray, dim_m: np.ndarray = None, cmap_im: np.ndarray = None,
                               cmap_extent: Sequence[float] = None, cmap_xlabel: str = None, cmap_ylabel: str = None,
                               title: str = None, f: matplotlib.figure.Figure = None, buffer=.6,
                               facecolor: Sequence[float] = (0, 0, 0), textcolor: Sequence[float] = (1, 1, 1)):
@@ -244,9 +251,14 @@ def visualize_rgb_max_project(vol: np.ndarray, cmap_im: np.ndarray = None,
         vol: The volume to generate the max projection of. Should be 4 dimensional, with the last dimension containing
         RGB values.  Dimensions are assumed to be in the convention [x, y, z],
 
+        dim_m: A scalar multiplier for each dimension in the order x, y, z to account for aspect ratios.  If None,
+        a value of [1, 1, 1] will be used.
+
         cmap_im: An optional image of an colormap to include
 
-        cmap_extent: Values to associate the the image of the colormap in the form of [left, right, bottom, top]
+        cmap_extent: Values to associate the the image of the colormap in the form of [left, right, bottom, top].
+        Note that colormap will be plotted so colors associated with the smallest parameter values appear in the
+        bottom left of the colormap image.
 
         cmap_xlabel: An optional label for the x-axis of the colormap
 
@@ -269,8 +281,20 @@ def visualize_rgb_max_project(vol: np.ndarray, cmap_im: np.ndarray = None,
     if vol.ndim != 4:
         raise(ValueError('vol must be 4 dimensional.'))
 
+    if dim_m is None:
+        dim_m = np.ones(3)
+
     # Get volume dimensions
     d_x, d_y, d_z, _ = vol.shape
+
+    # Apply aspect ratio correction
+    d_x = d_x*dim_m[0]
+    d_y = d_y*dim_m[1]
+    d_z = d_z*dim_m[2]
+
+    xy_aspect_ratio = dim_m[0]/dim_m[1]
+    xz_aspect_ratio = dim_m[0]/dim_m[2]
+    yz_aspect_ratio = dim_m[1]/dim_m[2]
 
     # Form projections
     x_proj = rgb_3d_max_project(vol=vol, axis=0)
@@ -318,7 +342,7 @@ def visualize_rgb_max_project(vol: np.ndarray, cmap_im: np.ndarray = None,
     v_1_p = 2*buffer/f_h + dz_perc_h
     h_1_p = 2*buffer/f_w + dy_perc_w
 
-    # Now we specify the rectanges for each axes
+    # Now we specify the rectangles for each axes
     z_proj_rect = (h_0_p, v_1_p, dy_perc_w, dx_perc_h)
     x_proj_rect = (h_0_p, v_0_p, dy_perc_w, dz_perc_h)
     y_proj_rect = (h_1_p, v_1_p, dz_perc_w, dx_perc_h)
@@ -333,13 +357,6 @@ def visualize_rgb_max_project(vol: np.ndarray, cmap_im: np.ndarray = None,
     if cmap_im is not None:
         cmap_axes = f.add_axes(cmap_rect)
 
-    # Make sure the axes don't change aspect ratio when we scale the figure
-    z_proj_axes.set_aspect('equal')
-    x_proj_axes.set_aspect('equal')
-    y_proj_axes.set_aspect('equal')
-    if cmap_im is not None:
-        cmap_axes.set_aspect('equal')
-
     # Get rid of units on the projection axes
 
     z_proj_axes.axes.get_xaxis().set_visible(False)
@@ -352,15 +369,15 @@ def visualize_rgb_max_project(vol: np.ndarray, cmap_im: np.ndarray = None,
     y_proj_axes.axes.get_yaxis().set_visible(False)
 
     # Now we show the projections
-    z_proj_axes.imshow(z_proj)
-    x_proj_axes.imshow(np.moveaxis(x_proj, 0, 1))
-    y_proj_axes.imshow(y_proj)
+    z_proj_axes.imshow(z_proj, aspect=xy_aspect_ratio)
+    x_proj_axes.imshow(np.moveaxis(x_proj, 0, 1), aspect=1/xz_aspect_ratio)
+    y_proj_axes.imshow(y_proj, aspect=yz_aspect_ratio)
 
     # Now we add the colormap
     if cmap_im is not None:
         if cmap_extent is not None:
             a_ratio = np.abs(cmap_extent[1] - cmap_extent[0])/np.abs(cmap_extent[3] - cmap_extent[2])
-            cmap_axes.imshow(cmap_im, extent=cmap_extent, aspect=a_ratio)
+            cmap_axes.imshow(cmap_im, extent=cmap_extent, aspect=a_ratio, origin='lower')
         else:
             cmap_axes.imshow(cmap_im)
 
