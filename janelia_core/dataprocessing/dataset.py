@@ -260,7 +260,7 @@ class ROIDataset(DataSet):
         Args:
             roi_group: The roi group of the rois to extract
 
-            roi_inds: The indices in dataset.rois to keep.
+            roi_inds: The indices in dataset.roi_groups[roi_group].rois to keep.
         """
 
         new_rois = [self.roi_groups[roi_group]['rois'][i] for i in roi_inds]
@@ -342,6 +342,21 @@ class ROIDataset(DataSet):
 
         # Create the composite roi object
         return ROI.from_array(comp_roi_array, min_bounds)
+
+    def get_rois_center_of_mass(self, roi_group: str, roi_inds) -> np.ndarray:
+        """ Gets the center of mass of requested rois.
+
+        Args:
+            roi_group: The roi group to calculate centers for
+
+            roi_inds: The indices in dataset.roi_groups[roi_group].rois of the rois to calculate
+            centers for.
+
+        Returns:
+            ctrs: The centers.  ctrs[i,:] is the center for the roi specified by roi_inds[i] in the input.
+        """
+
+        return np.stack([self.roi_groups[roi_group]['rois'][i].center_of_mass() for i in roi_inds])
 
 
 class PointDataset(DataSet):

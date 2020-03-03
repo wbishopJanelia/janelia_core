@@ -252,6 +252,18 @@ class DenseLNLNet(torch.nn.Module):
         return x
 
 
+class BasicExp(torch.nn.Module):
+    """ Applies the transformation y = exp(x) to the data.  """
+
+    def __init__(self):
+        """ Creates a new BasicExp object. """
+        super().__init__()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes output from input. """
+        return torch.exp(x)
+
+
 class Exp(torch.nn.ModuleList):
     """ Applies a  transformation to the data y = o + exp(g*x + s) """
 
@@ -689,7 +701,7 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         # Determine the order of dimensions for the purposes of linearalization - we want the dimension
         # which will have the most active bump functions for a given point to be last.  This will allow us
         # to specify the largest contiguous chunks of the array holding bump function magnitudes.
-        n_div_per_hc_side_per_dim  = np.asarray(n_div_per_hc_side_per_dim)
+        n_div_per_hc_side_per_dim  = np.asarray(n_div_per_hc_side_per_dim, dtype=np.long)
         dim_order = np.argsort(n_div_per_hc_side_per_dim)
         self.register_buffer('dim_order', torch.Tensor(dim_order).long())
 
@@ -703,7 +715,7 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         n_div_per_hc_side_per_dim = n_div_per_hc_side_per_dim[dim_order]
 
         # Pre-calculate factors we need for linearalization - saved in order according to dim_order
-        dim_factors = np.ones(n_dims)
+        dim_factors = np.ones(n_dims, dtype=np.long)
         for d_i in range(n_dims-2, -1, -1):
             dim_factors[d_i] = dim_factors[d_i + 1]*n_bump_fcns_per_dim[d_i + 1]
         self.register_buffer('dim_factors', torch.Tensor(dim_factors).long())
@@ -719,7 +731,6 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         else:
             n_minor_dim_repeats = 1
 
-
         bump_ind_offsets = torch.arange(n_div_per_hc_side_per_dim[-1]).repeat(n_minor_dim_repeats).long()
         cur_chunk_size = 1
         for d_i in range(n_dims-2, -1, -1):
@@ -730,7 +741,7 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
                 cur_chunk_start_ind = c_i*cur_chunk_size
                 cur_chunk_end_ind = cur_chunk_start_ind + cur_chunk_size
                 mod_i = c_i % cur_n_stacked_chunks
-                bump_ind_offsets[cur_chunk_start_ind:cur_chunk_end_ind] += dim_factors[d_i]*mod_i
+                bump_ind_offsets[cur_chunk_start_ind:cur_chunk_end_ind] += (dim_factors[d_i]*mod_i).item()
 
         self.register_buffer('bump_ind_offsets', bump_ind_offsets)
 

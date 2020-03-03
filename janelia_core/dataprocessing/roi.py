@@ -105,6 +105,14 @@ class ROI():
         bounding_box = self.bounding_box()
         return np.asarray([s.stop - s.start for s in bounding_box])
 
+    def center_of_mass(self) -> np.ndarray:
+        """ Returns the center of mass of the roi. """
+
+        all_inds = self.list_all_voxel_inds()
+        all_w = np.abs(self.list_all_weights())
+        total_w = np.sum(all_w)
+        return np.asarray([np.sum((i_j*all_w)/total_w) for i_j in all_inds ])
+
     def list_all_voxel_inds(self) -> list:
         """ Exhaustively lists all voxel coordinates in the roi.
 

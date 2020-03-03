@@ -155,7 +155,7 @@ class GroupLinearTransform(torch.nn.Module):
     Offsets can also optionally be added.
     """
 
-    def __init__(self, d: Sequence[int], offsets: bool = False,
+    def __init__(self, d: Sequence[int], offsets: bool = True,
                  v_mn: float = 0.0, v_std: float = 0.1,
                  o_mn: float = 0.0, o_std: float = 0.1):
         """ Creates a GroupScalarTransform object.
@@ -173,18 +173,23 @@ class GroupLinearTransform(torch.nn.Module):
 
         n_grps = len(d)
 
+        self.offsets = offsets
+
         self.v = [None]*n_grps
-        self.o = [None]*n_grps
+        if offsets:
+            self.o = [None]*n_grps
+
         for g in range(n_grps):
             param_name = 'v' + str(g)
             self.v[g] = torch.nn.Parameter(torch.zeros(d[g]), requires_grad=True)
             torch.nn.init.normal_(self.v[g], mean=v_mn, std=v_std)
             self.register_parameter(param_name, self.v[g])
 
-            param_name = 'o' + str(g)
-            self.o[g] = torch.nn.Parameter(torch.zeros(d[g]), requires_grad=True)
-            torch.nn.init.normal_(self.o[g], mean=o_mn, std=o_std)
-            self.register_parameter(param_name, self.o[g])
+            if offsets:
+                param_name = 'o' + str(g)
+                self.o[g] = torch.nn.Parameter(torch.zeros(d[g]), requires_grad=True)
+                torch.nn.init.normal_(self.o[g], mean=o_mn, std=o_std)
+                self.register_parameter(param_name, self.o[g])
 
     def forward(self, x: Sequence[torch.Tensor]) -> Sequence[torch.Tensor]:
         """" Computes output given input.
@@ -196,9 +201,10 @@ class GroupLinearTransform(torch.nn.Module):
             y: Output. y[g] gives the output for group g as a tensor of shampe n_smps*n_dims
 
         """
-
-        return [x_g*v_g + o_g for v_g, o_g, x_g in zip(self.v, self.o, x)]
-
+        if self.offsets:
+            return [x_g*v_g + o_g for v_g, o_g, x_g in zip(self.v, self.o, x)]
+        else:
+            return [x_g*v_g for v_g, x_g in zip(self.v, x)]
 
 class GroupMatrixMultiply(torch.nn.Module):
     """ Mapping which applies a matrix multiply seperately to each input vector to form output vectors."""
