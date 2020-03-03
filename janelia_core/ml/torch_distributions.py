@@ -1141,6 +1141,6 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
     def __str__(self):
         """ Returns a string of the current state of the penalizer, including the last weight and scale penalty values. """
         return ('Weight penalty: ' + str(self.last_weight_pen) +
-                '\n Scale penalty: ' + str(self.last_scale_pen) +
-                '\n Centers: \n' + str(self.col_ctrs.t()) + '\n Scales: \n' + str(self.scales.t()))
+                '\n Scale penalty: ' + str(self.last_scale_pen))# +
+                #'\n Centers: \n' + str(self.col_ctrs.t()) + '\n Scales: \n' + str(self.scales.t()))
 

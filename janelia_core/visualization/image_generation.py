@@ -497,4 +497,50 @@ def rgb_3d_max_project(vol: np.ndarray, axis: int =2) -> np.ndarray:
     return vol[inds_sel]
 
 
+def scalar_3d_max_project(vol: np.ndarray, axis: int = 2, abs_vl: bool = False) -> np.ndarray:
+    """ Computes 3d max projection of scalar data.
+
+    Args:
+        vol: The volume to project.  Should be of shape [dx, dy, dz]
+
+        axis: The dimension to project along
+
+        abs_vl: True if values with the largest absolute value should be returned; if false, then values with the
+        largest positive value will be returned.
+
+    Returns:
+        proj:  The projected image. Will be 2-d with a shape corresponding to the retained dimensions of vol.
+
+    Raises:
+        ValueError: If vol is not a 3d array
+    """
+
+    if vol.ndim != 3:
+        raise(ValueError('vol must be a 3d array'))
+
+
+    if abs_vl:
+        max_inds = np.argmax(np.abs(vol), axis=axis)
+    else:
+        max_inds = np.argmax(vol, axis=axis)
+
+    d_0, d_1, d_2 = vol.shape
+
+    # Return the projection
+    inds_0 = np.arange(d_0, dtype=int)
+    inds_1 = np.arange(d_1, dtype=int)
+    inds_2 = np.arange(d_2, dtype=int)
+
+    inds_0 = inds_0[:, np.newaxis]
+    if axis == 2:
+        inds_1 = inds_1[np.newaxis, :]
+    else:
+        inds_1 = inds_1[:, np.newaxis]
+    inds_2 = inds_2[np.newaxis, :]
+
+    inds_sel = [inds_0, inds_1, inds_2]
+    inds_sel[axis] = max_inds
+    inds_sel = tuple(inds_sel)
+
+    return vol[inds_sel]
 

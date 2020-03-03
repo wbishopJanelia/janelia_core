@@ -102,7 +102,7 @@ class GeneralInputOutputScenario():
         if specific_m is None:
             m = self.shared_m_core
         else:
-            m = torch.nn.Sequential(self.shared_m_core, specific_m)
+            m = torch.nn.Sequential(specific_m, self.shared_m_core)
 
         mdl = LatentRegModel(d_in=self.input_dims[s_i, :], d_out=self.output_dims[s_i, :],
                              d_proj=self.n_input_modes, d_trans=self.n_output_modes,
@@ -119,18 +119,22 @@ class GeneralInputOutputScenario():
                     mdl.u[h].data = u_h
                     mdl.u_trainable[h] = False
 
+        return mdl
+
     def gen_subj_vi_collection(self, s_i: int, specific_s: Sequence[torch.nn.Module], p_dists: Sequence,
                                u_dists: Sequence, data: TimeSeriesBatch, props: Sequence,
                                specific_m: torch.nn.Module = None, assign_p_u: bool = True,
-                               min_var:float = .001):
+                               min_var:float = .001, gen_subj_mdl: bool = True):
 
-        s_mdl = self.gen_subj_mdl(s_i=s_i, specific_s=specific_s, specific_m=specific_m, assign_p_u=assign_p_u)
+        if gen_subj_mdl:
+            s_mdl = self.gen_subj_mdl(s_i=s_i, specific_s=specific_s, specific_m=specific_m, assign_p_u=assign_p_u)
+        else:
+            s_mdl = None
 
         return SubjectVICollection(s_mdl=s_mdl, p_dists=p_dists, u_dists=u_dists, data=data,
-                                   input_grps=(0, 1), output_grps=(0, 2), props = [props],
+                                   input_grps=(0, 1), output_grps=(0, 2), props = props,
                                    input_props=[0, None], output_props=[0, None],
                                    min_var=[min_var, min_var])
-
 
     def gen_linear_specific_m(self, s_i: int, scale_mn=0.0, scale_std=.01,
                                    offset_mn=0.0, offset_std=.00001) -> torch.nn.Module:
@@ -162,6 +166,67 @@ class GeneralInputOutputScenario():
         """
         return [BiasAndScale(d=d_h, o_init_mn=offset_mn, o_init_std=offset_std,
                              w_init_mn=scale_mn, w_init_std=scale_std) for d_h in self.output_dims[s_i, :]]
+
+    def calc_projs_given_post_modes(self, s_vi_collection: SubjectVICollection, data: Sequence[TimeSeriesBatch],
+                                    apply_subj_specific_m: bool = False) -> Sequence:
+        """ Calculates values of projected data, given posterior distributions, over a model's modes.
+
+        This function will project data using the means of posterior distributions over modes and will calculate
+        projected values immediately after they are projected to the low-d space and after the projected values
+        have been transformed through the "m" map.
+
+        Args:
+
+        """
+
+        # Determine which device we are using
+        calc_device = s_vi_collection.device
+
+        # Get the m-module
+        m = s_vi_collection.s_mdl.m
+
+        # Get the posterior p modes
+        q_p_modes = [d if isinstance(d, torch.Tensor)
+                     else d(s_vi_collection.props[s_vi_collection.input_props[g]])
+                     for g, d in enumerate(s_vi_collection.p_dists)]
+
+        # Perform projection
+        n_trials = len(data)
+        projs = [None]*n_trials
+        trans_projs = [None]*n_trials
+        for t_i in range(n_trials):
+
+            # Move data for this trial to devicce
+            trial_data = data[t_i]
+            orig_data_device = trial_data.data[0].device
+            trial_data.to(calc_device)
+
+            # Calculate raw projections
+            with torch.no_grad():
+                trial_x = [trial_data.data[i_g][trial_data.i_x, :] for i_g in s_vi_collection.input_grps]
+                raw_projs = [torch.matmul(x_g, p_g) for x_g, p_g in zip(trial_x, q_p_modes)]
+
+            # Move data back to its original device, to save GPU memory
+            trial_data.to(orig_data_device)
+
+            # Apply subject specific m if needed
+            if apply_subj_specific_m:
+                ss_m = m[0]
+                with torch.no_grad():
+                    projs[t_i] = ss_m(raw_projs)
+            else:
+                projs[t_i] = raw_projs
+
+            # Get transformed values
+            with torch.no_grad():
+                trans_projs[t_i] = m(raw_projs)
+
+            # Move projections to numpy arrays
+            projs[t_i] = [vls.detach().cpu().numpy() for vls in projs[t_i]]
+            trans_projs[t_i] = [vls.detach().cpu().numpy() for vls in trans_projs[t_i]]
+
+        return [projs, trans_projs]
+
 
 
 

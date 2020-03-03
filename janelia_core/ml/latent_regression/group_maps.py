@@ -201,6 +201,7 @@ class GroupLinearTransform(torch.nn.Module):
             y: Output. y[g] gives the output for group g as a tensor of shampe n_smps*n_dims
 
         """
+
         if self.offsets:
             return [x_g*v_g + o_g for v_g, o_g, x_g in zip(self.v, self.o, x)]
         else:

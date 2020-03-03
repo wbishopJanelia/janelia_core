@@ -40,6 +40,8 @@ def down_sample_ephys_vls(ts: np.ndarray, image_acq_starts: np.ndarray, n_images
 
             'mode' The down-sampled value is the mode between the start of image acquisitions.
 
+            'max' The down-sampled value is the max between the start of image acquisitions.
+
             'consant' The down-sampled value is the constant value between the start of image acquisitions.  If
             selected, a check will be performed to ensure values are actually constant, and if this check is failed,
             an error will be raised.
@@ -91,6 +93,8 @@ def down_sample_ephys_vls(ts: np.ndarray, image_acq_starts: np.ndarray, n_images
                 ds_vls[i] = c_vl
         elif ds_type == 'mode':
             ds_vls[i] = stats.mode(vls[sl]).mode[0]
+        elif ds_type == 'max':
+            ds_vls[i] = np.max(vls[sl])
         else:
             raise(ValueError('The ds_type ' + ds_type + ' is not recogonized.'))
 

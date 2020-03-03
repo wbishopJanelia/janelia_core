@@ -136,7 +136,7 @@ def torch_devices_memory_usage(devices: Sequence[torch.device], type: str = 'max
     Returns:
         mem_usage: The list of memory usage
     """
-    if str == 'max_memory_allocated':
+    if type == 'max_memory_allocated':
         return [torch.cuda.max_memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in devices]
     else:
         return [torch.cuda.memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in devices]

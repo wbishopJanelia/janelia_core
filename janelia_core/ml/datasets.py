@@ -125,6 +125,7 @@ class TimeSeriesBatch(torch.utils.data.Dataset):
             index = torch.Tensor([index]).long()
         return TimeSeriesBatch(data=self.data, i_x=self.i_x[index], i_y=self.i_y[index], i_orig=self.i_orig)
 
+
 class TimeSeriesDataset(torch.utils.data.Dataset):
     """ Extends torch's Dataset object specifically for time series data.
 
@@ -210,7 +211,7 @@ class TimeSeriesDataset(torch.utils.data.Dataset):
                                i_orig=union_indices)
 
 
-def cat_time_series_batches(batches) -> TimeSeriesBatch:
+def cat_time_series_batches(batches: Sequence[TimeSeriesBatch]) -> TimeSeriesBatch:
     """ Concatenates multiple TimeSeriesBatches into one object in a memory efficient manner.
     
     The i_x and i_y fields of the new TimeSeriesBatch object will effectively be concatenations of the

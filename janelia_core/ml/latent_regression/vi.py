@@ -307,9 +307,8 @@ class MultiSubjectVIFitter():
 
         # Get requested parameters
         keys = list(set(keys))
-        n_keys = len(keys)
 
-        params = itertools.chain(*[itertools.chain(*[p.get_marked_params(key) for p in p_prior_penalizers if p is not None])
+        params = itertools.chain(*[itertools.chain(*[p.get_marked_params(key) for p in prior_penalizers if p is not None])
                   for key in keys])
         params = list(set(list(params)))
 
@@ -662,7 +661,7 @@ class MultiSubjectVIFitter():
                             prior_penalty = prior_penalty_weight*penalizer_h.penalize(d=prior_h)
                             prior_penalty.backward()
                             prior_penalty_np = prior_penalty.detach().cpu().numpy()
-                            batch_p_prior_penalties[g] = prior_penalty_np
+                            batch_u_prior_penalties[h] = prior_penalty_np
                             batch_obj_log += prior_penalty_np
 
                 # Take a gradient step
