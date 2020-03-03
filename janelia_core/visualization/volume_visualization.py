@@ -392,3 +392,184 @@ def visualize_rgb_max_project(vol: np.ndarray, dim_m: np.ndarray = None, cmap_im
             plt.ylabel(cmap_ylabel, color=textcolor)
 
 
+def visualize_projs(horz_projs:  Sequence[np.ndarray], sag_projs: Sequence[np.ndarray],
+                    cor_projs: Sequence[np.ndarray], cmaps: Sequence[matplotlib.colors.Colormap],
+                    clims: Sequence[Union[None, tuple]], dim_m: Sequence[float] = None,
+                    title: str = None, plot_cmap: bool = False,
+                    facecolor: Sequence[float] = (0, 0, 0), textcolor: Sequence[float] = (1, 1, 1),
+                    buffer: float = .6, f=None, tgt_h: float = 3.0):
+
+    """ Visualizes horizontal, sagital and coronal projections of the same volume of data.
+
+    This function will generate a figure with the following layout:
+
+            y_dim                z_dim
+        --------------        -----------
+        |               |    |          |
+        |               |    | sag_proj |    ^
+        |               |    |          |    |
+        |  horz-proj    |    |          |   x_dim
+        |               |    |          |    |
+        |               |    |          |
+        |               |    |          |
+        ------------          -----------
+
+        ----------------
+      ^ |               |     ----------
+      | | coronal-proj  |    |    cmap  |
+  z_dim |               |    |          |
+      | |               |     ----------
+        ----------------
+
+    Multiple images can be shown, overlayed on eachother.  If a colormap is shown, it will
+    be the colormap for the topmost image.
+
+    Args:
+        horz_projs: horz_projs[i] is the i^th horizontal projection image. Images will be overlaid one on top of the
+        other, with the i+1th image over the ith image.  Each image shape should be [x_dim, y_dim], where x_dim
+        and y_dim refer to the figure above.
+
+        sag_projs: sag_projs[i] is the i^th sagital projection image.  Each image should be of shape [x_dim, z_dim].
+
+        cor_projs: cor_projs[i] is the i^th coronal projection image.  Each image should be of shape [y_dim, z_dim]
+
+        cmaps: cmaps[i] is the colormap for plotting the i^th image in each of the projections.
+
+        clims: clims[i] is a tuple of color limits to use when plotting the i^th image.  clims[i] can also be
+        None, meaning no color limits will be explicitly passed to the plotting command.
+    """
+
+    if dim_m is None:
+        dim_m = np.ones(3)
+
+    # Get volume dimensions
+    d_x, d_y = horz_projs[0].shape
+    d_z = sag_projs[0].shape[1]
+
+    # Apply aspect ratio corrections
+    d_x = d_x*dim_m[0]
+    d_y = d_y*dim_m[1]
+    d_z = d_z*dim_m[2]
+
+    xy_aspect_ratio = dim_m[0]/dim_m[1]
+    xz_aspect_ratio = dim_m[0]/dim_m[2]
+    yz_aspect_ratio = dim_m[1]/dim_m[2]
+
+    # Create the figure if we need to
+    if f is None:
+        tgt_w = tgt_h*(d_y+d_z)/(d_x+d_z) + 3*buffer
+        f = plt.figure(figsize=(tgt_w, tgt_h), facecolor=facecolor)
+
+    # Get current figure size
+    f_w, f_h = f.get_size_inches() # (width, height)
+
+    # Determine how much usable space there is in the figure
+    usable_w = f_w - 3*buffer
+    usable_h = f_h - 3*buffer
+
+    # Determine the total height we can use for plotting, considering the aspect ratio of the figure
+    req_height_im = float(d_x + d_z) # Height we need for plotting, in number of image pixels
+    req_width_im = float(d_y + d_z) # Height we need for plotting, in number of image pizels
+
+    usable_h_w_ratio = usable_h/usable_w
+
+    plot_h_w_ratio = req_height_im/req_width_im
+
+    if usable_h_w_ratio < plot_h_w_ratio:
+        # Figure is "wider" than what we need to plot, so we can scale up vertically as much as possible
+        plottable_h = usable_h
+    else:
+        # Figure is not wide enough for the plot, so we can only scale up vertically until we run out of width
+        plottable_h = plot_h_w_ratio*usable_w
+    plottable_w = plottable_h/plot_h_w_ratio
+
+    # Now we determine the size of the axes, as a percentage of the current figure size
+    dx_perc_h = (plottable_h*d_x/(d_x + d_z))/f_h
+    dz_perc_h = (plottable_h*d_z/(d_x + d_z))/f_h
+    dy_perc_w = (plottable_w*d_y/(d_y + d_z))/f_w
+    dz_perc_w = (plottable_w*d_z/(d_y + d_z))/f_w
+
+    # Now we determine position of axes as percentage of current figure size
+    v_0_p = buffer/f_h
+    h_0_p = buffer/f_w
+    v_1_p = 2*buffer/f_h + dz_perc_h
+    h_1_p = 2*buffer/f_w + dy_perc_w
+
+    # Now we specify the rectanges for each axes
+    z_proj_rect = (h_0_p, v_1_p, dy_perc_w, dx_perc_h)
+    x_proj_rect = (h_0_p, v_0_p, dy_perc_w, dz_perc_h)
+    y_proj_rect = (h_1_p, v_1_p, dz_perc_w, dx_perc_h)
+    cmap_rect = (h_1_p, v_0_p, dz_perc_w, dz_perc_h)
+
+    # Now we add the axes, adding the title while it is convenient
+    z_proj_axes = f.add_axes(z_proj_rect)
+    if title is not None:
+        plt.title(title, color=textcolor)
+    x_proj_axes = f.add_axes(x_proj_rect)
+    y_proj_axes = f.add_axes(y_proj_rect)
+    if plot_cmap:
+        cmap_axes = f.add_axes(cmap_rect)
+
+    # Make sure the axes don't change aspect ratio when we scale the figure
+    z_proj_axes.set_aspect('equal')
+    x_proj_axes.set_aspect('equal')
+    y_proj_axes.set_aspect('equal')
+    if plot_cmap:
+        cmap_axes.set_aspect('equal')
+
+    # Get rid of units on the projection axes
+
+    z_proj_axes.axes.get_xaxis().set_visible(False)
+    z_proj_axes.axes.get_yaxis().set_visible(False)
+
+    x_proj_axes.axes.get_xaxis().set_visible(False)
+    x_proj_axes.axes.get_yaxis().set_visible(False)
+
+    y_proj_axes.axes.get_xaxis().set_visible(False)
+    y_proj_axes.axes.get_yaxis().set_visible(False)
+
+    # Now we show the projections
+    for (z_proj, y_proj, x_proj, cmap, clim) in zip(horz_projs, sag_projs, cor_projs, cmaps, clims):
+        c_im = z_proj_axes.imshow(z_proj, cmap=cmap, clim=clim, aspect=xy_aspect_ratio)
+        x_proj_axes.imshow(np.moveaxis(x_proj, 0, 1), cmap=cmap, clim=clim, aspect=1/xz_aspect_ratio)
+        y_proj_axes.imshow(y_proj, cmap=cmap, clim=clim, aspect=yz_aspect_ratio)
+
+    # Now we show the colormap if we are suppose to
+    if plot_cmap:
+        plt.colorbar(mappable=c_im, cax=cmap_axes)
+
+        cmap_axes.get_yaxis().set_tick_params(color=textcolor, labelcolor=textcolor)
+        cmap_axes.get_xaxis().set_tick_params(color=textcolor, labelcolor=textcolor)
+
+
+def gen_composite_roi_vol(rois: Sequence[ROI], weights: np.ndarray, vol_shape: Sequence[int]):
+
+    """ Generates a volume for visualization of a composite ROI.
+
+    Args:
+        rois: A list of rois to form the composite ROI out of.
+
+        weights: A list of weights for each roi in rois.
+
+        vol_shape: The shape of the volume to generate.  The indices of ROIS should index into this volume.
+
+    Returns:
+
+        comp_roi_vol: The volume with the composite ROI in it.
+
+    """
+
+    w_sum = np.zeros(vol_shape)
+    cnts = np.zeros(vol_shape)
+
+    for r_i, roi in enumerate(rois):
+        inds = roi.list_all_voxel_inds()
+        w = roi.list_all_weights()
+
+        w_sum[inds] = w_sum[inds] + weights[r_i]*w
+        cnts[inds] += 1
+
+    comp_roi_vol = w_sum/cnts
+    comp_roi_vol[np.where(cnts == 0)] = np.nan
+
+    return comp_roi_vol
