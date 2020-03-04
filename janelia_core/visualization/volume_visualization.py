@@ -11,6 +11,7 @@ import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
 
+from janelia_core.dataprocessing.dataset import ROI
 from janelia_core.visualization.custom_color_maps import MultiParamCMap
 from janelia_core.visualization.custom_color_maps import visualize_two_param_hsv_map
 from janelia_core.visualization.image_generation import rgb_3d_max_project
@@ -394,10 +395,10 @@ def visualize_rgb_max_project(vol: np.ndarray, dim_m: np.ndarray = None, cmap_im
 
 def visualize_projs(horz_projs:  Sequence[np.ndarray], sag_projs: Sequence[np.ndarray],
                     cor_projs: Sequence[np.ndarray], cmaps: Sequence[matplotlib.colors.Colormap],
-                    clims: Sequence[Union[None, tuple]], dim_m: Sequence[float] = None,
-                    title: str = None, plot_cmap: bool = False,
-                    facecolor: Sequence[float] = (0, 0, 0), textcolor: Sequence[float] = (1, 1, 1),
-                    buffer: float = .6, f=None, tgt_h: float = 3.0):
+                    clims: Union[None, Sequence[Union[None, tuple]]], dim_m: Sequence[float] = None,
+                    title: str = None, plot_cmap: bool = False, f: matplotlib.figure.Figure = None,
+                    buffer: float = .6, tgt_h: float = 3.0, facecolor: Sequence[float] = (0, 0, 0),
+                    textcolor: Sequence[float] = (1, 1, 1)):
 
     """ Visualizes horizontal, sagital and coronal projections of the same volume of data.
 
@@ -436,11 +437,30 @@ def visualize_projs(horz_projs:  Sequence[np.ndarray], sag_projs: Sequence[np.nd
         cmaps: cmaps[i] is the colormap for plotting the i^th image in each of the projections.
 
         clims: clims[i] is a tuple of color limits to use when plotting the i^th image.  clims[i] can also be
-        None, meaning no color limits will be explicitly passed to the plotting command.
+        None, meaning no color limits will be explicitly passed to the plotting command for the i^th images.
+        If clims is None, then no color limits will be explicitly passed for all images.
+
+        dim_m: A scalar multiplier for each dimension in the order x, y, z to account for aspect ratios.  If None,
+        a value of [1, 1, 1] will be used.
+
+        title: A string to use as the title for the figure. If None, no title will be created.
+
+        f: Figure to plot into.  If not provided, one will be created
+
+        buffer: The amount of space to put around plots in inches.
+
+        tgt_h: The height of the figure that will be created in inches if f is None.
+
+        facecolor: The color of the figure background, if we are creating a figure
+
+        textcolor: The color to plot text in
     """
 
     if dim_m is None:
         dim_m = np.ones(3)
+
+    if clims is None:
+        clims = [None]*len(horz_projs)
 
     # Get volume dimensions
     d_x, d_y = horz_projs[0].shape

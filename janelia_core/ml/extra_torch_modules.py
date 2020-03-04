@@ -522,6 +522,13 @@ class LogGaussianBumpFcn(torch.nn.Module):
         return log_gain + -1*x_dist
 
 
+class FirstAndSecondOrderFcn(torch.nn.Module):
+    """ A function f(x[i]) = o[i] + sum_j a[j]*x[j] + sum_{j,k} b_[j,k]*x[j]*x[k], where o, a and b are parameters.
+    """
+
+    def __init__(self, d_in: int, d_out: int):
+        """ Creates a new QuadraticFcn """
+
 class Relu(torch.nn.ModuleList):
     """ Applies a rectified linear transformation to the data y = o + relu(x + s) """
 
