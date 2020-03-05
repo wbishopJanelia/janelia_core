@@ -308,6 +308,60 @@ class Exp(torch.nn.ModuleList):
         return torch.exp(self.g*x + self.s) + self.o
 
 
+class FirstAndSecondOrderFcn(torch.nn.Module):
+    """ A function f(x[i]) = o[i] + sum_j a[j]*x[j] + sum_{j,k} b_[j,k]*x[j]*x[k], where o, a and b are parameters.
+    """
+
+    def __init__(self, d_in: int, d_out: int,
+                 o_init_mn: float = 0, o_init_std: float = .01,
+                 a_init_mn: float = 0, a_init_std: float = .01,
+                 b_init_mn: float = 0, b_init_std: float = .01):
+        """ Creates a new FirstAndSecondOrderFcn object.
+
+        Args:
+             d_in: The input dimensionality
+
+             d_out: The output dimensionality
+
+             o_init_mn, o_init_std: The mean and standard deviation of the normal distribution to
+             pull initial values of o from
+
+             a_init_mn, a_init_std: The mean and standard deviation of the normal distribution to
+             pull initial values of a from
+
+             b_init_mn, b_init_std: The mean and standard deviation of the normal distribution to
+             pull initial values of b from
+
+        """
+        super().__init__()
+
+        self.d_in = d_in
+        self.d_out = d_out
+
+        self.o = torch.nn.Parameter(torch.zeros(d_out), requires_grad=True)
+        torch.nn.init.normal_(self.o, mean=o_init_mn, std=o_init_std)
+
+        self.a = torch.nn.Parameter(torch.zeros([d_out, d_in]), requires_grad=True)
+        torch.nn.init.normal_(self.a, mean=a_init_mn, std=a_init_std)
+
+        self.b = torch.nn.Parameter(torch.zeros([d_out, d_in, d_in]), requires_grad=True)
+        torch.nn.init.normal_(self.b, mean=b_init_mn, std=b_init_std)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes intput from output.
+
+        Args:
+            x: Input tensor
+
+        Returns:
+            y: Output tensor
+        """
+        y = (torch.sum(x*(x.matmul(self.b)), dim=2).t() +  # Second order terms
+             x.matmul(self.a.t()) +  # Linear terms
+             self.o) # Offset term
+        return y
+
+
 class FixedOffsetExp(torch.nn.Module):
     """ Computes y = exp(x) + o, where o is a fixed, non-learnable offset. """
 
@@ -331,9 +385,6 @@ class FixedOffsetExp(torch.nn.Module):
         """
 
         return torch.exp(x) + self.o
-
-
-
 
 
 class IndSmpConstantBoundedFcn(torch.nn.Module):
@@ -522,12 +573,7 @@ class LogGaussianBumpFcn(torch.nn.Module):
         return log_gain + -1*x_dist
 
 
-class FirstAndSecondOrderFcn(torch.nn.Module):
-    """ A function f(x[i]) = o[i] + sum_j a[j]*x[j] + sum_{j,k} b_[j,k]*x[j]*x[k], where o, a and b are parameters.
-    """
 
-    def __init__(self, d_in: int, d_out: int):
-        """ Creates a new QuadraticFcn """
 
 class Relu(torch.nn.ModuleList):
     """ Applies a rectified linear transformation to the data y = o + relu(x + s) """
