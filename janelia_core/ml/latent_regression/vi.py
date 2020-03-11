@@ -190,7 +190,6 @@ class MultiSubjectVIFitter():
         self.p_prior_penalizers = p_prior_penalizers
         self.u_prior_penalizers = u_prior_penalizers
 
-        # Attributes for keeping track of which devices everything is on
         self.distributed = False  # Keep track if we have distributed everything yet
 
     def distribute(self, devices: Sequence[Union[torch.device, int]], s_inds: Sequence[int] = None,

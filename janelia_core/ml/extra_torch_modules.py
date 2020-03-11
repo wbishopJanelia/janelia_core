@@ -387,6 +387,26 @@ class FixedOffsetExp(torch.nn.Module):
         return torch.exp(x) + self.o
 
 
+class FormMatrixByCols(torch.nn.Module):
+    """ Forms a matrix output column by column, where each column is calculated from a seperate function.
+
+    Specifically, each column is formed by applying a module unique to that column to the same input x.
+    """
+
+    def __init__(self, col_modules: Sequence[torch.nn.Module]):
+        """ Creates a new FormMatrixByCols object.
+
+        Args:
+            col_modules: col_modules[i] is the module that should be applied to form column i
+        """
+        super().__init__()
+        self.col_modules = torch.nn.ModuleList(col_modules)
+
+    def forward(self, x: torch.Tensor):
+        """ Computes input from output. """
+        return torch.cat([m(x) for m in self.col_modules], dim=1)
+
+
 class IndSmpConstantBoundedFcn(torch.nn.Module):
     """ For representing a function which assigns different bounded constant scalar values to given samples.
 

@@ -179,6 +179,7 @@ class LatentRegModel(torch.nn.Module):
             ValueError: if x is not a list
         """
 
+
         if not isinstance(x, list):
             raise(ValueError('x must be a list'))
 
