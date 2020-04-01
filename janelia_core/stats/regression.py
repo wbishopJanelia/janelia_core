@@ -5,7 +5,7 @@
 """
 
 import copy
-from typing import Sequence
+from typing import Sequence, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -107,6 +107,54 @@ def grouped_linear_regression_boot_strap(y: np.ndarray, x: np.ndarray, g: np.nda
         bs_beta[b_i, :] = beta_est[0]
 
     return [bs_beta, beta]
+
+
+def naive_regression(y: np.ndarray, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    """ Performs "naive" regression to predict x from y.
+
+    By naive regression, we assume that all x variables are mutually independent. The parameters this
+    function provides is the correct regression model for this case.  If not all variables are
+    independent, the parameters returned by this function are sub-optimal.
+
+    This function will return the parameters, b (a matrix) and o (a vector of offsets) to predict:
+
+    y_i = x_i^T*b + o
+
+    where we asume y_i \in R^m and x_i \in R^p.
+
+    Args:
+        y: Data to predict of shape [n_smps, m]
+
+        x: Data to predict from of shape [n_smps, p]
+
+    Returns:
+        b - the b matrix above
+
+        o - the offset vector above
+
+    """
+
+    if (x.ndim != 2) or (y.ndim != 2):
+        raise(ValueError('x and y must be 2-d arrays'))
+
+    n_smps, n_x_vars = x.shape
+    n_y_vars = y.shape[1]
+
+    # Calculate means
+    mu = np.mean(x, axis=0)
+    y_mn = np.mean(y, axis=0)
+
+    var = np.var(x, axis=0)
+
+    x_ctr = x - mu
+
+    b = np.zeros([n_x_vars, n_y_vars])
+    for v_i in range(n_y_vars):
+        b[:, v_i] = np.sum((y[:, v_i:v_i+1]*x_ctr)/(var*n_smps), axis=0)
+
+    o = y_mn - np.matmul(b.transpose(), mu)
+
+    return (b, o)
 
 
 def visualize_boot_strap_results(bs_values: np.ndarray, var_strs: Sequence, theta: np.ndarray = None,

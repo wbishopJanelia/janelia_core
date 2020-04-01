@@ -67,7 +67,7 @@ def premultiplied_rgba_to_standard(img: np.ndarray) -> np.ndarray:
 def generate_mean_dot_image(image_shape: Sequence[int], dot_ctrs: np.ndarray, dot_vls: np.ndarray,
                                 sa_lengths: Sequence[int]) -> np.ndarray:
     """
-    Generates a 2-3 or 3-d image of the mean of values in ellipsoids.
+    Generates a 2-d or 3-d image of the mean of values in ellipsoids.
 
     Generates an image by associating an ellipsoid with a set of 2 or 3-d locations. Each of these locations
     has an associated value.  A pixel value in the final image is simply the average of all the values associated
@@ -224,6 +224,10 @@ def generate_dot_image(image_shape: Sequence, dot_ctrs: np.ndarray, dot_clrs: np
     return img
 
 
+def generate_dot_image_3d(image_shape: Sequence[int], dot_ctrs: np.ndarray, dot_vls: np.ndarray):
+    pass
+
+
 def generate_image_from_fcn(f, dim_sampling: Sequence[Sequence]):
     """ Generates a multi-d image from a function.
 
@@ -345,7 +349,7 @@ def max_project_pts(dot_positions: np.ndarray, dot_vls: np.ndarray, box_position
         dot_vls: The values associated with each point.  A 1-d array.
 
         box_position: The position of a box we define the grid in.  box_position[0,0] is the start of the side for
-        dimension 0 and box_position[1,0] is the end of the side for dimension two.  box_position[:,1] contains the
+        dimension 0 and box_position[1,0] is the end of the side for dimension 0.  box_position[:,1] contains the
         start and end of the side for dimension 1.
 
         n_divisions: The number of divisions to use for the grid.  n_divisions[i] is the number of divisions for

@@ -1,5 +1,6 @@
 """ Tools for working with latent regression models where we use point estimates of modes instead of distributions. """
 
+import copy
 import itertools
 import time
 from typing import List, Sequence, Union
@@ -125,6 +126,7 @@ class SubjectRegressionCollection:
 
         self.s_mdl = self.s_mdl.to(device)
         self.props = [p.to(device) for p in self.props]
+
         self.p_preds = [p.to(device) for p in self.p_preds]
         self.u_preds = [p.to(device) for p in self.u_preds]
 
@@ -154,6 +156,59 @@ class MultiSubjectRegressionFitter():
         self.min_var = min_var
 
         self.distributed = False  # Keep track if we have distributed everything yet
+
+    def create_check_point(self, copy_data: bool = False, copy_props: bool = False,  subj_specific_preds: bool = False):
+        """ Creates a check point of everything in the subject collections.
+
+        By default, data and properties will not be copied for each subject.
+
+        Be default, the check point assumes the predictors for each subject are the same.  In this case, to save
+        memory, instead of making separate copies of the predictors for each subject, all subject collections will
+        reference the same set of predictors. If this is not the case, the user can specify that subjects have
+        their own predictors, (see subj_specific_preds input below) in which case separate copies of the predictors
+        in each subject collection will be created.
+
+        Args:
+            copy_data: True if data should be included in each subject collection.
+
+            copy_props: True if properties should be included in each subject collection.
+
+            subj_specific_preds: False if all subjects use the same predictors.  True if subjects have their own
+            unique predictors.
+
+        Returns:
+            check_point: A dictionary, currently with a single key 's_collections' that contains copies
+            of the s_collections.
+        """
+
+        # If all subjects same the same predictors, we will create a single copy of these predictors which each
+        # copied subject collection will then reference
+        if subj_specific_preds:
+            # Make a copy of the predictors
+            p_preds_copy = copy.deepcopy(self.s_collections[0].p_preds)
+            u_preds_copy = copy.deepcopy(self.s_collections[0].u_preds)
+
+            # Move the copied predictors to cpu
+            p_preds_copy = [pred.to('cpu') for pred in p_preds_copy]
+            u_preds_copy = [pred.to('cpu') for pred in u_preds_copy]
+
+        # Now we make copies of the subject collections
+        s_collections_copy = copy.deepcopy(self.s_collections)
+        for s_coll in s_collections_copy:
+
+            s_coll.to('cpu')
+
+            if not copy_data:
+                s_coll.data = None
+            if not copy_props:
+                s_coll.props = None
+
+
+            if subj_specific_preds:
+                s_coll.p_preds = p_preds_copy
+                s_coll.u_preds = u_preds_copy
+
+        return {'s_collections': s_collections_copy}
 
     def distribute(self, devices: Sequence[Union[torch.device, int]], s_inds: Sequence[int] = None,
                    distribute_data: bool = False):
@@ -254,7 +309,8 @@ class MultiSubjectRegressionFitter():
 
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, update_int: int = 1,
-            print_mdl_nlls: bool = True, print_memory_usage: bool = True) -> dict:
+            print_mdl_nlls: bool = True, print_memory_usage: bool = True,
+            cp_epochs: Sequence[int] = None, cp_opts: dict = None) -> dict:
         """
 
         Args:
@@ -287,6 +343,12 @@ class MultiSubjectRegressionFitter():
             print_memory_usage: If true, when fitting status is printed to screen, the memory usage of each
             device will be printed to streen.
 
+            cp_epochs: A sequence of epochs after which a check point of the models will be made.  If no check points
+            should be made, set this to None.
+
+            cp_opts: A dictionary with options that can be passed into self.make_check_point when making check points.
+            If None, default options are used.
+
         Return:
             log: A dictionary with the following entries:
 
@@ -298,6 +360,9 @@ class MultiSubjectRegressionFitter():
                 obj: obj[e] contains the objective value at the start of epoch e.  This is the negative evidence lower
                 bound + weight penalties.
 
+            checkpoints: None if no check points created.  Otherwise, checkpoints[i] is the check point created
+            at epoch cp_epochs[i].
+
         Raises:
             RuntimeError: If distribute() has not been called before fitting.
 
@@ -305,6 +370,9 @@ class MultiSubjectRegressionFitter():
 
         if not self.distributed:
             raise(RuntimeError('self.distribute() must be called before fitting.'))
+
+        if cp_opts is None:
+            cp_opts = dict()
 
         # See what devices we are using for fitting (this is so we can later query their memory usage)
         all_devices = self.get_used_devices()
@@ -328,6 +396,14 @@ class MultiSubjectRegressionFitter():
 
         # Setup initial optimizer
         optimizer = torch.optim.Adam(params, lr=learning_rate_values[0,0], **adam_params)
+
+        # Setup everything for checkpoints if we are creating them
+        check_points = None
+        if cp_epochs is not None:
+            n_cps = len(cp_epochs)
+            if n_cps > 0:
+                cp_epochs = np.asarray(cp_epochs)
+                check_points = [None]*n_cps
 
         # Setup everything for logging
         epoch_elapsed_time = np.zeros(n_epochs)
@@ -418,6 +494,13 @@ class MultiSubjectRegressionFitter():
                             small_psi_inds = torch.nonzero(s_mdl.psi[h] < self.min_var)
                             s_mdl.psi[h].data[small_psi_inds] = self.min_var
 
+            # Handle checkpoints if needed
+            if cp_epochs is not None:
+                if np.any(cp_epochs == e_i):
+                    print('Creating checkpoint after epoch ' + str(e_i) + '.')
+                    cp_ind = np.argwhere(cp_epochs == e_i)[0][0]
+                    check_points[cp_ind] = self.create_check_point()
+
             # Take care of logging everything
             elapsed_time = time.time() - t_start
             epoch_elapsed_time[e_i] = elapsed_time
@@ -445,7 +528,7 @@ class MultiSubjectRegressionFitter():
 
         # Return logs
         log = {'elapsed_time': epoch_elapsed_time, 'mdl_nll': epoch_nll, 'obj': epoch_obj}
-        return log
+        return [log, check_points]
 
     @classmethod
     def plot_log(cls, log: dict):

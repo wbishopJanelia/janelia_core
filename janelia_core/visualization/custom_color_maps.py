@@ -191,29 +191,23 @@ def make_red_blue_green_c_map(n: int = 256, red_stop: float = .5, green_start: f
     return matplotlib.colors.LinearSegmentedColormap('red_green', cdict, N=256)
 
 
-def make_red_green_c_map(n: int = 256, red_stop: float = .5, green_start: float = .5) -> matplotlib.colors.LinearSegmentedColormap:
+def make_red_green_c_map(n: int = 256, inc_transp: bool = False) -> matplotlib.colors.LinearSegmentedColormap:
     """ Generates a color map that linearly goes from red at 0, to black at .5 and then to green at 1.
 
     Args:
         n: The number of values in the color map
 
-        red_stop: The value that red stops at. By adjusting red_stop and green_start, the width and placement
-        of the black band in the middle of the color map can be adjusted.
-
-        green_start: The value that green starts at.
+        inc_transp: True if values in the middle of the map (black) should also be transparent.
 
     Returns:
         cmap: The generated color map.
     """
 
-    cdict = {'red': [[0.0, 1.0, 1.0],
-                     [red_stop, 0.0, 0.0],
-                     [1.0, 0.0, 0.0]],
-             'green': [[0.0, 0.0, 0.0],
-                       [green_start, 0.0, 0.0],
-                       [1.0, 1.0, 1.0]],
-             'blue': [[0.0, 0.0, 0.0],
-                      [0.5, 0.0, 0.0],
-                      [1.0, 0.0, 0.0]]}
+    if inc_transp:
+        middle_alpha = 0.0
+    else:
+        middle_alpha = 1.0
 
-    return matplotlib.colors.LinearSegmentedColormap('red_green', cdict, N=256)
+    return matplotlib.colors.LinearSegmentedColormap.from_list(name='red_to_green', colors=[(0,  [1.0, 0.0, 0.0, 1.0]),
+                                                               (.5, [0.0, 0.0, 0.0, middle_alpha]),
+                                                               (1.0, [0.0, 1.0, 0.0, 1.0])], N=n)

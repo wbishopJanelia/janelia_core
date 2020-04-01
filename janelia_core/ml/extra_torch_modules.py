@@ -913,3 +913,25 @@ class Tanh(torch.nn.Module):
         """
         return self.s*torch.tanh(x) + self.o
 
+
+class Unsqueeze(torch.nn.Module):
+    """ Wraps the torch.unsqueeze function in a module.
+
+    Having unsqueeze in a module can be useful for when working with torch.nn.Sequential.
+    """
+
+    def __init__(self, dim:int):
+        """ Creates a new Unsqueeze module.
+
+        Args:
+            dim: The index to insert the empty dimension at.
+        """
+
+        super().__init__()
+        self.dim = dim
+
+        raise(NotImplementedError('This function is implemented but has never been tested.  Test before using.'))
+
+    def forward(self, x:torch.Tensor) -> torch.Tensor:
+        """ Computes input from output. """
+        return torch.unsqueeze(input=x, dim=self.dim)

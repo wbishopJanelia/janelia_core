@@ -4,6 +4,7 @@ Note: The distribution objects defined here are *not* subclasses of the torch.di
 
  """
 
+import copy
 import math
 from typing import Sequence
 
@@ -985,6 +986,14 @@ class DistributionPenalizer(torch.nn.Module):
         """ Creates a DistributionPenalizer object. """
         super().__init__()
 
+    def check_point(self) -> dict:
+        """ Returns a dictionary of parameters for the penalizer that should be saved in a check point.
+
+        The idea is that for the purposes of creating a check point, we can save memory by only logging the
+        important parameters of a penalizer.
+        """
+        raise(NotImplementedError)
+
     def get_marked_params(self, key: str):
         """ Returns all parameters marked with the key string.
 
@@ -1049,11 +1058,11 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
 
         Args:
 
-            init_ctrs: Initial centers for each mode.  Of shape [n_modes, n_cols]
+            init_ctrs: Initial centers for each mode.  Of shape [n_modes, x_dim]
 
-            x: The points at which we evaluate the mean of the distribution. Of shape [n_pts, n_cols].
+            x: The points at which we evaluate the mean of the distribution. Of shape [n_pts, x_dim].
 
-            init_scales: Initial scales for each mode. Of shape [n_modes, n_cols]. If None, initial scales will be set
+            init_scales: Initial scales for each mode. Of shape [n_modes, x_dim]. If None, initial scales will be set
             to 1 for all dimensions and modes.
 
             scale_weight: The weight to apply to the scale penalty if learning scales.  If None, the scales will be be
@@ -1080,6 +1089,26 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
             self.scales = torch.nn.Parameter(init_scales)
         else: # Indicates we will fix weights at initial values and not learn them
             self.register_buffer('scales', torch.tensor(init_scales))
+
+    def check_point(self):
+        """ Returns a dictionary with a copy of key parameters of the penalizer.
+
+         Returns:
+             params: A dictionary with the following keys:
+                col_ctrs: The value of column centers
+                scales: The value of the scales
+                last_weight_pen: The value of the last weight penalty computed with the penalizer
+                last_scale_pen: The value of the last scale penalty computed with the penalizer
+         """
+
+        col_ctrs_copy = copy.deepcopy(self.col_ctrs)
+        col_ctrs_copy = col_ctrs_copy.detach().cpu().numpy()
+
+        scales_copy = copy.deepcopy(self.scales)
+        scales_copy = scales_copy.detach().cpu().numpy()
+
+        return {'col_ctrs': col_ctrs_copy, 'scales': scales_copy,
+                'last_weight_pen': self.last_weight_pen, 'last_scale_pen': self.last_scale_pen}
 
     def get_marked_params(self, key: str):
         """ Returns parameters that should be assigned fast and slow learning rates.

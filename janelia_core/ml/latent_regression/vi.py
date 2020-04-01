@@ -1,5 +1,6 @@
 """ Tools for fitting latent regression models with variational inference. """
 
+import copy
 import itertools
 import time
 from typing import List, Sequence, Union
@@ -192,6 +193,64 @@ class MultiSubjectVIFitter():
 
         self.distributed = False  # Keep track if we have distributed everything yet
 
+    def create_check_point(self, inc_penalizers: bool = False) -> List:
+        """ Returns copies of subject models and priors as well as (optionally) penalizer parameters
+
+        Args:
+            inc_penalizers: True if copies of penalizers should be returned.
+
+        Returns:
+            cp_dict: A dictionary with the following keys:
+
+                s_collections: Copies of the subject collections, with data removed
+
+                p_priors: Copies of the p priors
+
+                u_priors: Copies of the u priors
+
+                p_penalizer_params: If prior penalizer parameters are requested, p_prior_penalizer_params[g] is
+                a dictionary of penalizer parameters for the g^th penalizer.  If there is no penlizer for the g^th input
+                group, the p_prior_penalizer_params[g] will be None.  If prior penalizer parameters are not requested or
+                there are no p prior penalizers at all then p_prior_penalizer_params will be None.
+
+                u_penalizer_params: The penalizer parameters for the u penalizers, in the same
+                form as p_prior_penalizer_params.
+        """
+
+        s_collections_copy = copy.deepcopy(self.s_collections)
+        for s_coll in s_collections_copy:
+            s_coll.data = None
+            s_coll.to('cpu')
+
+        p_priors_copy = copy.deepcopy(self.p_priors)
+        for p_prior in p_priors_copy:
+            if p_prior is not None:
+                p_prior.to('cpu')
+
+        u_priors_copy = copy.deepcopy(self.u_priors)
+        for u_prior in u_priors_copy:
+            if u_prior is not None:
+                u_prior.to('cpu')
+
+        if inc_penalizers:
+            if self.p_prior_penalizers is not None:
+                p_prior_penalizer_params = [p.check_point() for p in self.p_prior_penalizers if p is not None]
+            else:
+                p_prior_penalizer_params = None
+            if self.u_prior_penalizers is not None:
+                u_prior_penalizer_params = [p.check_point() for p in self.u_prior_penalizers if p is not None]
+            else:
+                u_prior_penalizer_params = None
+        else:
+            p_prior_penalizer_params = None
+            u_prior_penalizer_params = None
+
+        return {'s_collections': s_collections_copy,
+                'p_priors': p_priors_copy,
+                'u_priors': u_priors_copy,
+                'p_penalizer_params': p_prior_penalizer_params,
+                'u_penalizer_params': u_prior_penalizer_params}
+
     def distribute(self, devices: Sequence[Union[torch.device, int]], s_inds: Sequence[int] = None,
                    distribute_data: bool = False):
         """ Distributes prior collections as well as 0 or more subject models and data across devices.
@@ -372,7 +431,8 @@ class MultiSubjectVIFitter():
             adam_params: dict = {}, s_inds: Sequence[int] = None, prior_penalty_weight: float = 0.0,
             enforce_priors: bool = True, sample_posteriors: bool = True, update_int: int = 1,
             print_mdl_nlls: bool = True, print_sub_kls: bool = True, print_memory_usage: bool = True,
-            print_prior_penalties = True, print_penalizer_states = False) -> dict:
+            print_prior_penalties = True, print_penalizer_states = False, cp_epochs: Sequence[int] = None,
+            cp_penalizers: bool = False) -> [dict, Union[List, None]]:
         """
 
         Args:
@@ -431,6 +491,11 @@ class MultiSubjectVIFitter():
 
             print_penalizer_states: If true, the state of penalizers will be printed to screen.
 
+            cp_epochs: A sequence of epochs after which a check point of the models (as well as optionally the
+            penalizers will be made).  If no check points should be made, set this to None.
+
+            cp_penalizers: True if penalizers should be included in the check points.
+
         Return:
             log: A dictionary with the following entries:
 
@@ -453,6 +518,9 @@ class MultiSubjectVIFitter():
 
                 obj: obj[e] contains the objective value at the start of epoch e.  This is the negative evidence lower
                 bound + weight penalties.
+
+            check_points: check_points[i] are model parameters for the i^th requested checkpoint. If no check points
+            were requested this will be None.
 
         Raises:
             RuntimeError: If distribute() has not been called before fitting.
@@ -505,6 +573,14 @@ class MultiSubjectVIFitter():
                           [{'params': t[0], 'lr': t[1]} for t in penalizer_params])
 
         optimizer = torch.optim.Adam(params=params_with_lr, **adam_params)
+
+        # Setup everything for checkpoints if we are creating them
+        check_points = None
+        if cp_epochs is not None:
+            n_cps = len(cp_epochs)
+            if n_cps > 0:
+                cp_epochs = np.asarray(cp_epochs)
+                check_points = [None]*n_cps
 
         # Setup everything for logging
         epoch_elapsed_time = np.zeros(n_epochs)
@@ -676,6 +752,13 @@ class MultiSubjectVIFitter():
                             small_psi_inds = torch.nonzero(s_mdl.psi[h] < s_min_var[h])
                             s_mdl.psi[h].data[small_psi_inds] = s_min_var[h]
 
+            # Handle checkpoints if needed
+            if cp_epochs is not None:
+                if np.any(cp_epochs == e_i):
+                    print('Creating checkpoint after epoch ' + str(e_i) + '.')
+                    cp_ind = np.argwhere(cp_epochs == e_i)[0][0]
+                    check_points[cp_ind] = self.create_check_point(inc_penalizers=cp_penalizers)
+
             # Take care of logging everything
             elapsed_time = time.time() - t_start
             epoch_elapsed_time[e_i] = elapsed_time
@@ -725,7 +808,7 @@ class MultiSubjectVIFitter():
         log = {'elapsed_time': epoch_elapsed_time, 'mdl_nll': epoch_nll, 'sub_p_kl': epoch_sub_p_kl,
                'sub_u_kl': epoch_sub_u_kl, 'p_prior_penalties': epoch_p_prior_penalties,
                'u_prior_penalties': epoch_u_prior_penalties, 'obj': epoch_obj}
-        return log
+        return [log, check_points]
 
     @classmethod
     def plot_log(cls, log: dict):
