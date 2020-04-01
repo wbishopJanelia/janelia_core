@@ -210,8 +210,6 @@ def generate_dot_image(image_shape: Sequence, dot_ctrs: np.ndarray, dot_clrs: np
         dot_slice_1 = slice(ctr_i[1] - offset, ctr_i[1] + offset + 1)
 
         alpha_composite(img[dot_slice_0, dot_slice_1, :], dot_i)
-        #print(img[dot_slice_0, dot_slice_1, 0])
-
 
     # ==================================================================================================
 
@@ -224,8 +222,84 @@ def generate_dot_image(image_shape: Sequence, dot_ctrs: np.ndarray, dot_clrs: np
     return img
 
 
-def generate_dot_image_3d(image_shape: Sequence[int], dot_ctrs: np.ndarray, dot_vls: np.ndarray):
-    pass
+def generate_dot_image_3d(image_shape: Sequence[int], dot_ctrs: np.ndarray, dot_vls: np.ndarray, ellipse_shape: Sequence[int]):
+    """ Generates a 3-d scalar image of ellipses, given the center location of each ellipse.
+
+    All position/size units are in pixels.
+
+    If two ellipses or more ellipses overlap, the value of the overlapping region is the average of the ellipse values.
+
+    Any pixels in the generated image without an ellipse in them will have the value nan.
+
+    Args:
+        image_shape: The shape of the image to generate.
+
+        dot_ctrs: dot_ctrs[i,:] is the center position of the i^th dot in pixels.  Dot centers will be rounded to the nearest
+        whole pixel values before generating images of ellipses.
+
+        dot_vls: dot_vls[i] is the value for the i^th ellipse
+
+        ellipse_shape: ellipse_shape[d] gives the width of the generated ellipses in the d^th dimension.  All
+        values in ellipse_shape must be odd.
+
+    Returns:
+        img: The generated image.
+
+    Raises:
+        ValueError: If any of the dot centers are outside of the image.
+        ValueError: If any value in ellipse_shape is not odd.
+    """
+
+    # Make sure all values in ellipse_shape are odd
+    for d in ellipse_shape:
+        if d % 2 == 0:
+            raise(ValueError('All values in ellipse_shape must be odd.'))
+
+    # Make sure all the centers are in the bounds of the image
+    if np.any(dot_ctrs < 0):
+        raise(ValueError('All dot centers must be within the bounds of the image'))
+
+    if np.any(dot_ctrs >= image_shape):
+        raise(ValueError('All dot centers must be within the bounds of the image'))
+
+    # Generate the mask we will use for the dot
+    ellipse_shape = np.asarray(ellipse_shape)
+    ellipse_widths = ellipse_shape/2
+
+    x_grid, y_grid, z_grid = np.meshgrid(*[np.arange(d) - np.floor(d/2) for d in ellipse_shape], indexing='ij')
+    ellipse_values = ((x_grid**2)/(ellipse_widths[0]**2) + (y_grid**2)/(ellipse_widths[1]**2) +
+                      (z_grid**2)/(ellipse_widths[2]**2))
+
+    ellipse_mask = (ellipse_values < 1)
+
+    # Generate the image
+    dot_ctrs_rnd  = np.round(dot_ctrs).astype('int')
+
+    # Pad the arrays we need to construct to account for edge effects
+    w_sum = np.zeros([image_shape[d_i] + ellipse_shape[d_i] - 1 for d_i in range(3)])
+    cnts = np.zeros([image_shape[d_i] + ellipse_shape[d_i] - 1 for d_i in range(3)])
+    offsets = np.floor(ellipse_shape/2).astype('int')
+    print(offsets)
+
+    n_dots = dot_ctrs.shape[0]
+    for d_i in range(n_dots):
+        ctr_i = dot_ctrs_rnd[d_i,:] + offsets
+        dot_i = dot_vls[d_i]*ellipse_mask
+
+        dot_slices = tuple([slice(ctr_i[d_i] - offsets[d_i], ctr_i[d_i] + offsets[d_i] + 1) for d_i in range(3)])
+
+        w_sum[dot_slices][ellipse_mask] = w_sum[dot_slices][ellipse_mask] + dot_i[ellipse_mask]
+        cnts[dot_slices][ellipse_mask] += 1
+
+    # Generate the final image
+    cnts_divide = copy.deepcopy(cnts)
+    cnts_divide[cnts == 0] = 1
+    img = w_sum/cnts_divide
+    img[cnts == 0] = np.nan
+
+    # Remove padding
+    img = img[offsets[0]:-offsets[0], offsets[1]:-offsets[1], offsets[2]:-offsets[2]]
+    return img
 
 
 def generate_image_from_fcn(f, dim_sampling: Sequence[Sequence]):
