@@ -177,10 +177,13 @@ def make_z_plane_movie(volume: np.ndarray, save_path: str,
 
     # If clim is None, calculate color limits
     if clim is None:
-        p_lower = np.percentile(volume, clim_percs[0])
-        p_upper = np.percentile(volume, clim_percs[1])
+        p_lower = np.nanpercentile(volume, clim_percs[0])
+        p_upper = np.nanpercentile(volume, clim_percs[1])
         c_range = np.max(np.abs([p_lower, p_upper]))
         clim = (-c_range, c_range)
+
+    # Set any nan values to 0
+    volume[np.isnan(volume)] = 0
 
     # Get the first frame of the video
     frame0 = np.squeeze(volume[0, :, :])
