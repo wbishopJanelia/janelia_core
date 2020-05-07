@@ -9,6 +9,7 @@ from typing import Sequence, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats
 
 
 def r_squared(truth: np.ndarray, pred: np.ndarray) -> np.ndarray:
@@ -107,6 +108,232 @@ def grouped_linear_regression_boot_strap(y: np.ndarray, x: np.ndarray, g: np.nda
         bs_beta[b_i, :] = beta_est[0]
 
     return [bs_beta, beta]
+
+
+def grouped_linear_regression_wild_bootstrap(y: np.ndarray, x: np.ndarray, g: np.ndarray,
+                                             test_coefs: Sequence[int] = None, n_bs_smps:int = 1000,
+                                             rcond: float = None):
+    """ Computes linear model and stats using a wild bootstrap.
+
+    For group g, the model for the i^th observation is of the form:
+
+        y_gi = x_gi^T\beta + o_g + \ep_gi,
+
+    where x_gi are predictor variables of dimension P, o_g is a group offset and ep_gi is zero-mean noise.  In this model,
+    it assumes all groups shared the same \beta but each group gets its own o_g and \ep_gi.
+
+    This function will estimate beta as well as p-values that individual coefficents in beta are non-zero.
+
+    Optionally, the user can also request confidence intervals for each coefficient of \beta.  However, these confidence
+    intervals are formed by inverting hypothesis tests for candidate coefficient values, which is computationally
+    expensive and so is not done by default.
+
+    The bootstrap procedure is based on the "Wild Cluster bootstrap-t with H0 imposed" bootstrap described in:
+
+        "Boostrap-based Improvements for Inference with Clustered Errors"by Cameron, Gelback & Miller, 2008
+
+    Within each boostrap iteration, the standard-error needed for calculating Wald statistics is estimated with the
+    within estimator of:
+
+        "Computing Robust Standard Errors for Within-groups Estimators" by M. Arellano, 1987,
+
+    where a small-sample correction is also applied as recommended in:
+
+        "A Practioner's Guide to Cluster-Robust Inference" by A. Cameron and Douglas Miller, 2015.
+
+    Args:
+
+        y: 1-d array of the predicted variable.  Of length n_smps.
+
+        x: Variables to predict from.  Of shape n_smps*d_x.
+
+        g: 1-d array indicating groups of samples.  Of length n_smps.  Samples from the same group should
+        have the same value in g.
+
+        test_coefs: If None, statistical significant that each individual entry in \beta is different than 0 will be
+        calculated.  If not, this is a list of indices of beta to test for
+
+        n_bs_smps: The number of bootstrap samples to use when calculating p-values.
+
+        rcond: The value of rcond to provide to the least squares fitting within the call to
+        grouped_linear_regression_within_estimator.  See that function as well np.linalg.lstsq.
+    """
+
+    n_x_vars = x.shape[1]
+
+    # Determine where the groups are
+    grps = np.unique(g)
+    n_grps = len(grps)
+    grp_inds = [None]*n_grps
+    for g_i, grp_i in enumerate(grps):
+        grp_inds[g_i] = np.nonzero(g == grp_i)[0]
+
+    # Compute beta
+    beta, avm, offsets, _ = grouped_linear_regression_within_estimator(y=y, x=x, g=g, rcond=rcond)
+
+    # Calculate p-values that each individual coefficient in beta is different than 0
+    if test_coefs is None:
+        test_coefs = np.arange(n_x_vars)
+
+    def coef_p_vl_bs(coef_i, null_vl, n_bs_smps):
+
+        # Compute wald statistic for the observed data
+        w = (beta[coef_i] - null_vl)/np.sqrt(avm[coef_i, coef_i])
+
+        # Construct the beta for the null hypothesis
+        null_beta = copy.deepcopy(beta)
+        null_beta[coef_i] = null_vl
+
+        # Calculate residuals under this null hypothesis
+        null_pred = np.matmul(x, null_beta)
+        residuals = y - null_pred
+
+        # Get bootstrap samples from distribution of the wald statistic under the null
+        w_bs = np.zeros(n_bs_smps)
+        for b_i in range(n_bs_smps):
+
+            grp_signs = np.random.choice([-1, 1], n_grps)
+            for g_i, g_inds in enumerate(grp_inds):
+                residuals[g_inds] = grp_signs[g_i]*residuals[g_inds]
+            y_bs = residuals + null_pred
+            beta_bs, avm_bs, _, _ = grouped_linear_regression_within_estimator(y=y_bs, x=x, g=g, rcond=rcond)
+            w_bs[b_i] = (beta_bs[coef_i] - null_vl)/np.sqrt(avm_bs[coef_i, coef_i])
+
+        # Calculate p-value
+        return np.sum(np.abs(w) < np.abs(w_bs))/n_bs_smps
+
+    p_vls = np.zeros(len(test_coefs))
+    for c_i, coef_i in enumerate(test_coefs):
+        p_vls[c_i] = coef_p_vl_bs(coef_i=coef_i, null_vl=0, n_bs_smps=n_bs_smps)
+
+    return p_vls
+
+
+
+def grouped_linear_regression_within_estimator(y: np.ndarray, x: np.ndarray, g: np.ndarray, rcond: float = None):
+    """ Computes linear model and stats using the within estimator for a fixed-effects linear model.
+
+    For group g, the model for the i^th observation is of the form:
+
+        y_gi = x_gi^T\beta + o_g + \ep_gi,
+
+    where x_gi are predictor variables of dimension P, o_g is a group offset and ep_gi is zero-mean noise.  In this model,
+    it assumes all groups shared the same \beta but each group gets its own o_g and \ep_gi.
+
+    This function will estimate beta as well as the asymptotic covariance matrix for beta using the method of:
+
+        "Computing Robust Standard Errors for Within-groups Estimators" by M. Arellano, 1987.
+
+    It will then apply a finite sample correction as recommended in:
+
+        "A Practioner's Guide to Cluster-Robust Inference" by A. Cameron and Douglas Miller, 2015.
+
+    Args:
+
+        y: 1-d array of the predicted variable.  Of length n_smps.
+
+        x: Variables to predict from.  Of shape n_smps*d_x.
+
+        g: 1-d array indicating groups of samples.  Of length n_smps.  Samples from the same group should
+        have the same value in g.
+
+        rcond: The value of rcond to provide to the least squares fitting.  See np.linalg.lstsq.
+
+    Returns:
+
+        beta: The estimate of beta
+
+        acm: The asymptotic covariance matrix for beta.
+
+        offsets: A dictionary with the o_g values for each group.  Keys will be values of g used to indicate groups and
+        values will be the offset for each group.
+
+        n_grps: The number of groups in the analysis
+   """
+
+    n_smps, n_x_vars = x.shape
+
+    # Determine where the groups are
+    grps = np.unique(g)
+    n_grps = len(grps)
+    grp_inds = [None]*n_grps
+    for g_i, grp_i in enumerate(grps):
+        grp_inds[g_i] = np.nonzero(g == grp_i)[0]
+
+    # Mean center x and y
+    x_ctr = copy.deepcopy(x)
+    y_ctr = copy.deepcopy(y)
+    for inds in grp_inds:
+        x_ctr[inds, :] = x_ctr[inds, :] - np.mean(x_ctr[inds, :], axis=0)
+        y_ctr[inds] = y_ctr[inds] - np.mean(y_ctr[inds])
+
+    # Calculate beta
+    beta_est = np.linalg.lstsq(x_ctr, y_ctr, rcond=rcond)
+    beta = beta_est[0]
+
+    # Calculate the asymptotic variance matrix for beta
+    residual = y_ctr - np.matmul(x_ctr, beta)
+
+    c = (n_grps/(n_grps - 1))*((n_smps-1)/(n_smps - n_x_vars + 1))  # Correction factor for finite samples
+
+    m0 = np.linalg.inv(np.matmul(x_ctr.transpose(), x_ctr))
+    m1 = np.zeros([n_x_vars, n_x_vars])
+    for inds in grp_inds:
+        temp = np.sqrt(c)*np.matmul(x_ctr[inds, :].transpose(), residual[inds])
+        temp = temp[:, np.newaxis]
+        m1 = m1 + np.matmul(temp, temp.transpose())
+
+    avm = np.matmul(np.matmul(m0, m1), m0)
+
+    # Calculate offsets for each group
+    uncentered_res = y - np.matmul(x, beta)
+    o_g = np.zeros(n_grps)
+    for g_i, g_inds in enumerate(grp_inds):
+        o_g[g_i] = np.mean(uncentered_res[g_inds])
+
+    offsets = {g:v for g, v in zip(grps, o_g)}
+
+    return [beta, avm, offsets, n_grps]
+
+
+def grouped_linear_regression_within_estimator_stats(beta, avm, n_grps, alpha):
+    """ Calculates statistics given the results of grouped_linear_regression_within_estimator.
+
+    Confidence intervals and p-values for individual coefficients are calculated assuming a t-distribution on the
+    estimates for the individual entries of beta.
+
+    Args:
+        beta: The estimate of beta returned by grouped_linear_regression_within_estimator
+
+        avm: The asymptotic variance matrix for beta returned by grouped_linear_regression_within_estimator
+
+        n_grps: The number of groups in the original regression
+
+        alpha: The alpha value to use when constructing 1-alpha confidence intervals
+
+    Returns:
+
+        stats: A dictionary with the following keys:
+
+            alpha: The alpha value for which confidence intervals were calculated.
+
+            c_ints: Confidence intervals.  c_ints[:,i] is the 1-alpha percentile confidence interval for beta[i]
+
+            non_zero_p: Indicates the p-value for null hypothesis that beta[i] is 0.
+
+            non_zero: non_zero[i] is true if the confidence interval for beta[i] does not contain 0.
+    """
+
+    m = -1*scipy.stats.t(df=(n_grps - 1)).ppf(alpha / 2)
+    std_ers = np.sqrt(np.diag(avm))
+
+    c_ints = np.stack([beta - std_ers*m, beta+std_ers*m])
+
+    non_zero_p = 2*scipy.stats.t(df=(n_grps-1)).cdf(-1*np.abs(beta/std_ers))
+
+    non_zero = np.logical_and(c_ints[0,:] < 0, c_ints[1,:] > 0)
+
+    return {'alpha': alpha, 'c_ints': c_ints, 'non_zero_p': non_zero_p, 'non_zero': non_zero}
 
 
 def naive_regression(y: np.ndarray, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
