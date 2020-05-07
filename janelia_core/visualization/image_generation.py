@@ -279,7 +279,6 @@ def generate_dot_image_3d(image_shape: Sequence[int], dot_ctrs: np.ndarray, dot_
     w_sum = np.zeros([image_shape[d_i] + ellipse_shape[d_i] - 1 for d_i in range(3)])
     cnts = np.zeros([image_shape[d_i] + ellipse_shape[d_i] - 1 for d_i in range(3)])
     offsets = np.floor(ellipse_shape/2).astype('int')
-    print(offsets)
 
     n_dots = dot_ctrs.shape[0]
     for d_i in range(n_dots):
@@ -298,7 +297,9 @@ def generate_dot_image_3d(image_shape: Sequence[int], dot_ctrs: np.ndarray, dot_
     img[cnts == 0] = np.nan
 
     # Remove padding
-    img = img[offsets[0]:-offsets[0], offsets[1]:-offsets[1], offsets[2]:-offsets[2]]
+    img = img[offsets[0]:img.shape[0]-offsets[0], offsets[1]:img.shape[1]-offsets[1],
+              offsets[2]:img.shape[2]-offsets[2]]
+
     return img
 
 

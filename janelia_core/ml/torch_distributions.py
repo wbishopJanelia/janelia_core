@@ -11,6 +11,7 @@ from typing import Sequence
 import numpy as np
 import torch
 
+from janelia_core.math.basic_functions import list_grid_pts
 from janelia_core.ml.extra_torch_modules import FixedOffsetExp
 from janelia_core.ml.extra_torch_modules import IndSmpConstantBoundedFcn
 from janelia_core.ml.extra_torch_modules import IndSmpConstantRealFcn
@@ -18,6 +19,7 @@ from janelia_core.ml.extra_torch_modules import SCC
 from janelia_core.ml.extra_torch_modules import SumAlongDim
 from janelia_core.ml.extra_torch_modules import SumOfTiledHyperCubeBasisFcns
 from janelia_core.ml.extra_torch_modules import Tanh
+
 
 class CondVAEDistriubtion(torch.nn.Module):
     """ CondVAEDistribution is an abstract base class for distributions used by VAEs."""
@@ -880,6 +882,15 @@ class CondMatrixHypercubePrior(CondMatrixProductDistribution):
 
         super().__init__(dists=col_dists)
 
+    def increase_std(self, f: float):
+        """ Increases the standard deviation by a factor which is approximately log(f).
+
+        Args:
+            f: The factor to increase standard deviation by.
+        """
+        for d in self.dists:
+            d.std_f[0].b_m.data[:] = d.std_f[0].b_m.data[:] + np.log(f)
+
 
 class GroupCondMatrixHypercubePrior(CondMatrixProductDistribution):
     """ Extends CondMatrixProductDistribution so the distribution for each column is a Gaussian with
@@ -1173,3 +1184,59 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
                 '\n Scale penalty: ' + str(self.last_scale_pen))# +
                 #'\n Centers: \n' + str(self.col_ctrs.t()) + '\n Scales: \n' + str(self.scales.t()))
 
+
+def gen_columns_mean_cluster_penalizer(n_cols: int, dim_ranges: np.ndarray, n_pts_per_dim: Sequence[int],
+                                       n_ctrs_per_dim: Sequence[int],
+                                       init_scale: float = 100.0,
+                                       scale_weight: float = 10.0,
+                                       penalizer_pts: torch.Tensor = None) -> ColumnMeanClusterPenalizer:
+    """ Generates a columns mean cluster penalizer for a conditional distribution over matrices.
+
+    Args:
+        n_cols: The number of columns in the matrices the conditional distribution is over.
+
+        dim_ranges: dim_ranges[:,0] are the starting values for each dimension of the data the distribtion is
+        conditioned on and dim_ranges[:,1] are the ending values
+
+        n_ctrs_per_dim: When generating the initial center points, we will lay them out evenly on a grid.  This is
+        the number of points on the grid in each dimension.
+
+        n_pts_per_dim: The number of sample points to generate per dimension.  The final sample points will
+        be a grid sampled at this many points per dimension within the range of dimensions specified by dim_ranges.
+
+        init_scale: The value that for the initial scales of the penalizer for all modes and dimensions.
+
+        scale_weight: The scale weight for the penalizer.
+
+        penalizer_pts: A tensor of points to penalize at.  If None, one will be created based on dim_ranges and
+        n_pts_per_dim.  Using this input is useful if creating multiple penalizers that all use the same penalizer
+        points, so that they can all reference the same list of points and duplicate lists of poitns do not have to be
+        created to save memory.
+
+    Returns:
+        p: The generated penalizer.
+    """
+
+    # Generate points we penalize at
+    if penalizer_pts is None:
+        penalizer_grid_limits = copy.deepcopy(dim_ranges)
+        penalizer_grid_limits[:, 0] = penalizer_grid_limits[:, 0] + .001
+        penalizer_grid_limits[:, 1] = penalizer_grid_limits[:, 1] - .001
+
+        penalizer_n_grid_pts = 2*np.asarray(n_pts_per_dim)
+
+        penalizer_pts = torch.tensor(list_grid_pts(grid_limits=penalizer_grid_limits,
+                                               n_pts_per_dim=penalizer_n_grid_pts).astype(np.float32))
+
+    # Generate initial centers
+    dim_widths = torch.tensor(dim_ranges[:, 1] - dim_ranges[:, 0])
+    dim_starts = torch.tensor(dim_ranges[:, 0])
+
+    init_ctrs = torch.Tensor(list_grid_pts(grid_limits=dim_ranges, n_pts_per_dim=n_ctrs_per_dim))
+
+
+    # Generate initial scales
+    init_scales = init_scale*torch.ones([n_cols, 3])
+
+    return ColumnMeanClusterPenalizer(init_ctrs=init_ctrs, x=penalizer_pts, scale_weight=scale_weight,
+                                      init_scales=init_scales)

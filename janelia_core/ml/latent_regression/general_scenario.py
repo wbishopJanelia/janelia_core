@@ -123,6 +123,8 @@ class GeneralInputOutputScenario():
 
     def gen_subj_vi_collection(self, s_i: int, specific_s: Sequence[torch.nn.Module], p_dists: Sequence,
                                u_dists: Sequence, data: TimeSeriesBatch, props: Sequence,
+                               input_grps: Sequence[int], output_grps: Sequence[int],
+                               input_props: Sequence[int], output_props: Sequence[int],
                                specific_m: torch.nn.Module = None, assign_p_u: bool = True,
                                min_var:float = .001, gen_subj_mdl: bool = True):
 
@@ -132,9 +134,14 @@ class GeneralInputOutputScenario():
             s_mdl = None
 
         return SubjectVICollection(s_mdl=s_mdl, p_dists=p_dists, u_dists=u_dists, data=data,
-                                   input_grps=(0, 1), output_grps=(0, 2), props = props,
-                                   input_props=[0, None], output_props=[0, None],
+                                   input_grps=input_grps, output_grps=output_grps, props = props,
+                                   input_props=input_props, output_props=output_props,
                                    min_var=[min_var, min_var])
+
+        #return SubjectVICollection(s_mdl=s_mdl, p_dists=p_dists, u_dists=u_dists, data=data,
+        #                           input_grps=(0, 1), output_grps=(0, 2), props = props,
+        #                           input_props=[0, None], output_props=[0, None],
+        #                           min_var=[min_var, min_var])
 
     def gen_linear_specific_m(self, s_i: int, scale_mn=0.0, scale_std=.01,
                                    offset_mn=0.0, offset_std=.00001) -> torch.nn.Module:

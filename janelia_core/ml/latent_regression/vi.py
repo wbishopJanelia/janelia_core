@@ -150,7 +150,8 @@ class SubjectVICollection():
         self.s_mdl = self.s_mdl.to(device)
         self.p_dists = [d.to(device) for d in self.p_dists]
         self.u_dists = [d.to(device) for d in self.u_dists]
-        self.props = [p.to(device) for p in self.props]
+        if self.props is not None:
+            self.props = [p.to(device) for p in self.props]
         self.device = device
 
         if distribute_data and self.data is not None:
@@ -202,7 +203,7 @@ class MultiSubjectVIFitter():
         Returns:
             cp_dict: A dictionary with the following keys:
 
-                s_collections: Copies of the subject collections, with data removed
+                s_collections: Copies of the subject collections, with data and properties removed
 
                 p_priors: Copies of the p priors
 
@@ -220,6 +221,7 @@ class MultiSubjectVIFitter():
         s_collections_copy = copy.deepcopy(self.s_collections)
         for s_coll in s_collections_copy:
             s_coll.data = None
+            s_coll.props = None
             s_coll.to('cpu')
 
         p_priors_copy = copy.deepcopy(self.p_priors)
@@ -292,7 +294,7 @@ class MultiSubjectVIFitter():
 
         self.distributed = True
 
-    def trainable_parameters(self, s_inds: Sequence[int] = None) -> [list, list]:
+    def trainable_parameters(self, s_inds: Sequence[int] = None, get_prior_params: bool = True) -> [list, list]:
         """ Gets all trainable parameters for fitting priors and a set of subjects.
 
         This function returns seperate parameters for penalizer parameters and all other parameters, to faciltate
@@ -312,7 +314,7 @@ class MultiSubjectVIFitter():
         if s_inds is None:
             s_inds = range(len(self.s_collections))
 
-        if self.p_priors is not None:
+        if (self.p_priors is not None) and get_prior_params:
             p_params = itertools.chain(*[d.parameters() for d in self.p_priors if d is not None])
             u_params = itertools.chain(*[d.parameters() for d in self.u_priors if d is not None])
         else:
@@ -428,11 +430,11 @@ class MultiSubjectVIFitter():
         return list(set([*s_coll_devices, *p_prior_devices, *u_prior_devices]))
 
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
-            adam_params: dict = {}, s_inds: Sequence[int] = None, prior_penalty_weight: float = 0.0,
-            enforce_priors: bool = True, sample_posteriors: bool = True, update_int: int = 1,
-            print_mdl_nlls: bool = True, print_sub_kls: bool = True, print_memory_usage: bool = True,
-            print_prior_penalties = True, print_penalizer_states = False, cp_epochs: Sequence[int] = None,
-            cp_penalizers: bool = False) -> [dict, Union[List, None]]:
+            adam_params: dict = {}, s_inds: Sequence[int] = None, fix_priors: bool = False,
+            prior_penalty_weight: float = 0.0, enforce_priors: bool = True, sample_posteriors: bool = True,
+            update_int: int = 1, print_mdl_nlls: bool = True, print_sub_kls: bool = True,
+            print_memory_usage: bool = True, print_prior_penalties = True, print_penalizer_states = False,
+            cp_epochs: Sequence[int] = None, cp_penalizers: bool = False) -> [dict, Union[List, None]]:
         """
 
         Args:
@@ -461,6 +463,8 @@ class MultiSubjectVIFitter():
 
             s_inds: Specifies the indices of subjects to fit to.  Subject indices correspond to their
             original order in s_collections when the fitter was created. If None, all subjects used.
+
+            fix_priors: True if priors should be fixed and not changed during fitting
 
             prior_penalty_weight: If not 0, penalizers for each prior will be applied and the final penalty weighted
             by this value.
@@ -561,7 +565,7 @@ class MultiSubjectVIFitter():
             n_u_priors = 0
 
         # Pull out groups of parameters with different learning rates
-        base_parameters, _ = self.trainable_parameters(s_inds)
+        base_parameters, _ = self.trainable_parameters(s_inds, get_prior_params=(fix_priors is False))
         if len(learning_rate_values[0]) > 1: # Means learning rates specified for penalizers
             penalizer_params = [(self.get_penalizer_params(key), learning_rate_values[0][1][key])
                                 for key in learning_rate_values[0][1].keys()]
@@ -845,6 +849,38 @@ class MultiSubjectVIFitter():
         plt.title('U Prior Penalties')
         plt.xlabel('Elapsed Time')
 
+    def to(self, device: torch.device, distribute_data:bool = False):
+        """ Move everything in the fitter to a specified device.
+
+        This is most useful when wanting to clean up after fitting and you need to move models to CPU.
+
+        Args:
+            device: The device to move everything to (e.g., torch.device('cpu'))
+
+            distribute_data: True if data should be moved as well.
+
+        """
+
+        for s_coll in self.s_collections:
+            s_coll.to(device, distribute_data=distribute_data)
+
+        for p_prior in self.p_priors:
+            if p_prior is not None:
+                p_prior.to(device)
+
+        for u_prior in self.u_priors:
+            if u_prior is not None:
+                u_prior.to(device)
+
+        if self.p_prior_penalizers is not None:
+            for p_prior_penalizer in self.p_prior_penalizers:
+                if p_prior_penalizer is not None:
+                    p_prior_penalizer.to(device)
+
+        if self.u_prior_penalizers is not None:
+            for u_prior_penalizer in self.u_prior_penalizers:
+                if u_prior_penalizer is not None:
+                    u_prior_penalizer.to(device)
 
 def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size: int = 100) -> List[np.ndarray]:
     """ Predicts output given input from a model with posterior distributions over modes.

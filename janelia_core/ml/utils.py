@@ -122,7 +122,7 @@ def list_torch_devices(verbose: bool = True):
     return [devices, cuda_is_available]
 
 
-def torch_devices_memory_usage(devices: Sequence[torch.device], type: str = 'max_memory_allocated')-> list:
+def torch_devices_memory_usage(devices: Sequence[torch.device], type: str = 'memory_allocated')-> list:
     """ Returns a list of memory usage on devices.
 
     This function gets either memory allocated or max memory on torch devices, providing a value of nan if a device is
