@@ -13,6 +13,7 @@ from janelia_core.ml.datasets import TimeSeriesBatch
 from janelia_core.ml.latent_regression.subject_models import LatentRegModel
 from janelia_core.ml.torch_distributions import CondMatrixProductDistribution
 from janelia_core.ml.torch_distributions import DistributionPenalizer
+from janelia_core.ml.torch_parameter_penalizers import ParameterPenalizer
 
 from janelia_core.ml.utils import format_and_check_learning_rates
 from janelia_core.ml.utils import torch_devices_memory_usage
@@ -167,7 +168,8 @@ class MultiSubjectVIFitter():
                  p_priors: Sequence[CondMatrixProductDistribution],
                  u_priors: Sequence[CondMatrixProductDistribution],
                  p_prior_penalizers: Sequence[DistributionPenalizer] = None,
-                 u_prior_penalizers: Sequence[DistributionPenalizer] = None):
+                 u_prior_penalizers: Sequence[DistributionPenalizer] = None,
+                 parameter_penalizers: Sequence[ParameterPenalizer] = None):
         """ Creates a new MultiSubjectVIFitter object.
 
         Args:
@@ -184,6 +186,9 @@ class MultiSubjectVIFitter():
 
             u_prior_penalizers: A sequence of penalizers to apply to the priors of each group of u modes in the same
             manner as p_prior_penalizers
+
+            parameter_penalizers: A sequence of parameter penalizers used to penalize parameters in the models. The
+            order these are listed does not matter.
         """
 
         self.s_collections = s_collections
@@ -191,11 +196,12 @@ class MultiSubjectVIFitter():
         self.u_priors = u_priors
         self.p_prior_penalizers = p_prior_penalizers
         self.u_prior_penalizers = u_prior_penalizers
+        self.parameter_penalizers = parameter_penalizers
 
         self.distributed = False  # Keep track if we have distributed everything yet
 
-    def create_check_point(self, inc_penalizers: bool = False) -> List:
-        """ Returns copies of subject models and priors as well as (optionally) penalizer parameters
+    def create_check_point(self, inc_penalizers: bool = False) -> dict:
+        """ Returns copies of subject models and priors as well as (optionally) penalizer parameters.
 
         Args:
             inc_penalizers: True if copies of penalizers should be returned.
@@ -209,13 +215,18 @@ class MultiSubjectVIFitter():
 
                 u_priors: Copies of the u priors
 
-                p_penalizer_params: If prior penalizer parameters are requested, p_prior_penalizer_params[g] is
+                p_penalizer_dicts: If penalizer parameters are requested, p_penalizer_dicts[g] is
                 a dictionary of penalizer parameters for the g^th penalizer.  If there is no penlizer for the g^th input
-                group, the p_prior_penalizer_params[g] will be None.  If prior penalizer parameters are not requested or
-                there are no p prior penalizers at all then p_prior_penalizer_params will be None.
+                group, the p_penalizer_dicts[g] will be None.  If prior penalizer parameters are not requested or
+                there are no p prior penalizers at all then p_penalizer_dicts will be None.
 
-                u_penalizer_params: The penalizer parameters for the u penalizers, in the same
-                form as p_prior_penalizer_params.
+                u_penalizer_dicts: The penalizer check point dictionaries for the u penalizers, in the same
+                form as p_prior_penalizer_dicts.
+
+                parameter_penalizer_dicts: If penalizer parameters are requested, then parameter_penalizer_dicts[i] is
+                the dictionary witch check point parameters for the i^th parameter penalizer, where the ordering of
+                penalizers is the same as when parameter penalizers were provided at the time of the creation of the
+                Fitter object.
         """
 
         s_collections_copy = copy.deepcopy(self.s_collections)
@@ -236,26 +247,35 @@ class MultiSubjectVIFitter():
 
         if inc_penalizers:
             if self.p_prior_penalizers is not None:
-                p_prior_penalizer_params = [p.check_point() for p in self.p_prior_penalizers if p is not None]
+                p_prior_penalizer_dicts = [p.check_point() for p in self.p_prior_penalizers if p is not None]
             else:
-                p_prior_penalizer_params = None
+                p_prior_penalizer_dicts = None
+
             if self.u_prior_penalizers is not None:
-                u_prior_penalizer_params = [p.check_point() for p in self.u_prior_penalizers if p is not None]
+                u_prior_penalizer_dicts = [p.check_point() for p in self.u_prior_penalizers if p is not None]
             else:
-                u_prior_penalizer_params = None
+                u_prior_penalizer_dicts = None
+
+            if self.parameter_penalizers is not None:
+                parameter_penalizer_dicts = [p.check_point() for p in self.parameter_penalizers]
+            else:
+                parameter_penalizer_dicts = None
+
         else:
-            p_prior_penalizer_params = None
-            u_prior_penalizer_params = None
+            p_prior_penalizer_dicts = None
+            u_prior_penalizer_dicts = None
+            parameter_penalizer_dicts = None
 
         return {'s_collections': s_collections_copy,
                 'p_priors': p_priors_copy,
                 'u_priors': u_priors_copy,
-                'p_penalizer_params': p_prior_penalizer_params,
-                'u_penalizer_params': u_prior_penalizer_params}
+                'p_penalizer_dicts': p_prior_penalizer_dicts,
+                'u_penalizer_dicts': u_prior_penalizer_dicts,
+                'parameter_penalizer_dicts': parameter_penalizer_dicts}
 
     def distribute(self, devices: Sequence[Union[torch.device, int]], s_inds: Sequence[int] = None,
                    distribute_data: bool = False):
-        """ Distributes prior collections as well as 0 or more subject models and data across devices.
+        """ Distributes priors, penalizers and subject models and data across devices.
 
         Args:
             devices: Devices that priors and subject collections should be distributed across.
@@ -287,6 +307,11 @@ class MultiSubjectVIFitter():
             self.u_prior_penalizers = [penalizer.to(devices[0]) if penalizer is not None else None
                                        for penalizer in self.u_prior_penalizers]
 
+        # Distribute parameter penalizers; by convention these go to the first device
+        if self.parameter_penalizers is not None:
+            for p in self.parameter_penalizers:
+                p.to(devices[0])
+
         # Distribute subject collections
         for i in range(n_dist_mdls):
             device_ind = (i+1) % n_devices
@@ -304,10 +329,12 @@ class MultiSubjectVIFitter():
             s_inds: Specifies the indices of subjects that will be fit.  Subject indices correspond to their
             original order in s_collections when the fitter was created. If None, all subjects used.
 
+            get_prior_params: True if parameters of priors should be included in the set of returned parameters
+
         Returns:
              base_params: Parameters of priors, posteriors and subject models
 
-             penalizer_params: Parameters of any prior penalizers
+             penalizer_params: Parameters of any prior and parameter penalizers
         """
 
         # Get base parameters
@@ -333,13 +360,18 @@ class MultiSubjectVIFitter():
 
         return [non_duplicate_base_params, non_duplicate_penalizer_params]
 
-    def get_penalizer_params(self, keys: Union[str, Sequence[str]] = None) -> list:
+    def get_penalizer_params(self, keys: Union[str, Sequence[str]] = None,
+                             get_parameter_penalizer_parameters: bool = True) -> list:
         """ Returns a list of penalizer parameters, optionally filtering by key.
 
-        Inputs:
+        Args:
             keys: If provided, either a string of a single key that returned parameters should match or a
             sequence of keys parameters can match.  Any parameters not matching the requested key(s), will
             not be returned.  If keys is None, all penalizer parameters will be returned.
+
+            get_parameter_penalizer_parameters: True if internal, learnable parameters of the parameter penalizers
+            should be included in the returned parameters; if false only parameter for prior penalizers will be
+            returned.
 
         Returns:
             params: A list of the requested parameters
@@ -357,18 +389,26 @@ class MultiSubjectVIFitter():
         else:
             u_prior_penalizers = []
 
-        prior_penalizers = p_prior_penalizers + u_prior_penalizers
+        if self.parameter_penalizers is not None:
+            parameter_penalizers = list(self.parameter_penalizers)
+        else:
+            parameter_penalizers = []
+
+        if get_parameter_penalizer_parameters:
+            penalizers = p_prior_penalizers + u_prior_penalizers + parameter_penalizers
+        else:
+            penalizers = p_prior_penalizers + u_prior_penalizers
 
         # Use all keys if user has not provided any
         if keys is None:
-                keys = itertools.chain(*[p.list_param_keys() for p in prior_penalizers if p is not None])
+                keys = itertools.chain(*[p.list_param_keys() for p in penalizers if p is not None])
         elif isinstance(keys, str):
             keys = [keys]
 
         # Get requested parameters
         keys = list(set(keys))
 
-        params = itertools.chain(*[itertools.chain(*[p.get_marked_params(key) for p in prior_penalizers if p is not None])
+        params = itertools.chain(*[itertools.chain(*[p.get_marked_params(key) for p in penalizers if p is not None])
                   for key in keys])
         params = list(set(list(params)))
 
@@ -417,6 +457,8 @@ class MultiSubjectVIFitter():
     def get_used_devices(self):
         """ Lists the devices the subject models and priors are on.
 
+        TODO: Should include devices penalizers are on as well
+
         Returns:
             devices: The list of devices subject models and priors are on.
         """
@@ -431,10 +473,12 @@ class MultiSubjectVIFitter():
 
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, fix_priors: bool = False,
-            prior_penalty_weight: float = 0.0, enforce_priors: bool = True, sample_posteriors: bool = True,
-            update_int: int = 1, print_mdl_nlls: bool = True, print_sub_kls: bool = True,
-            print_memory_usage: bool = True, print_prior_penalties = True, print_penalizer_states = False,
-            cp_epochs: Sequence[int] = None, cp_penalizers: bool = False) -> [dict, Union[List, None]]:
+            fix_parameter_penalizers: bool = False, prior_penalty_weight: float = 0.0, enforce_priors: bool = True,
+            sample_posteriors: bool = True, update_int: int = 1, print_mdl_nlls: bool = True,
+            print_sub_kls: bool = True, print_memory_usage: bool = True, print_prior_penalties = True,
+            print_parameter_penalties: bool = True, print_prior_penalizer_states = False,
+            print_parameter_penalizer_states: bool = False, cp_epochs: Sequence[int] = None,
+            cp_penalizers: bool = False) -> [dict, Union[List, None]]:
         """
 
         Args:
@@ -449,7 +493,7 @@ class MultiSubjectVIFitter():
             Alternatively, this can be a list of tuples.  Each tuple is of the form
             (epoch, base_lr, penalizer_lr_opts), where epoch is the epoch the learning rates come into effect on,
             base_lr is the learning rate for all parameters other than the penalizer parameters and penalizer_lr_opts
-            is a dictionary with keys specifying prior-penalizer parameter keys and values giving the learning rate
+            is a dictionary with keys specifying penalizer parameter keys and values giving the learning rate
             for those parameters. Multiple tuples can be provided to give a schedule of learning rates.  Here is an
             example learning_rates: [(0, .001, {'fast': 1, 'slow', .1}), (100, .0001, {'fast': .1, 'slow', .01}] that
             starts with a base learning rates of .001, a learning rate of 1 for parameters of the penalizers that
@@ -465,6 +509,9 @@ class MultiSubjectVIFitter():
             original order in s_collections when the fitter was created. If None, all subjects used.
 
             fix_priors: True if priors should be fixed and not changed during fitting
+
+            fix_parameter_penalizers: True if the internal, learnable parameters of the parameter penalizers should
+            be fixed.
 
             prior_penalty_weight: If not 0, penalizers for each prior will be applied and the final penalty weighted
             by this value.
@@ -490,10 +537,15 @@ class MultiSubjectVIFitter():
             print_prior_penalties: If true, when fitting status is printed to screen, the calculated penalties for the
             priors will be printed to screen.
 
+            print_parameter_penalties: If true, when fitting status is printed to screen, the calculated penalites for
+            the parmaters will be printed to screen.
+
             print_memory_usage: If true, when fitting status is printed to screen, the memory usage of each
             device will be printed to streen.
 
-            print_penalizer_states: If true, the state of penalizers will be printed to screen.
+            print_prior_penalizer_states: If true, the state of prior penalizers will be printed to screen.
+
+            print_parameter_penalizer_states: If true, the state of the parameter penalizers will be printed to screen.
 
             cp_epochs: A sequence of epochs after which a check point of the models (as well as optionally the
             penalizers will be made).  If no check points should be made, set this to None.
@@ -519,6 +571,10 @@ class MultiSubjectVIFitter():
 
                 'u_prior_penalties': u_prior_penalties[e, :] is the penalty calculated for each group of u priors at the
                 start of epoch e.
+
+                parameter_penalties: parameter_penalties[e, :] is the penalty calculated for each parameter penalizer,
+                with the order of entries in each row corresponding to the order penalizers were provided when creating
+                the Fitter object.
 
                 obj: obj[e] contains the objective value at the start of epoch e.  This is the negative evidence lower
                 bound + weight penalties.
@@ -567,10 +623,13 @@ class MultiSubjectVIFitter():
         # Pull out groups of parameters with different learning rates
         base_parameters, _ = self.trainable_parameters(s_inds, get_prior_params=(fix_priors is False))
         if len(learning_rate_values[0]) > 1: # Means learning rates specified for penalizers
-            penalizer_params = [(self.get_penalizer_params(key), learning_rate_values[0][1][key])
+            penalizer_params = [(self.get_penalizer_params(key,
+                                                           get_parameter_penalizer_parameters=(fix_parameter_penalizers is False)),
+                                 learning_rate_values[0][1][key])
                                 for key in learning_rate_values[0][1].keys()]
         else:
-            penalizer_params = [(self.get_penalizer_params(), learning_rate_values[0][-1])]
+            penalizer_params = [(self.get_penalizer_params(get_parameter_penalizer_parameters=(fix_parameter_penalizers is False)),
+                                 learning_rate_values[0][-1])]
 
         # Setup initial optimizer
         params_with_lr = ([{'params': base_parameters, 'lr': learning_rate_values[0][0]}] +
@@ -587,12 +646,18 @@ class MultiSubjectVIFitter():
                 check_points = [None]*n_cps
 
         # Setup everything for logging
+        if self.parameter_penalizers is not None:
+            n_parameter_penalizers = len(self.parameter_penalizers)
+        else:
+            n_parameter_penalizers = 0
+
         epoch_elapsed_time = np.zeros(n_epochs)
         epoch_nll = np.zeros([n_epochs, n_fit_subjects])
         epoch_sub_p_kl = np.zeros([n_epochs, n_fit_subjects])
         epoch_sub_u_kl = np.zeros([n_epochs, n_fit_subjects])
         epoch_p_prior_penalties = np.zeros([n_epochs, n_p_priors])
         epoch_u_prior_penalties = np.zeros([n_epochs, n_u_priors])
+        epoch_parameter_penalties = np.zeros([n_epochs, n_parameter_penalizers])
         epoch_obj = np.zeros(n_epochs)
 
         # Perform fitting
@@ -605,13 +670,17 @@ class MultiSubjectVIFitter():
             cur_learning_rates = learning_rate_values[cur_learing_rate_ind, :]
             if np.any(cur_learning_rates != prev_learning_rates):
                 # We reset the whole optimizer because ADAM is an adaptive optimizer
+                print('DEBUG: Reseting learning rates.')
 
                 # Pull out groups of parameters with different learning rates
                 if len(cur_learning_rates) > 1: # Means learning rates specified for penalizers
-                    penalizer_params = [(self.get_penalizer_params(key), cur_learning_rates[1][key])
+                    penalizer_params = [(self.get_penalizer_params(key,
+                                                                   get_parameter_penalizer_parameters=(fix_parameter_penalizers is False)),
+                                         cur_learning_rates[1][key])
                                         for key in cur_learning_rates[1].keys()]
                 else:
-                    penalizer_params = [(self.get_penalizer_params(), cur_learning_rates[-1])]
+                    penalizer_params = [(self.get_penalizer_params(get_parameter_penalizer_parameters=(fix_parameter_penalizers is False)),
+                                         cur_learning_rates[-1])]
 
                 params_with_lr = ([{'params': base_parameters, 'lr': cur_learning_rates[0]}] +
                           [{'params': t[0], 'lr': t[1]} for t in penalizer_params])
@@ -743,6 +812,14 @@ class MultiSubjectVIFitter():
                             batch_u_prior_penalties[h] = prior_penalty_np
                             batch_obj_log += prior_penalty_np
 
+                # Penalize parameters
+                batch_parameter_penalties = np.zeros(n_parameter_penalizers)
+                if self.parameter_penalizers is not None:
+                    for penalizer_i, parameter_penalizer in enumerate(self.parameter_penalizers):
+                        batch_parameter_penalty_i_np = parameter_penalizer.penalize_and_backwards()
+                        batch_parameter_penalties[penalizer_i] = batch_parameter_penalty_i_np
+                        batch_obj_log += batch_parameter_penalty_i_np
+
                 # Take a gradient step
                 optimizer.step()
 
@@ -771,6 +848,7 @@ class MultiSubjectVIFitter():
             epoch_sub_u_kl[e_i, :] = batch_sub_u_kl
             epoch_p_prior_penalties[e_i, :] = batch_p_prior_penalties
             epoch_u_prior_penalties[e_i, :] = batch_u_prior_penalties
+            epoch_parameter_penalties[e_i, :] = batch_parameter_penalties
             epoch_obj[e_i] = batch_obj_log
 
             if e_i % update_int == 0:
@@ -788,6 +866,10 @@ class MultiSubjectVIFitter():
                                              vls=batch_p_prior_penalties, inds=range(n_p_priors)))
                     print(format_output_list(base_str='U prior penalties: ', it_str='h_',
                                              vls=batch_u_prior_penalties, inds=range(n_u_priors)))
+                if print_parameter_penalties:
+                    print(format_output_list(base_str='Parameter penalties: ', it_str='',
+                                             vls=batch_parameter_penalties, inds=range(n_parameter_penalizers)))
+
                 if print_memory_usage:
                     device_memory_allocated = torch_devices_memory_usage(all_devices, type='memory_allocated')
                     device_max_memory_allocated = torch_devices_memory_usage(all_devices, type='max_memory_allocated')
@@ -795,23 +877,31 @@ class MultiSubjectVIFitter():
                           vls=device_memory_allocated, inds=range(len(device_memory_allocated))))
                     print(format_output_list(base_str='Device max memory allocated: ', it_str='d_',
                           vls=device_max_memory_allocated, inds=range(len(device_max_memory_allocated))))
-                if print_penalizer_states and self.p_prior_penalizers is not None:
+
+                if print_prior_penalizer_states and self.p_prior_penalizers is not None:
                     print('P-prior penalizer states:')
                     for penalizer in self.p_prior_penalizers:
                         if penalizer is not None:
                             print(str(penalizer))
-                if print_penalizer_states and self.u_prior_penalizers is not None:
+
+                if print_prior_penalizer_states and self.u_prior_penalizers is not None:
                     print('U-prior penalizer states:')
                     for penalizer in self.u_prior_penalizers:
                         if penalizer is not None:
                             print(str(penalizer))
+
+                if print_parameter_penalizer_states and self.parameter_penalizers is not None:
+                    print('Parameter penalizer states:')
+                    for penalizer in self.parameter_penalizers:
+                        print(str(penalizer))
 
                 print('Elapsed time: ' + str(elapsed_time))
 
         # Return logs
         log = {'elapsed_time': epoch_elapsed_time, 'mdl_nll': epoch_nll, 'sub_p_kl': epoch_sub_p_kl,
                'sub_u_kl': epoch_sub_u_kl, 'p_prior_penalties': epoch_p_prior_penalties,
-               'u_prior_penalties': epoch_u_prior_penalties, 'obj': epoch_obj}
+               'u_prior_penalties': epoch_u_prior_penalties, 'parameter_penalties': epoch_parameter_penalties,
+               'obj': epoch_obj}
         return [log, check_points]
 
     @classmethod
@@ -881,6 +971,10 @@ class MultiSubjectVIFitter():
             for u_prior_penalizer in self.u_prior_penalizers:
                 if u_prior_penalizer is not None:
                     u_prior_penalizer.to(device)
+
+        if self.parameter_penalizers is not None:
+            for parameter_penalizer in self.parameter_penalizers:
+                parameter_penalizer.to(device)
 
 def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size: int = 100) -> List[np.ndarray]:
     """ Predicts output given input from a model with posterior distributions over modes.

@@ -27,7 +27,7 @@ def format_and_check_learning_rates(learning_rates: Union[int, float, list]) -> 
             Alternatively, this can be a list of tuples.  Each tuple is of the form
             (iteration, learning_rate_vls0, learning_rate_vls1, ...), which gives sets of learning rates to use from that
             iteration onwards, until another tuple specifies another set of learning rates to use at a different
-            iteration on. learning_rate_vlsi can be any object.
+            iteration on. learning_rate_vls can be any object.
 
             Example 1: learning_rates = [(0, .01, .2), (1000, .001, .3), (10000, .0001, .4)] would specify would specify
             a schedule for a set of two learning rates with learning rate vallues of .01 and .2 from iteration 0 to 999,

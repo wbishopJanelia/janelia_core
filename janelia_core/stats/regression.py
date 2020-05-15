@@ -5,11 +5,46 @@
 """
 
 import copy
-from typing import Sequence, Tuple
+from typing import Sequence, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats
+
+
+def corr(x: np.ndarray, y: np.ndarray) -> Union[float, np.ndarray]:
+    """ Calculates the pearson correlation between two series of data.
+
+    If the data is multi-dimensional, the pearson correlation is calculated for each dimension.
+
+    Args:
+        x: One set of data of shape n_smps*n_dim
+
+        y: The other set of data; same shape as x
+
+    Returns:
+
+        pearson_corr: The pearson correlation between x and y.  If x & y are multidimensional, then pearson_corr
+        is an array and pearson_corr[i] is the correlation for dimension i.
+    """
+
+    dims_expanded = False
+    if x.ndim == 1:
+        dims_expanded = True
+        x = np.expand_dims(x, 1)
+        y = np.expand_dims(y, 1)
+
+    n_vars = x.shape[1]
+    pearson_corr = np.zeros(n_vars)
+    for v_i in range(n_vars):
+        p_c, _ = scipy.stats.pearsonr(x[:, v_i], y[:, v_i])
+        pearson_corr[v_i] = p_c
+
+    if dims_expanded:
+        pearson_corr = pearson_corr[0]
+
+    return pearson_corr
+
 
 
 def r_squared(truth: np.ndarray, pred: np.ndarray) -> np.ndarray:

@@ -983,7 +983,7 @@ class GroupCondMatrixHypercubePrior(CondMatrixProductDistribution):
 
 
 class DistributionPenalizer(torch.nn.Module):
-    """ An abstract base class for creating distribution penalizer objects.
+    """ A base class for creating distribution penalizer objects.
 
     The main idea behind a penalizer object (vs. just applying a penalizer function) is that the ways we may
     want to penalize a distribution may require keeping track of some penalty parameters (e.g., a set of locations
