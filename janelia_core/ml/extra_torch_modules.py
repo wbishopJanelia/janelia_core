@@ -39,6 +39,50 @@ class Bias(torch.nn.ModuleList):
         return x + self.o
 
 
+class BiasAndPositiveScale(torch.nn.ModuleList):
+    """ Applies a bias and non-nonegative scale transformation to the data y = abs(w)*x + o.
+
+    Here w is the same length of x so abs(w)*x indicates element-wise product and likewise ... + o is element-wise addition.
+    """
+
+    def __init__(self, d: int, o_init_mn: float = 0.0, w_init_mn: float = 0.0,
+                 o_init_std: float = .1, w_init_std: float = .1):
+        """ Creates a Bias object.
+
+        Args:
+            d: The dimensionality of the input and output
+
+            o_init_mn: The mean of the normal distribution initial biases are pulled from.
+
+            w_init_mn: The mean of the normal distribution initial weights are pulled from.
+
+            o_init_std: The standard deviation of the normal distribution initial biases are pulled from.
+
+            w_init_std: The standard deviation of the normal distribution initial weights are pulled from.
+        """
+
+        super().__init__()
+
+        w = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(w, mean=w_init_mn, std=w_init_std)
+        self.register_parameter('w', w)
+
+        o = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+        torch.nn.init.normal_(o, mean=o_init_mn, std=o_init_std)
+        self.register_parameter('o', o)
+
+    def forward(self, x: torch.Tensor) -> torch.tensor:
+        """ Computes output given input.
+
+        Args:
+            x: Input tensor
+
+        Returns:
+            y: Output tensor
+        """
+        return torch.abs(self.w)*x + self.o
+
+
 class BiasAndScale(torch.nn.ModuleList):
     """ Applies a bias and scale transformation to the data y = w*x + o.
 
@@ -54,7 +98,7 @@ class BiasAndScale(torch.nn.ModuleList):
 
             o_init_mn: The mean of the normal distribution initial biases are pulled from.
 
-            w_init_mn: The mean of the normal distribtion initial weights are pulled from.
+            w_init_mn: The mean of the normal distribution initial weights are pulled from.
 
             o_init_std: The standard deviation of the normal distribution initial biases are pulled from.
 

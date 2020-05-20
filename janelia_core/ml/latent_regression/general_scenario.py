@@ -9,9 +9,9 @@ import numpy as np
 import torch.nn
 
 from janelia_core.ml.datasets import TimeSeriesBatch
-from janelia_core.ml.extra_torch_modules import BiasAndScale
+from janelia_core.ml.extra_torch_modules import BiasAndPositiveScale
 from janelia_core.ml.latent_regression.group_maps import GroupLinearTransform
-from janelia_core.ml.latent_regression.subject_models import LatentRegModel
+from janelia_core.ml.latent_regression.subject_models import SharedMLatentRegModel
 from janelia_core.ml.latent_regression.vi import SubjectVICollection
 
 
@@ -74,7 +74,7 @@ class GeneralInputOutputScenario():
         self.direct_pairs = direct_pairs
 
     def gen_subj_mdl(self, s_i: int, specific_s: Sequence[torch.nn.Module],
-                     specific_m: torch.nn.Module = None, assign_p_u: bool = True) -> LatentRegModel:
+                     specific_m: torch.nn.Module = None, assign_p_u: bool = True) -> SharedMLatentRegModel:
 
         """ Generates a subject model for a particular subject.
 
@@ -99,15 +99,11 @@ class GeneralInputOutputScenario():
             mdl: The requested subject model
         """
 
-        if specific_m is None:
-            m = self.shared_m_core
-        else:
-            m = torch.nn.Sequential(specific_m, self.shared_m_core)
-
-        mdl = LatentRegModel(d_in=self.input_dims[s_i, :], d_out=self.output_dims[s_i, :],
-                             d_proj=self.n_input_modes, d_trans=self.n_output_modes,
-                             m=m, s=specific_s, direct_pairs=self.direct_pairs,
-                             assign_p_u=assign_p_u)
+        mdl = SharedMLatentRegModel(d_in=self.input_dims[s_i, :], d_out=self.output_dims[s_i, :],
+                                    d_proj=self.n_input_modes, d_trans=self.n_output_modes,
+                                    specific_m=specific_m, shared_m=self.shared_m_core,
+                                    s=specific_s, direct_pairs=self.direct_pairs,
+                                    assign_p_u=assign_p_u)
 
         if assign_p_u:
             if self.fixed_input_modes is not None:
@@ -138,18 +134,11 @@ class GeneralInputOutputScenario():
                                    input_props=input_props, output_props=output_props,
                                    min_var=[min_var, min_var])
 
-        #return SubjectVICollection(s_mdl=s_mdl, p_dists=p_dists, u_dists=u_dists, data=data,
-        #                           input_grps=(0, 1), output_grps=(0, 2), props = props,
-        #                           input_props=[0, None], output_props=[0, None],
-        #                           min_var=[min_var, min_var])
-
-    def gen_linear_specific_m(self, s_i: int, scale_mn=0.0, scale_std=.01,
+    def gen_linear_specific_m(self, scale_mn=0.001, scale_std=.00001,
                                    offset_mn=0.0, offset_std=.00001) -> torch.nn.Module:
-        """ Generates a subject-specific component of the m-module for scales and offsets.
+        """ Generates a subject-specific component of the m-module for non-negative scales and offsets.
 
         Args:
-            s_i: The subject to generate the map for
-
             scale_mn, scale_std, offset_mn, offset_std: the mean and standard deviaton of the normal distribution when
             drawing random initial values for the scale and offset.
 
@@ -157,12 +146,12 @@ class GeneralInputOutputScenario():
             m: The subject-specific component.
 
         """
-        return GroupLinearTransform(d=self.n_input_modes, v_mn=scale_mn, v_std=scale_std,
+        return GroupLinearTransform(d=self.n_input_modes, nonnegative_scale=True, v_mn=scale_mn, v_std=scale_std,
                                     o_mn=offset_mn, o_std=offset_std)
 
     def gen_linear_specific_s(self, s_i: int, scale_mn=1.0, scale_std=.01, offset_mn=0.0,
                                    offset_std=.000001) -> List[torch.nn.Module]:
-        """ Generates subject-specific sequence of s-modules.
+        """ Generates subject-specific sequence of s-modules which apply an element-wise non-negative scale and bias.
 
         Args:
 
@@ -171,8 +160,8 @@ class GeneralInputOutputScenario():
             scale_mn, scale_std, offset_mn, offset_std: the mean and standard deviaton of the normal distribution when
             drawing random initial values for the scale and offset.
         """
-        return [BiasAndScale(d=d_h, o_init_mn=offset_mn, o_init_std=offset_std,
-                             w_init_mn=scale_mn, w_init_std=scale_std) for d_h in self.output_dims[s_i, :]]
+        return [BiasAndPositiveScale(d=d_h, o_init_mn=offset_mn, o_init_std=offset_std,
+                                     w_init_mn=scale_mn, w_init_std=scale_std) for d_h in self.output_dims[s_i, :]]
 
     def calc_projs_given_post_modes(self, s_vi_collection: SubjectVICollection, data: Sequence[TimeSeriesBatch],
                                     apply_subj_specific_m: bool = False) -> Sequence:

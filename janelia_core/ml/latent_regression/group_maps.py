@@ -150,12 +150,14 @@ class ElementWiseTransformedGroupLatents(torch.nn.Module):
 
 
 class GroupLinearTransform(torch.nn.Module):
-    """ Mapping which forms output by multiplying each entry in group input vectors by a seperate scalar.
+    """ Forms output by multiplying each entry in group input vectors by a separate scalar and adding an offset.
 
-    Offsets can also optionally be added.
+    Offsets can also optionally be omitted and the absolute value of the scale parameters can be used to enforce that
+    scaling is always non-negative.
+
     """
 
-    def __init__(self, d: Sequence[int], offsets: bool = True,
+    def __init__(self, d: Sequence[int], offsets: bool = True, nonnegative_scale: bool = False,
                  v_mn: float = 0.0, v_std: float = 0.1,
                  o_mn: float = 0.0, o_std: float = 0.1):
         """ Creates a GroupScalarTransform object.
@@ -165,6 +167,8 @@ class GroupLinearTransform(torch.nn.Module):
 
            offsets: True if offsets should also be included.
 
+           nonnegative_scale: True if when applying scales, the absolute value of scale parameters should be used.
+
            v_mn, v_std: The mean and standard deviation for initializing the slope of the linear mappings
 
            o_mn, o_std: The mean and standard deviations for initializing the offsets of the linear mappings
@@ -172,6 +176,8 @@ class GroupLinearTransform(torch.nn.Module):
         super().__init__()
 
         n_grps = len(d)
+
+        self.nonnegative_scale = nonnegative_scale
 
         self.offsets = offsets
 
@@ -203,9 +209,15 @@ class GroupLinearTransform(torch.nn.Module):
         """
 
         if self.offsets:
-            return [x_g*v_g + o_g for v_g, o_g, x_g in zip(self.v, self.o, x)]
+            if self.nonnegative_scale:
+                return [x_g*torch.abs(v_g) + o_g for v_g, o_g, x_g in zip(self.v, self.o, x)]
+            else:
+                return [x_g*v_g + o_g for v_g, o_g, x_g in zip(self.v, self.o, x)]
         else:
-            return [x_g*v_g for v_g, x_g in zip(self.v, x)]
+            if self.nonnegative_scale:
+                return [x_g*torch.abs(v_g) for v_g, x_g in zip(self.v, x)]
+            else:
+                return [x_g*v_g for v_g, x_g in zip(self.v, x)]
 
 class GroupMatrixMultiply(torch.nn.Module):
     """ Mapping which applies a matrix multiply seperately to each input vector to form output vectors."""

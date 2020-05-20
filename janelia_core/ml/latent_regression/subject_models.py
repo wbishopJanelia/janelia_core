@@ -4,7 +4,7 @@ import copy
 import itertools
 import re
 import time
-from typing import Sequence
+from typing import Generator, Sequence
 
 import numpy as np
 import torch
@@ -289,6 +289,14 @@ class LatentRegModel(torch.nn.Module):
                 y[h][i, :] = o_h
         return y
 
+    def s_parameters(self):
+        """ Gets the parameters of the s modules.
+
+        Returns:
+            params: params[i] is a list of parameters for the i^th output group
+        """
+        return [list(s.parameters()) for s in self.s]
+
     def neg_ll(self, y: list, mn: list, w: torch.Tensor = None) -> torch.Tensor:
 
         """
@@ -549,3 +557,78 @@ class LatentRegModel(torch.nn.Module):
         all_named_params = list(self.named_parameters())
         match_inds = [re.fullmatch('^[p,u][0-9]+', p[0]) is not None for p in all_named_params]
         return [all_named_params[i] for i in range(len(all_named_params)) if match_inds[i] is False]
+
+
+class SharedMLatentRegModel(LatentRegModel):
+    """ A base class for latent regression models with m-modules that are at least partially shared between instances.
+
+    This class is designed to ease working in scenarios where we fit multiple latent regression models, one to each
+    individual, and we want the m-module of these models to have a component that is shared across all of these models.
+
+    The m-module of these instances will be of the form m = torch.nn.Sequential(specific_m, shared_m), where specific_m
+    is an module unique to the instance and shared_m is a module shared between instances.
+
+    This class provides convenience methods that facilitate getting the shared and specific portions and parameters of
+    the m-module.
+
+    """
+
+    def __init__(self, d_in: Sequence, d_out: Sequence, d_proj: Sequence, d_trans: Sequence,
+                 specific_m: torch.nn.Module, shared_m: torch.nn.Module, s: Sequence[torch.nn.Module],
+                 direct_pairs: Sequence[tuple] = None, w_gain: float = 1, noise_range: Sequence[float] = [.1, .2],
+                 assign_p_u: bool = True):
+
+        if (specific_m is not None) and (shared_m is not None):
+            m = torch.nn.Sequential(specific_m, shared_m)
+        elif specific_m is None:
+            m = shared_m
+        else:
+            m = specific_m
+
+        super().__init__(d_in=d_in, d_out=d_out, d_proj=d_proj, d_trans=d_trans, m=m, s=s, direct_pairs=direct_pairs,
+                         w_gain=w_gain, noise_range=noise_range, assign_p_u=assign_p_u)
+
+        self.specific_m = specific_m
+        self.shared_m = shared_m
+        self.return_shared_m_params = True
+
+    def specific_m_parameters(self) -> list:
+        """ Returns subject-specific parameters of the m-module.
+
+        Returns:
+            params: A list of parameters.
+        """
+        if self.specific_m is not None:
+            return list(self.specific_m.parameters())
+        else:
+            return []
+
+    def shared_m_parameters(self) -> list:
+        """ Returns shared parameters of the m-module.
+
+        Returns:
+            params: A list of parameters.
+        """
+        if self.shared_m is not None:
+            return list(self.shared_m.parameters())
+        else:
+            return []
+
+    def parameters(self): #-> Generator[torch.nn.Parameter]:
+        """ Returns parameters of the model, possibly excluding parameters of the shared component of the m-module.
+
+        The parameters of the shared component of the m-module will not be returned if self.returned_shared_m_params is
+        False.
+
+        """
+        full_params = list(super().parameters())
+
+        if self.return_shared_m_params:
+            return_params = full_params
+        else:
+            shared_m_params = set(self.shared_m.parameters())
+            full_params = set(full_params)
+            return_params = list(full_params.difference(shared_m_params))
+
+        return (p for p in return_params)
+
