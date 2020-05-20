@@ -331,7 +331,7 @@ def grouped_linear_regression_within_estimator_stats(beta, avm, n_grps, alpha):
 
     non_zero_p = 2*scipy.stats.t(df=(n_grps-1)).cdf(-1*np.abs(beta/std_ers))
 
-    non_zero = np.logical_and(c_ints[0,:] < 0, c_ints[1,:] > 0)
+    non_zero = np.logical_not(np.logical_and(c_ints[0,:] < 0, c_ints[1,:] > 0))
 
     return {'alpha': alpha, 'c_ints': c_ints, 'non_zero_p': non_zero_p, 'non_zero': non_zero}
 
