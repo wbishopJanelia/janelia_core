@@ -244,6 +244,75 @@ def grouped_linear_regression_wild_bootstrap(y: np.ndarray, x: np.ndarray, g: np
     return p_vls
 
 
+def grouped_linear_regression_ols_estimator(y: np.ndarray, x: np.ndarray, g: np.ndarray, rcond: float = None):
+    """ Fits a linear model and stats using optimal least squares, accounting for grouped errors.
+
+     For group g, the model for the i^th observation is of the form:
+
+        y_gi = x_gi^T\beta + \ep_gi,
+
+    where x_gi are predictor variables of dimension P, o_g is a group offset and ep_gi is zero-mean noise.  In this model,
+    it assumes all groups shared the same \beta but each group gets its own o_g and \ep_gi.
+
+    Note: A small sample correction is applied when calculating the asymptotic covariance matrix, as outlined in
+
+        "A Practioner's Guide to Cluster-Robust Inference" by A. Cameron and Douglas Miller, 2015.
+
+    Args:
+
+        y: 1-d array of the predicted variable.  Of length n_smps.
+
+        x: Variables to predict from.  Of shape n_smps*d_x.
+
+        g: 1-d array indicating groups of samples.  Of length n_smps.  Samples from the same group should
+        have the same value in g.
+
+        rcond: The value of rcond to provide to the least squares fitting.  See np.linalg.lstsq.
+
+    Returns:
+
+        beta: The estimate of beta
+
+        acm: The asymptotic covariance matrix for beta.
+
+        n_grps: The number of groups in the analysis
+
+    Raises:
+        ValueError: If the number of samples does not exceed the number of x variables.
+   """
+
+    n_smps, n_x_vars = x.shape
+
+    if n_x_vars >= n_smps:
+        raise(ValueError('Number of samples does not exceed number of x variables.'))
+
+    # Determine where the groups are
+    grps = np.unique(g)
+    n_grps = len(grps)
+    grp_inds = [None]*n_grps
+    for g_i, grp_i in enumerate(grps):
+        grp_inds[g_i] = np.nonzero(g == grp_i)[0]
+
+    # Calculate beta
+    beta_est = np.linalg.lstsq(x, y, rcond=rcond)
+    beta = beta_est[0]
+
+    # Calculate asymptotic covariance matrix
+    residual = y - np.matmul(x, beta)
+
+    c = (n_grps*(n_grps-1))*(n_smps - 1)/(n_smps - n_x_vars)
+
+    m0 = np.linalg.inv(np.matmul(x.transpose(), x))
+    m1 = np.zeros([n_x_vars, n_x_vars])
+    for inds in grp_inds:
+        temp = np.sqrt(c)*np.matmul(x[inds, :].transpose(), residual[inds])
+        temp = temp[:, np.newaxis]
+        m1 = m1 + np.matmul(temp, temp.transpose())
+
+    acm = np.matmul(np.matmul(m0, m1), m0)
+
+    return [beta, acm, n_grps]
+
 
 def grouped_linear_regression_within_estimator(y: np.ndarray, x: np.ndarray, g: np.ndarray, rcond: float = None):
     """ Computes linear model and stats using the within estimator for a fixed-effects linear model.
@@ -318,7 +387,7 @@ def grouped_linear_regression_within_estimator(y: np.ndarray, x: np.ndarray, g: 
         temp = temp[:, np.newaxis]
         m1 = m1 + np.matmul(temp, temp.transpose())
 
-    avm = np.matmul(np.matmul(m0, m1), m0)
+    acm = np.matmul(np.matmul(m0, m1), m0)
 
     # Calculate offsets for each group
     uncentered_res = y - np.matmul(x, beta)
@@ -328,19 +397,19 @@ def grouped_linear_regression_within_estimator(y: np.ndarray, x: np.ndarray, g: 
 
     offsets = {g:v for g, v in zip(grps, o_g)}
 
-    return [beta, avm, offsets, n_grps]
+    return [beta, acm, offsets, n_grps]
 
 
-def grouped_linear_regression_within_estimator_stats(beta, avm, n_grps, alpha):
-    """ Calculates statistics given the results of grouped_linear_regression_within_estimator.
+def grouped_linear_regression_acm_stats(beta, acm, n_grps, alpha):
+    """ Calculates statistics given an estimate of an asymptotic covariance matrix.
 
     Confidence intervals and p-values for individual coefficients are calculated assuming a t-distribution on the
     estimates for the individual entries of beta.
 
     Args:
-        beta: The estimate of beta returned by grouped_linear_regression_within_estimator
+        beta: The estimate of beta
 
-        avm: The asymptotic variance matrix for beta returned by grouped_linear_regression_within_estimator
+        acm: The asymptotic variance matrix for beta
 
         n_grps: The number of groups in the original regression
 
@@ -360,7 +429,7 @@ def grouped_linear_regression_within_estimator_stats(beta, avm, n_grps, alpha):
     """
 
     m = -1*scipy.stats.t(df=(n_grps - 1)).ppf(alpha / 2)
-    std_ers = np.sqrt(np.diag(avm))
+    std_ers = np.sqrt(np.diag(acm))
 
     c_ints = np.stack([beta - std_ers*m, beta+std_ers*m])
 
