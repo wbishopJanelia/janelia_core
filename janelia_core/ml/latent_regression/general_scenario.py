@@ -23,6 +23,14 @@ class GeneralInputOutputScenario():
         1) Have the same input groups (but the number of variables in each group can vary from subject to
         subject)
 
+        2) Have the same output groups (but again, the number of variables in each group can vary from subject to
+        subject).
+
+        3) We also assume that m-module (the mapping from low-dimenaional input to low-dimensional output) has two
+        components for each subject: a component that is shared between all subjects and a component that is unique to
+        each subject, where the subject-unique component is applied to the low-dimensioanal projections of inputs and
+        it's output is passed to the shared-component.
+
     Note: When creating the initial scenario, subjects are entered in a particular order. (e.g., the number of variables
     in input and output groups for each subject).  This ordering corresponds to their index, s_i, which is used in
     multiple functions.
@@ -70,7 +78,7 @@ class GeneralInputOutputScenario():
         self.n_output_modes = n_output_modes
         self.shared_m_core = shared_m_core
         self.fixed_input_modes = fixed_input_modes
-        self.fix_output_modes = fixed_output_modes
+        self.fixed_output_modes = fixed_output_modes
         self.direct_pairs = direct_pairs
 
     def gen_subj_mdl(self, s_i: int, specific_s: Sequence[torch.nn.Module],
@@ -86,11 +94,11 @@ class GeneralInputOutputScenario():
             projected back into the high-dimensional space (i.e., multiplied by u_h).
 
             specific_m: An optional module which can apply subject specific transformations to the low-dimensional
-            projections of the input data.  This can be useful, for example, if wanting to account for scales and
-            shifts in the projected data among subjects. This should be a module which accepts a sequence of tensors,
-            each tensor corresponding to the projected data from one output group and outputs a sequence of tensors,
-            each tensor corresponding to the transformed data for one output group.  If this is None, no subject
-            specific transformation will be included.
+            projections of the input data before passing it to the shared portion of the m-module. This can be useful,
+            for example, if wanting to account for scales and shifts in the projected data among subjects. This should
+            be a module which accepts a sequence of tensors, each tensor corresponding to the projected data from one
+            output group and outputs a sequence of tensors, each tensor corresponding to the transformed data for one
+            output group.  If this is None, no subject specific transformation will be included.
 
             assign_p_u: True if p and u parameters should be generated for the subject model.
 
@@ -111,7 +119,7 @@ class GeneralInputOutputScenario():
                     mdl.p[g].data = p_g
                     mdl.p_trainable[g] = False
             if self.fixed_input_modes is not None:
-                for h, u_h in self.fix_output_modes:
+                for h, u_h in self.fixed_output_modes:
                     mdl.u[h].data = u_h
                     mdl.u_trainable[h] = False
 
