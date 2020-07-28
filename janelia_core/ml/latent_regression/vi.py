@@ -3,7 +3,7 @@
 import copy
 import itertools
 import time
-from typing import List, Sequence, Union
+from typing import Callable, List, Sequence, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -52,6 +52,46 @@ def format_output_list(base_str: str, it_str: str, vls: Sequence[float], inds: S
     f_str = f_str.format(*vls)
 
     return f_str
+
+
+def concatenate_check_points(check_points: Sequence[dict], params: Sequence[dict]) -> List:
+    """ Concatenates lists of checkpoints and computes total epochs to each checkpoint from multiple rounds of fitting.
+
+    Args:
+        check_points: check_points[i] is a sequence of check points produced by a call to
+        MultiSubjectVIFitter.fit().  It is assumed that entries in check_points match the order they were produced
+        in the actual fitting.
+
+        params: params[i] is a dictionary for the call to MultiSubjectVIFitter.fit() that produced the checkpoints
+        in check_points[i].  Is should have the fields:
+            cp_epochs: For the epochs that the checkpoints were created at
+            n_epochs: For the total number of epochs that fitting was run for
+
+    Returns:
+
+        conc_check_points: The concatenated list of check points
+
+        cp_epochs: The total accumulated epochs that were run to get to each check point.
+    """
+
+    n_fits = len(check_points)
+
+    n_fit_epochs = [copy.deepcopy(d['n_epochs']) for d in params]
+    cp_epochs = [copy.deepcopy(d['cp_epochs']) for d in params]
+
+    # Make sure cp_epochs are arrays
+    cp_epochs = [np.asarray(vls) for vls in cp_epochs]
+
+    total_sum = 0
+    for f_i in range(n_fits):
+        cp_epochs[f_i] += total_sum
+        total_sum += n_fit_epochs[f_i]
+
+    cp_epochs = np.concatenate(cp_epochs)
+
+    conc_check_points = list(itertools.chain(*check_points))
+
+    return [conc_check_points, cp_epochs]
 
 
 def compute_prior_penalty(mn: torch.Tensor, positions: torch.Tensor):
@@ -839,6 +879,7 @@ class MultiSubjectVIFitter():
                     print('Creating checkpoint after epoch ' + str(e_i) + '.')
                     cp_ind = np.argwhere(cp_epochs == e_i)[0][0]
                     check_points[cp_ind] = self.create_check_point(inc_penalizers=cp_penalizers)
+                    check_points[cp_ind]['epoch'] = e_i
 
             # Take care of logging everything
             elapsed_time = time.time() - t_start
@@ -976,6 +1017,64 @@ class MultiSubjectVIFitter():
             for parameter_penalizer in self.parameter_penalizers:
                 parameter_penalizer.to(device)
 
+
+def eval_fits(s_collections: Sequence[SubjectVICollection], data: TimeSeriesBatch, batch_size: int = 100,
+             metric: Callable = None, return_preds: bool = True) -> List:
+    """ Measures model fits on a given set of data.
+
+    This function generates predictions for each model using the posterior means of modes. It then evaluates these
+    predictions using negative log-likelihood by default but the user can specify other metrics for measuring
+    prediction quality.
+
+    Args:
+        s_collections: A sequence of VI collections we want to evaluate.
+
+        data: The data to use for evaluation
+
+        batch_size: The number of samples to send to GPU at one time for evaluation; can be useful if working with
+        low-memory GPUs.
+
+        metric: A function which computes fit quality given the output of predict_from_truth
+
+        return_preds: True if predictions should be returned
+
+    Returns:
+        metrics: metrics[i] is the fit quality for s_collections[i].  Note that if no metric is supplied, this will
+        just be a list of negative log-likelihood values, but custom metric functions can return arbitrary objects.
+
+        preds_with_truth: preds_with_truth[i] are the predictions for s_collections[i] produced with the function
+        predict_with_turth. This will only be returned in return_preds is true.
+    """
+
+    # Generate predictions
+    n_mdls = len(s_collections)
+    preds_with_truth = [None]*n_mdls
+    metrics = [None]*n_mdls
+    for c_i, s_coll_i in enumerate(s_collections):
+        if c_i % 10 == 0:
+            print('Generating predictions for fit: ' + str(c_i))
+
+        # Make prediction
+        pred_i = predict_with_truth(s_collection=s_coll_i, data=data, batch_size=batch_size, time_grp=None)
+
+        # Evaluate fits
+        if metric is None:
+            y = [torch.Tensor(pred_i['truth'][h]) for h in range(len(pred_i['truth']))]
+            mn = [torch.Tensor(pred_i['pred'][h]) for h in range(len(pred_i['pred']))]
+            with torch.no_grad():
+                metrics[c_i] = s_coll_i.s_mdl.neg_ll(y=y, mn=mn).detach().cpu().numpy().item()
+        else:
+                metrics[c_i] = metric(pred_i)
+
+        if return_preds:
+            preds_with_truth[c_i] = pred_i
+
+    if return_preds:
+        return [metrics, preds_with_truth]
+    else:
+        return metrics
+
+
 def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size: int = 100) -> List[np.ndarray]:
     """ Predicts output given input from a model with posterior distributions over modes.
 
@@ -1032,3 +1131,46 @@ def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size
         y_out[h] = np.concatenate([batch_y[h] for batch_y in y])
 
     return y_out
+
+
+def predict_with_truth(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size: int = 100,
+                       time_grp: int = -1):
+    """ Predicts output for a model, using posterior over modes, and including true data in output for reference.
+
+    This is a wrapper function around predict for convenience.
+
+    Note: All predictions will be returned on host (cpu) memory as numpy arrays.
+
+    Args:
+        s_collection: The collection for the subject.   Any data in the collection will be ignored.
+
+        data: The data to predict with.
+
+        batch_size: The number of samples we predict on at a time.  This is helpful if using a GPU
+        with limited memory.
+
+        time_grp: The index of the group in data with time stamps.  If None, no time stamps will be returned.
+
+    Returns:
+
+        predictions: A dictionary with the following keys:
+            pred: predictions. pred[h] is the prediction for the h^th output group of the model
+            truth: Corresponding true values for those in pred
+            time: It time_grp is not None, the time indices for each point in pred and truth. Otherwise, time will be
+            None.
+
+    """
+
+    output_grps = s_collection.output_grps
+
+    pred = predict(s_collection=s_collection, data=data, batch_size=batch_size)
+    truth = [data.data[h][data.i_y].cpu().numpy() for h in output_grps]
+
+    if time_grp is not None:
+        time = data.data[time_grp][data.i_y].cpu().numpy()
+    else:
+        time = None
+
+    return {'pred': pred, 'truth': truth, 'time': time}
+
+
