@@ -251,8 +251,8 @@ def grouped_linear_regression_ols_estimator(y: np.ndarray, x: np.ndarray, g: np.
 
         y_gi = x_gi^T\beta + \ep_gi,
 
-    where x_gi are predictor variables of dimension P, o_g is a group offset and ep_gi is zero-mean noise.  In this model,
-    it assumes all groups shared the same \beta but each group gets its own o_g and \ep_gi.
+    where x_gi are predictor variables of dimension P, and ep_gi is noise.  In this model,
+    it assumes all groups shared the same \beta but each group gets its own \ep_gi.
 
     Note: A small sample correction is applied when calculating the asymptotic covariance matrix, as outlined in
 
@@ -300,7 +300,7 @@ def grouped_linear_regression_ols_estimator(y: np.ndarray, x: np.ndarray, g: np.
     # Calculate asymptotic covariance matrix
     residual = y - np.matmul(x, beta)
 
-    c = (n_grps*(n_grps-1))*(n_smps - 1)/(n_smps - n_x_vars)
+    c = (n_grps/(n_grps-1))*((n_smps - 1)/(n_smps - n_x_vars + 1))
 
     m0 = np.linalg.inv(np.matmul(x.transpose(), x))
     m1 = np.zeros([n_x_vars, n_x_vars])
@@ -386,6 +386,16 @@ def grouped_linear_regression_within_estimator(y: np.ndarray, x: np.ndarray, g: 
         temp = np.sqrt(c)*np.matmul(x_ctr[inds, :].transpose(), residual[inds])
         temp = temp[:, np.newaxis]
         m1 = m1 + np.matmul(temp, temp.transpose())
+
+    plt.figure()
+    plt.imshow(m0)
+    plt.colorbar()
+    plt.title('m0')
+
+    plt.figure()
+    plt.imshow(m1)
+    plt.colorbar()
+    plt.title('m1')
 
     acm = np.matmul(np.matmul(m0, m1), m0)
 
@@ -553,7 +563,7 @@ def visualize_boot_strap_results(bs_values: np.ndarray, var_strs: Sequence, thet
     # Label x-axis
     plt.xticks(np.arange(1, n_vars+1), var_strs, rotation=-75)
 
-    # Set colors of x-axix labels
+    # Set colors of x-axis labels
     for var_i, x_lbl in enumerate(ax.get_xticklabels()):
         x_lbl.set_color(var_clrs[var_i, :])
 
@@ -656,3 +666,96 @@ def grouped_linear_regression_boot_strap_stats(bs_values: np.ndarray, alpha:floa
 
     # Return results
     return {'alpha': alpha, 'c_ints': c_ints, 'non_zero_p': non_zero_p, 'non_zero': non_zero}
+
+
+def visualize_coefficient_stats(var_strs: Sequence, theta: np.ndarray = None, c_ints: np.ndarray = None,
+                                var_clrs: np.ndarray = None, sig: np.ndarray = None,
+                                er_bar_pts: int = 2, theta_size = 5,
+                                sig_size:int = 5, sig_y_vl: float = None, x_axis_rot: float = -75,
+                                ax: plt.axes = None, plot_zero_line: bool = True) -> plt.axes:
+
+    """ For visualizing estimated coefficients with confidence intervals.
+
+    Args:
+        var_strs: Strings giving the name of each coefficient
+
+        theta: Point estimate for each coefficient, order corresponds to var_strs.  If None, point estimates will
+        not be plotted.
+
+        c_ints: c_ints[i,:] is the lower (left column) and upper (right column) limits on the confidence interval
+        for the coefficient in var_strs[i].  If None, confidencce intervals will not be plotted.
+
+        var_clrs: var_clrs[i,:] is the color to use for plotting the coefficient for var_strs[i].  If None, black
+        will be used for all plotting.
+
+        sig: sig[i] is True if the coefficient for var_strs[i] is significant. Significant values will have a
+        star plotted to indicate their significant.
+
+        theta_size: The size of the marker to use when plotting point estimages of coefficients.
+
+        er_bar_pts: The width of error bars to plot for confidence intervals.
+
+        sig_size: The size of the marker to use when denoting which coefficients are significanly different 0.
+
+        sig_y_vl: If not None, this is the y-value used for showing significant stars.
+
+        plot_zero_line: True if a line indicating 0 should be plotted
+
+        x_axis_rot: Rotation in degrees of x-axis labels.
+
+        ax: Axes to plot into. If None, a new figure with axes will be created.
+
+    Returns:
+
+        as: The axes the plot was generated in.
+    """
+
+    n_vars = len(var_strs)
+
+    if ax is None:
+        plt.figure()
+        ax = plt.axes()
+
+    if var_clrs is None:
+        var_clrs = np.zeros([n_vars, 3])
+
+    # Label x-axis
+    plt.xticks(np.arange(1, n_vars+1), var_strs, rotation=x_axis_rot)
+
+    # Set colors of x-axis labels
+    for var_i, x_lbl in enumerate(ax.get_xticklabels()):
+        x_lbl.set_color(var_clrs[var_i, :])
+
+    # Plot zero line if we are suppose to
+    if plot_zero_line:
+        plt.plot([0, n_vars+1], [0, 0], 'k--')
+
+    # Plot confidence intervals if we are suppose to
+    if c_ints is not None:
+        err_y = np.mean(c_ints, axis=0)
+        lower_err_bars = err_y - c_ints[0, :]
+        upper_err_bars = c_ints[1, :] - err_y
+        err_bars = np.stack([lower_err_bars, upper_err_bars])
+
+        for v_i in range(n_vars):
+            ax.errorbar(x=v_i+1, y=err_y[v_i], yerr=err_bars[:, v_i].reshape(2,1), fmt='none',
+                        ecolor=var_clrs[v_i,:], elinewidth=er_bar_pts,
+                        capsize=2*er_bar_pts, capthick=er_bar_pts)
+
+    # Show estimated point values if we are suppose to
+    if theta is not None:
+        for v_i in range(n_vars):
+            plt.plot(v_i + 1, theta[v_i], 'ko', markersize=theta_size, color=var_clrs[v_i,:])
+
+    # Add asteriks to indicate significant if we are suppose to
+    if sig is not None:
+        y_lim = ax.get_ylim()
+        if sig_y_vl is None:
+            sig_y_vl = .02*(y_lim[1] - y_lim[0]) + y_lim[0]
+        for v_i in range(n_vars):
+            if sig[v_i]:
+                plt.plot(v_i+1, sig_y_vl, 'k*', markersize=sig_size, color=var_clrs[v_i,:])
+
+    return ax
+
+
