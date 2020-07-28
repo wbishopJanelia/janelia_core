@@ -592,6 +592,11 @@ class SharedMLatentRegModel(LatentRegModel):
         self.shared_m = shared_m
         self.return_shared_m_params = True
 
+    def update_shared_m(self, new_m_core: torch.nn.Module):
+        """ Updates the shared component of the m-module. """
+        self.shared_m = new_m_core
+        self.m[1] = new_m_core
+
     def specific_m_parameters(self) -> list:
         """ Returns subject-specific parameters of the m-module.
 

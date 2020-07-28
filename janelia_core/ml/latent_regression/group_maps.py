@@ -7,10 +7,12 @@
     bishopw@hhmi.org
 """
 
-from typing import Sequence
+from typing import List, Sequence
 
 import numpy as np
 import torch
+
+from janelia_core.ml.extra_torch_modules import DenseLNLNet
 
 
 class LinearMap(torch.nn.Module):
@@ -149,6 +151,28 @@ class ElementWiseTransformedGroupLatents(torch.nn.Module):
         return [self.f(x_i) for x_i in x]
 
 
+class GroupTransform(torch.nn.Module):
+    """ Applies a different transformation to groups of input, producing output for each group.
+
+
+    """
+
+    def __init__(self, transforms: Sequence[torch.nn.Module]):
+        """ Creates a new GroupTransform object.
+
+        Args:
+            transforms: A list of transforms to apply. transforms[i] is the transform that will be applied to intut
+            group i
+        """
+        raise(NotImplemented('This module has been fully implemented but not tested.  Do some sanity checks before using.'))
+        super().__init__()
+        self.group_maps = torch.nn.ModuleList(transforms)
+
+    def forward(self, x: Sequence[torch.Tensor]) -> Sequence[torch.Tensor]:
+        """ Computes input from output. """
+        return [transform(x_g) for transform, x_g in zip(self.group_maps, x)]
+
+
 class GroupLinearTransform(torch.nn.Module):
     """ Forms output by multiplying each entry in group input vectors by a separate scalar and adding an offset.
 
@@ -218,6 +242,7 @@ class GroupLinearTransform(torch.nn.Module):
                 return [x_g*torch.abs(v_g) for v_g, x_g in zip(self.v, x)]
             else:
                 return [x_g*v_g for v_g, x_g in zip(self.v, x)]
+
 
 class GroupMatrixMultiply(torch.nn.Module):
     """ Mapping which applies a matrix multiply seperately to each input vector to form output vectors."""
@@ -356,5 +381,43 @@ class ConcatenateAndSelectMap(torch.nn.Module):
         return [x_conc[:, inds] for inds in self.sel_tensors]
 
 
+class SingleGroupDenseNetMap(torch.nn.Module):
+    """ Maps from one group of input to one group of output using a dense net. """
 
+    def __init__(self, d_in: int, d_out: int, n_layers: int, growth_rate: int, bias: bool = True):
+        """ Creates a new SingleGroupDenseNetMap object.
+
+        The dense net will use Tanh non-linearities.
+
+        Args:
+            d_in: The input dimensionality to the map
+
+            d_out: The output dimensionality to the map
+
+            n_layers: The number of layers in the dense net
+
+            growth_rate: The growth rate of the dense net
+
+            bool: True if the dense net should have bias terms
+        """
+        super().__init__()
+
+        dense_net = DenseLNLNet(nl_class=torch.nn.Tanh, d_in=d_in, n_layers=n_layers, growth_rate=growth_rate,
+                                bias=bias)
+
+        linear_layer = torch.nn.Linear(in_features=d_in + n_layers*growth_rate, out_features=d_out, bias=bias)
+
+        self.nn = torch.nn.Sequential(dense_net, linear_layer)
+
+    def forward(self, x: Sequence[torch.Tensor]) -> List[torch.Tensor]:
+        """ Computes input from output.
+
+        Args:
+            x: x[0] is the input for the single group of shape n_smps*d_in
+
+        Returns:
+            y: y[0] is the output of shape n_smps*d_out
+        """
+
+        return [self.nn(x[0])]
 
