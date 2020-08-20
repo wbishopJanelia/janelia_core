@@ -164,6 +164,30 @@ def find_first_before(a: np.ndarray, ind: int) -> int:
         return inds[-1]
 
 
+def generate_hypergrid_pts(d: int = 2, n_smps_per_dim = 100):
+    """ Generates points on a hypergrid over the unit cube.
+
+    This function will place all points in an array for easy function evaluation.
+
+    Args:
+
+        d: The dimensionality of the grid.
+
+        n_smps_per_dim: The number of samples per dimension to generate.
+
+    Returns:
+
+        pts: The generated points of shape n_pts*d
+
+    """
+
+    dim_coords = (1 / n_smps_per_dim) * np.arange(n_smps_per_dim)
+    all_coords = [dim_coords] * d
+    grid_coords = np.meshgrid(*all_coords)
+    coords = np.stack([np.ravel(g) for g in grid_coords]).transpose()
+    return coords
+
+
 def int_to_arb_base(base_10_vl: np.ndarray, max_digit_vls: Sequence[int]) -> np.ndarray:
     """ This is a function to convert non-zero integers to an arbitrary base.
 
