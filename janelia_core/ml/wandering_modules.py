@@ -48,8 +48,8 @@ class BumpFcn(WanderingModule):
     """
 
     def __init__(self, c: torch.Tensor, w: torch.Tensor, m: float, c_bounds: torch.Tensor = None,
-                 w_bounds: torch.Tensor = None, c_grad_std: float = 0, w_grad_std: float = 0,
-                 m_grad_gain: float = 0, support_p: float = .01):
+                 w_bounds: torch.Tensor = None, c_grad_std: float = 0.0, w_grad_std: float = 0.0,
+                 m_grad_gain: float = 0.0, support_p: float = .01):
         """ Creates a new BumpFcn module.
 
         Args:
@@ -72,7 +72,7 @@ class BumpFcn(WanderingModule):
             noise
 
             m_grad_gain: The gain to use when perturbing the gradient for the magnitude.  The gradient is perturbed by
-            subtracting the value m*grad_gain to the gradient for m.
+            subtracting the value m*grad_gain from the gradient for m.
 
             support_p: The percent of max value in any direction where we define the boundary of support.  This is
             used for skipping function evaluation for input values that are outside of the support.
@@ -232,4 +232,82 @@ class SumOfBumpFcns(WanderingModule):
     def pert_grads(self):
         """ Currently we don't implement any gradient perturbations."""
         pass
+
+
+class SlowSumOfBumpFcns(WanderingModule):
+    """ Implements a sum of bump functions which will be slower in computation on GPU, but may be have memory benefits.
+
+    (See BumpFcn for the functional form of a single bump function).
+
+    """
+
+    def __init__(self, c: torch.Tensor, w: torch.Tensor, m: torch.Tensor,
+                 c_bounds: torch.Tensor, w_bounds: torch.Tensor, c_grad_std: float = 0.0, w_grad_std: float = 0.0,
+                 m_grad_gain: float = 0.0, support_p: float = .01):
+        """ Creates a new SumOfBumpFcns modules.
+
+        This module allows for bounding of centers and widths and perturbing of gradients.
+
+        Args:
+
+            c: Initial centers.  Each column is a center for a bump.
+
+            w: Initial widths.  Each column is the width parameters for a bump.
+
+            m: Initial magnitudes.  Each entry is the magnitude for a bump.
+
+            c_bounds: Bounds for the center parameter.  First column is lower bounds; second column is upper bounds. If
+            None, the center will not be bounded.
+
+            w_bounds: Bounds for the width parameter.  First column is lower bounds; second column is upper bounds. If
+            None, the width parameters will not be bounded.
+
+            c_grad_std: The standard deviation to use when perturbing gradients for the center parameters with random
+            noise
+
+            w_grad_std: The standard deviation to use when perturbing gradients for the width parameters with random
+            noise
+
+            m_grad_gain: The gain to use when perturbing the gradient for the magnitude.  The gradient is perturbed by
+            subtracting the value m*grad_gain from the gradient for m.
+
+            support_p: The percent of max value in any direction where we define the boundary of support.  This is
+            used for skipping function evaluation for input values that are outside of the support.
+        """
+
+        super().__init__()
+
+        n_bumps = c.shape[1]
+        self.n_bumps = n_bumps
+
+        bump_fcns = [BumpFcn(c=c[:, b_i], w=w[:, b_i], m=m[b_i], c_bounds=c_bounds.t(),
+                             w_bounds=w_bounds.t(), c_grad_std=c_grad_std, w_grad_std=w_grad_std,
+                             m_grad_gain=m_grad_gain, support_p=support_p) for b_i in range(n_bumps)]
+
+        self.bump_fcns = torch.nn.ModuleList(bump_fcns)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes output from input.
+
+        Args:
+            x: input of shape n_smps*d_in
+
+        Returns:
+            y: output of length n_smps
+        """
+
+        n_smps = x.shape[0]
+        y = torch.zeros(n_smps, device=x.device)
+        for b_f in self.bump_fcns:
+            y += b_f(x)
+
+        return y
+
+    def bound(self):
+        for b_f in self.bump_fcns:
+            b_f.bound()
+
+    def pert_grads(self):
+        for b_f in self.bump_fcns:
+            b_f.pert_grads()
 
