@@ -1,14 +1,16 @@
 """ Utilities for viewing volumes.  """
 
 import pathlib
-from typing import Sequence
-from typing import Union
+from typing import Sequence, Union, Tuple
 
+import imageio
 import matplotlib.animation
 import matplotlib.colors
 import matplotlib.cm
 import matplotlib.figure
 import matplotlib.pyplot as plt
+import matplotlib.transforms
+import moviepy.editor as editor
 import numpy as np
 
 from janelia_core.dataprocessing.dataset import ROI
@@ -17,6 +19,24 @@ from janelia_core.visualization.custom_color_maps import visualize_two_param_hsv
 from janelia_core.visualization.image_generation import rgb_3d_max_project
 
 
+def comb_movies(movie_paths: Sequence[pathlib.Path], save_path: pathlib.Path,
+                fig_size: Sequence[int]=[21, 12], facecolor: Tuple[float] =(0,0,0),
+                fps: int=10, bitrate=-1, ):
+    """ Given a set of movies, combines them by putting their frames side-by-side.
+
+
+    Args:
+
+        movie_paths: Paths to movies to combined
+
+        save_path: The path to save the combined video to.
+
+    """
+
+    clips = [editor.VideoFileClip(movie_path) for movie_path in movie_paths]
+    final_clip = editor.clips_array([clips])
+    final_clip.write_videofile(save_path)
+
 def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
                            title: str = None, fps: int = 10,
                            cmap: MultiParamCMap = None, cmap_param_strs: Sequence[str] = None,
@@ -24,7 +44,8 @@ def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
                            figsize: Sequence[int] = [7, 12],
                            facecolor: Union[float] = (0, 0, 0),
                            text_color: Union[float] = (1.0, 1.0, 1.0),
-                           bitrate=-1, one_index_z_plane: bool = False):
+                           bitrate=-1, one_index_z_plane: bool = False,
+                           ax_position = None):
     """ Generates a sequence of movie of z-plane images already in RGB space.
 
     Args:
@@ -56,6 +77,7 @@ def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
 
         one_index_z_plane: True if z-plane numbers should start at 1 instead of 0 when generating titles for each plane
 
+        ax_position: Position of axes for plotting images.
     """
 
     # Define a helper function
@@ -75,11 +97,11 @@ def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
 
     # Setup the basic figure for plotting, showing the first frame
     fig = plt.figure(figsize=figsize, facecolor=facecolor)
-    if cmap is None:
-        z_im = plt.imshow(frame0)
+    if ax_position is None:
+        z_ax = plt.subplot()
     else:
-        z_im = plt.subplot2grid([10, 10], [0, 0], 9, 10)
-        z_im = z_im.imshow(frame0)
+        z_ax = fig.add_axes(ax_position)
+    z_im = z_ax.imshow(frame0)
 
     # Setup the title
     if title is not None:
@@ -90,7 +112,8 @@ def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
 
     # Show the color map if we are suppose to
     if cmap is not None:
-        cmap_im = plt.subplot2grid([10, 10], [9, 8], 2, 2)
+        #cmap_im = plt.subplot2grid([10, 10], [9, 8], 2, 2)
+        cmap_im = fig.add_axes([.8, .0, 0.2, 0.2])
         if cmap_param_vls is not None:
             cmap_p0_vls = cmap_param_vls[0]
             cmap_p1_vls = cmap_param_vls[1]
@@ -133,7 +156,8 @@ def make_z_plane_movie(volume: np.ndarray, save_path: str,
                        facecolor: Union[float] = (0, 0,0),
                        text_color: Union[float] = (1.0, 1.0, 1.0),
                        bitrate=-1,
-                       clim_percs: Sequence[float] = [.1, 99.9]):
+                       clim_percs: Sequence[float] = [.1, 99.9],
+                       one_index_z_plane: bool = False) -> matplotlib.transforms.Bbox:
     """
     Generates a movie of all the z-planes in a volume.
 
@@ -167,12 +191,23 @@ def make_z_plane_movie(volume: np.ndarray, save_path: str,
         The value of c_perc_limits[0] is the lower limit and the value of c_perc_limits[1] is the upper
         limit.
 
+        one_index_z_plane: True if z-plane numbers should start with 1 in the frame titles
+
+    Returns:
+
+        ax_pos: The bounding box for the axes used to show frames
+
     """
 
     # Define a helper function
     def update_image(z, image, im_h, title_h, title_s):
         im_h.set_data(np.squeeze(image[z, :, :]))
-        title_h.set_text(title_s + 'z = ' + str(z))
+        z_n = z
+
+        if one_index_z_plane:
+            z_n = z_n + 1
+
+        title_h.set_text(title_s + 'z = ' + str(z_n))
         return im_h,
 
     # If clim is None, calculate color limits
@@ -221,8 +256,12 @@ def make_z_plane_movie(volume: np.ndarray, save_path: str,
     # Save the movie
     plane_animation.save(save_path, writer=writer, savefig_kwargs={'facecolor':facecolor})
 
+    ax_pos = z_im.axes.get_position()
+
     # Close the figure
     plt.close(fig)
+
+    return ax_pos
 
 
 def visualize_rgb_max_project(vol: np.ndarray, dim_m: np.ndarray = None, cmap_im: np.ndarray = None,
