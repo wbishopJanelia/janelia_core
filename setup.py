@@ -16,9 +16,11 @@ setup(
     "dipy",
 	"findspark",
 	"h5py",
+    "imageio-ffmpeg",
 	"jupyter",
 	"matplotlib",
     "morphsnakes",
+    "moviepy",
     "numpy",
 	"pyqtgraph",
 	"scikit-image",
@@ -26,5 +28,6 @@ setup(
     "pandas",
 	"pyspark",
     "sphinx",
+    "tqdm",
     ],
 )

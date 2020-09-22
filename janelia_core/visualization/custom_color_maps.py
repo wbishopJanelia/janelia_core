@@ -14,7 +14,8 @@ class MultiParamCMap():
 
     For all colormaps, the user specifies a list of values for each parameter and combinations of these parameter
     values are then mapped to colors.  When using a colormap, values to be assigned colors are rounded to the nearest
-    parameter values included in the colormap.
+    parameter values included in the colormap.  Saturation is also supported, so that values to be assigned colors outside
+    of the range of the values specified for the colormap are assigned colors at the limits of the colormap.
 
     """
 
@@ -73,7 +74,6 @@ class MultiParamCMap():
         return cls(param_vl_ranges=d['param_vl_ranges'], clrs=d['clrs'])
 
 
-
 def generate_two_param_hsv_map(clr_param_range: Sequence, vl_param_range: Sequence,
                                       p1_cmap: matplotlib.colors.Colormap, clims: Sequence[float],
                                       vllims: Sequence[float]) -> MultiParamCMap:
@@ -88,7 +88,7 @@ def generate_two_param_hsv_map(clr_param_range: Sequence, vl_param_range: Sequen
         as clr_param_range.
 
         p1_cmap: The color map that p1_values will index into. These colors will the be displayed
-        for saturation levels of 1.
+        for value levels of 1.
 
         clims: The lower and upper parameter values when indexing into p1_cmap.
 
@@ -134,7 +134,7 @@ def visualize_two_param_hsv_map(cmap: MultiParamCMap, plot_ax: plt.Axes = None, 
 
         p0_vls: A list of values to generate the colormap for.
 
-        p1_vls: A list of values to generate the colormpa for.
+        p1_vls: A list of values to generate the colormap for.
 
     Raises:
         ValueError: If the colormap is not for two parameters
@@ -211,3 +211,9 @@ def make_red_green_c_map(n: int = 256, inc_transp: bool = False) -> matplotlib.c
     return matplotlib.colors.LinearSegmentedColormap.from_list(name='red_to_green', colors=[(0,  [1.0, 0.0, 0.0, 1.0]),
                                                                (.5, [0.0, 0.0, 0.0, middle_alpha]),
                                                                (1.0, [0.0, 1.0, 0.0, 1.0])], N=n)
+
+
+
+
+
+
