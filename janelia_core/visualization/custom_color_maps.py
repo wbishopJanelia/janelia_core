@@ -74,6 +74,21 @@ class MultiParamCMap():
         return cls(param_vl_ranges=d['param_vl_ranges'], clrs=d['clrs'])
 
 
+def generate_normalized_rgb_cmap(base_map: matplotlib.colors.Colormap, n: int = 1000) -> matplotlib.colors.ListedColormap:
+    """ Generates a colormap of RGB values, where each value has a norm of 1.
+
+    Args:
+         base_map: The base map to sample.  RGB values of this map will be normalized.
+
+         n: The number of values in the generated map.
+
+    """
+
+    rgb_vls = base_map(np.linspace(0, 1, n))[:, 0:3]
+    rgb_norms = np.sqrt(np.sum(rgb_vls**2, axis=1, keepdims=True))
+    return matplotlib.colors.ListedColormap(colors=rgb_vls/rgb_norms, name=base_map.name + '_normalized')
+
+
 def generate_two_param_hsv_map(clr_param_range: Sequence, vl_param_range: Sequence,
                                       p1_cmap: matplotlib.colors.Colormap, clims: Sequence[float],
                                       vllims: Sequence[float]) -> MultiParamCMap:
@@ -166,29 +181,6 @@ def visualize_two_param_hsv_map(cmap: MultiParamCMap, plot_ax: plt.Axes = None, 
 
     a_ratio = np.abs(p1_vls[-1] - p1_vls[0]) / np.abs(p0_vls[-1] - p0_vls[0])
     plot_ax.imshow(clr_smps, extent=[p1_vls[0], p1_vls[-1], p0_vls[0], p0_vls[-1]], aspect=a_ratio, origin='lower')
-
-
-def make_red_blue_green_c_map(n: int = 256, red_stop: float = .5, green_start: float = .5) -> matplotlib.colors.LinearSegmentedColormap:
-    """ Generates a color map that linearly goes from red at 0 to blue at .5 and then to green at 1.
-
-    Args:
-        n: The number of values in the color map
-
-    Returns:
-        cmap: The generated color map.
-    """
-
-    cdict = {'red': [[0.0, 1.0, 1.0],
-                     [0.5, 0.0, 0.0],
-                     [1.0, 0.0, 0.0]],
-             'green': [[0.0, 0.0, 0.0],
-                       [0.5, 0.0, 0.0],
-                       [1.0, 1.0, 1.0]],
-             'blue': [[0.0, 0.0, 0.0],
-                      [0.5, 1.0, 1.0],
-                      [1.0, 0.0, 0.0]]}
-
-    return matplotlib.colors.LinearSegmentedColormap('red_green', cdict, N=256)
 
 
 def make_red_green_c_map(n: int = 256, inc_transp: bool = False) -> matplotlib.colors.LinearSegmentedColormap:
