@@ -89,6 +89,50 @@ def generate_normalized_rgb_cmap(base_map: matplotlib.colors.Colormap, n: int = 
     return matplotlib.colors.ListedColormap(colors=rgb_vls/rgb_norms, name=base_map.name + '_normalized')
 
 
+def generate_two_param_norm_map(clr_param_range: Sequence, norm_param_range: Sequence,
+                                p1_cmap: matplotlib.colors.Colormap, clims: Sequence[float],
+                                norm_lims: Sequence[float]) -> MultiParamCMap:
+    """ Generates a MultiParamCMap for two parameters.  The first indexed color; the second the norm of the color.
+
+    Args:
+        clr_param_range: The range of values for parameter 0, which indexes into color, in the form
+        (start_vl, stop_vl, step).
+
+        norm_param_range: The range of values for parameter 1, which indexes into the norm of RGB colors.
+
+        p1_cmap: The map specifying colors.  These colors will be displayed for max norm values.
+
+        clims: The lower and upper parameter values when indexing into p1_cmap.
+
+        norm_lims: The low and upper parameter values when indexing into norm values.
+
+    To use a reversed color (value) scale, start_vl should be less than stop_vl and step should be a negative value
+    in clr_param_range (vl_param_range) and clims (vllims) should also be flipped so that clims[0] > clims[1].
+
+    Returns:
+        map: The generated map
+    """
+    clr_param_vls = np.arange(*clr_param_range)
+    norm_param_vls = np.arange(*norm_param_range)
+    n_norm_vls = len(norm_param_vls)
+
+    # Get base colors
+    scaled_clr_vls = np.minimum(np.maximum((clr_param_vls - clims[0]) / (clims[1] - clims[0]), 0), 1)
+    base_clrs_rgb = p1_cmap(scaled_clr_vls)[:, 0:3]
+
+    # Get norm values
+    scaled_vl_param_vls = np.minimum(np.maximum((norm_param_vls - norm_lims[0])/(norm_lims[1] - norm_lims[0]), 0), 1)
+
+    # Generate array of colors values
+    clrs = np.repeat(np.expand_dims(base_clrs_rgb, 1), n_norm_vls, axis=1)
+    print(clrs.shape)
+    for n_i in range(n_norm_vls):
+        clrs[:, n_i, :] = clrs[:, n_i, :]*scaled_vl_param_vls[n_i]
+
+    # Create the MultiParamCMap object
+    return MultiParamCMap(param_vl_ranges=[clr_param_range, norm_param_range], clrs=clrs)
+
+
 def generate_two_param_hsv_map(clr_param_range: Sequence, vl_param_range: Sequence,
                                       p1_cmap: matplotlib.colors.Colormap, clims: Sequence[float],
                                       vllims: Sequence[float]) -> MultiParamCMap:
@@ -96,8 +140,7 @@ def generate_two_param_hsv_map(clr_param_range: Sequence, vl_param_range: Sequen
 
     Args:
         clr_param_range: The range of values for parameter 0, which indexes into hue, in the form
-        (start_vl, stop_vl, step). To have a reversed color scale, start_vl should be less than stop_vl and step should
-        be a negative value.
+        (start_vl, stop_vl, step).
 
         vl_param_range: The range of values for parameter 1, which indexes into value of hsv colors, in the same form
         as clr_param_range.
@@ -138,8 +181,8 @@ def generate_two_param_hsv_map(clr_param_range: Sequence, vl_param_range: Sequen
     return MultiParamCMap(param_vl_ranges=[clr_param_range, vl_param_range], clrs=clrs_rgb)
 
 
-def visualize_two_param_hsv_map(cmap: MultiParamCMap, plot_ax: plt.Axes = None, p0_vls: np.ndarray = None,
-                                p1_vls: np.ndarray = None):
+def visualize_two_param_map(cmap: MultiParamCMap, plot_ax: plt.Axes = None, p0_vls: np.ndarray = None,
+                            p1_vls: np.ndarray = None):
     """ Plots a visualization of a two-parameter MultiParamCMap, i.e., the 2-d version of making 1-d colorbar.
 
     Args:
