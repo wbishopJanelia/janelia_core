@@ -269,6 +269,13 @@ class MultiSubjectVIFitter():
                 Fitter object.
         """
 
+        orig_devices = list(set([s_coll.device for s_coll in self.s_collections]))
+        print('Memory before moving: ' + str(torch_devices_memory_usage(orig_devices, type='memory_allocated')))
+
+        self.distribute(devices=[torch.device('cpu')], distribute_data=True)
+
+        print('Memory after moving: ' + str(torch_devices_memory_usage(orig_devices, type='memory_allocated')))
+
         s_collections_copy = copy.deepcopy(self.s_collections)
         for s_coll in s_collections_copy:
             s_coll.data = None
@@ -305,6 +312,9 @@ class MultiSubjectVIFitter():
             p_prior_penalizer_dicts = None
             u_prior_penalizer_dicts = None
             parameter_penalizer_dicts = None
+
+        # Move subject collections back to devices
+        self.distribute(devices=orig_devices, distribute_data=True)
 
         return {'s_collections': s_collections_copy,
                 'p_priors': p_priors_copy,
@@ -710,7 +720,6 @@ class MultiSubjectVIFitter():
             cur_learning_rates = learning_rate_values[cur_learing_rate_ind, :]
             if np.any(cur_learning_rates != prev_learning_rates):
                 # We reset the whole optimizer because ADAM is an adaptive optimizer
-                print('DEBUG: Reseting learning rates.')
 
                 # Pull out groups of parameters with different learning rates
                 if len(cur_learning_rates) > 1: # Means learning rates specified for penalizers
@@ -806,7 +815,7 @@ class MultiSubjectVIFitter():
                     nll.backward(retain_graph=True)
                     batch_obj_log += nll.detach().cpu().numpy()
 
-                    # Calculate KL diverengences between posteriors on modes and priors for this subject
+                    # Calculate KL divergences between posteriors on modes and priors for this subject
                     if enforce_priors:
                         s_p_kl = torch.zeros([1], device=s_coll.device)[0]  # Weird indexing is to get a scalar tensor
                         for g, d in enumerate(self.p_priors):
@@ -876,10 +885,19 @@ class MultiSubjectVIFitter():
             # Handle checkpoints if needed
             if cp_epochs is not None:
                 if np.any(cp_epochs == e_i):
+
+                    # Clear the batch data from memory - this is helpful when working with GPU
+
+                    del batch_x
+                    del batch_y
+                    del batch_data
+
                     print('Creating checkpoint after epoch ' + str(e_i) + '.')
                     cp_ind = np.argwhere(cp_epochs == e_i)[0][0]
                     check_points[cp_ind] = self.create_check_point(inc_penalizers=cp_penalizers)
                     check_points[cp_ind]['epoch'] = e_i
+
+                    print(self.s_collections[0].data.data[0].device)
 
             # Take care of logging everything
             elapsed_time = time.time() - t_start

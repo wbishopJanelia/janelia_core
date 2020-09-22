@@ -1069,11 +1069,11 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
 
         Args:
 
-            init_ctrs: Initial centers for each mode.  Of shape [n_modes, x_dim]
+            init_ctrs: Initial centers for each column.  Of shape [n_cols, x_dim]
 
             x: The points at which we evaluate the mean of the distribution. Of shape [n_pts, x_dim].
 
-            init_scales: Initial scales for each mode. Of shape [n_modes, x_dim]. If None, initial scales will be set
+            init_scales: Initial scales for each column. Of shape [n_cols, x_dim]. If None, initial scales will be set
             to 1 for all dimensions and modes.
 
             scale_weight: The weight to apply to the scale penalty if learning scales.  If None, the scales will be be
@@ -1085,7 +1085,7 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
         n_modes, n_cols = init_ctrs.shape
 
         # Setup centers
-        self.n_modes = n_modes
+        self.n_modes = n_modes  # We refer to columns as modes in the code
         self.col_ctrs = torch.nn.Parameter(init_ctrs)
         self.register_buffer('x', x)
 
@@ -1164,7 +1164,7 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
 
             mn_i = torch.abs(mn[:, [m_i]])
             norm_vl = torch.sum(mn_i**2) + .000001
-            dist_i_scaled_sq = torch.sum(((self.x - self.col_ctrs[m_i,:])**2)/((self.scales[m_i, :])**2 + .001), dim=1)
+            dist_i_scaled_sq = torch.sum(((self.x - self.col_ctrs[m_i, :])**2)/((self.scales[m_i, :])**2 + .001), dim=1)
             weighted_dist_i = (torch.squeeze(mn_i)/torch.sqrt(norm_vl))*dist_i_scaled_sq
             penalty += torch.sum(weighted_dist_i)
 
@@ -1228,12 +1228,7 @@ def gen_columns_mean_cluster_penalizer(n_cols: int, dim_ranges: np.ndarray, n_pt
         penalizer_pts = torch.tensor(list_grid_pts(grid_limits=penalizer_grid_limits,
                                                n_pts_per_dim=penalizer_n_grid_pts).astype(np.float32))
 
-    # Generate initial centers
-    dim_widths = torch.tensor(dim_ranges[:, 1] - dim_ranges[:, 0])
-    dim_starts = torch.tensor(dim_ranges[:, 0])
-
     init_ctrs = torch.Tensor(list_grid_pts(grid_limits=dim_ranges, n_pts_per_dim=n_ctrs_per_dim))
-
 
     # Generate initial scales
     init_scales = init_scale*torch.ones([n_cols, 3])

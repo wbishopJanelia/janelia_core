@@ -1,5 +1,6 @@
 """ Utilities for viewing volumes.  """
 
+import copy
 import pathlib
 from typing import Sequence
 from typing import Union
@@ -223,6 +224,31 @@ def make_z_plane_movie(volume: np.ndarray, save_path: str,
 
     # Close the figure
     plt.close(fig)
+
+
+def signed_max_proj(vol: np.ndarray, dim: int):
+    """ Performs a signed max projection of a volume.
+
+    By "signed max project" we mean the find the entry with largest absolute value along the projection
+    and then return the original (signed) value.
+
+    This function will ignore nan values.
+
+    Args:
+        vol: The volume.
+
+        dim: The dimension to project along.
+
+    Returns:
+
+        proj: The projected volume
+    """
+
+    vol_copy = copy.deepcopy(vol)
+    vol_copy[np.isnan(vol)] = 0.0
+
+    max_inds = np.expand_dims(np.argmax(np.abs(vol_copy), axis=dim), axis=dim)
+    return np.squeeze(np.take_along_axis(vol, max_inds, axis=dim))
 
 
 def visualize_rgb_max_project(vol: np.ndarray, dim_m: np.ndarray = None, cmap_im: np.ndarray = None,
