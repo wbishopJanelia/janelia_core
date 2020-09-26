@@ -4,12 +4,15 @@
     bishopw@hhmi.org
 """
 
-from typing import Sequence
+from typing import Callable, Sequence
 
+import matplotlib.pyplot as plt
 import numpy as np
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QWidget
 import pyqtgraph as pg
+
+from janelia_core.visualization.image_generation import generate_2d_fcn_image
 
 
 def signed_max_project(volume: np.ndarray, axis: int):
@@ -41,6 +44,34 @@ def signed_max_project(volume: np.ndarray, axis: int):
 
     return volume[m_grid]
 
+
+def visualize_2d_function(f: Callable, dim_0_range: Sequence[float] = None, dim_1_range: Sequence[float] = None,
+                          n_pts_per_dim: Sequence[int] = None, ax = None):
+    """ Visualizes a 2-d function.
+
+    Args:
+        f: The function to visualize. Should accept input of shape [n by 2], where n is an arbitrary number
+        of values and output values of length n.
+
+        dim_0_range: The range of dim 0 values to visualize the function over.  If None, [0.0, 1.0] will be used.
+
+        dim_1_range: The range of dim 1 values to visualize the function over.  If None, [0.0, 1.0] will be used.
+
+        n_pts_per_dim: The number of points to sample per dimension.
+        """
+
+    im, dim_0_pts, dim_1_pts = generate_2d_fcn_image(f=f, dim_0_range=dim_0_range, dim_1_range=dim_1_range,
+                                                     n_pts_per_dim=n_pts_per_dim)
+
+    if ax is None:
+        plt.figure()
+        ax = plt.subplot(1, 1, 1)
+
+    extent = [dim_0_pts[0], dim_0_pts[-1], dim_1_pts[0], dim_1_pts[-1]]
+    im_h = ax.imshow(im.transpose(), extent=extent, origin='lower')
+    plt.colorbar(im_h)
+    plt.xlabel('Dim 0')
+    plt.ylabel('Dim 1')
 
 class GroupedStackedImageVisualizer(QWidget):
     """ A QWidget for viewing a set of stacked images.
@@ -128,5 +159,7 @@ class GroupedStackedImageVisualizer(QWidget):
                 im_views[i].sigTimeChanged.connect(im_views[j].setCurrentIndex)
 
         self.show()
+
+
 
 

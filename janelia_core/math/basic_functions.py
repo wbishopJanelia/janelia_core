@@ -4,7 +4,7 @@
     bishopw@hhmi.org
 """
 
-from typing import Sequence
+from typing import Sequence, Tuple
 from typing import Union
 import re
 
@@ -321,7 +321,7 @@ def is_standard_slice(s: Union[slice, Sequence[slice]]) -> bool:
         return is_standard
 
 
-def list_grid_pts(grid_limits: np.ndarray, n_pts_per_dim: Sequence) -> np.ndarray:
+def list_grid_pts(grid_limits: np.ndarray, n_pts_per_dim: Sequence) -> Tuple[np.ndarray, Sequence[np.ndarray]]:
     """
     Generates a list of points filling a multi-dimensional grid.
 
@@ -343,6 +343,8 @@ def list_grid_pts(grid_limits: np.ndarray, n_pts_per_dim: Sequence) -> np.ndarra
     Returns:
         The list of returned points of shape n_pts*N
 
+        dim_pts: The points along each dimension sampled. dim_pts[i] are the sample points for dimension i.
+
     Raises:
         ValueError: If n_pts_per_dim is less than 1 for any dimension.
 
@@ -356,7 +358,7 @@ def list_grid_pts(grid_limits: np.ndarray, n_pts_per_dim: Sequence) -> np.ndarra
                for d in range(n_dims)]
     m_pts = np.meshgrid(*dim_pts, indexing='ij')
     m_pts = [np.reshape(vls, vls.size) for vls in m_pts]
-    return np.stack(m_pts).transpose()
+    return np.stack(m_pts).transpose(), dim_pts
 
 
 def l_th(a: np.ndarray, t: np.ndarray) -> np.ndarray:

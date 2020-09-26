@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
+import janelia_core
 from janelia_core.ml.datasets import TimeSeriesBatch
 from janelia_core.ml.latent_regression.subject_models import LatentRegModel
 from janelia_core.ml.torch_distributions import CondMatrixProductDistribution
@@ -94,42 +95,68 @@ def concatenate_check_points(check_points: Sequence[dict], params: Sequence[dict
     return [conc_check_points, cp_epochs]
 
 
-def compute_prior_penalty(mn: torch.Tensor, positions: torch.Tensor):
-    """ Computes a penalty for a sampled prior.  This is experimental.
-
-    Args:
-    """
-
-    n_modes = mn.shape[1]
-    compute_device = mn.device
-
-    penalty = torch.zeros([1], device=compute_device)[0]  # Weird indexing is to get a scalar tensor
-    for m_i in range(n_modes):
-        mode_abs_vls = torch.sum(torch.abs(mn[:, m_i:m_i+1]))
-        mode_l2_norm_sq = torch.sum(mn[:, m_i:m_i+1]**2)
-        #mode_weighted_positions = positions*mode_abs_vls
-        #mode_weighted_center = torch.mean(mode_weighted_positions, dim=0)
-        #penalty += torch.sum(torch.sum((positions - mode_weighted_center)**2, dim=1)*torch.squeeze(mode_abs_vls))
-        penalty += mode_abs_vls + (mode_l2_norm_sq - 10)**2
-    return penalty
+# TODO: Remove if we confirm we no longer need
+#def compute_prior_penalty(mn: torch.Tensor, positions: torch.Tensor):
+#    """ Computes a penalty for a sampled prior.  This is experimental.
+#
+#    Args:
+#    """
+#
+#    n_modes = mn.shape[1]
+#    compute_device = mn.device
+#
+#    penalty = torch.zeros([1], device=compute_device)[0]  # Weird indexing is to get a scalar tensor
+#    for m_i in range(n_modes):
+#        mode_abs_vls = torch.sum(torch.abs(mn[:, m_i:m_i+1]))
+#        mode_l2_norm_sq = torch.sum(mn[:, m_i:m_i+1]**2)
+#        #mode_weighted_positions = positions*mode_abs_vls
+#        #mode_weighted_center = torch.mean(mode_weighted_positions, dim=0)
+#        #penalty += torch.sum(torch.sum((positions - mode_weighted_center)**2, dim=1)*torch.squeeze(mode_abs_vls))
+#        penalty += mode_abs_vls + (mode_l2_norm_sq - 10)**2
+#    return penalty
 
 
 class SubjectVICollection():
-    """ Holds data, likelihood models and posteriors for fitting data to a single subject with variational inference."""
+    """ Holds data, likelihood models and posteriors for fitting data to a single subject with variational inference.
 
-    def __init__(self, s_mdl: LatentRegModel, p_dists: Sequence, u_dists: Sequence,
-                 data: TimeSeriesBatch, input_grps: Sequence, output_grps: Sequence,
-                 props: Sequence, input_props: Sequence, output_props: Sequence, min_var: Sequence[float]):
+    This object offers convenience functions to get all the trainable parameters for a subject model and its posteriors
+    as well as moving everything needed for fitting for that subject to different devices.
+    """
+
+    def __init__(self, s_mdl: LatentRegModel,
+                 p_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, torch.Tensor, None]],
+                 u_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, torch.Tensor, None]],
+                 scale_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, torch.Tensor, None]],
+                 offset_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, torch.Tensor, None]],
+                 psi_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, torch.Tensor, None]],
+                 direct_mappings_dists: Union[Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, torch.Tensor, None]], None],
+                 data: TimeSeriesBatch, input_grps: Sequence[int], output_grps: Sequence[int],
+                 props: Sequence[torch.Tensor], u_props: Sequence[int], p_props: Sequence[int],
+                 scale_props: Sequence[int], offset_props: Sequence[int], psi_props: Sequence[int],
+                 direct_mapping_props: Sequence[int], min_var: Sequence[float]):
         """ Creates a new SubjectVICollection object.
 
         Args:
             s_mdl: The likelihood model for the subject.
 
             u_dists: The posterior distributions for the u modes.  u_modes[h] is either:
-                1) A janelia_core.ml.torch_distributions import CondVAEDistriubtion
-                2) A torch tensor (if there is no distribution for the u modes for group h
+                1) A janelia_core.ml.torch_distributions.CondVAEDistriubtion
+                2) A torch tensor (if there is no distribution for the u modes for group h)
+                3) None. (if s_mdl has a learnable parameter for the u modes for group h that we should optimize)
 
             p_dists: The posterior distributions for the p modes.  Same form as u_dists.
+
+            scale_dists: The posterior distributions for scale parameters.  scale_dists[h] is either a
+            CondVAEDistribution, torch tensor or None (with the same implications they have for u_dists). If there are
+            no scales for output group h, then scale_dists[h] should be done.
+
+            offset_dists: The posterior distributions for offset parameters, same form as scale_dists.
+
+            psi_dists: The posterior distributions for psi parameters, same form as scale_dists.
+
+            direct_mappings_dists: Distributions over direct mappings.  If there are no direct mappings in the model,
+            this should be None.  If there are direct mappings, direct_mapping_dists[i] is the distribution over
+            s_mdl.direct_mappings[i] in the same form as scale_dists.
 
             data: Data for the subject.
 
@@ -137,13 +164,27 @@ class SubjectVICollection():
 
             output_grps: output_grps[h] is the index into data.data for the h^th output group
 
-            props: props[i] is a tensor of properties for one or more input or output groups of variables
+            props: props[i] is a tensor of properties.
 
-            input_props: input_props[g] is the index into props for the properties for the g^th input group.  If
-            the modes for the g^th input group are fixed, then input_props[g] should be None.
+            u_props: u_props[g] is the index into props for the properties for the modes for the g^th output group.  If
+            there are no prior and posterior distributions over the modes for this group, u_props[g] should be None.
+            u_props[g] should also be None if there are distributions for these modes but they are not conditioned on
+            anything.
 
-            output_props: output_props[h[ is the index into props for the properties of the g^th output group.  If
-            the modes for the h^th output group are fixed, then outpout_props[h] should be None.
+            p_props:  p_props[h] is the index into props for the properties for the modes for the h^th output group,
+            same format as u_props.
+
+            scale_props:  scale_props[h] is the index into props for the properties for the scales for the h^th output
+            group, same format as u_props.
+
+            offset_props:  offset_props[h] is the index into props for the properties for the offsets for the h^th output
+            group, same format as u_props.
+
+            psi_props:  psi_props[h] is the index into props for the properties for the variances for the h^th output
+            group, same format as u_props.
+
+            direct_mapping_proprs: direct_mapping_props[i] is the index into props for the properties for the i^th
+            direct mapping, same format as u_props
 
             min_var: min_var[h] is the minimum variance for the additive noise variables for output group h
 
@@ -152,15 +193,21 @@ class SubjectVICollection():
         self.s_mdl = s_mdl
         self.p_dists = p_dists
         self.u_dists = u_dists
+        self.scale_dists = scale_dists
+        self.offset_dists = offset_dists
+        self.psi_dists = psi_dists
+        self.direct_mapping_dists = direct_mappings_dists
         self.data = data
         self.input_grps = input_grps
         self.output_grps = output_grps
         self.props = props
-        self.input_props = input_props
-        self.output_props = output_props
+        self.u_props = u_props
+        self.p_props = p_props
+        self.scale_props = scale_props
+        self.offset_props = offset_props
+        self.psi_props = psi_props
+        self.direct_mapping_props = direct_mapping_props
         self.min_var = min_var
-        self.device = None # Initially we don't specify which device everything is on (allowing things to potentially
-                           # be on multiple devices).
 
     def trainable_parameters(self) -> Sequence:
         """ Returns all trainable parameters for the collection.
@@ -169,6 +216,7 @@ class SubjectVICollection():
             params: The list of parameters.
         """
 
+        raise(NotImplementedError('Need to update this function'))
         p_dist_params = itertools.chain(*[d.parameters() for d in self.p_dists if not isinstance(d, torch.Tensor)])
         u_dist_params = itertools.chain(*[d.parameters() for d in self.u_dists if not isinstance(d, torch.Tensor)])
 
@@ -188,6 +236,7 @@ class SubjectVICollection():
             distribute_data: True if fitting data should be moved to the device as well
         """
 
+        raise(NotImplementedError('Need to update this function'))
         self.s_mdl = self.s_mdl.to(device)
         self.p_dists = [d.to(device) for d in self.p_dists]
         self.u_dists = [d.to(device) for d in self.u_dists]
