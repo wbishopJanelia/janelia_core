@@ -45,7 +45,7 @@ class TimeSeriesBatch(torch.utils.data.Dataset):
 
         return self
 
-    def to(self, device:torch.device, move_i_orig: bool = False, non_blocking:bool =False):
+    def to(self, device:torch.device, move_i_orig: bool = True, non_blocking:bool =False):
         """ Moves data to the specified device.
 
         Args:

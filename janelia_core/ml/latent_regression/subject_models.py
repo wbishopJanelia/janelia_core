@@ -751,7 +751,7 @@ class SharedMLatentRegModel(LatentRegModel):
         """
         if self.shared_m is not None:
             return list(self.shared_m.parameters())
-        else::warnings
+        else:
             return []
 
     def parameters(self): #-> Generator[torch.nn.Parameter]:

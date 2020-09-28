@@ -124,39 +124,36 @@ class SubjectVICollection():
     """
 
     def __init__(self, s_mdl: LatentRegModel,
-                 p_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, torch.Tensor, None]],
-                 u_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, torch.Tensor, None]],
-                 scale_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, torch.Tensor, None]],
-                 offset_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, torch.Tensor, None]],
-                 psi_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, torch.Tensor, None]],
-                 direct_mappings_dists: Union[Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, torch.Tensor, None]], None],
+                 p_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, None]],
+                 u_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, None]],
+                 psi_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, None]],
                  data: TimeSeriesBatch, input_grps: Sequence[int], output_grps: Sequence[int],
-                 props: Sequence[torch.Tensor], u_props: Sequence[int], p_props: Sequence[int],
-                 scale_props: Sequence[int], offset_props: Sequence[int], psi_props: Sequence[int],
-                 direct_mapping_props: Sequence[int], min_var: Sequence[float]):
+                 props: Union[Sequence[torch.Tensor], None], p_props: Sequence[int], u_props: Sequence[int],
+                 psi_props: Sequence[int],
+                 scale_dists: Union[
+                     Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, None]], None] = None,
+                 offset_dists: Union[
+                     Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, None]], None] = None,
+                 direct_mappings_dists: Union[
+                     Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, None]], None] = None,
+                 scale_props: Union[Sequence[int], None] = None, offset_props: Union[Sequence[int], None] = None,
+                 direct_mapping_props: Union[Sequence[int], None] = None, min_var: Union[Sequence[float], None] = None):
         """ Creates a new SubjectVICollection object.
+
+        When specify the distribution over a parameter of the model, the user can specify either (1) a
+        janelia_core.ml.torch_distributions.CondVAEDistribution object or (2) None.  Specifying a distribution
+        means that distribution will be used as the posterior distribution over the parameter for fitting.  Specifying
+        None, means that a distribution won't be fit for that parameter.  Instead, a point estimate will be fit by
+        directly optimizing the value of the parameter in the subject model.
 
         Args:
             s_mdl: The likelihood model for the subject.
 
-            u_dists: The posterior distributions for the u modes.  u_modes[h] is either:
-                1) A janelia_core.ml.torch_distributions.CondVAEDistriubtion
-                2) A torch tensor (if there is no distribution for the u modes for group h)
-                3) None. (if s_mdl has a learnable parameter for the u modes for group h that we should optimize)
+            u_dists: The posterior distributions for the u modes.
 
             p_dists: The posterior distributions for the p modes.  Same form as u_dists.
 
-            scale_dists: The posterior distributions for scale parameters.  scale_dists[h] is either a
-            CondVAEDistribution, torch tensor or None (with the same implications they have for u_dists). If there are
-            no scales for output group h, then scale_dists[h] should be done.
-
-            offset_dists: The posterior distributions for offset parameters, same form as scale_dists.
-
-            psi_dists: The posterior distributions for psi parameters, same form as scale_dists.
-
-            direct_mappings_dists: Distributions over direct mappings.  If there are no direct mappings in the model,
-            this should be None.  If there are direct mappings, direct_mapping_dists[i] is the distribution over
-            s_mdl.direct_mappings[i] in the same form as scale_dists.
+            psi_dists: The posterior distributions for psi parameters.
 
             data: Data for the subject.
 
@@ -164,15 +161,26 @@ class SubjectVICollection():
 
             output_grps: output_grps[h] is the index into data.data for the h^th output group
 
-            props: props[i] is a tensor of properties.
+            props: props[i] is a tensor of properties.  If there are no properties, this should be None.
 
-            u_props: u_props[g] is the index into props for the properties for the modes for the g^th output group.  If
-            there are no prior and posterior distributions over the modes for this group, u_props[g] should be None.
-            u_props[g] should also be None if there are distributions for these modes but they are not conditioned on
-            anything.
+            p_props: p_props[g] is the index into props for the properties for the modes for the g^th input group.  If
+            there are no distributions over the modes for this group, p_props[g] should be None. p_props[g] should also
+            be None if there are distributions for these modes but they are not conditioned on anything.
 
-            p_props:  p_props[h] is the index into props for the properties for the modes for the h^th output group,
+            u_props:  p_props[h] is the index into props for the properties for the modes for the h^th output group,
             same format as u_props.
+
+            psi_props:  psi_props[h] is the index into props for the properties for the variances for the h^th output
+            group, same format as u_props.
+
+            scale_dists: The posterior distributions for scale parameters. If scales are not used in the model,
+            set to None.
+
+            offset_dists: The posterior distributions for offset parameters, same form as scale_dists.
+
+            direct_mappings_dists: Distributions over direct mappings.  If there are no direct mappings in the model,
+            this should be None.  If there are direct mappings, direct_mapping_dists[i] is the distribution over
+            s_mdl.direct_mappings[i].
 
             scale_props:  scale_props[h] is the index into props for the properties for the scales for the h^th output
             group, same format as u_props.
@@ -180,13 +188,11 @@ class SubjectVICollection():
             offset_props:  offset_props[h] is the index into props for the properties for the offsets for the h^th output
             group, same format as u_props.
 
-            psi_props:  psi_props[h] is the index into props for the properties for the variances for the h^th output
-            group, same format as u_props.
-
-            direct_mapping_proprs: direct_mapping_props[i] is the index into props for the properties for the i^th
+            direct_mapping_props: direct_mapping_props[i] is the index into props for the properties for the i^th
             direct mapping, same format as u_props
 
-            min_var: min_var[h] is the minimum variance for the additive noise variables for output group h
+            min_var: min_var[h] is the minimum variance for the additive noise variables for output group h. If
+            set to None, min_var for all output groups will be set to .01.
 
         """
 
@@ -207,6 +213,9 @@ class SubjectVICollection():
         self.offset_props = offset_props
         self.psi_props = psi_props
         self.direct_mapping_props = direct_mapping_props
+
+        if min_var is None:
+            min_var = [.01]*len(p_dists)
         self.min_var = min_var
 
     def trainable_parameters(self) -> Sequence:
@@ -216,17 +225,33 @@ class SubjectVICollection():
             params: The list of parameters.
         """
 
-        raise(NotImplementedError('Need to update this function'))
-        p_dist_params = itertools.chain(*[d.parameters() for d in self.p_dists if not isinstance(d, torch.Tensor)])
-        u_dist_params = itertools.chain(*[d.parameters() for d in self.u_dists if not isinstance(d, torch.Tensor)])
+        s_mdl_parameters = self.s_mdl.trainable_parameters()
 
-        return list(itertools.chain(p_dist_params, u_dist_params, self.s_mdl.trainable_parameters()))
+        p_dist_params = itertools.chain(*[d.parameters() for d in self.p_dists if d is not None])
+        u_dist_params = itertools.chain(*[d.parameters() for d in self.u_dists if d is not None])
+        psi_dist_params = itertools.chain(*[d.parameters() for d in self.psi_dists if d is not None])
+
+        if self.scale_dists is not None:
+            scale_dist_params = itertools.chain(*[d.parameters() for d in self.scale_dists if d is not None])
+        else:
+            scale_dist_params = []
+
+        if self.offset_dists is not None:
+            offset_dist_params = itertools.chain(*[d.parameters() for d in self.offset_dists if d is not None])
+        else:
+            offset_dist_params = []
+
+        if self.direct_mapping_dists is not None:
+            direct_mapping_dist_params = itertools.chain(*[d.parameters() for d in self.direct_mapping_dists
+                                                           if d is not None])
+        else:
+            direct_mapping_dist_params = []
+
+        return list(itertools.chain(s_mdl_parameters, p_dist_params, u_dist_params, psi_dist_params,
+                                    scale_dist_params, offset_dist_params, direct_mapping_dist_params))
 
     def to(self, device: Union[torch.device, int], distribute_data: bool = False):
         """ Moves all relevant attributes of the collection to the specified device.
-
-        This will move the subject model, posterior distributions for the p & u modes and variable
-        properties to the device.
 
         Note that by default fitting data will not be moved to the device.
 
@@ -236,13 +261,26 @@ class SubjectVICollection():
             distribute_data: True if fitting data should be moved to the device as well
         """
 
-        raise(NotImplementedError('Need to update this function'))
-        self.s_mdl = self.s_mdl.to(device)
-        self.p_dists = [d.to(device) for d in self.p_dists]
-        self.u_dists = [d.to(device) for d in self.u_dists]
+        self.s_mdl.to(device)
+
+        def move_if_not_none(dists):
+            for d in dists:
+                if d is not None:
+                    d.to(device)
+
+        move_if_not_none(self.p_dists)
+        move_if_not_none(self.u_dists)
+        move_if_not_none(self.psi_dists)
+
+        if self.scale_dists is not None:
+            move_if_not_none(self.scale_dists)
+        if self.offset_dists is not None:
+            move_if_not_none(self.offset_dists)
+        if self.direct_mapping_dists is not None:
+            move_if_not_none(self.direct_mapping_dists)
+
         if self.props is not None:
             self.props = [p.to(device) for p in self.props]
-        self.device = device
 
         if distribute_data and self.data is not None:
             self.data.to(device)
