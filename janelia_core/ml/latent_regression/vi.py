@@ -13,6 +13,7 @@ import janelia_core
 from janelia_core.ml.datasets import TimeSeriesBatch
 from janelia_core.ml.latent_regression.subject_models import LatentRegModel
 from janelia_core.ml.torch_distributions import CondMatrixProductDistribution
+from janelia_core.ml.torch_distributions import CondVAEDistribution
 from janelia_core.ml.torch_distributions import DistributionPenalizer
 from janelia_core.ml.torch_parameter_penalizers import ParameterPenalizer
 
@@ -95,6 +96,130 @@ def concatenate_check_points(check_points: Sequence[dict], params: Sequence[dict
     return [conc_check_points, cp_epochs]
 
 
+class PriorCollection():
+    """ Holds prior distributions when fitting models with variational inference.
+
+    This object offers convenience functions for getting all the parameters for the priors as well as moving the
+    distributions to different devices.
+    """
+
+    def __init__(self, p_dists: Sequence[Union[CondVAEDistribution, None]],
+                 u_dists: Sequence[Union[CondVAEDistribution, None]],
+                 psi_dists: Sequence[Union[CondVAEDistribution, None]],
+                 scale_dists: Union[Sequence[Union[CondVAEDistribution, None]], None] = None,
+                 offset_dists: Union[Sequence[Union[CondVAEDistribution, None]], None] = None,
+                 direct_mapping_dists: Union[Sequence[Union[CondVAEDistribution, None]], None] = None):
+        """ Creates a new PriorCollection object.
+
+        When specifying a prior distribution over a parameter, the user can specify either a CondVAEDistribution object,
+        which will be used if posterior distributions are fit over the parameter.  Alternatively, if point estimates
+        will be fit over the parameter, the user can provide the value None.  E.g., if a distribution will be fit over
+        the first input group modes but not the second p_dists would be set to [d, None], where d is a
+        CondVAEDistribution object.
+
+        Args:
+            p_dists: Prior distributions over p modes.
+
+            u_dists: Prior distributions over u modes.
+
+            psi_dists: Prior distributions over variance parameters.
+
+            scale_dists: Prior distributions over scale parameters.  If scale parameters are not used in subject
+            models, set this to None.
+
+            offset_dists: Prior distributions over offset parameters.  If offset parameters are not use in subject
+            models, set this to None.
+
+            direct_mapping_dists: Prior distributions over direct mappings.  direct_mapping_dists[i] should be the
+            prior over the direct mappings in direct_pairs[i] in subject  models.  If direct mappings are not used,
+            set this to None.
+
+        """
+
+        self.p_dists = p_dists
+        self.u_dists = u_dists
+        self.psi_dists = psi_dists
+        self.scale_dists = scale_dists
+        self.offset_dists = offset_dists
+        self.direct_mapping_dists = direct_mapping_dists
+
+    def r_params(self) -> List[torch.nn.parameter.Parameter]:
+        """ Gets parameters of all modules for which gradients can be estimated with the reparameterization trick. """
+
+        p_dist_params = itertools.chain(*[d.r_params() for d in self.p_dists if d is not None])
+        u_dist_params = itertools.chain(*[d.r_params() for d in self.u_dists if d is not None])
+        psi_dist_params = itertools.chain(*[d.r_params() for d in self.psi_dists if d is not None])
+
+        if self.scale_dists is not None:
+            scale_dist_params = itertools.chain(*[d.r_params() for d in self.scale_dists if d is not None])
+        else:
+            scale_dist_params = []
+
+        if self.offset_dists is not None:
+            offset_dist_params = itertools.chain(*[d.r_params() for d in self.offset_dists if d is not None])
+        else:
+            offset_dist_params = []
+
+        if self.direct_mapping_dists is not None:
+            direct_mapping_dist_params = itertools.chain(*[d.r_params() for
+                                                           d in self.direct_mapping_dists if d is not None])
+        else:
+            direct_mapping_dist_params = []
+
+        return list(itertools.chain(p_dist_params, u_dist_params, psi_dist_params, scale_dist_params,
+                                    offset_dist_params, direct_mapping_dist_params))
+
+    def s_params(self) -> List[torch.nn.parameter.Parameter]:
+        """ Gets parameters of all modules for which gradients can be estimated with the score method. """
+
+        p_dist_params = itertools.chain(*[d.s_params() for d in self.p_dists if d is not None])
+        u_dist_params = itertools.chain(*[d.s_params() for d in self.u_dists if d is not None])
+        psi_dist_params = itertools.chain(*[d.s_params() for d in self.psi_dists if d is not None])
+
+        if self.scale_dists is not None:
+            scale_dist_params = itertools.chain(*[d.s_params() for d in self.scale_dists if d is not None])
+        else:
+            scale_dist_params = []
+
+        if self.offset_dists is not None:
+            offset_dist_params = itertools.chain(*[d.s_params() for d in self.offset_dists if d is not None])
+        else:
+            offset_dist_params = []
+
+        if self.direct_mapping_dists is not None:
+            direct_mapping_dist_params = itertools.chain(*[d.s_params() for
+                                                           d in self.direct_mapping_dists if d is not None])
+        else:
+            direct_mapping_dist_params = []
+
+        return list(itertools.chain(p_dist_params, u_dist_params, psi_dist_params, scale_dist_params,
+                                    offset_dist_params, direct_mapping_dist_params))
+
+    def to(self, device: Union[torch.device, int]):
+        """ Moves all distributions in the collection to a specified device. """
+
+        def move_if_not_none(dists):
+            for d in dists:
+                if d is not None:
+                    d.to(device)
+
+        move_if_not_none(self.p_dists)
+        move_if_not_none(self.u_dists)
+        move_if_not_none(self.psi_dists)
+
+        if self.scale_dists is not None:
+            move_if_not_none(self.scale_dists)
+
+        if self.offset_dists is not None:
+            move_if_not_none(self.offset_dists)
+
+        if self.direct_mapping_dists is not None:
+            move_if_not_none(self.direct_mapping_dists)
+
+
+
+
+
 # TODO: Remove if we confirm we no longer need
 #def compute_prior_penalty(mn: torch.Tensor, positions: torch.Tensor):
 #    """ Computes a penalty for a sampled prior.  This is experimental.
@@ -123,19 +248,18 @@ class SubjectVICollection():
     as well as moving everything needed for fitting for that subject to different devices.
     """
 
-    def __init__(self, s_mdl: LatentRegModel,
-                 p_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, None]],
-                 u_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, None]],
-                 psi_dists: Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, None]],
+    def __init__(self, s_mdl: LatentRegModel, p_dists: Sequence[Union[CondVAEDistribution, None]],
+                 u_dists: Sequence[Union[CondVAEDistribution, None]],
+                 psi_dists: Sequence[Union[CondVAEDistribution, None]],
                  data: TimeSeriesBatch, input_grps: Sequence[int], output_grps: Sequence[int],
                  props: Union[Sequence[torch.Tensor], None], p_props: Sequence[int], u_props: Sequence[int],
                  psi_props: Sequence[int],
                  scale_dists: Union[
-                     Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, None]], None] = None,
+                     Sequence[Union[CondVAEDistribution, None]], None] = None,
                  offset_dists: Union[
-                     Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, None]], None] = None,
+                     Sequence[Union[CondVAEDistribution, None]], None] = None,
                  direct_mappings_dists: Union[
-                     Sequence[Union[janelia_core.ml.torch_distributions.CondVAEDistribution, None]], None] = None,
+                     Sequence[Union[CondVAEDistribution, None]], None] = None,
                  scale_props: Union[Sequence[int], None] = None, offset_props: Union[Sequence[int], None] = None,
                  direct_mapping_props: Union[Sequence[int], None] = None, min_var: Union[Sequence[float], None] = None):
         """ Creates a new SubjectVICollection object.
@@ -218,7 +342,7 @@ class SubjectVICollection():
             min_var = [.01]*len(p_dists)
         self.min_var = min_var
 
-    def trainable_parameters(self) -> Sequence:
+    def trainable_parameters(self) -> List[torch.nn.parameter.Parameter]:
         """ Returns all trainable parameters for the collection.
 
         Returns:
