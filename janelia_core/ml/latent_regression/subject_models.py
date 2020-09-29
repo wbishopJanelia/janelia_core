@@ -244,11 +244,11 @@ class LatentRegModel(torch.nn.Module):
         return self.cond_forward(x)
 
     def cond_forward(self, x: List[torch.Tensor],
-                     p: List[torch.Tensor] = None,
-                     u: List[torch.Tensor] = None,
-                     scales: List[torch.Tensor] = None,
-                     offsets: List[torch.Tensor] = None,
-                     direct_mappings: List[torch.Tensor] = None):
+                     p: Union[List[Union[torch.Tensor, None]], None] = None,
+                     u: Union[List[Union[torch.Tensor, None]], None] = None,
+                     scales: Union[List[Union[torch.Tensor, None]], None] = None,
+                     offsets: Union[List[Union[torch.Tensor, None]], None] = None,
+                     direct_mappings: Union[List[Union[torch.Tensor, None]], None] = None):
         """ Computes means given x and different parameter values.
 
         The user can specify parameter values to override (see arguments below).  When any of these are provided,
@@ -475,7 +475,7 @@ class LatentRegModel(torch.nn.Module):
 
         return neg_ll
 
-    def trainable_parameters(self):
+    def trainable_parameters(self) -> List[torch.nn.parameter.Parameter]:
         """ Gets all trainable parameters of the model.
 
         Trainable parameters are those in the s and m modules as well as the p modes, u modes, scale, offset, psi and

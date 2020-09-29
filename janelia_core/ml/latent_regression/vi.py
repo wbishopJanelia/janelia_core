@@ -26,7 +26,7 @@ def format_output_list(base_str: str, it_str: str, vls: Sequence[float], inds: S
 
     String will be of the format:
 
-        base_str + ' ' + it_str+ints[0] + ': ' + str(vls[0]) + ', ' + it_str+inds[1] + ': ' + str(vls[1]) + ...
+        base_str + ' ' + it_str+inds[0] + ': ' + str(vls[0]) + ', ' + it_str+inds[1] + ': ' + str(vls[1]) + ...
 
     Args:
         base_str: The base string that preceeds everything else on the string
@@ -102,7 +102,6 @@ class PriorCollection():
     This object offers convenience functions for getting all the parameters for the priors as well as moving the
     distributions to different devices.
     """
-
     def __init__(self, p_dists: Sequence[Union[CondVAEDistribution, None]],
                  u_dists: Sequence[Union[CondVAEDistribution, None]],
                  psi_dists: Sequence[Union[CondVAEDistribution, None]],
@@ -142,6 +141,31 @@ class PriorCollection():
         self.scale_dists = scale_dists
         self.offset_dists = offset_dists
         self.direct_mapping_dists = direct_mapping_dists
+
+    def get_used_devices(self):
+        """ Returns all devices that priors are on. """
+        p_dist_devices = [next(d.parameters())[0].device for d in self.p_dists if d is not None]
+        u_dist_devices = [next(d.parameters())[0].device for d in self.u_dists if d is not None]
+        psi_dist_devices = [next(d.parameters())[0].device for d in self.psi_dists if d is not None]
+
+        if self.scale_dists is not None:
+            scale_dist_devices = [next(d.parameters())[0].device for d in self.scale_dists if d is not None]
+        else:
+            scale_dist_devices = []
+
+        if self.offset_dists is not None:
+            offset_dist_devices = [next(d.parameters())[0].device for d in self.offset_dists if d is not None]
+        else:
+            offset_dist_devices = []
+
+        if self.direct_mapping_dists is not None:
+            direct_mapping_dist_devices = [next(d.parameters())[0].device
+                                           for d in self.direct_mapping_dists if d is not None]
+        else:
+            direct_mapping_dist_devices = []
+
+        return list(set(p_dist_devices + u_dist_devices + psi_dist_devices + scale_dist_devices +
+                        offset_dist_devices + direct_mapping_dist_devices))
 
     def r_params(self) -> List[torch.nn.parameter.Parameter]:
         """ Gets parameters of all modules for which gradients can be estimated with the reparameterization trick. """
@@ -215,10 +239,6 @@ class PriorCollection():
 
         if self.direct_mapping_dists is not None:
             move_if_not_none(self.direct_mapping_dists)
-
-
-
-
 
 # TODO: Remove if we confirm we no longer need
 #def compute_prior_penalty(mn: torch.Tensor, positions: torch.Tensor):
@@ -415,39 +435,19 @@ class MultiSubjectVIFitter():
 
     """
 
-    def __init__(self, s_collections: Sequence[SubjectVICollection],
-                 p_priors: Sequence[CondMatrixProductDistribution],
-                 u_priors: Sequence[CondMatrixProductDistribution],
-                 p_prior_penalizers: Sequence[DistributionPenalizer] = None,
-                 u_prior_penalizers: Sequence[DistributionPenalizer] = None,
-                 parameter_penalizers: Sequence[ParameterPenalizer] = None):
+    def __init__(self, s_collections: Sequence[SubjectVICollection], prior_collection: PriorCollection,
+                 penalizers: Sequence = None):
         """ Creates a new MultiSubjectVIFitter object.
 
         Args:
             s_collections: A set of SubjectVICollections to use when fitting data.
 
-            p_priors: The conditional priors for the p modes of each input group.  If the modes for a
-            group are fixed, the entry in p_priors for that group should be None.
-
-            u_priors: The conditional priors for the u modes for each output group, same format as p_priors.
-
-            p_prior_penalizers: A sequence of penalizers to apply to the priors of each group of p modes.
-            The penalizer in p_prior_penalizers[g] is the penalizer for group g.  If group g is not penalized,
-            p_prior_penalizers[g] should be None.
-
-            u_prior_penalizers: A sequence of penalizers to apply to the priors of each group of u modes in the same
-            manner as p_prior_penalizers
-
-            parameter_penalizers: A sequence of parameter penalizers used to penalize parameters in the models. The
-            order these are listed does not matter.
+            prior_collection: The prior collection to use when fitting data.
         """
 
         self.s_collections = s_collections
-        self.p_priors = p_priors
-        self.u_priors = u_priors
-        self.p_prior_penalizers = p_prior_penalizers
-        self.u_prior_penalizers = u_prior_penalizers
-        self.parameter_penalizers = parameter_penalizers
+        self.prior_collection = prior_collection
+        self.penalizers = penalizers
 
         self.distributed = False  # Keep track if we have distributed everything yet
 
@@ -479,6 +479,8 @@ class MultiSubjectVIFitter():
                 penalizers is the same as when parameter penalizers were provided at the time of the creation of the
                 Fitter object.
         """
+
+        raise(NotImplementedError('create_check_point needs to be udpated.'))
 
         orig_devices = list(set([s_coll.device for s_coll in self.s_collections]))
         print('Memory before moving: ' + str(torch_devices_memory_usage(orig_devices, type='memory_allocated')))
@@ -536,7 +538,7 @@ class MultiSubjectVIFitter():
 
     def distribute(self, devices: Sequence[Union[torch.device, int]], s_inds: Sequence[int] = None,
                    distribute_data: bool = False):
-        """ Distributes priors, penalizers and subject models and data across devices.
+        """ Distributes priors, subject collections and penalizers across devices.
 
         Args:
             devices: Devices that priors and subject collections should be distributed across.
@@ -556,34 +558,24 @@ class MultiSubjectVIFitter():
         n_dist_mdls = len(s_inds)
 
         # Distribute priors; by convention priors go onto first device
-        if self.p_priors is not None:
-            self.p_priors = [d.to(devices[0]) if d is not None else None for d in self.p_priors]
-            self.u_priors = [d.to(devices[0]) if d is not None else None for d in self.u_priors]
+        self.prior_collection.to(devices[0])
 
-        # Distribute prior penalizers; we put these with the priors
-        if self.p_prior_penalizers is not None:
-            self.p_prior_penalizers = [penalizer.to(devices[0]) if penalizer is not None else None
-                                       for penalizer in self.p_prior_penalizers]
-        if self.u_prior_penalizers is not None:
-            self.u_prior_penalizers = [penalizer.to(devices[0]) if penalizer is not None else None
-                                       for penalizer in self.u_prior_penalizers]
-
-        # Distribute parameter penalizers; by convention these go to the first device
-        if self.parameter_penalizers is not None:
-            for p in self.parameter_penalizers:
-                p.to(devices[0])
+        # We also put penalizers on first device
+        if self.penalizers is not None:
+            for penalizer in self.penalizers:
+                penalizer.to(devices[0])
 
         # Distribute subject collections
         for i in range(n_dist_mdls):
-            device_ind = (i+1) % n_devices
+            device_ind = i % n_devices
             self.s_collections[s_inds[i]].to(devices[device_ind], distribute_data=distribute_data)
 
         self.distributed = True
 
     def trainable_parameters(self, s_inds: Sequence[int] = None, get_prior_params: bool = True) -> [list, list]:
-        """ Gets all trainable parameters for fitting priors and a set of subjects.
+        """ Gets all trainable parameters for fitting.
 
-        This function returns seperate parameters for penalizer parameters and all other parameters, to faciltate
+        This function returns separate parameters for penalizer parameters and all other parameters, to faciltate
         applying different learning rates to the penalizer parameters.
 
         Args:
@@ -595,34 +587,31 @@ class MultiSubjectVIFitter():
         Returns:
              base_params: Parameters of priors, posteriors and subject models
 
-             penalizer_params: Parameters of any prior and parameter penalizers
+             penalizer_params: Parameters of any penalizers
         """
 
         # Get base parameters
         if s_inds is None:
             s_inds = range(len(self.s_collections))
 
-        if (self.p_priors is not None) and get_prior_params:
-            p_params = itertools.chain(*[d.parameters() for d in self.p_priors if d is not None])
-            u_params = itertools.chain(*[d.parameters() for d in self.u_priors if d is not None])
+        if get_prior_params:
+            prior_params = self.prior_collection.r_params()
         else:
-            p_params = []
-            u_params = []
+            prior_params = []
 
         collection_params = itertools.chain(*[self.s_collections[s_i].trainable_parameters() for s_i in s_inds])
-        base_params = list(itertools.chain(p_params, u_params, collection_params))
+        base_params = list(itertools.chain(collection_params, prior_params))
 
         # Clean for duplicate parameters.  Subject models might shared a posterior, for example, so we need to
         # check for this
         non_duplicate_base_params = list(set(base_params))
 
-        # Get penalizer parameters
+        # Get penalizer parameters - the get_penalizer_params() already checks for duplicates
         non_duplicate_penalizer_params = self.get_penalizer_params()
 
         return [non_duplicate_base_params, non_duplicate_penalizer_params]
 
-    def get_penalizer_params(self, keys: Union[str, Sequence[str]] = None,
-                             get_parameter_penalizer_parameters: bool = True) -> list:
+    def get_penalizer_params(self, keys: Union[str, Sequence[str]] = None) -> list:
         """ Returns a list of penalizer parameters, optionally filtering by key.
 
         Args:
@@ -630,52 +619,31 @@ class MultiSubjectVIFitter():
             sequence of keys parameters can match.  Any parameters not matching the requested key(s), will
             not be returned.  If keys is None, all penalizer parameters will be returned.
 
-            get_parameter_penalizer_parameters: True if internal, learnable parameters of the parameter penalizers
-            should be included in the returned parameters; if false only parameter for prior penalizers will be
-            returned.
-
         Returns:
             params: A list of the requested parameters
 
         """
 
-        # Put all penalizers into a single list
-        if self.p_prior_penalizers is not None:
-            p_prior_penalizers = list(self.p_prior_penalizers)
-        else:
-            p_prior_penalizers = []
-
-        if self.u_prior_penalizers is not None:
-            u_prior_penalizers = list(self.u_prior_penalizers)
-        else:
-            u_prior_penalizers = []
-
-        if self.parameter_penalizers is not None:
-            parameter_penalizers = list(self.parameter_penalizers)
-        else:
-            parameter_penalizers = []
-
-        if get_parameter_penalizer_parameters:
-            penalizers = p_prior_penalizers + u_prior_penalizers + parameter_penalizers
-        else:
-            penalizers = p_prior_penalizers + u_prior_penalizers
+        # First, if we have no penalizers, we just return an empyt list
+        if self.penalizers is None:
+            return []
 
         # Use all keys if user has not provided any
         if keys is None:
-                keys = itertools.chain(*[p.list_param_keys() for p in penalizers if p is not None])
+                keys = itertools.chain(*[p.list_param_keys() for p in self.penalizers if p is not None])
         elif isinstance(keys, str):
             keys = [keys]
 
         # Get requested parameters
         keys = list(set(keys))
 
-        params = itertools.chain(*[itertools.chain(*[p.get_marked_params(key) for p in penalizers if p is not None])
-                  for key in keys])
+        params = itertools.chain(*[itertools.chain(*[p.get_marked_params(key) for p in self.penalizers])
+                                   for key in keys])
         params = list(set(list(params)))
 
         return params
 
-    def generate_batch_smp_inds(self, n_batches: int, s_inds: Sequence[int] = None):
+    def generate_batch_smp_inds(self, n_batches: int, s_inds: Sequence[int] = None) -> List[List[np.ndarray]]:
         """ Generates indices of random mini-batches of samples for each subject.
 
         Args:
@@ -716,29 +684,26 @@ class MultiSubjectVIFitter():
         return batch_smp_inds
 
     def get_used_devices(self):
-        """ Lists the devices the subject models and priors are on.
-
-        TODO: Should include devices penalizers are on as well
+        """ Lists any device currently used for fitting.
 
         Returns:
             devices: The list of devices subject models and priors are on.
         """
 
-        s_coll_devices = [s_coll.device for s_coll in self.s_collections]
-        if self.p_priors is not None:
-            p_prior_devices = [next(d.parameters()).device for d in self.p_priors if d is not None]
-        if self.u_priors is not None:
-            u_prior_devices = [next(d.parameters()).device for d in self.u_priors if d is not None]
+        s_mdl_devices = [s_coll.s_mdl.trainable_parameters()[0].device for s_coll in self.s_collections]
+        data_devices = [s_coll.data[0].data[0].device for s_coll in self.s_collections]  # TODO: Should check all data tensors
+        prior_devices = self.prior_collection.get_used_devices()
+        if self.penalizers is not None:
+            penalizer_devices = [next(penalizer.parameters()).device for penalizer in self.penalizers]
+        else:
+            penalizer_devices =  []
 
-        return list(set([*s_coll_devices, *p_prior_devices, *u_prior_devices]))
+        return list(set(s_mdl_devices + data_devices + prior_devices + penalizer_devices))
 
-    def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates = .01,
+    def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates=.01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, fix_priors: bool = False,
-            fix_parameter_penalizers: bool = False, prior_penalty_weight: float = 0.0, enforce_priors: bool = True,
-            sample_posteriors: bool = True, update_int: int = 1, print_mdl_nlls: bool = True,
-            print_sub_kls: bool = True, print_memory_usage: bool = True, print_prior_penalties = True,
-            print_parameter_penalties: bool = True, print_prior_penalizer_states = False,
-            print_parameter_penalizer_states: bool = False, cp_epochs: Sequence[int] = None,
+            fix_penalizers: bool = False, enforce_priors: bool = True,
+            update_int: int = 1, print_opts: dict = None, cp_epochs: Sequence[int] = None,
             cp_penalizers: bool = False) -> [dict, Union[List, None]]:
         """
 
@@ -771,42 +736,15 @@ class MultiSubjectVIFitter():
 
             fix_priors: True if priors should be fixed and not changed during fitting
 
-            fix_parameter_penalizers: True if the internal, learnable parameters of the parameter penalizers should
+            fix_penalizers: True if the internal, learnable parameters of the parameter penalizers should
             be fixed.
 
-            prior_penalty_weight: If not 0, penalizers for each prior will be applied and the final penalty weighted
-            by this value.
-
-            enforce_priors: If enforce priors is true, the KL between priors and posteriors is included in the
-            objective to be optimized (i.e., standard variational inference).  If False, the KL term is ignored
-            and only the expected negative log-likelihood term in the ELBO is optimized.
-
-            sample_posteriors: If true, posteriors will be sampled when fitting.  This is required for variational
-            inference.  However, if false, the mean of the posteriors will be used as the sample.  In this case,
-            this is equivalent to using a single function (the posterior mean) to set the loadings for each subject.
-            This may be helpful for initialization.  Note that if sample_posteriors is false, enforce_priors must
-            also be false.
+            enforce_priors: True if we should calculate kl divergences between priors and posteriors and include
+            this in the objective.
 
             update_int: Fitting status will be printed to screen every update_int number of epochs
 
-            print_mdl_nlls: If true, when fitting status is printed to screen, the negative log likelihood of each
-            evaluated model will be printed to screen.
-
-            print_sub_kls: If true, when fitting status is printed to screen, the kl divergence for the p and u modes
-            for each fit subject will be printed to screen.
-
-            print_prior_penalties: If true, when fitting status is printed to screen, the calculated penalties for the
-            priors will be printed to screen.
-
-            print_parameter_penalties: If true, when fitting status is printed to screen, the calculated penalites for
-            the parmaters will be printed to screen.
-
-            print_memory_usage: If true, when fitting status is printed to screen, the memory usage of each
-            device will be printed to streen.
-
-            print_prior_penalizer_states: If true, the state of prior penalizers will be printed to screen.
-
-            print_parameter_penalizer_states: If true, the state of the parameter penalizers will be printed to screen.
+            print_opts: Options controlling what is printed to screen.  See _print_fitting_status()
 
             cp_epochs: A sequence of epochs after which a check point of the models (as well as optionally the
             penalizers will be made).  If no check points should be made, set this to None.
@@ -850,10 +788,13 @@ class MultiSubjectVIFitter():
 
         """
 
+        if print_opts is None:
+            print_opts = {'mdl_nll': True,
+                          'sub_kls': True,
+                          'memory_usage': True}
+
         if not self.distributed:
             raise(RuntimeError('self.distribute() must be called before fitting.'))
-        if (not sample_posteriors) and enforce_priors:
-            raise(ValueError('If sample posteriors is false, enforce_priors must also be false.'))
 
         # See what devices we are using for fitting (this is so we can later query their memory usage)
         all_devices = self.get_used_devices()
@@ -870,27 +811,20 @@ class MultiSubjectVIFitter():
             s_inds = range(n_subjects)
         n_fit_subjects = len(s_inds)
 
-        n_smp_data_points = [len(self.s_collections[s_i].data) for s_i in s_inds]
+        # Determine the devices the subject collections are on
+        subject_coll_devices = [None]*n_fit_subjects
+        for s_i, s_ind in enumerate(s_inds):
+            subject_coll_devices[s_i] = next(self.s_collections[s_ind].s_mdl.parameters()).device
 
-        if self.p_priors is not None:
-            n_p_priors = len(self.p_priors)
-        else:
-            n_p_priors = 0
-        if self.u_priors is not None:
-            n_u_priors = len(self.u_priors)
-        else:
-            n_u_priors = 0
+        n_smp_data_points = [len(self.s_collections[s_i].data) for s_i in s_inds]
 
         # Pull out groups of parameters with different learning rates
         base_parameters, _ = self.trainable_parameters(s_inds, get_prior_params=(fix_priors is False))
-        if len(learning_rate_values[0]) > 1: # Means learning rates specified for penalizers
-            penalizer_params = [(self.get_penalizer_params(key,
-                                                           get_parameter_penalizer_parameters=(fix_parameter_penalizers is False)),
-                                 learning_rate_values[0][1][key])
+        if len(learning_rate_values[0]) > 1:  # Means learning rates specified for penalizers
+            penalizer_params = [(self.get_penalizer_params(key), learning_rate_values[0][1][key])
                                 for key in learning_rate_values[0][1].keys()]
         else:
-            penalizer_params = [(self.get_penalizer_params(get_parameter_penalizer_parameters=(fix_parameter_penalizers is False)),
-                                 learning_rate_values[0][-1])]
+            penalizer_params = [(self.get_penalizer_params(), learning_rate_values[0][-1])]
 
         # Setup initial optimizer
         params_with_lr = ([{'params': base_parameters, 'lr': learning_rate_values[0][0]}] +
@@ -907,22 +841,19 @@ class MultiSubjectVIFitter():
                 check_points = [None]*n_cps
 
         # Setup everything for logging
-        if self.parameter_penalizers is not None:
-            n_parameter_penalizers = len(self.parameter_penalizers)
-        else:
-            n_parameter_penalizers = 0
-
         epoch_elapsed_time = np.zeros(n_epochs)
         epoch_nll = np.zeros([n_epochs, n_fit_subjects])
         epoch_sub_p_kl = np.zeros([n_epochs, n_fit_subjects])
         epoch_sub_u_kl = np.zeros([n_epochs, n_fit_subjects])
-        epoch_p_prior_penalties = np.zeros([n_epochs, n_p_priors])
-        epoch_u_prior_penalties = np.zeros([n_epochs, n_u_priors])
-        epoch_parameter_penalties = np.zeros([n_epochs, n_parameter_penalizers])
+        epoch_sub_psi_kl = np.zeros([n_epochs, n_fit_subjects])
+        epoch_sub_scales_kl = np.zeros([n_epochs, n_fit_subjects])
+        epoch_sub_offsets_kl = np.zeros([n_epochs, n_fit_subjects])
+        epoch_sub_direct_mappings_kl = np.zeros([n_epochs, n_fit_subjects])
+        #epoch_penalizer_penalties = np.zeros([n_epochs, n_penalizers])
         epoch_obj = np.zeros(n_epochs)
 
         # Perform fitting
-        prev_learning_rates = learning_rate_values[0,:]
+        prev_learning_rates = learning_rate_values[0, :]
         for e_i in range(n_epochs):
 
             # Set the learning rate
@@ -934,16 +865,13 @@ class MultiSubjectVIFitter():
 
                 # Pull out groups of parameters with different learning rates
                 if len(cur_learning_rates) > 1: # Means learning rates specified for penalizers
-                    penalizer_params = [(self.get_penalizer_params(key,
-                                                                   get_parameter_penalizer_parameters=(fix_parameter_penalizers is False)),
-                                         cur_learning_rates[1][key])
+                    penalizer_params = [(self.get_penalizer_params(key), cur_learning_rates[1][key])
                                         for key in cur_learning_rates[1].keys()]
                 else:
-                    penalizer_params = [(self.get_penalizer_params(get_parameter_penalizer_parameters=(fix_parameter_penalizers is False)),
-                                         cur_learning_rates[-1])]
+                    penalizer_params = [(self.get_penalizer_params(), cur_learning_rates[-1])]
 
                 params_with_lr = ([{'params': base_parameters, 'lr': cur_learning_rates[0]}] +
-                          [{'params': t[0], 'lr': t[1]} for t in penalizer_params])
+                                  [{'params': t[0], 'lr': t[1]} for t in penalizer_params])
 
                 optimizer = torch.optim.Adam(params=params_with_lr, **adam_params)
                 prev_learning_rates = cur_learning_rates
@@ -961,6 +889,10 @@ class MultiSubjectVIFitter():
                 batch_nll = np.zeros(n_fit_subjects)
                 batch_sub_p_kl = np.zeros(n_fit_subjects)
                 batch_sub_u_kl = np.zeros(n_fit_subjects)
+                batch_sub_psi_kl = np.zeros(n_fit_subjects)
+                batch_sub_scales_kl = np.zeros(n_fit_subjects)
+                batch_sub_offsets_kl = np.zeros(n_fit_subjects)
+                batch_sub_direct_mappings_kl = np.zeros(n_fit_subjects)
                 for i, s_i in enumerate(s_inds):
 
                     s_coll = self.s_collections[s_i]
@@ -968,135 +900,126 @@ class MultiSubjectVIFitter():
                     # Get the data for this batch for this subject, using efficient indexing if all data is
                     # already on the devices where the subject models are
                     batch_inds = epoch_batch_smp_inds[i][b_i]
-                    if self.s_collections[s_i].data.data[0].device == self.s_collections[s_i].device:
+                    if self.s_collections[s_i].data.data[0].device == subject_coll_devices[i]:
                         batch_data = self.s_collections[s_i].data.efficient_get_item(batch_inds)
                     else:
                         batch_data = self.s_collections[s_i].data[batch_inds]
 
                     # Send the data to the GPU if needed
-                    batch_data.to(device=s_coll.device, non_blocking=s_coll.device.type == 'cuda')
+                    batch_data.to(device=subject_coll_devices[i],
+                                  non_blocking=subject_coll_devices[i].type == 'cuda')
 
                     # Form x and y for the batch
                     batch_x = [batch_data.data[i_g][batch_data.i_x, :] for i_g in s_coll.input_grps]
                     batch_y = [batch_data.data[i_h][batch_data.i_y, :] for i_h in s_coll.output_grps]
                     n_batch_data_pts = batch_x[0].shape[0]
 
-                    # Make sure the posterior is on the right GPU for this subject (important if we are
+                    # Make sure the posteriors are on the right GPU for this subject (important if we are
                     # using a shared posterior)
-                    for d in s_coll.p_dists:
-                        if not isinstance(d, torch.Tensor):
-                            d.to(s_coll.device)
-                    for d in s_coll.u_dists:
-                        if not isinstance(d, torch.Tensor):
-                            d.to(s_coll.device)
+                    self._move_dists(s_coll.p_dists, subject_coll_devices[i])
+                    self._move_dists(s_coll.u_dists, subject_coll_devices[i])
+                    self._move_dists(s_coll.psi_dists, subject_coll_devices[i])
+                    self._move_dists(s_coll.scale_dists, subject_coll_devices[i])
+                    self._move_dists(s_coll.offset_dists, subject_coll_devices[i])
+                    self._move_dists(s_coll.direct_mapping_dists, subject_coll_devices[i])
 
-                    # Sample the posterior distributions of modes for this subject
-                    if sample_posteriors:
-                        q_p_modes = [d if isinstance(d, torch.Tensor)
-                                     else d.sample(s_coll.props[s_coll.input_props[g]])
-                                     for g, d in enumerate(s_coll.p_dists)]
+                    # Sample posteriors - note the helper function sets samples to None if there is no
+                    # distribution over a parameter.  In this case, when we provide these None values
+                    # to cond_forward() of the subject model, we indicate that the parameters in
+                    # the subject model should be used.
+                    q_p_modes, q_p_modes_standard = self._sample_posteriors(s_coll.p_dists, s_coll.props,
+                                                                            s_coll.p_props)
+                    q_u_modes, q_u_modes_standard = self._sample_posteriors(s_coll.u_dists, s_coll.props,
+                                                                            s_coll.u_props)
+                    q_psi_vls, q_psi_vls_standard = self._sample_posteriors(s_coll.psi_dists, s_coll.props,
+                                                                            s_coll.psi_props)
+                    q_scale_vls, q_scale_vls_standard = self._sample_posteriors(s_coll.scale_dists, s_coll.props,
+                                                                                s_coll.scale_props)
+                    q_offset_vls, q_offset_vls_standard = self._sample_posteriors(s_coll.offset_dists, s_coll.props,
+                                                                                  s_coll.offset_props)
 
-                        q_u_modes = [d if isinstance(d, torch.Tensor)
-                                     else d.sample(s_coll.props[s_coll.output_props[h]])
-                                     for h, d in enumerate(s_coll.u_dists)]
-
-                        q_p_modes_standard = [smp if isinstance(s_coll.p_dists[g], torch.Tensor)
-                                              else s_coll.p_dists[g].form_standard_sample(smp)
-                                              for g, smp in enumerate(q_p_modes)]
-
-                        q_u_modes_standard = [smp if isinstance(s_coll.u_dists[h], torch.Tensor)
-                                              else s_coll.u_dists[h].form_standard_sample(smp)
-                                              for h, smp in enumerate(q_u_modes)]
-                    else:
-                        q_p_modes_standard = [d if isinstance(d, torch.Tensor)
-                                              else d(s_coll.props[s_coll.input_props[g]])
-                                              for g, d in enumerate(s_coll.p_dists)]
-
-                        q_u_modes_standard = [d if isinstance(d, torch.Tensor)
-                                              else d(s_coll.props[s_coll.output_props[h]])
-                                              for h, d in enumerate(s_coll.u_dists)]
+                    q_direct_mapping_vls, q_direct_mapping_vls_standard = self._sample_posteriors(
+                            s_coll.direct_mapping_dists, s_coll.props, s_coll.direct_mapping_dists)
 
                     # Make sure the m module is on the correct device for this subject, this is
                     # important when subject models share an m function
-                    s_coll.s_mdl.m = s_coll.s_mdl.m.to(s_coll.device)
+                    s_coll.s_mdl.m.to(subject_coll_devices[i])
 
                     # Calculate the conditional log-likelihood for this subject
-                    y_pred = s_coll.s_mdl.cond_forward(x=batch_x, p=q_p_modes_standard, u=q_u_modes_standard)
-                    nll = (float(n_smp_data_points[i])/n_batch_data_pts)*s_coll.s_mdl.neg_ll(y=batch_y, mn=y_pred)
+                    y_pred = s_coll.s_mdl.cond_forward(x=batch_x, p=q_p_modes_standard, u=q_u_modes_standard,
+                                                       scales=q_scale_vls_standard, offsets=q_offset_vls_standard,
+                                                       direct_mappings=q_direct_mapping_vls_standard)
+                    nll = (float(n_smp_data_points[i])/n_batch_data_pts)*s_coll.s_mdl.neg_ll(y=batch_y, mn=y_pred,
+                                                                                             psi=q_psi_vls_standard)
                     nll.backward(retain_graph=True)
                     batch_obj_log += nll.detach().cpu().numpy()
-
-                    # Calculate KL divergences between posteriors on modes and priors for this subject
-                    if enforce_priors:
-                        s_p_kl = torch.zeros([1], device=s_coll.device)[0]  # Weird indexing is to get a scalar tensor
-                        for g, d in enumerate(self.p_priors):
-                            if d is not None:
-                                s_p_kl += torch.sum(s_coll.p_dists[g].kl(d_2=d, x=s_coll.props[s_coll.input_props[g]],
-                                                                         smp=q_p_modes[g]))
-                                s_p_kl.backward()
-                                batch_obj_log += s_p_kl.detach().cpu().numpy()
-
-                        s_u_kl = torch.zeros([1], device=s_coll.device)[0]  # Weird indexing is to get a scalar tensor
-                        for h, d in enumerate(self.u_priors):
-                            if d is not None:
-                                s_u_kl += torch.sum(s_coll.u_dists[h].kl(d_2=d, x=s_coll.props[s_coll.output_props[h]],
-                                                                         smp=q_u_modes[h]))
-                                s_u_kl.backward()
-                                batch_obj_log += s_u_kl.detach().cpu().numpy()
-
-                    # Record the log likelihood, kl divergences and weight penalties for each subject for logging
                     batch_nll[i] = nll.detach().cpu().numpy()
+
+                    # Calculate KL divergences between posteriors and priors
                     if enforce_priors:
-                        batch_sub_p_kl[i] = s_p_kl.detach().cpu().numpy()
-                        batch_sub_u_kl[i] = s_u_kl.detach().cpu().numpy()
+                        s_p_kl_log = self._calc_kl_and_backward(dists0=s_coll.p_dists,
+                                                                dists1=self.prior_collection.p_dists,
+                                                                props=s_coll.props, prop_inds=s_coll.p_props,
+                                                                smps=q_p_modes)
+                        batch_sub_p_kl[i] = s_p_kl_log
 
-                # Penalize priors if we are suppose to
-                batch_p_prior_penalties = np.zeros(n_p_priors)
-                batch_u_prior_penalties = np.zeros(n_u_priors)
+                        s_u_kl_log = self._calc_kl_and_backward(dists0=s_coll.u_dists,
+                                                                dists1=self.prior_collection.u_dists,
+                                                                props=s_coll.props, prop_inds=s_coll.u_props,
+                                                                smps=q_u_modes)
+                        batch_obj_log += s_u_kl_log
+                        batch_sub_u_kl[i] = s_u_kl_log
 
-                if prior_penalty_weight != 0 and self.p_prior_penalizers is not None:
-                    for g, (prior_g, penalizer_g) in enumerate(zip(self.p_priors, self.p_prior_penalizers)):
-                        if penalizer_g is not None:
-                            prior_penalty = prior_penalty_weight*penalizer_g.penalize(d=prior_g)
-                            prior_penalty.backward()
-                            prior_penalty_np = prior_penalty.detach().cpu().numpy()
-                            batch_p_prior_penalties[g] = prior_penalty_np
-                            batch_obj_log += prior_penalty_np
+                        s_psi_kl_log = self._calc_kl_and_backward(dists0=s_coll.psi_dists,
+                                                                  dists1=self.prior_collection.psi_dists,
+                                                                  props=s_coll.props, prop_inds=s_coll.psi_props,
+                                                                  smps=q_psi_vls)
+                        batch_obj_log += s_psi_kl_log
+                        batch_sub_psi_kl[i] = s_psi_kl_log
 
-                if prior_penalty_weight != 0 and self.u_prior_penalizers is not None:
-                    for h, (prior_h, penalizer_h) in enumerate(zip(self.u_priors, self.u_prior_penalizers)):
-                        if penalizer_h is not None:
-                            prior_penalty = prior_penalty_weight*penalizer_h.penalize(d=prior_h)
-                            prior_penalty.backward()
-                            prior_penalty_np = prior_penalty.detach().cpu().numpy()
-                            batch_u_prior_penalties[h] = prior_penalty_np
-                            batch_obj_log += prior_penalty_np
+                        s_scales_kl_log = self._calc_kl_and_backward(dists0=s_coll.scale_dists,
+                                                                     dists1=self.prior_collection.scale_dists,
+                                                                     props=s_coll.props, prop_inds=s_coll.scale_props,
+                                                                     smps=q_scale_vls)
+                        batch_obj_log += s_scales_kl_log
+                        batch_sub_scales_kl[i] = s_scales_kl_log
 
-                # Penalize parameters
-                batch_parameter_penalties = np.zeros(n_parameter_penalizers)
-                if self.parameter_penalizers is not None:
-                    for penalizer_i, parameter_penalizer in enumerate(self.parameter_penalizers):
-                        batch_parameter_penalty_i_np = parameter_penalizer.penalize_and_backwards()
-                        batch_parameter_penalties[penalizer_i] = batch_parameter_penalty_i_np
-                        batch_obj_log += batch_parameter_penalty_i_np
+                        s_offsets_kl_log = self._calc_kl_and_backward(dists0=s_coll.offset_dists,
+                                                                      dists1=self.prior_collection.offset_dists,
+                                                                      props=s_coll.props, prop_inds=s_coll.offset_props,
+                                                                      smps=q_offset_vls)
+                        batch_obj_log += s_offsets_kl_log
+                        batch_sub_offsets_kl[i] = s_offsets_kl_log
+
+                        s_direct_mappings_kl_log = self._calc_kl_and_backward(dists0=s_coll.direct_mapping_dists,
+                                                                    dists1=self.prior_collection.direct_mapping_dists,
+                                                                    props=s_coll.props,
+                                                                    prop_inds=s_coll.direct_mapping_props,
+                                                                    smps=q_offset_vls)
+                        batch_obj_log += s_direct_mappings_kl_log
+                        batch_sub_direct_mappings_kl[i] = s_direct_mappings_kl_log
+
+                # Apply penalizers
+                # TODO: Add code for applying penalizers
 
                 # Take a gradient step
                 optimizer.step()
 
-                # Make sure no private variance values are too small
+                # Make sure no private variance values are too small if we are fitting variances with point estimates
                 with torch.no_grad():
                     for s_j in s_inds:
                         s_coll = self.s_collections[s_j]
                         s_min_var = s_coll.min_var
                         s_mdl = s_coll.s_mdl
                         for h in range(s_mdl.n_output_groups):
-                            small_psi_inds = torch.nonzero(s_mdl.psi[h] < s_min_var[h])
-                            s_mdl.psi[h].data[small_psi_inds] = s_min_var[h]
+                            if s_coll.psi_dists[h] is None:
+                                small_psi_inds = torch.nonzero(s_mdl.psi[h] < s_min_var[h])
+                                s_mdl.psi[h].data[small_psi_inds] = s_min_var[h]
 
             # Handle checkpoints if needed
             if cp_epochs is not None:
                 if np.any(cp_epochs == e_i):
-
+                    # TODO: Need to add this code
                     # Clear the batch data from memory - this is helpful when working with GPU
 
                     del batch_x
@@ -1105,10 +1028,9 @@ class MultiSubjectVIFitter():
 
                     print('Creating checkpoint after epoch ' + str(e_i) + '.')
                     cp_ind = np.argwhere(cp_epochs == e_i)[0][0]
-                    check_points[cp_ind] = self.create_check_point(inc_penalizers=cp_penalizers)
-                    check_points[cp_ind]['epoch'] = e_i
+                    #check_points[cp_ind] = self.create_check_point(inc_penalizers=cp_penalizers)
+                    #check_points[cp_ind]['epoch'] = e_i
 
-                    print(self.s_collections[0].data.data[0].device)
 
             # Take care of logging everything
             elapsed_time = time.time() - t_start
@@ -1116,98 +1038,118 @@ class MultiSubjectVIFitter():
             epoch_nll[e_i, :] = batch_nll
             epoch_sub_p_kl[e_i, :] = batch_sub_p_kl
             epoch_sub_u_kl[e_i, :] = batch_sub_u_kl
-            epoch_p_prior_penalties[e_i, :] = batch_p_prior_penalties
-            epoch_u_prior_penalties[e_i, :] = batch_u_prior_penalties
-            epoch_parameter_penalties[e_i, :] = batch_parameter_penalties
+            epoch_sub_psi_kl[e_i, :] = batch_sub_psi_kl
+            epoch_sub_scales_kl[e_i, :] = batch_sub_scales_kl
+            epoch_sub_offsets_kl[e_i, :] = batch_sub_offsets_kl
+            epoch_sub_direct_mappings_kl[e_i, :] = batch_sub_direct_mappings_kl
+            #epoch_p_prior_penalties[e_i, :] = batch_p_prior_penalties
+            #epoch_u_prior_penalties[e_i, :] = batch_u_prior_penalties
+            #epoch_parameter_penalties[e_i, :] = batch_parameter_penalties
             epoch_obj[e_i] = batch_obj_log
 
             if e_i % update_int == 0:
-                print('*****************************************************')
-                print('Epoch ' + str(e_i) + ' complete.  Obj: ' +
-                      '{:.2e}'.format(float(batch_obj_log)) +
-                      ', LR: '  + str(cur_learning_rates ))
-                if print_mdl_nlls:
-                    print(format_output_list(base_str='Model NLLs: ', it_str='s_', vls=batch_nll, inds=s_inds))
-                if print_sub_kls:
-                    print(format_output_list(base_str='Subj P KLs: ', it_str='s_', vls=batch_sub_p_kl, inds=s_inds))
-                    print(format_output_list(base_str='Subj U KLs: ', it_str='s_', vls=batch_sub_u_kl, inds=s_inds))
-                if print_prior_penalties:
-                    print(format_output_list(base_str='P prior penalties: ', it_str='g_',
-                                             vls=batch_p_prior_penalties, inds=range(n_p_priors)))
-                    print(format_output_list(base_str='U prior penalties: ', it_str='h_',
-                                             vls=batch_u_prior_penalties, inds=range(n_u_priors)))
-                if print_parameter_penalties:
-                    print(format_output_list(base_str='Parameter penalties: ', it_str='',
-                                             vls=batch_parameter_penalties, inds=range(n_parameter_penalizers)))
-
-                if print_memory_usage:
-                    device_memory_allocated = torch_devices_memory_usage(all_devices, type='memory_allocated')
-                    device_max_memory_allocated = torch_devices_memory_usage(all_devices, type='max_memory_allocated')
-                    print(format_output_list(base_str='Device memory allocated: ', it_str='d_',
-                          vls=device_memory_allocated, inds=range(len(device_memory_allocated))))
-                    print(format_output_list(base_str='Device max memory allocated: ', it_str='d_',
-                          vls=device_max_memory_allocated, inds=range(len(device_max_memory_allocated))))
-
-                if print_prior_penalizer_states and self.p_prior_penalizers is not None:
-                    print('P-prior penalizer states:')
-                    for penalizer in self.p_prior_penalizers:
-                        if penalizer is not None:
-                            print(str(penalizer))
-
-                if print_prior_penalizer_states and self.u_prior_penalizers is not None:
-                    print('U-prior penalizer states:')
-                    for penalizer in self.u_prior_penalizers:
-                        if penalizer is not None:
-                            print(str(penalizer))
-
-                if print_parameter_penalizer_states and self.parameter_penalizers is not None:
-                    print('Parameter penalizer states:')
-                    for penalizer in self.parameter_penalizers:
-                        print(str(penalizer))
-
-                print('Elapsed time: ' + str(elapsed_time))
+                self._print_fitting_status(e_i=e_i, elapsed_time=elapsed_time, batch_obj=batch_obj_log,
+                                           cur_learning_rates=cur_learning_rates, s_inds=s_inds, batch_nll=batch_nll,
+                                           batch_sub_p_kl=batch_sub_p_kl, batch_sub_u_kl=batch_sub_u_kl,
+                                           batch_sub_psi_kl=batch_sub_psi_kl, batch_sub_scales_kl=batch_sub_scales_kl,
+                                           batch_sub_offsets_kl=batch_sub_offsets_kl,
+                                           batch_sub_direct_mappings_kl=batch_sub_direct_mappings_kl,
+                                           devices=all_devices, print_opts=print_opts)
 
         # Return logs
-        log = {'elapsed_time': epoch_elapsed_time, 'mdl_nll': epoch_nll, 'sub_p_kl': epoch_sub_p_kl,
-               'sub_u_kl': epoch_sub_u_kl, 'p_prior_penalties': epoch_p_prior_penalties,
-               'u_prior_penalties': epoch_u_prior_penalties, 'parameter_penalties': epoch_parameter_penalties,
-               'obj': epoch_obj}
+        log = {'elapsed_time': epoch_elapsed_time, 'obj': epoch_obj, 'mdl_nll': epoch_nll, 'sub_p_kl': epoch_sub_p_kl,
+               'sub_u_kl': epoch_sub_u_kl, 'sub_psi_kl': epoch_sub_psi_kl, 'sub_scales_kl': epoch_sub_scales_kl,
+               'sub_offsets_kl': epoch_sub_offsets_kl, 'sub_direct_mappings_kl': epoch_sub_direct_mappings_kl}
         return [log, check_points]
 
     @classmethod
-    def plot_log(cls, log: dict):
+    def plot_log(cls, log: dict, show_obj: bool = True, show_mdl_nll: bool = True, show_p_kl: bool = True,
+                 show_u_kl: bool = True, show_psi_kl: bool = True, show_scales_kl: bool = True,
+                 show_offsets_kl: bool = True, show_direct_mappings_kl: bool = True):
         """ Produces a figure of the values in a log produced by fit().
 
         Args:
             log: The log to plot.
+            
+            show_obj: True if the objective should be plotted through time
+            
+            show_mdl_nll: True if model negative log likelihood should be plotted through time
+            
+            show_p_kl: True if the kl divergences between prior and posterior distributions for p modes should be
+                       plotted through time.
+                         
+            show_u_kl: True if the kl divergences between prior and posterior distributions for u modes should be
+                       plotted through time. 
+            
+            show_psi_kl: True if the kl divergences between prior and posterior distributions for psi parameters should
+                         be plotted through time. 
+            
+            show_scales_kl: True if the kl divergences between prior and posterior distributions for scale parameters 
+                            should be plotted through time. 
+            
+            show_offsets_kl: True if the kl divergences between prior and posterior distributions for offset parameters 
+                             should be plotted through time. 
+            
+            show_direct_mappings_kl: True if the kl divergences between prior and posterior distributions for 
+                                     direct mapping parameters should be plotted through time. 
+             
         """
+
+        n_plots = (show_obj + show_mdl_nll + show_p_kl + show_u_kl + show_psi_kl + show_scales_kl + show_offsets_kl +
+                   show_direct_mappings_kl)
+
+        n_rows = np.ceil(n_plots/2).astype('int')
+
         plt.figure()
 
-        plt.subplot(3, 2, 1)
-        plt.plot(log['elapsed_time'], log['obj'])
-        plt.title('Objective')
+        cnt = 0
+        if show_obj:
+            cnt += 1
+            plt.subplot(n_rows, 2, cnt)
+            plt.plot(log['elapsed_time'], log['obj'])
+            plt.title('Objective')
 
-        plt.subplot(3, 2, 2)
-        plt.plot(log['elapsed_time'], log['mdl_nll'])
-        plt.title('Model Negative Log Likelihoods')
+        if show_mdl_nll:
+            cnt += 1
+            plt.subplot(n_rows, 2, cnt)
+            plt.plot(log['elapsed_time'], log['mdl_nll'])
+            plt.title('Model Negative Log Likelihoods')
 
-        plt.subplot(3, 2, 3)
-        plt.plot(log['elapsed_time'], log['sub_p_kl'])
-        plt.title('Subject P KL')
+        if show_p_kl:
+            cnt += 1
+            plt.subplot(n_rows, 2, cnt)
+            plt.plot(log['elapsed_time'], log['sub_p_kl'])
+            plt.title('Subject P KL')
 
-        plt.subplot(3, 2, 4)
-        plt.plot(log['elapsed_time'], log['sub_u_kl'])
-        plt.title('Subject U KL')
+        if show_u_kl:
+            cnt += 1
+            plt.subplot(n_rows, 2, cnt)
+            plt.plot(log['elapsed_time'], log['sub_u_kl'])
+            plt.title('Subject U KL')
 
-        plt.subplot(3, 2, 5)
-        plt.plot(log['elapsed_time'], log['p_prior_penalties'])
-        plt.title('P Prior Penalties')
-        plt.xlabel('Elapsed Time')
+        if show_psi_kl:
+            cnt += 1
+            plt.subplot(n_rows, 2, cnt)
+            plt.plot(log['elapsed_time'], log['sub_psi_kl'])
+            plt.title('Subject Psi KL')
 
-        plt.subplot(3, 2, 6)
-        plt.plot(log['elapsed_time'], log['u_prior_penalties'])
-        plt.title('U Prior Penalties')
-        plt.xlabel('Elapsed Time')
+        if show_scales_kl:
+            cnt += 1
+            plt.subplot(n_rows, 2, cnt)
+            plt.plot(log['elapsed_time'], log['sub_scales_kl'])
+            plt.title('Subject Scales KL')
+
+        if show_offsets_kl:
+            cnt += 1
+            plt.subplot(n_rows, 2, cnt)
+            plt.plot(log['elapsed_time'], log['sub_offsets_kl'])
+            plt.title('Subject Offsets KL')
+
+        if show_direct_mappings_kl:
+            cnt += 1
+            plt.subplot(n_rows, 2, cnt)
+            plt.plot(log['elapsed_time'], log['sub_direct_mappings_kl'])
+            plt.title('Subject DMs KL')
 
     def to(self, device: torch.device, distribute_data:bool = False):
         """ Move everything in the fitter to a specified device.
@@ -1224,27 +1166,186 @@ class MultiSubjectVIFitter():
         for s_coll in self.s_collections:
             s_coll.to(device, distribute_data=distribute_data)
 
-        for p_prior in self.p_priors:
-            if p_prior is not None:
-                p_prior.to(device)
+        self.prior_collection.to(device)
 
-        for u_prior in self.u_priors:
-            if u_prior is not None:
-                u_prior.to(device)
+        for penalizer in self.penalizers:
+            penalizer.to(device)
 
-        if self.p_prior_penalizers is not None:
-            for p_prior_penalizer in self.p_prior_penalizers:
-                if p_prior_penalizer is not None:
-                    p_prior_penalizer.to(device)
+    @staticmethod
+    def _calc_kl_and_backward(dists0: Sequence[Union[CondVAEDistribution, None]],
+                          dists1: Sequence[Union[CondVAEDistribution, None]],
+                          props: Sequence[torch.Tensor],
+                          prop_inds: Union[Union[Sequence[int], None], None],
+                          smps: Sequence[Union[torch.Tensor, None]]):
+        """ Helper function for computing KL divergence between posterior and prior distributions and calling backwards.
 
-        if self.u_prior_penalizers is not None:
-            for u_prior_penalizer in self.u_prior_penalizers:
-                if u_prior_penalizer is not None:
-                    u_prior_penalizer.to(device)
+        This functions handles the case when distributions and/or properties are not provided.
 
-        if self.parameter_penalizers is not None:
-            for parameter_penalizer in self.parameter_penalizers:
-                parameter_penalizer.to(device)
+        Args:
+
+            dists0: Posterior distributions.  If a None value is provided in the list, this serves as a placeholder
+            indicating no calculations should be done.
+
+            dist1: Prior distributions.
+
+            props: List of properties
+
+            prop_inds: props_inds[i] is the index in props that dists0[i] and dists[1] i should be conditioned on.
+
+            smps: smps[i] is a set of samples to use for computing kl divergence.  Can be None if the kl calculation
+            for a distribution type is known analytically.
+
+        Returns:
+
+            kl: The computed kl divergence
+
+        """
+
+        # If we have no distributions to worry about, this is easy
+        if dists0 is None:
+            return 0.0
+        if all(v is None for v in dists0):
+            return 0.0
+
+        # If we have at least one distribution, then we compute kl divergences
+        kl = 0.0
+        for d0, d1, prop_ind, smp in zip(dists0, dists1, prop_inds, smps):
+            if d0 is not None:
+                if prop_ind is not None:
+                    dist_props = props[prop_ind]
+                else:
+                    dist_props = None
+
+                kl += torch.sum(d0.kl(d_2=d1, x=dist_props, smp=smp))
+
+        kl.backward()
+        return kl.detach().cpu().numpy()
+
+    @staticmethod
+    def _move_dists(dists: List, device: torch.device):
+        """ Moves distributions to a device, avoiding calling .to() on None entries in a list. """
+        if dists is not None:
+            for d in dists:
+                if d is not None:
+                    d.to(device)
+
+    @staticmethod
+    def _print_fitting_status(e_i: int, elapsed_time: float, batch_obj: float, cur_learning_rates,
+                              s_inds: Sequence[int], batch_nll: Sequence[float], batch_sub_p_kl: Sequence[float],
+                              batch_sub_u_kl: Sequence[float], batch_sub_psi_kl: Sequence[float],
+                              batch_sub_scales_kl: Sequence[float], batch_sub_offsets_kl: Sequence[float],
+                              batch_sub_direct_mappings_kl: Sequence[float], devices: List[torch.device],
+                              print_opts: dict):
+        """ Helper function for printing updates on fitting process.
+
+        Args:
+            e_i: The epoch index
+
+            elapsed_time: Elapsed fitting time
+
+            batch_obj: The objective value for the a batch of data (This will typically be the last batch of data
+            for the epoch)
+
+            cur_learning_rates: The current learning rates
+
+            s_inds: The indices of the subjects that are being fit
+
+            batch_nll: The negative log-likelihoods for the batch for each fit subject model
+            (should correspond to s_inds)
+
+            batch_sub_p_kl: The kl divergences for the p-mode distributions for each subject for the batch.
+
+            batch_sub_u_kl: The kl divergences for the u-mode distributions for each subject for the batch.
+
+            batch_sub_psi_kl: The kl divergences for the psi parameter distributions for each subject for the batch.
+
+            batch_sub_scales_kl: The kl divergences for the scale parameter distributions for each subject for the
+            batch.
+
+            batch_sub_offsets_kl: The kl divergences for the offset parameter distributions for each subject for the
+            batch.
+
+            batch_sub_direct_mappings_kl: The kl divergences for the direct mapping parameter distributions for each
+            subject for the batch.
+
+            devices: List of devices to print memory stats for.
+
+            print_opts: A dictionary with fields with boolean values indicating which information should be shown.
+            The fields are: mdl_nll, sub_kls, memory_usage.  Any fields that are not provided will be assumed to be
+            falise.
+        """
+
+        def _format_print_opts(d, f):
+            if not (f in d.keys()):
+                d[f] = False
+
+        _format_print_opts(print_opts, 'mdl_nll')
+        _format_print_opts(print_opts, 'sub_kls')
+        _format_print_opts(print_opts, 'memory_usage')
+
+        print('*****************************************************')
+        print('Epoch ' + str(e_i) + ' complete.  Obj: ' +
+              '{:.2e}'.format(float(batch_obj)) +
+              ', LR: ' + str(cur_learning_rates))
+        if print_opts['mdl_nll']:
+            print(format_output_list(base_str='Model NLLs: ', it_str='s_', vls=batch_nll, inds=s_inds))
+        if print_opts['sub_kls']:
+            print(format_output_list(base_str='Subj P KLs: ', it_str='s_', vls=batch_sub_p_kl, inds=s_inds))
+            print(format_output_list(base_str='Subj U KLs: ', it_str='s_', vls=batch_sub_u_kl, inds=s_inds))
+            print(format_output_list(base_str='Subj Psi KLs: ', it_str='s_', vls=batch_sub_psi_kl, inds=s_inds))
+            print(format_output_list(base_str='Subj Scale KLs: ', it_str='s_', vls=batch_sub_scales_kl, inds=s_inds))
+            print(format_output_list(base_str='Subj Offsets KLs: ', it_str='s_', vls=batch_sub_offsets_kl, inds=s_inds))
+            print(format_output_list(base_str='Subj Direct Mappings KLs: ', it_str='s_',
+                                     vls=batch_sub_direct_mappings_kl, inds=s_inds))
+
+        if print_opts['memory_usage']:
+            device_memory_allocated = torch_devices_memory_usage(devices, type='memory_allocated')
+            device_max_memory_allocated = torch_devices_memory_usage(devices, type='max_memory_allocated')
+            print(format_output_list(base_str='Device memory allocated: ', it_str='d_',
+                                     vls=device_memory_allocated, inds=range(len(device_memory_allocated))))
+            print(format_output_list(base_str='Device max memory allocated: ', it_str='d_',
+                                     vls=device_max_memory_allocated, inds=range(len(device_max_memory_allocated))))
+
+        print('Elapsed time: ' + str(elapsed_time))
+
+    @staticmethod
+    def _sample_posteriors(dists: List[CondVAEDistribution], all_props: List[torch.Tensor], prop_inds: List[int]):
+        """ Samples posteriors, returning samples in compact and standard form.
+
+        Args:
+            dists: List of distributions to sample.  Entries can be None (allowing for placeholders)
+
+            all_props: List of property tensors.
+
+            prop_inds: prop_inds[i] contains is the index in all_props for dists[i].  If prop_inds[i] is None,
+            then sampling is done without conditioning on properties.
+
+        Returns:
+
+            smps: smps[i] is the compact samples for dists[i].  If dists[i] was none, smps[i] will ne none.
+
+            std_smps: std_smps[i] is smps[i] in standard form.  If dists[i] was none, std_smps[i] will be none.
+        """
+
+        if dists is None:
+            return None, None
+
+        n_dists = len(dists)
+
+        if prop_inds is None:
+            prop_inds = [None]*n_dists
+
+        smps = [None]*n_dists
+        std_smps = [None]*n_dists
+        for d_i, d in enumerate(dists):
+            if d is not None:
+                if prop_inds[d_i] is not None:
+                    smps[d_i] = d.sample(all_props[prop_inds[d_i]])
+                else:
+                    smps[d_i] = d.sample()
+                std_smps[d_i] = d.form_standard_sample(smps[d_i])
+
+        return smps, std_smps
 
 
 def eval_fits(s_collections: Sequence[SubjectVICollection], data: TimeSeriesBatch, batch_size: int = 100,
@@ -1305,9 +1406,11 @@ def eval_fits(s_collections: Sequence[SubjectVICollection], data: TimeSeriesBatc
 
 
 def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size: int = 100) -> List[np.ndarray]:
-    """ Predicts output given input from a model with posterior distributions over modes.
+    """ Predicts output given input from a model with posterior distributions over parameters.
 
-    When predicting output, the posterior mean for each mode is used.
+    If posterior distributions for a paremeter are present, predictions are based on the posterior mean.  If
+    posterior distributions for a parameter are not present, the parameter value in the subject model
+    will be used.
 
     Note: All predictions will be returned on host (cpu) memory as numpy arrays.
 
@@ -1326,14 +1429,52 @@ def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size
     n_total_smps = len(data)
     n_batches = int(np.ceil(float(n_total_smps)/batch_size))
 
-    # Get the posterior means for the modes
-    q_p_modes = [d if isinstance(d, torch.Tensor)
-                 else d(s_collection.props[s_collection.input_props[g]])
-                 for g, d in enumerate(s_collection.p_dists)]
+    # Define a helper function
+    def _get_post_means(dists: List[CondVAEDistribution], all_props: List[torch.Tensor], prop_inds: List[int]):
+        """ Gets the posterior means for a list of distributions, handling cases where some distributions are None.
 
-    q_u_modes = [d if isinstance(d, torch.Tensor)
-                 else d(s_collection.props[s_collection.output_props[h]])
-                 for h, d in enumerate(s_collection.u_dists)]
+        Args:
+            dists: The distributions to get posterior means for.  Can be None, in which case this function returns None.
+
+            all_props: List of properties.
+
+            prop_inds: prop_inds[i] is the index into all_props for the properties for dists[i].  If no properties
+            are needed for the distribution prop_inds[i] should be None.  If no properties are needed for all
+            of the distributions, prop_inds can be None.
+
+        Returns:
+
+            mns: The means of distributions.  mns[i] is the mean for distribution i and will be None if dists[i] was
+            None.  mns will be None if dists was None.
+        """
+
+        if dists is None:
+            return None
+
+        n_dists = len(dists)
+        if prop_inds is None:
+            prop_inds = [None]*n_dists
+
+        mns = [None]*n_dists
+        for d_i, d in enumerate(dists):
+            if d is not None:
+                if prop_inds[d_i] is not None:
+                    mns[d_i] = d(all_props[prop_inds[d_i]])
+                else:
+                    mns[d_i] = d()
+
+        return mns
+
+    # Get the parameters
+
+    p = _get_post_means(s_collection.p_dists, s_collection.props, s_collection.p_props)
+    u = _get_post_means(s_collection.u_dists, s_collection.props, s_collection.u_props)
+    scales = _get_post_means(s_collection.scale_dists, s_collection.props, s_collection.scale_props)
+    offsets = _get_post_means(s_collection.offset_dists, s_collection.props, s_collection.offset_props)
+    direct_mappings = _get_post_means(s_collection.direct_mapping_dists, s_collection.props,
+                                      s_collection.direct_mapping_props)
+
+    s_collection_device = next(s_collection.s_mdl.parameters()).device
 
     y = [None]*n_batches
     batch_start = 0
@@ -1342,12 +1483,13 @@ def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size
         batch_data = data[batch_start:batch_end]
 
         # Move data to device the collection is on
-        batch_data.to(s_collection.device, non_blocking=s_collection.device.type == 'cuda')
+        batch_data.to(s_collection_device, non_blocking=s_collection_device.type == 'cuda')
 
         # Form x
         batch_x = [batch_data.data[i_g][batch_data.i_x] for i_g in s_collection.input_grps]
         with torch.no_grad():
-            batch_y = s_collection.s_mdl.cond_forward(x=batch_x, p=q_p_modes, u=q_u_modes)
+            batch_y = s_collection.s_mdl.cond_forward(x=batch_x, p=p, u=u, scales=scales, offsets=offsets,
+                                                      direct_mappings=direct_mappings)
         batch_y = [t.cpu().numpy() for t in batch_y]
         y[b_i] = batch_y
 
@@ -1363,7 +1505,7 @@ def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size
 
 
 def predict_with_truth(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size: int = 100,
-                       time_grp: int = -1):
+                       time_grp: int = None):
     """ Predicts output for a model, using posterior over modes, and including true data in output for reference.
 
     This is a wrapper function around predict for convenience.

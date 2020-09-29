@@ -109,7 +109,7 @@ class CondVAEDistribution(torch.nn.Module):
         """
         raise NotImplementedError
 
-    def kl(self, d_2, x: torch.tensor, smp: Sequence = None, return_device: torch.device = None):
+    def kl(self, d_2, x: torch.tensor, smp: object = None, return_device: torch.device = None):
         """ Computes the KL divergence between this object and another of the same type conditioned on input.
 
         Specifically computes:
@@ -129,7 +129,7 @@ class CondVAEDistribution(torch.nn.Module):
 
             x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
 
-            smp: An set samples of shape n_smps*d_y. smp[i,:] should be drawn from p(y_i|x[i,:]). This is an optional
+            smp: An set samples in compact form. Sample i should be drawn from p(y_i|x[i,:]). This is an optional
             input that is provided because sometimes it may not be possible to compute the KL divergence
             between two distributions analytically.  In these cases, an object may still implement the kl method
             by computing an empirical estimate of the kl divergence as log p_1(y_i'|x_i) - log p_2(y_i'| x_i),
@@ -140,7 +140,8 @@ class CondVAEDistribution(torch.nn.Module):
             be the device the first parameter of this object is on.
 
         Returns:
-            kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th sample.
+            kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioning
+            input.
 
         """
 
@@ -354,7 +355,7 @@ class CondGaussianDistribution(CondVAEDistribution):
 
         return mn + z*std
 
-    def kl(self, d_2, x: torch.tensor, smp: Sequence = None, return_device: torch.device = None):
+    def kl(self, d_2, x: torch.tensor, smp: torch.tensor = None, return_device: torch.device = None):
         """ Computes the KL divergence between the conditional distribution represented by this object and another.
 
         KL divergence is computed based on the closed form formula for KL divergence between two Gaussians.
@@ -374,7 +375,8 @@ class CondGaussianDistribution(CondVAEDistribution):
             be the device the first parameter of this object is on.
 
         Returns:
-            kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th sample.
+            kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioing
+            input.
         """
 
         self_device = next(self.parameters()).device
