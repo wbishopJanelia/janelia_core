@@ -16,7 +16,7 @@ import numpy as np
 
 from janelia_core.dataprocessing.dataset import ROI
 from janelia_core.visualization.custom_color_maps import MultiParamCMap
-from janelia_core.visualization.custom_color_maps import visualize_two_param_hsv_map
+from janelia_core.visualization.custom_color_maps import visualize_two_param_map
 from janelia_core.visualization.image_generation import rgb_3d_max_project
 
 
@@ -121,7 +121,7 @@ def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
         else:
             cmap_p0_vls = None
             cmap_p1_vls = None
-        visualize_two_param_hsv_map(cmap=cmap, plot_ax=cmap_im, p0_vls=cmap_p0_vls, p1_vls=cmap_p1_vls)
+        visualize_two_param_map(cmap=cmap, plot_ax=cmap_im, p0_vls=cmap_p0_vls, p1_vls=cmap_p1_vls)
         cmap_im.axes.get_yaxis().set_tick_params(color=text_color, labelcolor=text_color)
         cmap_im.axes.get_xaxis().set_tick_params(color=text_color, labelcolor=text_color)
         if cmap_param_strs is not None:
