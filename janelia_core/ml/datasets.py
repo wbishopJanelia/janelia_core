@@ -45,7 +45,7 @@ class TimeSeriesBatch(torch.utils.data.Dataset):
 
         return self
 
-    def to(self, device:torch.device, move_i_orig: bool = True, non_blocking:bool =False):
+    def to(self, device:torch.device, move_i_orig: bool = False, non_blocking:bool =False):
         """ Moves data to the specified device.
 
         Args:
@@ -79,8 +79,8 @@ class TimeSeriesBatch(torch.utils.data.Dataset):
         """
 
         # Get unique list of i_orig values for the samples we are to keep
-        keep_i_orig_x = self.i_orig[self.i_x[index]].numpy()
-        keep_i_orig_y = self.i_orig[self.i_y[index]].numpy()
+        keep_i_orig_x = self.i_orig[self.i_x[index]].cpu().numpy()
+        keep_i_orig_y = self.i_orig[self.i_y[index]].cpu().numpy()
 
         if keep_i_orig_x.ndim == 0:
             keep_i_orig_x = np.expand_dims(keep_i_orig_x, 0)

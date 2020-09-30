@@ -691,7 +691,7 @@ class MultiSubjectVIFitter():
         """
 
         s_mdl_devices = [s_coll.s_mdl.trainable_parameters()[0].device for s_coll in self.s_collections]
-        data_devices = [s_coll.data[0].data[0].device for s_coll in self.s_collections]  # TODO: Should check all data tensors
+        data_devices = [s_coll.data.data[0].device for s_coll in self.s_collections]  # TODO: Should check all data tensors
         prior_devices = self.prior_collection.get_used_devices()
         if self.penalizers is not None:
             penalizer_devices = [next(penalizer.parameters()).device for penalizer in self.penalizers]
