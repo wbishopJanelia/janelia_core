@@ -449,7 +449,7 @@ class MultiSubjectVIFitter():
         self.prior_collection = prior_collection
         self.penalizers = penalizers
 
-        self.distributed = False  # Keep track if we have distributed everything yet
+        self.distributed = False  # Keep track of if we have distributed everything yet
 
     def create_check_point(self, inc_penalizers: bool = False) -> dict:
         """ Returns copies of subject models and priors as well as (optionally) penalizer parameters.
