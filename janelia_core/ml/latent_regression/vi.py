@@ -436,13 +436,15 @@ class MultiSubjectVIFitter():
     """
 
     def __init__(self, s_collections: Sequence[SubjectVICollection], prior_collection: PriorCollection,
-                 penalizers: Sequence = None):
+                 penalizers: Sequence[ParameterPenalizer]):
         """ Creates a new MultiSubjectVIFitter object.
 
         Args:
             s_collections: A set of SubjectVICollections to use when fitting data.
 
             prior_collection: The prior collection to use when fitting data.
+
+            penalizers: Parameter penalizers that will be used when fitting.
         """
 
         self.s_collections = s_collections
@@ -694,7 +696,8 @@ class MultiSubjectVIFitter():
         data_devices = [s_coll.data.data[0].device for s_coll in self.s_collections]  # TODO: Should check all data tensors
         prior_devices = self.prior_collection.get_used_devices()
         if self.penalizers is not None:
-            penalizer_devices = [next(penalizer.parameters()).device for penalizer in self.penalizers]
+            penalizer_parameters = [list(penalizer.parameters()) for penalizer in self.penalizers]
+            penalizer_devices = [parameters[0].device for parameters in penalizer_parameters if len(parameters) > 0]
         else:
             penalizer_devices =  []
 
@@ -702,9 +705,8 @@ class MultiSubjectVIFitter():
 
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates=.01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, fix_priors: bool = False,
-            fix_penalizers: bool = False, enforce_priors: bool = True,
-            update_int: int = 1, print_opts: dict = None, cp_epochs: Sequence[int] = None,
-            cp_penalizers: bool = False) -> [dict, Union[List, None]]:
+            enforce_priors: bool = True, update_int: int = 1, print_opts: dict = None,
+            cp_epochs: Sequence[int] = None, cp_penalizers: bool = False) -> [dict, Union[List, None]]:
         """
 
         Args:
@@ -735,9 +737,6 @@ class MultiSubjectVIFitter():
             original order in s_collections when the fitter was created. If None, all subjects used.
 
             fix_priors: True if priors should be fixed and not changed during fitting
-
-            fix_penalizers: True if the internal, learnable parameters of the parameter penalizers should
-            be fixed.
 
             enforce_priors: True if we should calculate kl divergences between priors and posteriors and include
             this in the objective.
@@ -791,7 +790,9 @@ class MultiSubjectVIFitter():
         if print_opts is None:
             print_opts = {'mdl_nll': True,
                           'sub_kls': True,
-                          'memory_usage': True}
+                          'memory_usage': True,
+                          'penalties': True,
+                          'penalizer_states': True}
 
         if not self.distributed:
             raise(RuntimeError('self.distribute() must be called before fitting.'))
@@ -810,6 +811,12 @@ class MultiSubjectVIFitter():
             n_subjects = len(self.s_collections)
             s_inds = range(n_subjects)
         n_fit_subjects = len(s_inds)
+
+        # See how many penalizers we are working with
+        if self.penalizers is None:
+            n_penalizers = 0
+        else:
+            n_penalizers = len(self.penalizers)
 
         # Determine the devices the subject collections are on
         subject_coll_devices = [None]*n_fit_subjects
@@ -849,7 +856,7 @@ class MultiSubjectVIFitter():
         epoch_sub_scales_kl = np.zeros([n_epochs, n_fit_subjects])
         epoch_sub_offsets_kl = np.zeros([n_epochs, n_fit_subjects])
         epoch_sub_direct_mappings_kl = np.zeros([n_epochs, n_fit_subjects])
-        #epoch_penalizer_penalties = np.zeros([n_epochs, n_penalizers])
+        epoch_penalizer_penalties = np.zeros([n_epochs, n_penalizers])
         epoch_obj = np.zeros(n_epochs)
 
         # Perform fitting
@@ -893,6 +900,7 @@ class MultiSubjectVIFitter():
                 batch_sub_scales_kl = np.zeros(n_fit_subjects)
                 batch_sub_offsets_kl = np.zeros(n_fit_subjects)
                 batch_sub_direct_mappings_kl = np.zeros(n_fit_subjects)
+                batch_penalizer_penalties = np.zeros(n_penalizers)
                 for i, s_i in enumerate(s_inds):
 
                     s_coll = self.s_collections[s_i]
@@ -1003,7 +1011,8 @@ class MultiSubjectVIFitter():
                         batch_sub_direct_mappings_kl[i] = s_direct_mappings_kl_log
 
                 # Apply penalizers
-                # TODO: Add code for applying penalizers
+                for pen_i, penalizer in enumerate(self.penalizers):
+                    batch_penalizer_penalties[pen_i] = penalizer.penalize_and_backwards()
 
                 # Take a gradient step
                 optimizer.step()
@@ -1034,7 +1043,6 @@ class MultiSubjectVIFitter():
                     #check_points[cp_ind] = self.create_check_point(inc_penalizers=cp_penalizers)
                     #check_points[cp_ind]['epoch'] = e_i
 
-
             # Take care of logging everything
             elapsed_time = time.time() - t_start
             epoch_elapsed_time[e_i] = elapsed_time
@@ -1045,9 +1053,7 @@ class MultiSubjectVIFitter():
             epoch_sub_scales_kl[e_i, :] = batch_sub_scales_kl
             epoch_sub_offsets_kl[e_i, :] = batch_sub_offsets_kl
             epoch_sub_direct_mappings_kl[e_i, :] = batch_sub_direct_mappings_kl
-            #epoch_p_prior_penalties[e_i, :] = batch_p_prior_penalties
-            #epoch_u_prior_penalties[e_i, :] = batch_u_prior_penalties
-            #epoch_parameter_penalties[e_i, :] = batch_parameter_penalties
+            epoch_penalizer_penalties[e_i, :] = batch_penalizer_penalties
             epoch_obj[e_i] = batch_obj_log
 
             if e_i % update_int == 0:
@@ -1057,18 +1063,20 @@ class MultiSubjectVIFitter():
                                            batch_sub_psi_kl=batch_sub_psi_kl, batch_sub_scales_kl=batch_sub_scales_kl,
                                            batch_sub_offsets_kl=batch_sub_offsets_kl,
                                            batch_sub_direct_mappings_kl=batch_sub_direct_mappings_kl,
-                                           devices=all_devices, print_opts=print_opts)
+                                           batch_penalties=batch_penalizer_penalties,
+                                           devices=all_devices, penalizers=self.penalizers, print_opts=print_opts)
 
         # Return logs
         log = {'elapsed_time': epoch_elapsed_time, 'obj': epoch_obj, 'mdl_nll': epoch_nll, 'sub_p_kl': epoch_sub_p_kl,
                'sub_u_kl': epoch_sub_u_kl, 'sub_psi_kl': epoch_sub_psi_kl, 'sub_scales_kl': epoch_sub_scales_kl,
-               'sub_offsets_kl': epoch_sub_offsets_kl, 'sub_direct_mappings_kl': epoch_sub_direct_mappings_kl}
+               'sub_offsets_kl': epoch_sub_offsets_kl, 'sub_direct_mappings_kl': epoch_sub_direct_mappings_kl,
+               'penalties': epoch_penalizer_penalties}
         return [log, check_points]
 
     @classmethod
     def plot_log(cls, log: dict, show_obj: bool = True, show_mdl_nll: bool = True, show_p_kl: bool = True,
                  show_u_kl: bool = True, show_psi_kl: bool = True, show_scales_kl: bool = True,
-                 show_offsets_kl: bool = True, show_direct_mappings_kl: bool = True):
+                 show_offsets_kl: bool = True, show_direct_mappings_kl: bool = True, show_penalties: bool = True):
         """ Produces a figure of the values in a log produced by fit().
 
         Args:
@@ -1091,15 +1099,15 @@ class MultiSubjectVIFitter():
                             should be plotted through time. 
             
             show_offsets_kl: True if the kl divergences between prior and posterior distributions for offset parameters 
-                             should be plotted through time. 
-            
+                             should be plotted through time.
+
             show_direct_mappings_kl: True if the kl divergences between prior and posterior distributions for 
                                      direct mapping parameters should be plotted through time. 
              
         """
 
         n_plots = (show_obj + show_mdl_nll + show_p_kl + show_u_kl + show_psi_kl + show_scales_kl + show_offsets_kl +
-                   show_direct_mappings_kl)
+                   show_direct_mappings_kl + show_penalties)
 
         n_rows = np.ceil(n_plots/2).astype('int')
 
@@ -1153,6 +1161,12 @@ class MultiSubjectVIFitter():
             plt.subplot(n_rows, 2, cnt)
             plt.plot(log['elapsed_time'], log['sub_direct_mappings_kl'])
             plt.title('Subject DMs KL')
+
+        if show_penalties:
+            cnt += 1
+            plt.subplot(n_rows, 2, cnt)
+            plt.plot(log['elapsed_time'], log['penalties'])
+            plt.title('Penalties')
 
     def to(self, device: torch.device, distribute_data:bool = False):
         """ Move everything in the fitter to a specified device.
@@ -1238,7 +1252,8 @@ class MultiSubjectVIFitter():
                               s_inds: Sequence[int], batch_nll: Sequence[float], batch_sub_p_kl: Sequence[float],
                               batch_sub_u_kl: Sequence[float], batch_sub_psi_kl: Sequence[float],
                               batch_sub_scales_kl: Sequence[float], batch_sub_offsets_kl: Sequence[float],
-                              batch_sub_direct_mappings_kl: Sequence[float], devices: List[torch.device],
+                              batch_sub_direct_mappings_kl: Sequence[float], batch_penalties: Sequence[float],
+                              penalizers: Sequence[ParameterPenalizer], devices: List[torch.device],
                               print_opts: dict):
         """ Helper function for printing updates on fitting process.
 
@@ -1272,12 +1287,18 @@ class MultiSubjectVIFitter():
             batch_sub_direct_mappings_kl: The kl divergences for the direct mapping parameter distributions for each
             subject for the batch.
 
+            batch_penalties: The penalties each penalizer produced for the batch.
+
+            penalizers: The penalizers used in fitting.
+
             devices: List of devices to print memory stats for.
 
             print_opts: A dictionary with fields with boolean values indicating which information should be shown.
-            The fields are: mdl_nll, sub_kls, memory_usage.  Any fields that are not provided will be assumed to be
-            falise.
+            The fields are: mdl_nll, sub_kls, penalties, memory_usage.  Any fields that are not provided will be
+            assumed to be false.
         """
+
+        n_penalizers = len(batch_penalties)
 
         def _format_print_opts(d, f):
             if not (f in d.keys()):
@@ -1286,6 +1307,8 @@ class MultiSubjectVIFitter():
         _format_print_opts(print_opts, 'mdl_nll')
         _format_print_opts(print_opts, 'sub_kls')
         _format_print_opts(print_opts, 'memory_usage')
+        _format_print_opts(print_opts, 'penalties')
+        _format_print_opts(print_opts, 'penalizer_states')
 
         print('*****************************************************')
         print('Epoch ' + str(e_i) + ' complete.  Obj: ' +
@@ -1301,6 +1324,12 @@ class MultiSubjectVIFitter():
             print(format_output_list(base_str='Subj Offsets KLs: ', it_str='s_', vls=batch_sub_offsets_kl, inds=s_inds))
             print(format_output_list(base_str='Subj Direct Mappings KLs: ', it_str='s_',
                                      vls=batch_sub_direct_mappings_kl, inds=s_inds))
+        if print_opts['penalties']:
+            print(format_output_list(base_str='Penalties: ', it_str='o_', vls=batch_penalties,
+                                     inds=np.arange(n_penalizers)))
+        if print_opts['penalizer_states']:
+            for penalizer in penalizers:
+                print(penalizer)
 
         if print_opts['memory_usage']:
             device_memory_allocated = torch_devices_memory_usage(devices, type='memory_allocated')
