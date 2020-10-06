@@ -79,8 +79,8 @@ class TimeSeriesBatch(torch.utils.data.Dataset):
         """
 
         # Get unique list of i_orig values for the samples we are to keep
-        keep_i_orig_x = self.i_orig[self.i_x[index]].numpy()
-        keep_i_orig_y = self.i_orig[self.i_y[index]].numpy()
+        keep_i_orig_x = self.i_orig[self.i_x[index]].cpu().numpy()
+        keep_i_orig_y = self.i_orig[self.i_y[index]].cpu().numpy()
 
         if keep_i_orig_x.ndim == 0:
             keep_i_orig_x = np.expand_dims(keep_i_orig_x, 0)

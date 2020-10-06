@@ -6,11 +6,13 @@
 """
 
 import copy
-from typing import Sequence
+from typing import Callable, Sequence, Tuple
 
 import numpy as np
 from PIL import Image
 from PIL import ImageDraw
+
+from janelia_core.math.basic_functions import list_grid_pts
 
 
 def alpha_composite(dest: np.ndarray, src: np.ndarray) -> np.ndarray:
@@ -34,6 +36,43 @@ def alpha_composite(dest: np.ndarray, src: np.ndarray) -> np.ndarray:
 
     src_alpha = np.expand_dims(src[:, :, 3],2)
     dest[:] = src + dest*(1 - src_alpha)
+
+
+def generate_2d_fcn_image(f: Callable, dim_0_range: Sequence[float] = None, dim_1_range: Sequence[float] = None,
+                          n_pts_per_dim: Sequence[int] = None) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """ Generates an image of a 2d function.
+
+    Args:
+        f: The function to visualize. Should accept input of shape [n by 2], where n is an arbitrary number
+        of values and output values of length n.
+
+        dim_0_range: The range of dim 0 values to visualize the function over.  If None, [0.0, 1.0] will be used.
+
+        dim_1_range: The range of dim 1 values to visualize the function over.  If None, [0.0, 1.0] will be used.
+
+        n_pts_per_dim: The number of points to sample per dimension.
+
+    Returns:
+
+        im: The image of the function as a 2-d numpy array
+
+        dim_0_pts: The sampled points along dim 0
+
+        dim_1_pts: The sampled points along dim 1
+
+    """
+
+    if dim_0_range is None:
+        dim_0_range = [0.0, 1.0]
+    if dim_1_range is None:
+        dim_1_range = [0.0, 1.0]
+    if n_pts_per_dim is None:
+        n_pts_per_dim = [1000, 1000]
+
+    pts, dim_pts = list_grid_pts(grid_limits=np.asarray([dim_0_range, dim_1_range]),
+                                 n_pts_per_dim=n_pts_per_dim)
+
+    return f(pts).reshape(n_pts_per_dim), dim_pts[0], dim_pts[1]
 
 
 def standard_rgba_to_premultiplied(img: np.ndarray) -> np.ndarray:
@@ -622,4 +661,7 @@ def scalar_3d_max_project(vol: np.ndarray, axis: int = 2, abs_vl: bool = False) 
     inds_sel = tuple(inds_sel)
 
     return vol[inds_sel]
+
+
+
 
