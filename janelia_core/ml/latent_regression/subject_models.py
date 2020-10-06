@@ -147,9 +147,10 @@ class LatentRegModel(torch.nn.Module):
         if isinstance(assign_offsets, bool):
             assign_offsets = [assign_offsets]*n_output_groups
         if isinstance(assign_direct_pair_mappings, bool) and (direct_pairs is not None):
-            assign_u_modes = [assign_direct_pair_mappings]*len(direct_pairs)
+            assign_direct_pair_mappings = [assign_direct_pair_mappings]*len(direct_pairs)
         if isinstance(assign_psi, bool):
             assign_psi = [assign_psi]*n_output_groups
+
 
         # Mapping from projection to transformed latents
         self.m = m

@@ -932,14 +932,17 @@ class MultiSubjectVIFitter():
                     q_u_modes, q_u_modes_standard = self._sample_posteriors(s_coll.u_dists, s_coll.props,
                                                                             s_coll.u_props)
                     q_psi_vls, q_psi_vls_standard = self._sample_posteriors(s_coll.psi_dists, s_coll.props,
-                                                                            s_coll.psi_props)
+                                                                            s_coll.psi_props, squeeze_std_smp=True)
                     q_scale_vls, q_scale_vls_standard = self._sample_posteriors(s_coll.scale_dists, s_coll.props,
-                                                                                s_coll.scale_props)
+                                                                                s_coll.scale_props,
+                                                                                squeeze_std_smp=True)
                     q_offset_vls, q_offset_vls_standard = self._sample_posteriors(s_coll.offset_dists, s_coll.props,
-                                                                                  s_coll.offset_props)
+                                                                                  s_coll.offset_props,
+                                                                                  squeeze_std_smp=True)
 
                     q_direct_mapping_vls, q_direct_mapping_vls_standard = self._sample_posteriors(
-                            s_coll.direct_mapping_dists, s_coll.props, s_coll.direct_mapping_dists)
+                            s_coll.direct_mapping_dists, s_coll.props, s_coll.direct_mapping_props,
+                            squeeze_std_smp=True)
 
                     # Make sure the m module is on the correct device for this subject, this is
                     # important when subject models share an m function
@@ -1168,8 +1171,9 @@ class MultiSubjectVIFitter():
 
         self.prior_collection.to(device)
 
-        for penalizer in self.penalizers:
-            penalizer.to(device)
+        if self.penalizers is not None:
+            for penalizer in self.penalizers:
+                penalizer.to(device)
 
     @staticmethod
     def _calc_kl_and_backward(dists0: Sequence[Union[CondVAEDistribution, None]],
@@ -1309,7 +1313,8 @@ class MultiSubjectVIFitter():
         print('Elapsed time: ' + str(elapsed_time))
 
     @staticmethod
-    def _sample_posteriors(dists: List[CondVAEDistribution], all_props: List[torch.Tensor], prop_inds: List[int]):
+    def _sample_posteriors(dists: List[CondVAEDistribution], all_props: List[torch.Tensor], prop_inds: List[int],
+                           squeeze_std_smp: bool = False):
         """ Samples posteriors, returning samples in compact and standard form.
 
         Args:
@@ -1325,18 +1330,19 @@ class MultiSubjectVIFitter():
             smps: smps[i] is the compact samples for dists[i].  If dists[i] was none, smps[i] will ne none.
 
             std_smps: std_smps[i] is smps[i] in standard form.  If dists[i] was none, std_smps[i] will be none.
-        """
 
+            squeeze_std_sample: True if standard sample should be squeezed before returning.
+        """
         if dists is None:
             return None, None
 
         n_dists = len(dists)
-
         if prop_inds is None:
             prop_inds = [None]*n_dists
 
         smps = [None]*n_dists
         std_smps = [None]*n_dists
+
         for d_i, d in enumerate(dists):
             if d is not None:
                 if prop_inds[d_i] is not None:
@@ -1344,6 +1350,9 @@ class MultiSubjectVIFitter():
                 else:
                     smps[d_i] = d.sample()
                 std_smps[d_i] = d.form_standard_sample(smps[d_i])
+
+        if squeeze_std_smp:
+            std_smps = [torch.squeeze(s) if s is not None else None for s in std_smps]
 
         return smps, std_smps
 
@@ -1430,7 +1439,8 @@ def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size
     n_batches = int(np.ceil(float(n_total_smps)/batch_size))
 
     # Define a helper function
-    def _get_post_means(dists: List[CondVAEDistribution], all_props: List[torch.Tensor], prop_inds: List[int]):
+    def _get_post_means(dists: List[CondVAEDistribution], all_props: List[torch.Tensor], prop_inds: List[int],
+                        squeeze_output: bool = False):
         """ Gets the posterior means for a list of distributions, handling cases where some distributions are None.
 
         Args:
@@ -1441,6 +1451,8 @@ def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size
             prop_inds: prop_inds[i] is the index into all_props for the properties for dists[i].  If no properties
             are needed for the distribution prop_inds[i] should be None.  If no properties are needed for all
             of the distributions, prop_inds can be None.
+
+            squeeze_output: True if output should be squeezed.
 
         Returns:
 
@@ -1463,16 +1475,21 @@ def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size
                 else:
                     mns[d_i] = d()
 
+        if squeeze_output:
+            mns = [torch.squeeze(mn) if mn is not None else None for mn in mns]
+
         return mns
 
     # Get the parameters
 
     p = _get_post_means(s_collection.p_dists, s_collection.props, s_collection.p_props)
     u = _get_post_means(s_collection.u_dists, s_collection.props, s_collection.u_props)
-    scales = _get_post_means(s_collection.scale_dists, s_collection.props, s_collection.scale_props)
-    offsets = _get_post_means(s_collection.offset_dists, s_collection.props, s_collection.offset_props)
+    scales = _get_post_means(s_collection.scale_dists, s_collection.props, s_collection.scale_props,
+                             squeeze_output=True)
+    offsets = _get_post_means(s_collection.offset_dists, s_collection.props, s_collection.offset_props,
+                              squeeze_output=True)
     direct_mappings = _get_post_means(s_collection.direct_mapping_dists, s_collection.props,
-                                      s_collection.direct_mapping_props)
+                                      s_collection.direct_mapping_props, squeeze_output=True)
 
     s_collection_device = next(s_collection.s_mdl.parameters()).device
 
