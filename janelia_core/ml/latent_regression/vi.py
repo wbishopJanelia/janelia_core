@@ -293,9 +293,9 @@ class SubjectVICollection():
         Args:
             s_mdl: The likelihood model for the subject.
 
-            u_dists: The posterior distributions for the u modes.
+            p_dists: The posterior distributions for the p modes.
 
-            p_dists: The posterior distributions for the p modes.  Same form as u_dists.
+            u_dists: The posterior distributions for the u modes.
 
             psi_dists: The posterior distributions for psi parameters.
 

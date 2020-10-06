@@ -3,7 +3,7 @@ driving multiple groups of output.
 
 """
 
-from typing import List, Sequence
+from typing import List, Sequence, Union
 
 import numpy as np
 import torch.nn
@@ -40,17 +40,32 @@ class GeneralInputOutputScenario():
 
     def __init__(self, input_dims: np.ndarray, output_dims: np.ndarray, n_input_modes: Sequence[int],
                  n_output_modes: Sequence[int], shared_m_core: torch.nn.Module,
-                 fixed_input_modes: Sequence[tuple] = None,
-                 fixed_output_modes: Sequence[tuple] = None, direct_pairs: Sequence[tuple] = None):
+                 use_scales: bool = True, use_offsets: bool = True, direct_pairs: Sequence[tuple] = None,
+                 p_mode_point_ests: Union[bool, Sequence[bool]] = False,
+                 u_mode_point_ests: Union[bool, Sequence[bool]]= False,
+                 scales_point_ests: Union[bool, Sequence[bool]] = False,
+                 offsets_point_ests: Union[bool, Sequence[bool]] = False,
+                 direct_mappings_point_ests: Union[bool, Sequence[bool]] = False,
+                 psi_point_ests: Union[bool, Sequence[bool]] = False,
+                 fixed_p_modes: Union[None, Sequence[tuple]] = None, fixed_u_modes: Union[None, Sequence[tuple]] = None,
+                 fixed_scales: Union[None, Sequence[tuple]] = None, fixed_offsets: Union[None, Sequence[tuple]] = None,
+                 fixed_direct_mappings: Union[None, Sequence[tuple]] = None,
+                 fixed_psi: Union[None, Sequence[tuple]] = None):
 
         """ Creates a GenInputOutputScenario object.
+
+        The user had the option estimate point estimates over parameters or full posterior distributions. For a given
+        parameter, the user can specify what he or she would like to do by using the appropriate '*_point_ests'
+        argument. This argument can be specified in two ways.  Providing a single boolean value indicates point
+        estimates should or should not be used for all groups for that parameter.  Alternatively, the user can specify
+        a sequence of boolean values indicatinb which groups point estimates should be used for.
 
         Args:
 
             input_dims: Dimensions of input groups of variables for each subject.  input_dims[s, g] is the number of
             input variables in group g for subject s
 
-            ouput_dims: Dimensions of output groups of variables for each subject.  input_dims[s, h] is the number of
+            ouput_dims: Dimensions of output groups of variables for each subject.  output_dims[s, h] is the number of
             output variables in group h for subject s
 
             n_input_modes: n_input_modes[g] is the number of modes for input group g
@@ -62,27 +77,86 @@ class GeneralInputOutputScenario():
             which is also a sequence with a length equal to the number of output groups.  The dimensionality of the
             input and output tensors should match the number of modes of the respective input and output groups.
 
-            fixed_input_modes: A sequence of tuples of the form (g, p_g) where g is the index of an input group and
-            p_g is a tensor that should be used as fixed (non-learnable) modes for this input group across all subjects.
+            use_scales: True if models should including scaling of output
 
-            fixed_output_modes: A sequence of tuples specifying fixed output modes in the same manner as
-            fixed_input_modes.
+            use_offsets: True if models should include offsets applied to output
 
             direct_pairs: Pairs of input and output groups which have direction connections.
 
+            p_mode_point_ests: Indicates if point estimtates should be used for the p modes.  See note above on
+            specifying the form of this argument.
+
+            u_mode_point_ests: Indicates if point estimtates should be used for the u modes.  See note above on
+            specifying the form of this argument.
+
+            scales_point_ests: Indicates if point estimtates should be used for the scales.  See note above on
+            specifying the form of this argument.
+
+            offsets_point_ests: Indicates if point estimtates should be used for the offsets.  See note above on
+            specifying the form of this argument.
+
+            direct_mappings_point_ests: Indicates if point estimtates should be used for the direct mappings.
+            If provided as a list, the i^th entry indicates if the the direct mapping for the i^th entry in
+            direct_pairs should be estimated with a point estimate.
+
+            psi_point_ests: Indicates if point estimtates should be used for the psi parameters.  See note above on
+            specifying the form of this argument.
+
+            fixed_p_modes: A sequence of tuples of the form (g, p_g) where g is the index of an input group and
+            p_g is a tensor that should be used as fixed (non-learnable) modes for this input group across all subjects.
+
+            fixed_u_modes: A sequence of tuples specifying fixed output modes in the same manner as
+            fixed_input_modes.
+
+            fixed_scales: A sequence of scales of the form (h, t_h) where h is the index of an output group and
+            t_h is a tensor of scales that should be used as fixed (non-learnable) scale parameter for that output
+            group across all subjects.
+
+            fixed_offsets: A sequence of tuples specifying fixed offset parameters, in the same form as fixed_scales.
+
+            fixed_direct_mappings: A sequence of tuples specifying fixed direct pair mappings of the form (i, t_i)
+            where i is the index into direct pairs giving the pair the mapping is for and t_i is the fixed mapping
+            that should be used.
+
+            fixed_psi: A sequence of tuples specifying fixed psi parameters, in the same form as fixed scales.
+
         """
 
+        def _format_pe(vl, n_grps):
+            if isinstance(vl, bool):
+                return [vl]*n_grps
+            else:
+                return vl
+
+        n_input_grps = len(n_input_modes)
+        n_output_grps = len(n_output_modes)
+
+        self.n_input_grps = n_input_grps
+        self.n_output_grps = n_output_grps
         self.input_dims = input_dims
         self.output_dims = output_dims
         self.n_input_modes = n_input_modes
         self.n_output_modes = n_output_modes
         self.shared_m_core = shared_m_core
-        self.fixed_input_modes = fixed_input_modes
-        self.fixed_output_modes = fixed_output_modes
+        self.use_scales = use_scales
+        self.use_offsets = use_offsets
         self.direct_pairs = direct_pairs
+        self.p_mode_points_ests = _format_pe(p_mode_point_ests, n_input_grps)
+        self.u_mode_points_ests = _format_pe(u_mode_point_ests, n_output_grps)
+        self.scales_points_ests = _format_pe(scales_point_ests, n_output_grps)
+        self.offsets_points_ests = _format_pe(offsets_point_ests, n_output_grps)
+        self.direct_mappings_points_ests = _format_pe(direct_mappings_point_ests, n_output_grps)
+        self.psi_points_ests = _format_pe(psi_point_ests, n_output_grps)
+        self.fixed_p_modes = fixed_p_modes
+        self.fixed_u_modes = fixed_u_modes
+        self.fixed_scales = fixed_scales
+        self.fixed_offsets = fixed_offsets
+        self.fixed_direct_mappings = fixed_direct_mappings
+        self.fixed_psi = fixed_psi
 
     def gen_subj_mdl(self, s_i: int, specific_s: Sequence[torch.nn.Module],
-                     specific_m: torch.nn.Module = None, assign_p_u: bool = True) -> SharedMLatentRegModel:
+                     specific_m: torch.nn.Module = None, w_gain: float = 1.0, sc_std: float = .01, dm_std: float = 1.0,
+                     noise_range: Sequence[float] = [.1, .2]) -> SharedMLatentRegModel:
 
         """ Generates a subject model for a particular subject.
 
@@ -100,47 +174,64 @@ class GeneralInputOutputScenario():
             output group and outputs a sequence of tensors, each tensor corresponding to the transformed data for one
             output group.  If this is None, no subject specific transformation will be included.
 
-            assign_p_u: True if p and u parameters should be generated for the subject model.
+            w_gain, sc_std, dm_std, noise_range: Value to provide to SharedLatentRegModel.  See documentation for
+            that object.
 
         Returns:
 
             mdl: The requested subject model
         """
 
+        def _gen_assign_vls(used: bool, point_estimates: Sequence[bool],
+                            fixed_tuples: Sequence[tuple]):
+            if not used:
+                return False
+            else:
+                # We need to assign values either because we are using point estimates for a parameter of they are
+                # fixed
+                assign_vls = point_estimates
+                if fixed_tuples is not None:
+                    for g, _ in fixed_tuples:
+                        assign_vls[g] = True
+                return assign_vls
+
+        assign_scales = _gen_assign_vls(self.use_scales, self.scales_points_ests, self.fixed_scales)
+        assign_offsets = _gen_assign_vls(self.use_offsets, self.offsets_points_ests, self.fixed_offsets)
+        assign_direct_mappings = _gen_assign_vls(self.direct_pairs is not None, self.direct_mappings_points_ests,
+                                                 self.fixed_direct_mappings)
+        assign_p_modes = _gen_assign_vls(True, self.p_mode_points_ests, self.fixed_p_modes)
+        assign_u_modes = _gen_assign_vls(True, self.u_mode_points_ests, self.fixed_u_modes)
+        assign_psi = _gen_assign_vls(True, self.psi_points_ests, self.fixed_psi)
+
         mdl = SharedMLatentRegModel(d_in=self.input_dims[s_i, :], d_out=self.output_dims[s_i, :],
                                     d_proj=self.n_input_modes, d_trans=self.n_output_modes,
                                     specific_m=specific_m, shared_m=self.shared_m_core,
-                                    s=specific_s, direct_pairs=self.direct_pairs,
-                                    assign_p_u=assign_p_u)
+                                    s=specific_s, use_scales=self.use_scales, assign_scales=assign_scales,
+                                    use_offsets=self.use_offsets, assign_offsets=assign_offsets,
+                                    direct_pairs=self.direct_pairs,
+                                    assign_direct_pair_mappings=assign_direct_mappings,
+                                    assign_p_modes=assign_p_modes, assign_u_modes=assign_u_modes,
+                                    assign_psi=assign_psi, w_gain=w_gain, sc_std=sc_std, dm_std=dm_std,
+                                    noise_range=noise_range)
 
-        if assign_p_u:
-            if self.fixed_input_modes is not None:
-                for g, p_g in self.fixed_input_modes:
-                    mdl.p[g].data = p_g
-                    mdl.p_trainable[g] = False
-            if self.fixed_input_modes is not None:
-                for h, u_h in self.fixed_output_modes:
-                    mdl.u[h].data = u_h
-                    mdl.u_trainable[h] = False
+        # Set fixed values if we need to
+        def _set_fixed_vls(params: Sequence[torch.Tensor], trainable: Sequence[bool], fixed_vls):
+            if fixed_vls is not None:
+                for i, t_i in fixed_vls:
+                    params[i].data = t_i
+                    trainable[i] = False
+
+        _set_fixed_vls(mdl.p, mdl.p_trainable, self.fixed_p_modes)
+        _set_fixed_vls(mdl.u, mdl.u_trainable, self.fixed_u_modes)
+        if self.use_scales:
+            _set_fixed_vls(mdl.scales, mdl.scales_trainable, self.fixed_scales)
+        if self.use_offsets:
+            _set_fixed_vls(mdl.offsets, mdl.offsets_trainable, self.fixed_offsets)
+        if self.direct_pairs is not None:
+            _set_fixed_vls(mdl.direct_mappings, mdl.direct_mappings_trainable, self.fixed_direct_mappings)
+        _set_fixed_vls(mdl.psi, mdl.psi_trainable, self.fixed_psi)
 
         return mdl
-
-    def gen_subj_vi_collection(self, s_i: int, specific_s: Sequence[torch.nn.Module], p_dists: Sequence,
-                               u_dists: Sequence, data: TimeSeriesBatch, props: Sequence,
-                               input_grps: Sequence[int], output_grps: Sequence[int],
-                               input_props: Sequence[int], output_props: Sequence[int],
-                               specific_m: torch.nn.Module = None, assign_p_u: bool = True,
-                               min_var:float = .001, gen_subj_mdl: bool = True):
-
-        if gen_subj_mdl:
-            s_mdl = self.gen_subj_mdl(s_i=s_i, specific_s=specific_s, specific_m=specific_m, assign_p_u=assign_p_u)
-        else:
-            s_mdl = None
-
-        return SubjectVICollection(s_mdl=s_mdl, p_dists=p_dists, u_dists=u_dists, data=data,
-                                   input_grps=input_grps, output_grps=output_grps, props = props,
-                                   input_props=input_props, output_props=output_props,
-                                   min_var=[min_var, min_var])
 
     def gen_linear_specific_m(self, scale_mn=0.001, scale_std=.00001,
                                    offset_mn=0.0, offset_std=.00001) -> torch.nn.Module:
@@ -182,6 +273,8 @@ class GeneralInputOutputScenario():
         Args:
 
         """
+
+        raise(NotImplementedError('Need to update this function for new latent regression models.'))
 
         # Determine which device we are using
         calc_device = s_vi_collection.device
