@@ -106,7 +106,7 @@ class GeneralInputOutputScenario():
             p_g is a tensor that should be used as fixed (non-learnable) modes for this input group across all subjects.
 
             fixed_u_modes: A sequence of tuples specifying fixed output modes in the same manner as
-            fixed_input_modes.
+            fixed_p_modes.
 
             fixed_scales: A sequence of scales of the form (h, t_h) where h is the index of an output group and
             t_h is a tensor of scales that should be used as fixed (non-learnable) scale parameter for that output
