@@ -436,7 +436,8 @@ class MultiSubjectVIFitter():
     """
 
     def __init__(self, s_collections: Sequence[SubjectVICollection], prior_collection: PriorCollection,
-                 penalizers: Sequence[ParameterPenalizer]):
+                 input_modules: Union[torch.nn.ModuleList, None] = None,
+                 penalizers: Union[Sequence[ParameterPenalizer], None] = None):
         """ Creates a new MultiSubjectVIFitter object.
 
         Args:
@@ -444,10 +445,20 @@ class MultiSubjectVIFitter():
 
             prior_collection: The prior collection to use when fitting data.
 
+            input_modules: Contains modules to apply to inputs before they are passed to subject models.  If None,
+            no input modules will be used.  If a list, the g^th module is the module to apply to the input for
+            input group g.  If no module should be applied to a group, the entry for that group should be None.
+
             penalizers: Parameter penalizers that will be used when fitting.
         """
 
+        # If we are not using input_modules, we still create an input_modules list with all None entries, so the
+        # rest of our code can be a bit simpler
+        if input_modules is None:
+            input_modules = torch.nn.ModuleList([None]*len(s_collections[0].input_grps))
+
         self.s_collections = s_collections
+        self.input_modules = input_modules
         self.prior_collection = prior_collection
         self.penalizers = penalizers
 
@@ -466,6 +477,8 @@ class MultiSubjectVIFitter():
 
                 prior_collection: Copy of the prior collection
 
+                input_modules: Copy of input modules.
+
                 parameter_penalizer_dicts: If penalizer parameters are requested, then parameter_penalizer_dicts[i] is
                 the dictionary witch check point parameters for the i^th parameter penalizer, where the ordering of
                 penalizers is the same as when parameter penalizers were provided at the time of the creation of the
@@ -482,6 +495,8 @@ class MultiSubjectVIFitter():
 
         prior_collection_copy = copy.deepcopy(self.prior_collection)
 
+        input_modules_copy = copy.deepcopy(self.input_modules)
+
         if inc_penalizers:
             if self.penalizers is not None:
                 parameter_penalizer_dicts = [p.check_point() for p in self.penalizers]
@@ -493,6 +508,7 @@ class MultiSubjectVIFitter():
 
         return {'s_collections': s_collections_copy,
                 'prior_collection': prior_collection_copy,
+                'input_modules': input_modules_copy,
                 'parameter_penalizer_dicts': parameter_penalizer_dicts}
 
     def distribute(self, devices: Sequence[Union[torch.device, int]], s_inds: Sequence[int] = None,
@@ -519,6 +535,11 @@ class MultiSubjectVIFitter():
         # Distribute priors; by convention priors go onto first device
         self.prior_collection.to(devices[0])
 
+        # Distribute input modules - these get moved from device to device as they need to process input
+        # for each subject model, so where they go really doesn't matter, but by default they start on the first
+        # device
+        self.input_modules.to(devices[0])
+
         # We also put penalizers on first device
         if self.penalizers is not None:
             for penalizer in self.penalizers:
@@ -544,7 +565,7 @@ class MultiSubjectVIFitter():
             get_prior_params: True if parameters of priors should be included in the set of returned parameters
 
         Returns:
-             base_params: Parameters of priors, posteriors and subject models
+             base_params: Parameters of priors, posteriors, input modules and subject models
 
              penalizer_params: Parameters of any penalizers
         """
@@ -564,6 +585,10 @@ class MultiSubjectVIFitter():
         # Clean for duplicate parameters.  Subject models might shared a posterior, for example, so we need to
         # check for this
         non_duplicate_base_params = list(set(base_params))
+
+        # Add in input module parameters to base parameters
+        input_module_params = list(self.input_modules.parameters())
+        non_duplicate_base_params = non_duplicate_base_params + input_module_params
 
         # Get penalizer parameters - the get_penalizer_params() already checks for duplicates
         non_duplicate_penalizer_params = self.get_penalizer_params()
@@ -646,7 +671,7 @@ class MultiSubjectVIFitter():
         """ Lists any device currently used for fitting.
 
         Returns:
-            devices: The list of devices subject models and priors are on.
+            devices: The list of devices parameters are on in.
         """
 
         s_mdl_devices = [s_coll.s_mdl.trainable_parameters()[0].device for s_coll in self.s_collections]
@@ -656,9 +681,11 @@ class MultiSubjectVIFitter():
             penalizer_parameters = [list(penalizer.parameters()) for penalizer in self.penalizers]
             penalizer_devices = [parameters[0].device for parameters in penalizer_parameters if len(parameters) > 0]
         else:
-            penalizer_devices =  []
+            penalizer_devices = []
 
-        return list(set(s_mdl_devices + data_devices + prior_devices + penalizer_devices))
+        input_module_devices = [next(m.parameters()).device for m in self.input_modules if m is not None]
+
+        return list(set(s_mdl_devices + data_devices + prior_devices + input_module_devices + penalizer_devices))
 
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates=.01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, fix_priors: bool = False,
@@ -879,6 +906,9 @@ class MultiSubjectVIFitter():
                     batch_y = [batch_data.data[i_h][batch_data.i_y, :] for i_h in s_coll.output_grps]
                     n_batch_data_pts = batch_x[0].shape[0]
 
+                    # Make sure the input modules are on the right device for this subject
+                    self.input_modules.to(subject_coll_devices[i])
+
                     # Make sure the posteriors are on the right GPU for this subject (important if we are
                     # using a shared posterior)
                     self._move_dists(s_coll.p_dists, subject_coll_devices[i])
@@ -912,6 +942,9 @@ class MultiSubjectVIFitter():
                     # Make sure the m module is on the correct device for this subject, this is
                     # important when subject models share an m function
                     s_coll.s_mdl.m.to(subject_coll_devices[i])
+
+                    # Apply input modules
+                    batch_x = [x_g if i_m is None else i_m(x_g) for i_m, x_g in zip(self.input_modules, batch_x)]
 
                     # Calculate the conditional log-likelihood for this subject
                     y_pred = s_coll.s_mdl.cond_forward(x=batch_x, p=q_p_modes_standard, u=q_u_modes_standard,
