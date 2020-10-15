@@ -164,7 +164,6 @@ class GroupTransform(torch.nn.Module):
             transforms: A list of transforms to apply. transforms[i] is the transform that will be applied to intut
             group i
         """
-        raise(NotImplemented('This module has been fully implemented but not tested.  Do some sanity checks before using.'))
         super().__init__()
         self.group_maps = torch.nn.ModuleList(transforms)
 
@@ -349,7 +348,6 @@ class ConcatenateAndSelectMap(torch.nn.Module):
 
         # Form indices for selecting input
         n_input_grps = len(d_in)
-        n_output_grps = len(output_inds)
         input_offsets = np.zeros(n_input_grps)
 
         for g in range(1, n_input_grps):

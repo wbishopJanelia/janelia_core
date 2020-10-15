@@ -281,7 +281,6 @@ class LatentRegModel(torch.nn.Module):
 
         """
 
-        # Put arguments indicating which variables to override in standard form
         if p is None:
             p = [None]*self.n_input_groups
         if u is None:

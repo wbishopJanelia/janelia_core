@@ -1055,7 +1055,8 @@ class MultiSubjectVIFitter():
                                            devices=all_devices, penalizers=self.penalizers, print_opts=print_opts)
 
         # Return logs and check points
-        check_points = [cp for cp in check_points if cp is not None]
+        if check_points is not None:
+            check_points = [cp for cp in check_points if cp is not None]
 
         log = {'elapsed_time': epoch_elapsed_time, 'obj': epoch_obj, 'mdl_nll': epoch_nll, 'sub_p_kl': epoch_sub_p_kl,
                'sub_u_kl': epoch_sub_u_kl, 'sub_psi_kl': epoch_sub_psi_kl, 'sub_scales_kl': epoch_sub_scales_kl,
