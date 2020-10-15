@@ -454,27 +454,17 @@ class MultiSubjectVIFitter():
         self.distributed = False  # Keep track of if we have distributed everything yet
 
     def create_check_point(self, inc_penalizers: bool = False) -> dict:
-        """ Returns copies of subject models and priors as well as (optionally) penalizer parameters.
+        """ Returns copies of subject vi collections, priors as well as (optionally) penalizer parameters.
 
         Args:
-            inc_penalizers: True if copies of penalizers should be returned.
+            inc_penalizers: True if copies of penalizer parameters should be returned.
 
         Returns:
             cp_dict: A dictionary with the following keys:
 
                 s_collections: Copies of the subject collections, with data and properties removed
 
-                p_priors: Copies of the p priors
-
-                u_priors: Copies of the u priors
-
-                p_penalizer_dicts: If penalizer parameters are requested, p_penalizer_dicts[g] is
-                a dictionary of penalizer parameters for the g^th penalizer.  If there is no penlizer for the g^th input
-                group, the p_penalizer_dicts[g] will be None.  If prior penalizer parameters are not requested or
-                there are no p prior penalizers at all then p_penalizer_dicts will be None.
-
-                u_penalizer_dicts: The penalizer check point dictionaries for the u penalizers, in the same
-                form as p_prior_penalizer_dicts.
+                prior_collection: Copy of the prior collection
 
                 parameter_penalizer_dicts: If penalizer parameters are requested, then parameter_penalizer_dicts[i] is
                 the dictionary witch check point parameters for the i^th parameter penalizer, where the ordering of
@@ -482,60 +472,27 @@ class MultiSubjectVIFitter():
                 Fitter object.
         """
 
-        raise(NotImplementedError('create_check_point needs to be udpated.'))
-
-        orig_devices = list(set([s_coll.device for s_coll in self.s_collections]))
-        print('Memory before moving: ' + str(torch_devices_memory_usage(orig_devices, type='memory_allocated')))
-
-        self.distribute(devices=[torch.device('cpu')], distribute_data=True)
-
-        print('Memory after moving: ' + str(torch_devices_memory_usage(orig_devices, type='memory_allocated')))
+        orig_devices = self.get_used_devices()
+        self.to('cpu', distribute_data=True)
 
         s_collections_copy = copy.deepcopy(self.s_collections)
         for s_coll in s_collections_copy:
             s_coll.data = None
             s_coll.props = None
-            s_coll.to('cpu')
 
-        p_priors_copy = copy.deepcopy(self.p_priors)
-        for p_prior in p_priors_copy:
-            if p_prior is not None:
-                p_prior.to('cpu')
-
-        u_priors_copy = copy.deepcopy(self.u_priors)
-        for u_prior in u_priors_copy:
-            if u_prior is not None:
-                u_prior.to('cpu')
+        prior_collection_copy = copy.deepcopy(self.prior_collection)
 
         if inc_penalizers:
-            if self.p_prior_penalizers is not None:
-                p_prior_penalizer_dicts = [p.check_point() for p in self.p_prior_penalizers if p is not None]
-            else:
-                p_prior_penalizer_dicts = None
-
-            if self.u_prior_penalizers is not None:
-                u_prior_penalizer_dicts = [p.check_point() for p in self.u_prior_penalizers if p is not None]
-            else:
-                u_prior_penalizer_dicts = None
-
-            if self.parameter_penalizers is not None:
-                parameter_penalizer_dicts = [p.check_point() for p in self.parameter_penalizers]
+            if self.penalizers is not None:
+                parameter_penalizer_dicts = [p.check_point() for p in self.penalizers]
             else:
                 parameter_penalizer_dicts = None
-
-        else:
-            p_prior_penalizer_dicts = None
-            u_prior_penalizer_dicts = None
-            parameter_penalizer_dicts = None
 
         # Move subject collections back to devices
         self.distribute(devices=orig_devices, distribute_data=True)
 
         return {'s_collections': s_collections_copy,
-                'p_priors': p_priors_copy,
-                'u_priors': u_priors_copy,
-                'p_penalizer_dicts': p_prior_penalizer_dicts,
-                'u_penalizer_dicts': u_prior_penalizer_dicts,
+                'prior_collection': prior_collection_copy,
                 'parameter_penalizer_dicts': parameter_penalizer_dicts}
 
     def distribute(self, devices: Sequence[Union[torch.device, int]], s_inds: Sequence[int] = None,
@@ -706,7 +663,7 @@ class MultiSubjectVIFitter():
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates=.01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, fix_priors: bool = False,
             enforce_priors: bool = True, update_int: int = 1, print_opts: dict = None,
-            cp_epochs: Sequence[int] = None, cp_penalizers: bool = False) -> [dict, Union[List, None]]:
+            cp_epochs: Sequence[int] = None, cp_penalizers: bool = True) -> [dict, Union[List, None]]:
         """
 
         Args:
@@ -1031,17 +988,15 @@ class MultiSubjectVIFitter():
             # Handle checkpoints if needed
             if cp_epochs is not None:
                 if np.any(cp_epochs == e_i):
-                    # TODO: Need to add this code
                     # Clear the batch data from memory - this is helpful when working with GPU
-
                     del batch_x
                     del batch_y
                     del batch_data
 
                     print('Creating checkpoint after epoch ' + str(e_i) + '.')
                     cp_ind = np.argwhere(cp_epochs == e_i)[0][0]
-                    #check_points[cp_ind] = self.create_check_point(inc_penalizers=cp_penalizers)
-                    #check_points[cp_ind]['epoch'] = e_i
+                    check_points[cp_ind] = self.create_check_point(inc_penalizers=cp_penalizers)
+                    check_points[cp_ind]['epoch'] = e_i
 
             # Take care of logging everything
             elapsed_time = time.time() - t_start
@@ -1066,7 +1021,9 @@ class MultiSubjectVIFitter():
                                            batch_penalties=batch_penalizer_penalties,
                                            devices=all_devices, penalizers=self.penalizers, print_opts=print_opts)
 
-        # Return logs
+        # Return logs and check points
+        check_points = [cp for cp in check_points if cp is not None]
+
         log = {'elapsed_time': epoch_elapsed_time, 'obj': epoch_obj, 'mdl_nll': epoch_nll, 'sub_p_kl': epoch_sub_p_kl,
                'sub_u_kl': epoch_sub_u_kl, 'sub_psi_kl': epoch_sub_psi_kl, 'sub_scales_kl': epoch_sub_scales_kl,
                'sub_offsets_kl': epoch_sub_offsets_kl, 'sub_direct_mappings_kl': epoch_sub_direct_mappings_kl,
@@ -1168,7 +1125,7 @@ class MultiSubjectVIFitter():
             plt.plot(log['elapsed_time'], log['penalties'])
             plt.title('Penalties')
 
-    def to(self, device: torch.device, distribute_data:bool = False):
+    def to(self, device: torch.device, distribute_data: bool = False):
         """ Move everything in the fitter to a specified device.
 
         This is most useful when wanting to clean up after fitting and you need to move models to CPU.
@@ -1325,7 +1282,7 @@ class MultiSubjectVIFitter():
             print(format_output_list(base_str='Subj Direct Mappings KLs: ', it_str='s_',
                                      vls=batch_sub_direct_mappings_kl, inds=s_inds))
         if print_opts['penalties']:
-            print(format_output_list(base_str='Penalties: ', it_str='o_', vls=batch_penalties,
+            print(format_output_list(base_str='Penalties: ', it_str='p_', vls=batch_penalties,
                                      inds=np.arange(n_penalizers)))
         if print_opts['penalizer_states']:
             for penalizer in penalizers:
