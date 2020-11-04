@@ -18,8 +18,8 @@ class ParameterPenalizer(ABC, torch.nn.Module):
     and penalizing the sum of those distances, it might be simpler to have a penalizer with a center parameter which is
     learned and penalizing the distance of each parameter in the group to the center.
 
-    Note one point of confusion is there are now two sets of parameters - one set if the set of parameters that we
-    want to penalize and the other set if the set of internal, learnable parameters of the penalizer itself.  In
+    Note one point of confusion is there are now two sets of parameters - one set is the set of parameters that we
+    want to penalize and the other set is the set of internal, learnable parameters of the penalizer itself.  In
     the example above, the center would be an internal, learnable parameter of the penalizer.
 
     """

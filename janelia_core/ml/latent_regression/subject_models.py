@@ -4,10 +4,12 @@ import copy
 import itertools
 import re
 import time
-from typing import Generator, Sequence
+from typing import List, Sequence, Union
 
 import numpy as np
 import torch
+
+import warnings
 
 from janelia_core.ml.utils import format_and_check_learning_rates
 
@@ -35,20 +37,42 @@ class LatentRegModel(torch.nn.Module):
     again have it's own parameters. s_h can be a general function mapping from R^{d_out^h} to R^{d_out^h},
     but in many cases, it may be a composite function which just applies the same function element-wise.
 
+    Next, w_h is formed by optionally applying element-wise scales and offsets to o_h. If these scales and offsets are
+    not used, w_h = o_h.
+
     The user can also specify pairs (g, h) when d_in^g = d_out^h, where there is a direct mapping from x_g to a
     vector v_h, v_h = c_{h,g} x_g, where c_{h,g} is a diagonal matrix.  This is most useful when x_g and
     y_g are the same set of variables (e.g, neurons) at times t-1 and t, and in addition to low-rank interactions,
     we want to include interactions between each variable and itself.
 
-    Variables mn_h = o_h + v_h are then formed, and finally, y_h = mn_h + n_h, where n_h ~ N(0, psi_h)
+    Variables mn_h = w_h + v_h are then formed, and finally, y_h = mn_h + n_h, where n_h ~ N(0, psi_h)
     where psi_h is a diagonal covariance matrix.
 
     """
 
-    def __init__(self, d_in: Sequence, d_out: Sequence, d_proj: Sequence, d_trans: Sequence,
-                 m: torch.nn.Module, s: Sequence[torch.nn.Module], direct_pairs: Sequence[tuple] = None,
-                 w_gain: float = 1, noise_range: Sequence[float] = [.1, .2], assign_p_u: bool = True):
+    def __init__(self, d_in: Sequence[int], d_out: Sequence[int], d_proj: Sequence[int], d_trans: Sequence[int],
+                 m: torch.nn.Module, s: Sequence[torch.nn.Module], use_scales: bool = False,
+                 assign_scales: Union[bool, Sequence[bool]] = True, use_offsets: bool = False,
+                 assign_offsets: Union[bool, Sequence[bool]] = True, direct_pairs: Sequence[tuple] = None,
+                 assign_direct_pair_mappings: Union[bool, Sequence[bool]] = True,
+                 assign_p_modes: Union[bool, Sequence[bool]] = True, assign_u_modes: Union[bool, Sequence[bool]] = True,
+                 assign_psi: Union[bool, Sequence[bool]] = True, w_gain: float = 1, sc_std: float = .01,
+                 dm_std: float = .1, noise_range: Sequence[float] = [.1, .2]):
         """ Create a LatentRegModel object.
+
+        When creating the object, the user has the option to "assign" different variables.  This means a (potentiallY)
+        learnable parameter will be created for the variable.  A user may select not to assign a variable if the
+        model will be fit with a probabilistic framework where distributions over different parameters will be used
+        in place of point estimates.  In this case, because the variables stored with this object will not be used,
+        the user can chose to save memory by not creating that variable in the first place.  The user has two different
+        ways to specify if variables are assigned.  A user can enter a single boolean value (e.g., assign_psi = True),
+        in which case psi variables for all output groups will be assigned.  Alternatively, the user can provide a
+        sequence of boolean values, indicating which variables for each group should be assigned.
+
+        Once parameters are created, the user can select if they are learnable or not by manipulating the internal
+        trainable parameters for the object.  By default, all created parameters are learnable.  However, a user
+        might want to set some parameters by hand and then hold them fixed, in which case setting these parameters
+        to not be learnable will be useful.
 
         Args:
 
@@ -62,19 +86,37 @@ class LatentRegModel(torch.nn.Module):
 
             m: The mapping from [p_1, ..., p_G] to [t_h, ..., t_h].
 
-            s: s[h] contains module to be applied to o_h (see above).
+            s: s[h] contains module to be applied to z_h (see above).
+
+            use_scales: True if scales should be applied to the o_h values of each output group.
+
+            assign_scales: True if scales should be assigned.  See note above on assigning variables.
+
+            use_offsets: True if offsets should be applied to the o_h values of each output group.
+
+            assign_offsets: True if offsets should be assigned.  See note above on assigning variables.
 
             direct_pairs: direct_pairs[p] contains a tuple of the form (g, h) giving a pair of input and output groups
             that should have direct connections.
 
+            assign_direct_pair_mappings: True if direct pair mappings should be assigned.  See note above on assigning
+            variables.  If indicating which particular direct pair mappings should be assigned, this should be a
+            sequence and the i^th entry in the sequence indicates if the i^th pair in direct_pairs has a mapping
+            assigned.
+
+            assign_p_modes: True if p modes should be assigned.  See note above on assigning variables.
+
+            assign_u_modes: True if u modes should be assigned.  See note above on assigning variables.
+
+            assign_psi: True if psi variables should be assigned.  See note above on assigning variables.
+
             w_gain: Gain to apply to projection p and u matrices when initializing their weights.
 
-            noise_range: Range of uniform distribution to pull psi values from during initialization.
+            sc_std: Standard deviation for initializing scale values.
 
-            assign_p_u: True if p and u parameters should be created for the model.  The reason you might not want to
-            do this is if you are creating a LatentRegModel for use with a framework that will fit priors over the
-            columns of p and u matrices.  In this case, for the purposes of fitting, the p and u parameters of the
-            LatentRegModel object are ignored, so to save memory it may be best to never create them.
+            dm_std: Standard deviation for initializing direct mappings.
+
+            noise_range: Range of uniform distribution to pull psi values from during initialization.
 
         """
 
@@ -85,68 +127,112 @@ class LatentRegModel(torch.nn.Module):
         self.d_out = d_out
         self.d_proj = d_proj
         self.d_trans = d_trans
+        self.use_scales = use_scales
+        self.use_offsets = use_offsets
         self.direct_pairs = direct_pairs
+        self.use_direct_pairs = direct_pairs is not None
 
         n_input_groups = len(d_in)
         self.n_input_groups = n_input_groups
         n_output_groups = len(d_out)
         self.n_output_groups = n_output_groups
 
-        if assign_p_u:
-            # Initialize projection matrices down
-            p = [None]*n_input_groups
-            for g, dims in enumerate(zip(d_in, d_proj)):
-                param_name = 'p' + str(g)
-                p[g] = torch.nn.Parameter(torch.zeros([dims[0], dims[1]]), requires_grad=True)
-                torch.nn.init.xavier_normal_(p[g], gain=w_gain)
-                self.register_parameter(param_name, p[g])
-            self.p = p
-            self.p_trainable = np.ones(n_input_groups, dtype=bool) # All projection matrices are by default trainiable
+        # Put our assignment arguments into a standard form
+        if isinstance(assign_p_modes, bool):
+            assign_p_modes = [assign_p_modes]*n_input_groups
+        if isinstance(assign_u_modes, bool):
+            assign_u_modes = [assign_u_modes]*n_output_groups
+        if isinstance(assign_scales, bool):
+            assign_scales = [assign_scales]*n_output_groups
+        if isinstance(assign_offsets, bool):
+            assign_offsets = [assign_offsets]*n_output_groups
+        if isinstance(assign_direct_pair_mappings, bool) and (direct_pairs is not None):
+            assign_direct_pair_mappings = [assign_direct_pair_mappings]*len(direct_pairs)
+        if isinstance(assign_psi, bool):
+            assign_psi = [assign_psi]*n_output_groups
 
-        # Initialize projection matrices up
-            u = [None]*n_output_groups
-            for h, dims in enumerate(zip(d_out, d_trans)):
-                param_name = 'u' + str(h)
-                u[h] = torch.nn.Parameter(torch.zeros([dims[0], dims[1]]), requires_grad=True)
-                torch.nn.init.xavier_normal_(u[h], gain=w_gain)
-                self.register_parameter(param_name, u[h])
-            self.u = u
-            self.u_trainable = np.ones(n_output_groups, dtype=bool) # All projection matrices are by default trainable
-        else:
-            self.p = None
-            self.u = None
 
         # Mapping from projection to transformed latents
         self.m = m
 
-        # Direct mappings - if there are none, we set direct_mappings to None
-        if direct_pairs is not None:
-            n_direct_pairs = len(direct_pairs)
-            direct_mappings = [None]*n_direct_pairs
-            for pair_i, pair in enumerate(direct_pairs):
-                c = torch.nn.Parameter(torch.ones(d_in[pair[0]]), requires_grad=True)
-                torch.nn.init.normal_(c, 0, .1)
-                param_name = 'c' + str(pair[0]) + '_' + str(pair[1])
-                self.register_parameter(param_name, c)
-                direct_mappings[pair_i] = {'pair': pair, 'c': c}
-            self.direct_mappings = direct_mappings
-        else:
-            self.direct_mappings = None
-
         # Mappings from transformed latents to o_h
         self.s = torch.nn.ModuleList(s)
 
-        # Initialize the variances for the noise variables
+        # Initialize projection matrices down
+        p = [None]*n_input_groups
+        for g, dims in enumerate(zip(d_in, d_proj)):
+            if assign_p_modes[g]:
+                param_name = 'p' + str(g)
+                p[g] = torch.nn.Parameter(torch.zeros([dims[0], dims[1]]), requires_grad=True)
+                torch.nn.init.xavier_normal_(p[g], gain=w_gain)
+                self.register_parameter(param_name, p[g])
+        self.p = p
+        self.p_trainable = assign_p_modes  # All assigned projection matrices are by default trainable
+
+        # Initialize projection matrices up
+        u = [None]*n_output_groups
+        for h, dims in enumerate(zip(d_out, d_trans)):
+            if assign_u_modes[h]:
+                param_name = 'u' + str(h)
+                u[h] = torch.nn.Parameter(torch.zeros([dims[0], dims[1]]), requires_grad=True)
+                torch.nn.init.xavier_normal_(u[h], gain=w_gain)
+                self.register_parameter(param_name, u[h])
+        self.u = u
+        self.u_trainable = assign_u_modes  # All assigned projection matrices are by default trainable
+
+        # Direct mappings - if there are none, we set direct_mappings to None
+        if direct_pairs is not None:
+            n_direct_pairs = len(direct_pairs)
+            direct_mappings = [None] * n_direct_pairs
+            for pair_i, pair in enumerate(direct_pairs):
+                if assign_direct_pair_mappings[pair_i]:
+                    c = torch.nn.Parameter(torch.ones(d_in[pair[0]]), requires_grad=True)
+                    torch.nn.init.normal_(c, 0, dm_std)
+                    param_name = 'c' + str(pair[0]) + '_' + str(pair[1])
+                    self.register_parameter(param_name, c)
+                    direct_mappings[pair_i] = c
+            self.direct_mappings = direct_mappings
+            self.direct_mappings_trainable = assign_direct_pair_mappings
+
+        # Scales
+        if use_scales:
+            scales = [None]*n_output_groups
+            for h in range(n_output_groups):
+                if assign_scales[h]:
+                    sc = torch.nn.Parameter(torch.ones(d_out[h]), requires_grad=True)
+                    torch.nn.init.normal_(sc, 0, sc_std)
+                    self.register_parameter('sc' + str(h), sc)
+                    scales[h] = sc
+            self.scales = scales
+            self.scales_trainable = assign_scales
+
+        # Offsets
+        if use_offsets:
+            offsets = [None]*n_output_groups
+            for h in range(n_output_groups):
+                if assign_offsets[h]:
+                    o = torch.nn.Parameter(torch.zeros(d_out[h]), requires_grad=True)
+                    self.register_parameter('o' + str(h), o)
+                    offsets[h] = o
+            self.offsets = offsets
+            self.offsets_trainable = assign_offsets
+
+        # Variances on output variables
         psi = [None]*n_output_groups
         for h, d in enumerate(d_out):
-            param_name = 'psi' + str(h)
-            psi[h] = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
-            torch.nn.init.uniform_(psi[h], noise_range[0], noise_range[1])
-            self.register_parameter(param_name, psi[h])
+            if assign_psi[h]:
+                param_name = 'psi' + str(h)
+                psi[h] = torch.nn.Parameter(torch.zeros(d), requires_grad=True)
+                torch.nn.init.uniform_(psi[h], noise_range[0], noise_range[1])
+                self.register_parameter(param_name, psi[h])
         self.psi = psi
+        self.psi_trainable = assign_psi
 
     def forward(self, x: list) -> Sequence:
         """ Computes the predicted mean from the model given input.
+
+        This function assumes all parameters of the model have been assigned.  If this is not the case and you wish
+        to provide some of the values for parameters not assigned within the model, see cond_forward().
 
         Args:
             x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of
@@ -156,48 +242,93 @@ class LatentRegModel(torch.nn.Module):
             y: A sequence of outputs. y[h] contains the output for group h.  y[h] will be of shape n_smps*d_out[h]
         """
 
-        return self.cond_forward(x, self.p, self.u)
+        return self.cond_forward(x)
 
-    def cond_forward(self, x: list, p: list, u: list):
-        """ Computes means given x and a set of projection matrices down and up.
+    def cond_forward(self, x: List[torch.Tensor],
+                     p: Union[List[Union[torch.Tensor, None]], None] = None,
+                     u: Union[List[Union[torch.Tensor, None]], None] = None,
+                     scales: Union[List[Union[torch.Tensor, None]], None] = None,
+                     offsets: Union[List[Union[torch.Tensor, None]], None] = None,
+                     direct_mappings: Union[List[Union[torch.Tensor, None]], None] = None):
+        """ Computes means given x and different parameter values.
 
-        When this function is called, the internal p and u parameters are ignored.
+        The user can specify parameter values to override (see arguments below).  When any of these are provided,
+        the internal values for this parameter stored with the model are ignored and the user provided values are
+        used instead. The user can provide this specification in two ways.  Providing a None value (e.g., p = None),
+        specifies all of the paramters for all groups should be used (in this example, p modes in the model for all
+        groups would be used).  Alternatively, the user can provide a sequence (e.g, p = [None, t]).  An entry of None
+        in the sequence indicates the model's parameter for that group should be used, while if an entry is a tensor,
+        than that tensor will be used in place of the model's parameters.
 
         Args:
 
             x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of
             shape n_smps*d_in[g]
 
-            p: A sequence of tensors.  p[g] contains p_g
+            p: Values for the p-modes to use.  See note above on how parameters can be specified.
 
-            u: A sequence of tensors.  u[h] contains u_h
+            u: Values for the u-modes to use.  See note above on how parameters can be specified.
+
+            scales: Values for scales to use.  See note above on how parameters can be specified.
+
+            offsets: Values for offsets to use.  See note above on how parameters can be specified.
+
+            direct_mappings: Direct mappings to use.  When specifying a sequence. direct_mappings[i] contains the values
+            for the direct mappings in self.direct_pairs[i]
 
         Returns:
             y: A sequence of outputs. y[h] contains the means for group h.  y[h] will be of shape n_smps*d_out[h]
 
-        Raises:
-            ValueError: if x is not a list
         """
 
+        if p is None:
+            p = [None]*self.n_input_groups
+        if u is None:
+            u = [None]*self.n_output_groups
+        if self.use_scales and (scales is None):
+            scales = [None]*self.n_output_groups
+        if self.use_offsets and (offsets is None):
+            offsets = [None]*self.n_output_groups
+        if self.use_direct_pairs and (direct_mappings is None):
+            direct_mappings = [None]*self.n_output_groups
 
-        if not isinstance(x, list):
-            raise(ValueError('x must be a list'))
+        # Now we pull parameters from the model we are using
+        p = [p[g] if p[g] is not None else self.p[g] for g in range(self.n_input_groups)]
+        u = [u[h] if u[h] is not None else self.u[h] for h in range(self.n_output_groups)]
 
+        if self.use_scales:
+            scales = [scales[h] if scales[h] is not None else self.scales[h] for h in range(self.n_output_groups)]
+        if self.use_offsets:
+            offsets = [offsets[h] if offsets[h] is not None else self.offsets[h] for h in range(self.n_output_groups)]
+
+        if self.use_direct_pairs:
+            direct_mappings = [direct_mappings[i] if direct_mappings[i] is not None
+                               else self.direct_mappings[i] for i in range(len(self.direct_mappings))]
+
+        # Compute output
         proj = [torch.matmul(x_g, p_g) for x_g, p_g in zip(x, p)]
 
         tran = self.m(proj)
         z = [torch.matmul(t_h, u_h.t()) for t_h, u_h in zip(tran, u)]
 
-        v = [s_h(z_h) for s_h, z_h in zip(self.s, z)]
+        o = [s_h(z_h) for s_h, z_h in zip(self.s, z)]
+
+        if self.use_scales:
+            w = [sc_h*o_h for sc_h, o_h in zip(scales, o)]
+        else:
+            w = o
+
+        if self.use_offsets:
+            w = [off_h + w_h for off_h, w_h in zip(offsets, w)]
 
         # Add direct mappings
-        if self.direct_mappings is not None:
-            for dm in self.direct_mappings:
-                g = dm['pair'][0]
-                h = dm['pair'][1]
-                v[h] = v[h] + dm['c']*x[g]
+        if self.use_direct_pairs:
+            for pair_i, pair in enumerate(self.direct_pairs):
+                g = pair[0]
+                h = pair[1]
+                w[h] = w[h] + direct_mappings[pair_i]*x[g]
 
-        return v
+        return w
 
     def generate(self, x: Sequence) -> Sequence:
         """ Generates outputs from the model given inputs.
@@ -211,16 +342,34 @@ class LatentRegModel(torch.nn.Module):
             shape n_smps*d_out[h]
         """
 
-        n_output_grps = len(self.psi)
-
         with torch.no_grad():
             mns = self(x)
-            y = [None]*n_output_grps
-            for h in range(n_output_grps):
+            y = [None]*self.n_output_groups
+            for h in range(self.n_output_groups):
                 noise_h = torch.randn_like(mns[h])*torch.sqrt(self.psi[h])
                 y[h] = mns[h] + noise_h
 
         return y
+
+    def p_project(self, x: List[torch.Tensor],
+                  p: Union[List[Union[torch.Tensor, None]], None] = None) -> List[torch.Tensor]:
+        """ Projects input data onto p-modes.
+
+        Args:
+
+            p: List of p modes to use.  p[g] are the p modes to use for group g.  If p[g] is None,
+            then the internal p modes of the subject model will be used.  If p is None, then all
+            the internal p modes of the subject will be used for all groups.
+
+        Returns:
+            projs: projs[g] are the projections for input group g.
+        """
+
+        # Pull p modes we need to.
+        p = [p[g] if p[g] is not None else self.p[g] for g in range(self.n_input_groups)]
+
+        # Compute projections
+        return [torch.matmul(x_g, p_g) for x_g, p_g in zip(x, p)]
 
     def recursive_generate(self, x: Sequence, r_map: list = None) -> Sequence:
         """ Recursively generates output for a given number of time steps.
@@ -295,26 +444,26 @@ class LatentRegModel(torch.nn.Module):
         Returns:
             params: params[i] is a list of parameters for the i^th output group
         """
-        return [list(s.parameters()) for s in self.s]
+        return itertools.chain(*[s.parameters() for s in self.s])
 
-    def neg_ll(self, y: list, mn: list, w: torch.Tensor = None) -> torch.Tensor:
+    def neg_ll(self, y: Sequence[torch.Tensor], mn: Sequence[torch.Tensor],
+               psi: Sequence[torch.Tensor] = None) -> torch.Tensor:
 
         """
         Calculates the negative log likelihood of outputs given predicted means.
-
-        The negative log likelihood of each group can be optionally be weighted.
 
         Args:
 
             y: A sequence of outputs.  y[h] contains the output tensor for group h.  y[h] should be of
             shape n_smps*d_out[h]
 
-            mns: A sequence of predicted means.  mns[h] contains the predicted means for group h.  mns[h]
+            mn: A sequence of predicted means.  mns[h] contains the predicted means for group h.  mns[h]
             should be of shape n_smps*d_out[h]
 
-            w: If None, no weighting of the log-likelihood for each group of outputs is performed.  If a tensor, w[i]
-            is the weight for output group i. By weighting, if nll = -log P(Y_1) + -log P(Y_2) is the log likelihood
-            for two ouput groups, the weighted negative log-likelihood is nll_w = -w[0]*log P(Y_0) - w[1] * log P(Y_2).
+            psi: An optional value of psi to use.  Can be specified in two ways.  If None, then the model's internal
+            parameter for psi for all groups will be used.  If a sequence, then if psi[h] is None, the model's
+            parameter of psi[h] will be used.  However is psi[h] is a tensor, then this value will be used in place
+            of the models.
 
         Returns:
             The calculated negative log-likelihood for the sample
@@ -322,52 +471,68 @@ class LatentRegModel(torch.nn.Module):
         Raises:
             ValueErorr: If y and mn are not lists
         """
+
         if not isinstance(y, list):
             raise(ValueError('y must be a list'))
         if not isinstance(mn, list):
             raise(ValueError('mn must be a list'))
 
-        if w is None:
-            n_grps = len(y)
-            w = torch.ones(n_grps, device=self.psi[0].device)
+        # Put psi argument in standard form
+        if psi is None:
+            psi = [None]*self.n_output_groups
 
+        # Overwrite psi values for particular groups if we need to
+        psi = [psi[h] if psi[h] is not None else self.psi[h] for h in range(self.n_output_groups)]
+
+        # Calculate negative log-likelihood
         neg_ll = float(0)
-
         n_smps = y[0].shape[0]
         log_2_pi = float(np.log(2*np.pi))
-
-        for mn_h, y_h, psi_h, w_i in zip(mn, y, self.psi, w):
-            neg_ll += w_i*.5*mn_h.nelement()*log_2_pi
-            neg_ll += w_i*.5*n_smps*torch.sum(torch.log(psi_h))
-            neg_ll += w_i*.5*torch.sum(((y_h - mn_h)**2)/psi_h)
+        for mn_h, y_h, psi_h, in zip(mn, y, psi):
+            neg_ll += .5*mn_h.nelement()*log_2_pi
+            neg_ll += .5*n_smps*torch.sum(torch.log(psi_h))
+            neg_ll += .5*torch.sum(((y_h - mn_h)**2)/psi_h)
 
         return neg_ll
 
-    def trainable_parameters(self):
+    def trainable_parameters(self) -> List[torch.nn.parameter.Parameter]:
         """ Gets all trainable parameters of the model.
 
-        Trainable parameters are those in the s modules, in m, psi, direct weights and all p and u matrices
-        for which their entry in self.p_trainable and self.u_trainable is set to true.
+        Trainable parameters are those in the s and m modules as well as the p modes, u modes, scale, offset, psi and
+        direct_mapping parameters which are set to trainable (e.g., self.p_trainable has true entries for the
+        groups with trainable p modes).
         """
 
-        if self.p is not None:
-            p_params = [self.p[i] for i, trainable in enumerate(self.p_trainable) if trainable]
-        else:
-            p_params = []
-        if self.u is not None:
-            u_params = [self.u[i] for i, trainable in enumerate(self.u_trainable) if trainable]
-        else:
-            u_params = []
-
         m_params = self.m.parameters()
-        if self.direct_mappings is not None:
-            c_params = [dm_dict['c'] for dm_dict in self.direct_mappings]
-        else:
-            c_params = []
-        psi_params = self.psi
-        s_params = self.s.parameters()
+        s_params = self.s_parameters()
 
-        return list(itertools.chain(p_params, u_params, m_params, c_params, psi_params, s_params))
+        p_params = [self.p[g] for g, trainable in enumerate(self.p_trainable) if trainable and self.p[g] is not None]
+        u_params = [self.u[h] for h, trainable in enumerate(self.u_trainable) if trainable and self.u[h] is not None]
+
+        if self.use_scales:
+            scale_params = [self.scales[h] for h, trainable in enumerate(self.scales_trainable) if trainable
+                            and self.scales[h] is not None]
+        else:
+            scale_params = []
+
+        if self.use_offsets:
+            offset_params = [self.offsets[h] for h, trainable in enumerate(self.offsets_trainable) if trainable
+                             and self.offsets[h] is not None]
+        else:
+            offset_params = []
+
+        if self.use_direct_pairs:
+            direct_mapping_params = [self.direct_mappings[i] for i, trainable in
+                                     enumerate(self.direct_mappings_trainable) if trainable
+                                     and self.direct_mappings[i] is not None]
+        else:
+            direct_mapping_params = []
+
+        psi_params = [self.psi[h] for h, trainable in enumerate(self.psi_trainable) if trainable
+                      and self.psi[h] is not None]
+
+        return list(itertools.chain(m_params, s_params, p_params, u_params, scale_params, offset_params,
+                                    direct_mapping_params, psi_params))
 
     def fit(self, x: Sequence[torch.Tensor], y: Sequence[torch.Tensor],
             batch_size: int=100, send_size: int=100, max_its: int=10,
@@ -441,14 +606,11 @@ class LatentRegModel(torch.nn.Module):
         # Convert generator to list (since we need to reference parameters multiple times in the code below)
         parameters = [p for p in parameters]
 
-        if not isinstance(learning_rates, (int, float, list)):
-            raise (ValueError('learning_rates must be of type int, float or list.'))
-
         # Format and check learning rates - no matter the input format this outputs learning rates in a standard format
         # where the learning rate starting at iteration 0 is guaranteed to be listed first
         learning_rate_its, learning_rate_values = format_and_check_learning_rates(learning_rates)
 
-        optimizer = torch.optim.Adam(parameters, lr=learning_rate_values[0], **adam_params)
+        optimizer = torch.optim.Adam(parameters, lr=learning_rate_values[0,0], **adam_params)
 
         n_smps = x[0].shape[0]
         cur_it = 0
@@ -456,7 +618,7 @@ class LatentRegModel(torch.nn.Module):
 
         elapsed_time_log = np.zeros(max_its)
         obj_log = np.zeros(max_its)
-        prev_learning_rate = learning_rate_values[0]
+        prev_learning_rate = learning_rate_values[0, 0]
 
         while cur_it < max_its:
             elapsed_time = time.time() - start_time  # Record elapsed time here because we measure it from the start of
@@ -467,7 +629,7 @@ class LatentRegModel(torch.nn.Module):
             # Set the learning rate
             cur_learing_rate_ind = np.nonzero(learning_rate_its <= cur_it)[0]
             cur_learing_rate_ind = cur_learing_rate_ind[-1]
-            cur_learning_rate = learning_rate_values[cur_learing_rate_ind]
+            cur_learning_rate = learning_rate_values[cur_learing_rate_ind, 0]
             if cur_learning_rate != prev_learning_rate:
                 # We reset the whole optimizer because ADAM is an adaptive optimizer
                 optimizer = torch.optim.Adam(parameters, lr=cur_learning_rate, **adam_params)
@@ -544,20 +706,6 @@ class LatentRegModel(torch.nn.Module):
 
         return log
 
-    def vae_parameters(self) -> list:
-        """ Returns all parameters of the model except for p and u.
-
-        The purpose of this fuction is to return all parameters that would normally be fit when we include prior
-        distributions over p and u (so p and u would not be fit directly).
-
-        Returns:
-            l: The list of paramters to fit.
-        """
-
-        all_named_params = list(self.named_parameters())
-        match_inds = [re.fullmatch('^[p,u][0-9]+', p[0]) is not None for p in all_named_params]
-        return [all_named_params[i] for i in range(len(all_named_params)) if match_inds[i] is False]
-
 
 class SharedMLatentRegModel(LatentRegModel):
     """ A base class for latent regression models with m-modules that are at least partially shared between instances.
@@ -575,8 +723,12 @@ class SharedMLatentRegModel(LatentRegModel):
 
     def __init__(self, d_in: Sequence, d_out: Sequence, d_proj: Sequence, d_trans: Sequence,
                  specific_m: torch.nn.Module, shared_m: torch.nn.Module, s: Sequence[torch.nn.Module],
-                 direct_pairs: Sequence[tuple] = None, w_gain: float = 1, noise_range: Sequence[float] = [.1, .2],
-                 assign_p_u: bool = True):
+                 use_scales: bool = False, assign_scales: Union[bool, Sequence[bool]] = True, use_offsets: bool = False,
+                 assign_offsets: Union[bool, Sequence[bool]] = True, direct_pairs: Sequence[tuple] = None,
+                 assign_direct_pair_mappings: Union[bool, Sequence[bool]] = True,
+                 assign_p_modes: Union[bool, Sequence[bool]] = True, assign_u_modes: Union[bool, Sequence[bool]] = True,
+                 assign_psi: Union[bool, Sequence[bool]] = True, w_gain: float = 1, sc_std: float = .01,
+                 dm_std: float = .1, noise_range: Sequence[float] = [.1, .2]):
 
         if (specific_m is not None) and (shared_m is not None):
             m = torch.nn.Sequential(specific_m, shared_m)
@@ -585,8 +737,11 @@ class SharedMLatentRegModel(LatentRegModel):
         else:
             m = specific_m
 
-        super().__init__(d_in=d_in, d_out=d_out, d_proj=d_proj, d_trans=d_trans, m=m, s=s, direct_pairs=direct_pairs,
-                         w_gain=w_gain, noise_range=noise_range, assign_p_u=assign_p_u)
+        super().__init__(d_in=d_in, d_out=d_out, d_proj=d_proj, d_trans=d_trans, m=m, s=s, use_scales=use_scales,
+                         assign_scales=assign_scales, use_offsets=use_offsets, assign_offsets=assign_offsets,
+                         direct_pairs=direct_pairs, assign_direct_pair_mappings=assign_direct_pair_mappings,
+                         assign_p_modes=assign_p_modes, assign_u_modes=assign_u_modes, assign_psi=assign_psi,
+                         w_gain=w_gain, sc_std=sc_std, dm_std=dm_std, noise_range=noise_range)
 
         self.specific_m = specific_m
         self.shared_m = shared_m
@@ -637,3 +792,28 @@ class SharedMLatentRegModel(LatentRegModel):
 
         return (p for p in return_params)
 
+    def p_project(self, x: List[torch.Tensor],
+                  p: Union[List[Union[torch.Tensor, None]], None] = None,
+                  apply_specific_m: bool = True) -> List[torch.Tensor]:
+        """ Projects input data onto p-modes.
+
+        Args:
+
+            p: List of p modes to use.  p[g] are the p modes to use for group g.  If p[g] is None,
+            then the internal p modes of the subject model will be used.  If p is None, then all
+            the internal p modes of the subject will be used for all groups.
+
+            apply_specific_m: True if subject specific portion of m-module should be applied after projecting
+            data
+
+        Returns:
+            projs: projs[g] are the projections for input group g.
+        """
+
+        projs = super().p_project(x=x, p=p)
+
+        # Apply subject specific m if we are suppose to
+        if apply_specific_m:
+            projs = self.specific_m(projs)
+
+        return projs

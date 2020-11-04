@@ -309,12 +309,12 @@ class BasicExp(torch.nn.Module):
 
 
 class Exp(torch.nn.ModuleList):
-    """ Applies a  transformation to the data y = o + exp(g*x + s) """
+    """ Applies a transformation to the data y = o + exp(g*x + s) """
 
     def __init__(self, d: int, o_mn: float = 0.0, o_std: float = 0.1,
                                g_mn: float = 0.0, g_std: float = 0.1,
                                s_mn: float = 0.0, s_std: float = 0.1,):
-        """ Creates a Relu object.
+        """ Creates a Exp object.
 
         Args:
             d: The dimensionality of the input and output

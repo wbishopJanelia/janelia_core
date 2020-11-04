@@ -4,8 +4,7 @@
     bishopw@hhmi.org
 """
 
-from typing import Sequence
-from typing import Union
+from typing import List, Sequence, Tuple, Union
 import re
 
 import numpy as np
@@ -46,6 +45,47 @@ def combine_slices(slices: Sequence[slice]) -> Sequence[slice]:
     shifted_c_slices = find_binary_runs(bin_array)
     c_slices = [slice(s.start+min_start, s.stop+min_start, 1) for s in shifted_c_slices]
     return c_slices
+
+
+def copy_and_delay(sig: np.ndarray, delay_inds: List[int] = None):
+    """ Forms delayed copies of data.
+
+    Delays can be positive or negative.
+
+    Args:
+        sig: The data to delay of shape [n_pts, n_vars]
+
+        delay_inds: The amount to delay signals by.  Each entry is an amount to delay by.   If None,
+        a value of [0, 1] will be used.
+
+    Returns:
+        delayed_sig: The copied and delayed data.  The first n_vars rows are the copy for delay[0], the
+        second n_vars rows correspond to delay[1] and so on...
+
+    """
+    if delay_inds is None:
+        delay_inds = [0, 1]
+
+    n_pts, n_vars = sig.shape
+    n_copies = len(delay_inds)
+
+    delayed_sig = np.zeros([n_pts, n_vars*n_copies])
+    for d_i, delay_ind in enumerate(delay_inds):
+        var_slice = slice(d_i*n_vars, (d_i+1)*n_vars)
+        if delay_ind == 0:
+            source_slice = slice(None)
+            tgt_slice = slice(None)
+        elif delay_ind > 0:
+            source_slice = slice(0, -1*delay_ind)
+            tgt_slice = slice(delay_ind, None)
+        else:
+            source_slice = slice(-1*delay_ind, None)
+            tgt_slice = slice(0, delay_ind)
+
+        delayed_sig[tgt_slice, var_slice] = sig[source_slice, :]
+
+    return delayed_sig
+
 
 
 def divide_into_nearly_equal_parts(n, k) -> np.ndarray:
@@ -321,7 +361,7 @@ def is_standard_slice(s: Union[slice, Sequence[slice]]) -> bool:
         return is_standard
 
 
-def list_grid_pts(grid_limits: np.ndarray, n_pts_per_dim: Sequence) -> np.ndarray:
+def list_grid_pts(grid_limits: np.ndarray, n_pts_per_dim: Sequence) -> Tuple[np.ndarray, Sequence[np.ndarray]]:
     """
     Generates a list of points filling a multi-dimensional grid.
 
@@ -343,6 +383,8 @@ def list_grid_pts(grid_limits: np.ndarray, n_pts_per_dim: Sequence) -> np.ndarra
     Returns:
         The list of returned points of shape n_pts*N
 
+        dim_pts: The points along each dimension sampled. dim_pts[i] are the sample points for dimension i.
+
     Raises:
         ValueError: If n_pts_per_dim is less than 1 for any dimension.
 
@@ -356,7 +398,7 @@ def list_grid_pts(grid_limits: np.ndarray, n_pts_per_dim: Sequence) -> np.ndarra
                for d in range(n_dims)]
     m_pts = np.meshgrid(*dim_pts, indexing='ij')
     m_pts = [np.reshape(vls, vls.size) for vls in m_pts]
-    return np.stack(m_pts).transpose()
+    return np.stack(m_pts).transpose(), dim_pts
 
 
 def l_th(a: np.ndarray, t: np.ndarray) -> np.ndarray:

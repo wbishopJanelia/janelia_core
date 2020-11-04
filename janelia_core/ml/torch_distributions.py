@@ -21,7 +21,7 @@ from janelia_core.ml.extra_torch_modules import SumOfTiledHyperCubeBasisFcns
 from janelia_core.ml.extra_torch_modules import Tanh
 
 
-class CondVAEDistriubtion(torch.nn.Module):
+class CondVAEDistribution(torch.nn.Module):
     """ CondVAEDistribution is an abstract base class for distributions used by VAEs."""
 
     def __init__(self):
@@ -109,7 +109,7 @@ class CondVAEDistriubtion(torch.nn.Module):
         """
         raise NotImplementedError
 
-    def kl(self, d_2, x: torch.tensor, smp: Sequence = None, return_device: torch.device = None):
+    def kl(self, d_2, x: torch.tensor, smp: object = None, return_device: torch.device = None):
         """ Computes the KL divergence between this object and another of the same type conditioned on input.
 
         Specifically computes:
@@ -129,7 +129,7 @@ class CondVAEDistriubtion(torch.nn.Module):
 
             x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
 
-            smp: An set samples of shape n_smps*d_y. smp[i,:] should be drawn from p(y_i|x[i,:]). This is an optional
+            smp: An set samples in compact form. Sample i should be drawn from p(y_i|x[i,:]). This is an optional
             input that is provided because sometimes it may not be possible to compute the KL divergence
             between two distributions analytically.  In these cases, an object may still implement the kl method
             by computing an empirical estimate of the kl divergence as log p_1(y_i'|x_i) - log p_2(y_i'| x_i),
@@ -140,7 +140,8 @@ class CondVAEDistriubtion(torch.nn.Module):
             be the device the first parameter of this object is on.
 
         Returns:
-            kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th sample.
+            kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioning
+            input.
 
         """
 
@@ -186,7 +187,7 @@ class CondVAEDistriubtion(torch.nn.Module):
         raise NotImplementedError
 
 
-class CondBernoulliDistribution(CondVAEDistriubtion):
+class CondBernoulliDistribution(CondVAEDistribution):
     """ A module for working with conditional Bernoulli distributions."""
 
     def __init__(self, log_prob_fcn: torch.nn.Module):
@@ -271,7 +272,7 @@ class CondBernoulliDistribution(CondVAEDistriubtion):
         return list(self.parameters())
 
 
-class CondGaussianDistribution(CondVAEDistriubtion):
+class CondGaussianDistribution(CondVAEDistribution):
     """ Represents a multivariate distribution over a set of conditionally independent Gaussian random variables.
     """
 
@@ -354,7 +355,7 @@ class CondGaussianDistribution(CondVAEDistriubtion):
 
         return mn + z*std
 
-    def kl(self, d_2, x: torch.tensor, smp: Sequence = None, return_device: torch.device = None):
+    def kl(self, d_2, x: torch.tensor, smp: torch.tensor = None, return_device: torch.device = None):
         """ Computes the KL divergence between the conditional distribution represented by this object and another.
 
         KL divergence is computed based on the closed form formula for KL divergence between two Gaussians.
@@ -374,7 +375,8 @@ class CondGaussianDistribution(CondVAEDistriubtion):
             be the device the first parameter of this object is on.
 
         Returns:
-            kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th sample.
+            kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioing
+            input.
         """
 
         self_device = next(self.parameters()).device
@@ -433,10 +435,10 @@ class CondGaussianDistribution(CondVAEDistriubtion):
         return list()
 
 
-class CondSpikeSlabDistribution(CondVAEDistriubtion):
+class CondSpikeSlabDistribution(CondVAEDistribution):
     """ Represents a condition spike and slab distriubtion. """
 
-    def __init__(self, d: int, spike_d: CondVAEDistriubtion, slab_d: CondVAEDistriubtion):
+    def __init__(self, d: int, spike_d: CondVAEDistribution, slab_d: CondVAEDistribution):
         """ Creates a CondSpikeSlabDistribution object.
 
         Args:
@@ -582,7 +584,7 @@ class CondSpikeSlabDistribution(CondVAEDistriubtion):
         return self.spike_d.s_params()
 
 
-class CondMatrixProductDistribution(CondVAEDistriubtion):
+class CondMatrixProductDistribution(CondVAEDistribution):
     """ Represents conditional distributions over matrices.
 
     Consider a matrix, W, with N rows and M columns.  Given a tensor X with N rows and P columns of conditioning data,
@@ -602,7 +604,7 @@ class CondMatrixProductDistribution(CondVAEDistriubtion):
 
     """
 
-    def __init__(self, dists: Sequence[CondVAEDistriubtion]):
+    def __init__(self, dists: Sequence[CondVAEDistribution]):
         """ Creates a new CondMatrixProductDistribution object.
 
         Args:
@@ -1024,7 +1026,7 @@ class DistributionPenalizer(torch.nn.Module):
         """
         raise(NotImplementedError)
 
-    def penalize(self, d: CondVAEDistriubtion) -> torch.Tensor:
+    def penalize(self, d: CondVAEDistribution) -> torch.Tensor:
         """ Calculates a penalty over a distribution.
 
         Args:
@@ -1150,7 +1152,7 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
         else:
             return ['fast']
 
-    def penalize(self, d: CondVAEDistriubtion) -> torch.Tensor:
+    def penalize(self, d: CondVAEDistribution) -> torch.Tensor:
         """ Calculates the penalty for a distribution. """
 
         # Move the penalizer to the same device as the distribution

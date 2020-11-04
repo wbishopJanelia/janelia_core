@@ -6,13 +6,19 @@ import pathlib
 from typing import Sequence, Union, Tuple
 
 #import imageio
+import importlib
 import matplotlib.animation
 import matplotlib.colors
 import matplotlib.cm
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import matplotlib.transforms
-import moviepy.editor as editor
+
+if importlib.util.find_spec('moveipy'):
+    import moviepy.editor as editor
+else:
+    print('Unable to import moviepy.  Minor functionality will not be available.')
+
 import numpy as np
 
 

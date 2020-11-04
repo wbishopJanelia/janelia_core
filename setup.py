@@ -20,7 +20,6 @@ setup(
 	"jupyter",
 	"matplotlib",
     "morphsnakes",
-    "moviepy",
     "numpy",
 	"pyqtgraph",
 	"scikit-image",
