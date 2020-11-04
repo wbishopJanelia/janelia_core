@@ -351,6 +351,26 @@ class LatentRegModel(torch.nn.Module):
 
         return y
 
+    def p_project(self, x: List[torch.Tensor],
+                  p: Union[List[Union[torch.Tensor, None]], None] = None) -> List[torch.Tensor]:
+        """ Projects input data onto p-modes.
+
+        Args:
+
+            p: List of p modes to use.  p[g] are the p modes to use for group g.  If p[g] is None,
+            then the internal p modes of the subject model will be used.  If p is None, then all
+            the internal p modes of the subject will be used for all groups.
+
+        Returns:
+            projs: projs[g] are the projections for input group g.
+        """
+
+        # Pull p modes we need to.
+        p = [p[g] if p[g] is not None else self.p[g] for g in range(self.n_input_groups)]
+
+        # Compute projections
+        return [torch.matmul(x_g, p_g) for x_g, p_g in zip(x, p)]
+
     def recursive_generate(self, x: Sequence, r_map: list = None) -> Sequence:
         """ Recursively generates output for a given number of time steps.
 
@@ -772,3 +792,28 @@ class SharedMLatentRegModel(LatentRegModel):
 
         return (p for p in return_params)
 
+    def p_project(self, x: List[torch.Tensor],
+                  p: Union[List[Union[torch.Tensor, None]], None] = None,
+                  apply_specific_m: bool = True) -> List[torch.Tensor]:
+        """ Projects input data onto p-modes.
+
+        Args:
+
+            p: List of p modes to use.  p[g] are the p modes to use for group g.  If p[g] is None,
+            then the internal p modes of the subject model will be used.  If p is None, then all
+            the internal p modes of the subject will be used for all groups.
+
+            apply_specific_m: True if subject specific portion of m-module should be applied after projecting
+            data
+
+        Returns:
+            projs: projs[g] are the projections for input group g.
+        """
+
+        projs = super().p_project(x=x, p=p)
+
+        # Apply subject specific m if we are suppose to
+        if apply_specific_m:
+            projs = self.specific_m(projs)
+
+        return projs

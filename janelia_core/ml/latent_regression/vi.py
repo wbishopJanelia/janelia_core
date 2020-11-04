@@ -102,9 +102,9 @@ class PriorCollection():
     This object offers convenience functions for getting all the parameters for the priors as well as moving the
     distributions to different devices.
     """
-    def __init__(self, p_dists: Sequence[Union[CondVAEDistribution, None]],
-                 u_dists: Sequence[Union[CondVAEDistribution, None]],
-                 psi_dists: Sequence[Union[CondVAEDistribution, None]],
+    def __init__(self, p_dists: Union[Sequence[Union[CondVAEDistribution, None]], None],
+                 u_dists: Union[Sequence[Union[CondVAEDistribution, None]], None],
+                 psi_dists: Union[Sequence[Union[CondVAEDistribution, None]], None],
                  scale_dists: Union[Sequence[Union[CondVAEDistribution, None]], None] = None,
                  offset_dists: Union[Sequence[Union[CondVAEDistribution, None]], None] = None,
                  direct_mapping_dists: Union[Sequence[Union[CondVAEDistribution, None]], None] = None):
@@ -144,9 +144,20 @@ class PriorCollection():
 
     def get_used_devices(self):
         """ Returns all devices that priors are on. """
-        p_dist_devices = [next(d.parameters())[0].device for d in self.p_dists if d is not None]
-        u_dist_devices = [next(d.parameters())[0].device for d in self.u_dists if d is not None]
-        psi_dist_devices = [next(d.parameters())[0].device for d in self.psi_dists if d is not None]
+        if self.p_dists is not None:
+            p_dist_devices = [next(d.parameters())[0].device for d in self.p_dists if d is not None]
+        else:
+            p_dist_devices = []
+
+        if self.u_dists is not None:
+            u_dist_devices = [next(d.parameters())[0].device for d in self.u_dists if d is not None]
+        else:
+            u_dist_devices = []
+
+        if self.psi_dists is not None:
+            psi_dist_devices = [next(d.parameters())[0].device for d in self.psi_dists if d is not None]
+        else:
+            psi_dist_devices = []
 
         if self.scale_dists is not None:
             scale_dist_devices = [next(d.parameters())[0].device for d in self.scale_dists if d is not None]
@@ -170,9 +181,19 @@ class PriorCollection():
     def r_params(self) -> List[torch.nn.parameter.Parameter]:
         """ Gets parameters of all modules for which gradients can be estimated with the reparameterization trick. """
 
-        p_dist_params = itertools.chain(*[d.r_params() for d in self.p_dists if d is not None])
-        u_dist_params = itertools.chain(*[d.r_params() for d in self.u_dists if d is not None])
-        psi_dist_params = itertools.chain(*[d.r_params() for d in self.psi_dists if d is not None])
+        if self.p_dists is not None:
+            p_dist_params = itertools.chain(*[d.r_params() for d in self.p_dists if d is not None])
+        else:
+            p_dist_params = []
+        if self.u_dists is not None:
+            u_dist_params = itertools.chain(*[d.r_params() for d in self.u_dists if d is not None])
+        else:
+            u_dist_params = []
+
+        if self.psi_dists is not None:
+            psi_dist_params = itertools.chain(*[d.r_params() for d in self.psi_dists if d is not None])
+        else:
+            psi_dist_params = []
 
         if self.scale_dists is not None:
             scale_dist_params = itertools.chain(*[d.r_params() for d in self.scale_dists if d is not None])
@@ -196,9 +217,21 @@ class PriorCollection():
     def s_params(self) -> List[torch.nn.parameter.Parameter]:
         """ Gets parameters of all modules for which gradients can be estimated with the score method. """
 
-        p_dist_params = itertools.chain(*[d.s_params() for d in self.p_dists if d is not None])
-        u_dist_params = itertools.chain(*[d.s_params() for d in self.u_dists if d is not None])
-        psi_dist_params = itertools.chain(*[d.s_params() for d in self.psi_dists if d is not None])
+        if self.p_dists is not None:
+            p_dist_params = itertools.chain(*[d.s_params() for d in self.p_dists if d is not None])
+
+        else:
+            p_dist_params = []
+
+        if self.u_dists is not None:
+            u_dist_params = itertools.chain(*[d.s_params() for d in self.u_dists if d is not None])
+        else:
+            u_dist_params = []
+
+        if self.psi_dists is not None:
+            psi_dist_params = itertools.chain(*[d.s_params() for d in self.psi_dists if d is not None])
+        else:
+            psi_dist_params = []
 
         if self.scale_dists is not None:
             scale_dist_params = itertools.chain(*[d.s_params() for d in self.scale_dists if d is not None])
@@ -223,22 +256,17 @@ class PriorCollection():
         """ Moves all distributions in the collection to a specified device. """
 
         def move_if_not_none(dists):
-            for d in dists:
-                if d is not None:
-                    d.to(device)
+            if dists is not None:
+                for d in dists:
+                    if d is not None:
+                        d.to(device)
 
         move_if_not_none(self.p_dists)
         move_if_not_none(self.u_dists)
         move_if_not_none(self.psi_dists)
-
-        if self.scale_dists is not None:
-            move_if_not_none(self.scale_dists)
-
-        if self.offset_dists is not None:
-            move_if_not_none(self.offset_dists)
-
-        if self.direct_mapping_dists is not None:
-            move_if_not_none(self.direct_mapping_dists)
+        move_if_not_none(self.scale_dists)
+        move_if_not_none(self.offset_dists)
+        move_if_not_none(self.direct_mapping_dists)
 
 # TODO: Remove if we confirm we no longer need
 #def compute_prior_penalty(mn: torch.Tensor, positions: torch.Tensor):
@@ -1176,6 +1204,8 @@ class MultiSubjectVIFitter():
 
         self.prior_collection.to(device)
 
+        self.input_modules.to(device)
+
         if self.penalizers is not None:
             for penalizer in self.penalizers:
                 penalizer.to(device)
@@ -1377,7 +1407,9 @@ class MultiSubjectVIFitter():
         return smps, std_smps
 
 
-def eval_fits(s_collections: Sequence[SubjectVICollection], data: TimeSeriesBatch, batch_size: int = 100,
+def eval_fits(s_collections: Sequence[SubjectVICollection],
+              input_modules: Sequence[torch.nn.ModuleList],
+              data: TimeSeriesBatch, batch_size: int = 100,
              metric: Callable = None, return_preds: bool = True) -> List:
     """ Measures model fits on a given set of data.
 
@@ -1387,6 +1419,9 @@ def eval_fits(s_collections: Sequence[SubjectVICollection], data: TimeSeriesBatc
 
     Args:
         s_collections: A sequence of VI collections we want to evaluate.
+
+        input_modules: A sequence of input modules, corresponding to the input modules that should be used
+        to preprocess the input for each collection in s_collections.
 
         data: The data to use for evaluation
 
@@ -1409,12 +1444,13 @@ def eval_fits(s_collections: Sequence[SubjectVICollection], data: TimeSeriesBatc
     n_mdls = len(s_collections)
     preds_with_truth = [None]*n_mdls
     metrics = [None]*n_mdls
-    for c_i, s_coll_i in enumerate(s_collections):
+    for c_i, (s_coll_i, input_modules_i) in enumerate(zip(s_collections, input_modules)):
         if c_i % 10 == 0:
             print('Generating predictions for fit: ' + str(c_i))
 
         # Make prediction
-        pred_i = predict_with_truth(s_collection=s_coll_i, data=data, batch_size=batch_size, time_grp=None)
+        pred_i = predict_with_truth(s_collection=s_coll_i, input_modules=input_modules_i,
+                                    data=data, batch_size=batch_size, time_grp=None)
 
         # Evaluate fits
         if metric is None:
@@ -1434,7 +1470,8 @@ def eval_fits(s_collections: Sequence[SubjectVICollection], data: TimeSeriesBatc
         return metrics
 
 
-def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size: int = 100) -> List[np.ndarray]:
+def predict(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleList,
+            data: TimeSeriesBatch, batch_size: int = 100) -> List[np.ndarray]:
     """ Predicts output given input from a model with posterior distributions over parameters.
 
     If posterior distributions for a paremeter are present, predictions are based on the posterior mean.  If
@@ -1445,6 +1482,8 @@ def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size
 
     Args:
         s_collection: The collection for the subject.   Any data in the collection will be ignored.
+
+        input_modules: Input modules for preprocessing data.
 
         data: The data to predict with.
 
@@ -1524,6 +1563,10 @@ def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size
 
         # Form x
         batch_x = [batch_data.data[i_g][batch_data.i_x] for i_g in s_collection.input_grps]
+
+        # Apply input modules
+        batch_x = [x_g if i_m is None else i_m(x_g) for i_m, x_g in zip(input_modules, batch_x)]
+
         with torch.no_grad():
             batch_y = s_collection.s_mdl.cond_forward(x=batch_x, p=p, u=u, scales=scales, offsets=offsets,
                                                       direct_mappings=direct_mappings)
@@ -1541,7 +1584,8 @@ def predict(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size
     return y_out
 
 
-def predict_with_truth(s_collection: SubjectVICollection, data: TimeSeriesBatch, batch_size: int = 100,
+def predict_with_truth(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleList,
+                       data: TimeSeriesBatch, batch_size: int = 100,
                        time_grp: int = None):
     """ Predicts output for a model, using posterior over modes, and including true data in output for reference.
 
@@ -1551,6 +1595,8 @@ def predict_with_truth(s_collection: SubjectVICollection, data: TimeSeriesBatch,
 
     Args:
         s_collection: The collection for the subject.   Any data in the collection will be ignored.
+
+        input_modules: Input modules for preprocessing input.
 
         data: The data to predict with.
 
@@ -1571,7 +1617,8 @@ def predict_with_truth(s_collection: SubjectVICollection, data: TimeSeriesBatch,
 
     output_grps = s_collection.output_grps
 
-    pred = predict(s_collection=s_collection, data=data, batch_size=batch_size)
+    pred = predict(s_collection=s_collection, input_modules=input_modules,
+                   data=data, batch_size=batch_size)
     truth = [data.data[h][data.i_y].cpu().numpy() for h in output_grps]
 
     if time_grp is not None:
