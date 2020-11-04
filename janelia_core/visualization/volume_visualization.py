@@ -1,10 +1,11 @@
 """ Utilities for viewing volumes.  """
 
 import copy
+import importlib
 import pathlib
 from typing import Sequence, Union, Tuple
 
-import imageio
+#import imageio
 import matplotlib.animation
 import matplotlib.colors
 import matplotlib.cm
@@ -13,6 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.transforms
 import moviepy.editor as editor
 import numpy as np
+
 
 from janelia_core.dataprocessing.dataset import ROI
 from janelia_core.visualization.custom_color_maps import MultiParamCMap
@@ -291,7 +293,8 @@ def signed_max_proj(vol: np.ndarray, dim: int):
 
 
 def visualize_rgb_max_project(vol: np.ndarray, dim_m: np.ndarray = None, cmap_im: np.ndarray = None,
-                              cmap_extent: Sequence[float] = None, cmap_xlabel: str = None, cmap_ylabel: str = None,
+                              overlays: Sequence[np.ndarray] = None, cmap_extent: Sequence[float] = None,
+                              cmap_xlabel: str = None, cmap_ylabel: str = None,
                               title: str = None, f: matplotlib.figure.Figure = None, buffer=.6,
                               facecolor: Sequence[float] = (0, 0, 0), textcolor: Sequence[float] = (1, 1, 1)):
     """ Generates a figure of max-projections of rgb volumes.
@@ -315,6 +318,7 @@ def visualize_rgb_max_project(vol: np.ndarray, dim_m: np.ndarray = None, cmap_im
   z_dim |             |    |       |
       | |             |     -------
         ---------------
+            y_dim
 
     Args:
         vol: The volume to generate the max projection of. Should be 4 dimensional, with the last dimension containing
@@ -324,6 +328,9 @@ def visualize_rgb_max_project(vol: np.ndarray, dim_m: np.ndarray = None, cmap_im
         a value of [1, 1, 1] will be used.
 
         cmap_im: An optional image of an colormap to include
+
+        overlays: If provided, overlays[0] is an image to overlay the z-projection, and overlays[1] and [2] and images
+        to overlay the x and y projections.  These overlays should be of the same dimensions as the projections.
 
         cmap_extent: Values to associate the the image of the colormap in the form of [left, right, bottom, top].
         Note that colormap will be plotted so colors associated with the smallest parameter values appear in the
@@ -355,6 +362,9 @@ def visualize_rgb_max_project(vol: np.ndarray, dim_m: np.ndarray = None, cmap_im
 
     # Get volume dimensions
     d_x, d_y, d_z, _ = vol.shape
+    print('d_x: ' + str(d_x))
+    print('d_y: ' + str(d_y))
+    print('d_z: ' + str(d_z))
 
     # Apply aspect ratio correction
     d_x = d_x*dim_m[0]
@@ -439,8 +449,13 @@ def visualize_rgb_max_project(vol: np.ndarray, dim_m: np.ndarray = None, cmap_im
 
     # Now we show the projections
     z_proj_axes.imshow(z_proj, aspect=xy_aspect_ratio)
-    x_proj_axes.imshow(np.moveaxis(x_proj, 0, 1), aspect=1/xz_aspect_ratio)
-    y_proj_axes.imshow(y_proj, aspect=yz_aspect_ratio)
+    x_proj_axes.imshow(np.flipud(np.moveaxis(x_proj, 0, 1)), aspect=1/yz_aspect_ratio)
+    y_proj_axes.imshow(y_proj, aspect=xz_aspect_ratio)
+
+    # Now we add the overlays
+    z_proj_axes.imshow(overlays[0], aspect=xy_aspect_ratio)
+    x_proj_axes.imshow(overlays[1], aspect=1/yz_aspect_ratio)
+    y_proj_axes.imshow(overlays[2], aspect=xz_aspect_ratio)
 
     # Now we add the colormap
     if cmap_im is not None:
