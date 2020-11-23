@@ -3,7 +3,7 @@ driving multiple groups of output.
 
 """
 
-from typing import List, Sequence, Union
+from typing import List, Sequence, Tuple, Union
 
 import numpy as np
 import torch.nn
@@ -263,15 +263,13 @@ class GeneralInputOutputScenario():
                                      w_init_mn=scale_mn, w_init_std=scale_std) for d_h in self.output_dims[s_i, :]]
 
 
-def calc_projs_given_post_modes(s_vi_collection: SubjectVICollection, data: Sequence[TimeSeriesBatch],
-                                input_modules: torch.nn.ModuleList,
-                                apply_subj_specific_m: bool = False) -> Sequence:
+def calc_projs_given_post_modes(s_vi_collection: SubjectVICollection, input_modules: torch.nn.ModuleList,
+                                data: Sequence[TimeSeriesBatch],
+                                apply_subj_specific_m: bool = False) -> Tuple[Sequence, Sequence]:
     """ Calculates values of projected data, given posterior distributions, over a model's modes.
 
     This function will project data using the means of posterior distributions over modes and will calculate
     projected values immediately after they are projected to the low-d space.
-
-    TODO: Also return projections after they have been transformed through the m map
 
     Args:
 
@@ -283,6 +281,12 @@ def calc_projs_given_post_modes(s_vi_collection: SubjectVICollection, data: Sequ
 
         apply_subj_specific_m: True if subject-specific m components of the m-module should be applied after the
         projections
+
+    Returns:
+
+        p_projs: The projections onto the p-modes (potentially after the subject-specific m module has been applied)
+
+        u_projs: The projections after having been transformed through the m-module.
 
     """
 
@@ -300,8 +304,10 @@ def calc_projs_given_post_modes(s_vi_collection: SubjectVICollection, data: Sequ
                      for g, d in enumerate(s_vi_collection.p_dists)]
 
     if apply_subj_specific_m:
-        projs = s_vi_collection.s_mdl.p_project(data, q_p_modes, apply_specific_m=apply_subj_specific_m)
+        p_projs = s_vi_collection.s_mdl.p_project(data, q_p_modes, apply_specific_m=apply_subj_specific_m)
     else:
-        projs = s_vi_collection.s_mdl.p_project(data, q_p_modes)
+        p_projs = s_vi_collection.s_mdl.p_project(data, q_p_modes)
 
-    return projs
+    u_projs = s_vi_collection.s_mdl.m(s_vi_collection.s_mdl.p_project(data, q_p_modes))
+
+    return p_projs, u_projs

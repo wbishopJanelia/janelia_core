@@ -74,12 +74,20 @@ def concatenate_check_points(check_points: Sequence[dict], params: Sequence[dict
         conc_check_points: The concatenated list of check points
 
         cp_epochs: The total accumulated epochs that were run to get to each check point.
+
+        orig_cp_fits: orig_cp_fits[0,i] is the index of the fit for the i^th concatenated checkpoint and
+                      orig_cp_fits[1,i] is the index of this check point in the logs for that fit.
     """
 
     n_fits = len(check_points)
 
     n_fit_epochs = [copy.deepcopy(d['n_epochs']) for d in params]
     cp_epochs = [copy.deepcopy(d['cp_epochs']) for d in params]
+
+    # Record where each check point came from
+    cp_fits = np.concatenate([(c_i * np.ones(len(cp_es))).astype(np.int) for c_i, cp_es in enumerate(cp_epochs)])
+    cp_fit_inds = np.concatenate([np.arange(len(cp_es), dtype=np.int) for cp_es in cp_epochs])
+    orig_cp_fits = np.stack([cp_fits, cp_fit_inds])
 
     # Make sure cp_epochs are arrays
     cp_epochs = [np.asarray(vls) for vls in cp_epochs]
@@ -93,7 +101,7 @@ def concatenate_check_points(check_points: Sequence[dict], params: Sequence[dict
 
     conc_check_points = list(itertools.chain(*check_points))
 
-    return [conc_check_points, cp_epochs]
+    return [conc_check_points, cp_epochs, orig_cp_fits]
 
 
 class PriorCollection():
@@ -1428,7 +1436,7 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
         batch_size: The number of samples to send to GPU at one time for evaluation; can be useful if working with
         low-memory GPUs.
 
-        metric: A function which computes fit quality given the output of predict_from_truth
+        metric: A function which computes fit quality given the output of predict_with_truth
 
         return_preds: True if predictions should be returned
 
@@ -1445,7 +1453,7 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
     preds_with_truth = [None]*n_mdls
     metrics = [None]*n_mdls
     for c_i, (s_coll_i, input_modules_i) in enumerate(zip(s_collections, input_modules)):
-        if c_i % 10 == 0:
+        if c_i % 1 == 0:
             print('Generating predictions for fit: ' + str(c_i))
 
         # Make prediction

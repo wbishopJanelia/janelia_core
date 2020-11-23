@@ -46,6 +46,34 @@ def corr(x: np.ndarray, y: np.ndarray) -> Union[float, np.ndarray]:
     return pearson_corr
 
 
+def normalized_r_squared(truth: np.ndarray, pred:np.ndarray) -> float:
+    """ Computes normalized r-squared for a collection of variables.
+
+    Normalized r-squared is defined as follows:  1 - ( \sum r_i) / ( \sum s_i), where
+
+        r_i is the squared error between predictions and truth for variable i and s_i is the squared error
+        of variable i between the mean value and truth.
+
+    Normalized squared error is equal to standard r-squared when there is only one variable.  When there
+    is more than one variable but all variables have the same variance, then normalized r-squared is equal
+    to the average of the r-squared values for each individual variable.  However, when some variables have
+    higher variance than others, normalized r-squared weights those with higher variance more than those with
+    less variance.
+
+    Args:
+        truth: True data of shape n_smps*n_vars
+
+        pred: Prdicated data of shape n_smps*n_vars
+
+
+    """
+
+    true_mns = np.mean(truth, 0)
+    true_ss = np.sum((truth - true_mns)**2, 0)
+    residual_ss = np.sum((truth - pred)**2, 0)
+
+    return 1 - sum(residual_ss)/sum(true_ss)
+
 
 def r_squared(truth: np.ndarray, pred: np.ndarray) -> np.ndarray:
     """ Computes the r-squared value for a collection of variables.
