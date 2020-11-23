@@ -14,10 +14,10 @@ import matplotlib.figure
 import matplotlib.pyplot as plt
 import matplotlib.transforms
 
-if importlib.util.find_spec('moveipy'):
-    import moviepy.editor as editor
-else:
-    print('Unable to import moviepy.  Minor functionality will not be available.')
+#if importlib.util.find_spec('moveipy'):
+import moviepy.editor as editor
+#else:
+#    print('Unable to import moviepy.  Minor functionality will not be available.')
 
 import numpy as np
 
@@ -45,6 +45,7 @@ def comb_movies(movie_paths: Sequence[pathlib.Path], save_path: pathlib.Path,
     clips = [editor.VideoFileClip(movie_path) for movie_path in movie_paths]
     final_clip = editor.clips_array([clips])
     final_clip.write_videofile(save_path)
+
 
 def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
                            title: str = None, fps: int = 10,
@@ -104,6 +105,9 @@ def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
     frame0 = z_imgs[40]
     n_z_planes = len(z_imgs)
 
+    print('n_z_planes: ' + str(n_z_planes))
+    print('plane_0_shape: ' + str(z_imgs[0].shape))
+
     # Setup the basic figure for plotting, showing the first frame
     fig = plt.figure(figsize=figsize, facecolor=facecolor)
     if ax_position is None:
@@ -138,6 +142,8 @@ def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
 
     z_im.axes.get_xaxis().set_visible(False)
     z_im.axes.get_yaxis().set_visible(False)
+
+
 
     # Generate the movie
     Writer = matplotlib.animation.writers['ffmpeg']
