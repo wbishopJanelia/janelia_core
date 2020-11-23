@@ -222,8 +222,9 @@ def visualize_two_param_map(cmap: MultiParamCMap, plot_ax: plt.Axes = None, p0_v
 
     clr_smps = cmap[p0_smps, p1_smps]
 
-    a_ratio = np.abs(p1_vls[-1] - p1_vls[0]) / np.abs(p0_vls[-1] - p0_vls[0])
-    plot_ax.imshow(clr_smps, extent=[p1_vls[0], p1_vls[-1], p0_vls[0], p0_vls[-1]], aspect=a_ratio, origin='lower')
+    if len(p1_vls) > 0 and len(p0_vls > 0):
+        a_ratio = np.abs(p1_vls[-1] - p1_vls[0]) / np.abs(p0_vls[-1] - p0_vls[0])
+        plot_ax.imshow(clr_smps, extent=[p1_vls[0], p1_vls[-1], p0_vls[0], p0_vls[-1]], aspect=a_ratio, origin='lower')
 
 
 def make_red_green_c_map(n: int = 256, inc_transp: bool = False) -> matplotlib.colors.LinearSegmentedColormap:
