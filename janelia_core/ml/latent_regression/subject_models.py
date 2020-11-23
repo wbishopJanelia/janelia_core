@@ -365,7 +365,7 @@ class LatentRegModel(torch.nn.Module):
             projs: projs[g] are the projections for input group g.
         """
 
-        # Pull p modes we need to.
+        # Pull p modes if we need to.
         p = [p[g] if p[g] is not None else self.p[g] for g in range(self.n_input_groups)]
 
         # Compute projections

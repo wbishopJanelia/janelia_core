@@ -636,7 +636,8 @@ def visualize_projs(horz_projs:  Sequence[np.ndarray], sag_projs: Sequence[np.nd
         cmap_axes.get_xaxis().set_tick_params(color=textcolor, labelcolor=textcolor)
 
 
-def gen_composite_roi_vol(rois: Sequence[ROI], weights: np.ndarray, vol_shape: Sequence[int]):
+def gen_composite_roi_vol(rois: Sequence[ROI], weights: np.ndarray, vol_shape: Sequence[int],
+                          verbose: bool = False):
 
     """ Generates a volume for visualization of a composite ROI.
 
@@ -647,6 +648,8 @@ def gen_composite_roi_vol(rois: Sequence[ROI], weights: np.ndarray, vol_shape: S
 
         vol_shape: The shape of the volume to generate.  The indices of ROIS should index into this volume.
 
+        verbose: True if updates on progress should be printed
+
     Returns:
 
         comp_roi_vol: The volume with the composite ROI in it.
@@ -656,12 +659,16 @@ def gen_composite_roi_vol(rois: Sequence[ROI], weights: np.ndarray, vol_shape: S
     w_sum = np.zeros(vol_shape)
     cnts = np.zeros(vol_shape)
 
+    n_rois = len(rois)
     for r_i, roi in enumerate(rois):
         inds = roi.list_all_voxel_inds()
         w = roi.list_all_weights()
 
         w_sum[inds] = w_sum[inds] + weights[r_i]*w
         cnts[inds] += 1
+
+        if verbose and r_i % 10000 == 0:
+            print('Completed processing ' + str(r_i) + ' of ' + str(n_rois) + ' rois.')
 
     comp_roi_vol = w_sum/cnts
     comp_roi_vol[np.where(cnts == 0)] = np.nan
