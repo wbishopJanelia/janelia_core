@@ -47,6 +47,85 @@ def comb_movies(movie_paths: Sequence[pathlib.Path], save_path: pathlib.Path,
     final_clip.write_videofile(save_path)
 
 
+def make_rgb_three_ch_z_plane_movie(z_imgs, save_path: str, fps: int = 10,
+                                    title: str = None,
+                                    cmaps: list = None,
+                                    figsize: Sequence[int] = [7, 12],
+                                    facecolor: Union[float] = (0, 0, 0),
+                                    text_color: Union[float] = (1.0, 1.0, 1.0),
+                                    bitrate=-1, one_index_z_plane: bool = False):
+
+    CLR_BAR_H = .1
+    C_MAP_H_BUFFER = .05
+    C_MAP_V_BUFFER = .05
+    C_MAP_WIDTH = .33 - 2*C_MAP_H_BUFFER
+
+    # Define a helper function
+    def update_image(z, images, im_h, title_h, title_s):
+        if one_index_z_plane:
+            z_title = z + 1
+        else:
+            z_title = z
+
+        im_h.set_data(images[z])
+        title_h.set_text(title_s + 'z = ' + str(z_title))
+        return im_h,
+
+    # Get the first frame of the video
+    frame0 = z_imgs[0]
+    n_z_planes = len(z_imgs)
+
+    # Setup the basic figure for plotting, showing the first frame
+    fig = plt.figure(figsize=figsize, facecolor=facecolor)
+    if cmaps is not None:
+        ax_position = [0, .1, 1.0, 1.0 - CLR_BAR_H]
+    else:
+        ax_position = [0, 0, 1.0, 1.0]
+
+    z_ax = fig.add_axes(ax_position)
+    z_im = z_ax.imshow(frame0)
+
+    # Setup the title
+    if title is not None:
+        title_str = title + ', '
+    else:
+        title_str = ''
+    title_h = plt.title(title_str, color=text_color)
+
+    # Show colormaps if we are suppose to
+    if cmaps is not None:
+        cmap_h = 1 - ax_position[-1] - C_MAP_V_BUFFER
+        # If cmaps is not None, we expect it to be of length 3
+        for c_i, cmap in enumerate(cmaps):
+            cur_start = c_i*.33 + C_MAP_H_BUFFER
+            cmap_ax = fig.add_axes([cur_start, C_MAP_V_BUFFER, C_MAP_WIDTH, cmap_h])
+            cmap_im = np.zeros([1, 1000, 3])
+            cmap_im[:, :, c_i] = np.linspace(0, 1, 1000)
+            cmap_ax.imshow(cmap_im, aspect='auto')
+            cmap_ax.axes.get_xaxis().set_tick_params(color=text_color, labelcolor=text_color)
+            plt.xticks([0, 1000], labels=["{:3.3f}".format(cmap['dark_vl']),"{:3.3f}".format(cmap['bright_vl'])])
+            plt.yticks([])
+            plt.xlabel(cmap['label'], color=text_color)
+
+    z_im.axes.get_xaxis().set_visible(False)
+    z_im.axes.get_yaxis().set_visible(False)
+
+    # Generate the movie
+    Writer = matplotlib.animation.writers['ffmpeg']
+    writer = Writer(fps=fps, bitrate=bitrate, codec='libx264', extra_args=['-pix_fmt', 'yuv420p',
+                                                                          '-crf', '18'])
+
+    plane_animation = matplotlib.animation.FuncAnimation(fig=fig, func=update_image, frames=n_z_planes,
+                                                         fargs=(z_imgs, z_im, title_h, title_str), interval=1,
+                                                         blit=False, repeat=False)
+
+    # Save the movie
+    plane_animation.save(save_path, writer=writer, savefig_kwargs={'facecolor':facecolor})
+
+    # Close the figure
+    plt.close(fig)
+
+
 def make_rgb_z_plane_movie(z_imgs: Sequence[np.ndarray], save_path: str,
                            title: str = None, fps: int = 10,
                            cmap: MultiParamCMap = None, cmap_param_strs: Sequence[str] = None,
