@@ -78,12 +78,12 @@ def make_rgb_three_ch_z_plane_movie(z_imgs, save_path: str, fps: int = 10,
     # Setup the basic figure for plotting, showing the first frame
     fig = plt.figure(figsize=figsize, facecolor=facecolor)
     if cmaps is not None:
-        ax_position = [0, .1, 1.0, 1.0 - CLR_BAR_H]
+        ax_position = [0, .1, 1.0, 1.0 - CLR_BAR_H - .1]
     else:
         ax_position = [0, 0, 1.0, 1.0]
 
     z_ax = fig.add_axes(ax_position)
-    z_im = z_ax.imshow(frame0)
+    z_im = z_ax.imshow(frame0, aspect=1.0)
 
     # Setup the title
     if title is not None:
@@ -94,18 +94,19 @@ def make_rgb_three_ch_z_plane_movie(z_imgs, save_path: str, fps: int = 10,
 
     # Show colormaps if we are suppose to
     if cmaps is not None:
-        cmap_h = 1 - ax_position[-1] - C_MAP_V_BUFFER
+        cmap_h = CLR_BAR_H - C_MAP_V_BUFFER
         # If cmaps is not None, we expect it to be of length 3
         for c_i, cmap in enumerate(cmaps):
-            cur_start = c_i*.33 + C_MAP_H_BUFFER
-            cmap_ax = fig.add_axes([cur_start, C_MAP_V_BUFFER, C_MAP_WIDTH, cmap_h])
-            cmap_im = np.zeros([1, 1000, 3])
-            cmap_im[:, :, c_i] = np.linspace(0, 1, 1000)
-            cmap_ax.imshow(cmap_im, aspect='auto')
-            cmap_ax.axes.get_xaxis().set_tick_params(color=text_color, labelcolor=text_color)
-            plt.xticks([0, 1000], labels=["{:3.3f}".format(cmap['dark_vl']),"{:3.3f}".format(cmap['bright_vl'])])
-            plt.yticks([])
-            plt.xlabel(cmap['label'], color=text_color)
+            if cmap is not None:
+                cur_start = c_i*.33 + C_MAP_H_BUFFER
+                cmap_ax = fig.add_axes([cur_start, C_MAP_V_BUFFER, C_MAP_WIDTH, cmap_h])
+                cmap_im = np.zeros([1, 1000, 3])
+                cmap_im[:, :, c_i] = np.linspace(0, 1, 1000)
+                cmap_ax.imshow(cmap_im, aspect='auto')
+                cmap_ax.axes.get_xaxis().set_tick_params(color=text_color, labelcolor=text_color)
+                plt.xticks([0, 1000], labels=["{:3.3f}".format(cmap['dark_vl']),"{:3.3f}".format(cmap['bright_vl'])])
+                plt.yticks([])
+                plt.xlabel(cmap['label'], color=text_color)
 
     z_im.axes.get_xaxis().set_visible(False)
     z_im.axes.get_yaxis().set_visible(False)
