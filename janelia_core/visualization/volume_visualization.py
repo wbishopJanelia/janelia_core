@@ -14,10 +14,10 @@ import matplotlib.figure
 import matplotlib.pyplot as plt
 import matplotlib.transforms
 
-#if importlib.util.find_spec('moveipy'):
-import moviepy.editor as editor
-#else:
-#    print('Unable to import moviepy.  Minor functionality will not be available.')
+if importlib.util.find_spec('moveipy'):
+    import moviepy.editor as editor
+else:
+    print('Unable to import moviepy.  Minor functionality will not be available.')
 
 import numpy as np
 

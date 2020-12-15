@@ -6,7 +6,7 @@ import numpy as np
 
 class Point:
 
-    def __init__(self, c: np.ndarray, cs_names: list = None):
+    def __init__(self, c: np.ndarray, cs_names: list = None, **kwargs):
         """ Create a new point object.
 
         Args:
@@ -16,6 +16,8 @@ class Point:
 
             cs_names: An optional list of names to associate with each coordinate system. If not none, the length of
             cs_names must equal the number of coordinate systems used to specify the position of the point.
+
+            **kwargs: Additional keyword arguments that will be added as attributes of the object.
 
         Raises:
             ValueError: If the length of cs_names does not the number of coordinate systems in c.
@@ -32,6 +34,9 @@ class Point:
 
         self.c = c
         self.cs_names = cs_names
+
+        for k in kwargs:
+            setattr(self, k, kwargs[k])
 
     @classmethod
     def from_dict(cls, d:dict):
