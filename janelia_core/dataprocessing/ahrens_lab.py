@@ -18,7 +18,7 @@ import scipy.stats as stats
 from janelia_core.math.basic_functions import find_binary_runs
 
 def down_sample_ephys_vls(ts: np.ndarray, image_acq_starts: np.ndarray, n_images: int, vls: np.ndarray,
-                          ds_type: str = 'mean') -> Tuple[np.ndarray, np.ndarray]:
+                          ds_type: str = 'mean', acq_start_type: str = 'boolean') -> Tuple[np.ndarray, np.ndarray]:
     """
     A function to take raw ephys data and down-sample it to the imaging rate of an experiment.
 
@@ -28,7 +28,8 @@ def down_sample_ephys_vls(ts: np.ndarray, image_acq_starts: np.ndarray, n_images
     Args:
         ts: Time stamps for the raw ephys data.
 
-        image_acq_starts: A binary array with a value of 1 indicating each point in time acquistion image starts
+        image_acq_starts: An array indicating the time image acquisition starts for each volume.  This can be either a
+        binary array of an array of time stamps (see acq_start_type below for more details).
 
         n_images: The number of images that were acquired.
 
@@ -46,6 +47,10 @@ def down_sample_ephys_vls(ts: np.ndarray, image_acq_starts: np.ndarray, n_images
             selected, a check will be performed to ensure values are actually constant, and if this check is failed,
             an error will be raised.
 
+        acq_start_type: Indicates the way of specifying image acquisition starts.  If 'boolean', then image_acq_starts
+        should be a binary array with a value of 1 indicating each point in time image acquisition starts.  If 'time'
+        then this should be an array with times that image acqusition starts.
+
     Returns:
 
         ds_ts: The time stamps of the down sampled values.  Time stamps correspond to the start of image acquisitions.
@@ -57,9 +62,35 @@ def down_sample_ephys_vls(ts: np.ndarray, image_acq_starts: np.ndarray, n_images
         be strictly less than the number of image acquisition starts so a period of image acquisition is well defined
         for the last requested image.
 
+        ValueError: If the first or last image acquisition times fall outside of the range of time stamps for the values.
+
         ValueError: If 'constant' down-sampling is selected, but non-constant values are detected in a sampling period.
 
+
+
     """
+
+    # If image starts are given with time stamps we handle that here
+    if acq_start_type == 'time':
+        n_image_starts = len(image_acq_starts)
+
+        if n_images > n_image_starts:
+            raise (ValueError('n_images is greater than number of image starts found in image_acq_starts'))
+
+        if image_acq_starts[0] < ts[0]:
+            raise (ValueError('First image acquisition start falls before time stamps for values.'))
+        if image_acq_starts[-1] > ts[-1]:
+            raise (ValueError('Last image acquisition start falls after time stamps for values.'))
+
+        bool_image_acq_starts = np.zeros_like(ts, dtype=np.bool)
+
+        for img_start in image_acq_starts:
+            start_ind = np.argwhere(ts - img_start >= 0)[0][0]
+            bool_image_acq_starts[start_ind] = 1
+
+        image_acq_starts = bool_image_acq_starts
+
+    # Now we process everything assuming image starts are given in a boolean array
     n_image_starts = np.sum(image_acq_starts == 1)
 
     # Get slices of ephys values we consider for each slice
