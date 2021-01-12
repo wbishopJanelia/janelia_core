@@ -723,6 +723,7 @@ class CondMatrixProductDistribution(CondVAEDistribution):
         """
 
         n_cols = len(self.dists)
+        # TODO: Bug here 
         kl = self.dists[0].kl(d_2.dists[0], x=x, smp=smp[0], return_device=return_device)
         for c_i in range(1, n_cols):
             kl += self.dists[c_i].kl(d_2.dists[c_i], x=x, smp=smp[c_i], return_device=return_device)

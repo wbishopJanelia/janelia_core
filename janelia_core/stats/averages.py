@@ -65,7 +65,7 @@ def aligned_mean(vls: Sequence, align_inds: Sequence[int]) -> Tuple[np.ndarray, 
         last_i = first_i + v_i.shape[0]
 
         n_smps[first_i:last_i] += 1
-        vls_sum[first_i:last_i,:] += v_i
+        vls_sum[first_i:last_i, :] += v_i
         vls_sq_sum[first_i:last_i] += v_i**2
 
     # ==================================================================================================================

@@ -70,7 +70,7 @@ class ParameterPenalizer(ABC, torch.nn.Module):
 
     @abstractmethod
     def get_marked_params(self, key: str) -> List[torch.nn.Parameter]:
-        """ Returns all parameters marked with the key string.
+        """ Returns all learnable parameters marked with the key string.
 
         Penalizers must associate each of their internal, learnable parameters with a unique key
         (e.g., fast_learning_rate_params).  Each parameter should be associated with only one key
