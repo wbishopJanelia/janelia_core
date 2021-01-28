@@ -1556,7 +1556,6 @@ def predict(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleLis
                 else:
                     if sample:
                         vls[d_i] = d.form_standard_sample(d.sample())
-                        print('here')
                     else:
                         vls[d_i] = d()
 
@@ -1567,14 +1566,15 @@ def predict(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleLis
 
     # Get the parameters
 
-    p = _get_post_vls(s_collection.p_dists, s_collection.props, s_collection.p_props)
-    u = _get_post_vls(s_collection.u_dists, s_collection.props, s_collection.u_props)
+    p = _get_post_vls(s_collection.p_dists, s_collection.props, s_collection.p_props, sample=sample)
+    u = _get_post_vls(s_collection.u_dists, s_collection.props, s_collection.u_props, sample=sample)
     scales = _get_post_vls(s_collection.scale_dists, s_collection.props, s_collection.scale_props,
-                             squeeze_output=True)
+                           squeeze_output=True, sample=sample)
     offsets = _get_post_vls(s_collection.offset_dists, s_collection.props, s_collection.offset_props,
-                              squeeze_output=True)
+                            squeeze_output=True, sample=sample)
     direct_mappings = _get_post_vls(s_collection.direct_mapping_dists, s_collection.props,
-                                      s_collection.direct_mapping_props, squeeze_output=True)
+                                    s_collection.direct_mapping_props, squeeze_output=True,
+                                    sample=sample)
 
     s_collection_device = next(s_collection.s_mdl.parameters()).device
 
