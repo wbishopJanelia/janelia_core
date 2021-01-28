@@ -125,7 +125,7 @@ class ClusterPenalizer(ParameterPenalizer):
     """
 
     def __init__(self, params: Sequence[torch.nn.Parameter], w: float, init_ctr: torch.Tensor,
-                 description:str = None, learnable_parameters: bool = True):
+                 description:str = '', learnable_parameters: bool = True):
         """ Creates an instance of a ClusterPenalizer.
 
         Args:
@@ -241,6 +241,124 @@ class ClusterPenalizer(ParameterPenalizer):
         return (self.description + ' state'+
                 '\n Center: ' + str(self.c.detach().cpu().numpy()) +
                 '\n Last Penalty: ' + str(self.last_p))
+
+
+class TargetLengthPenalizer(ParameterPenalizer):
+    """ Penalizes the l-2 norm of a parameter as it deviates from a target length.
+
+    The l-2 norm is calculated by summing the square of all elements a parameter, no matter what it's shape is,
+    and then taking the square root.
+
+    The penalty for a paremeter is calculated as: w*(l - tgt_l)**2, where w is a penalty weight, l is the l-2 norm
+    of the parameter and tgt_l is the target length we would like the parameter to have.
+
+    This object can hold multiple parameters and will return the sum of penalizing all of them.
+    """
+
+    def __init__(self, params: Sequence[torch.nn.Parameter], w: float, tgt_l: float, description: str = ''):
+        """ Creates a new TargetLengthPenalizer object.
+
+        Args:
+
+            params: the parameters to penalize.  Each parameter will be treated independently.
+
+            w: the weight to apply to the penalty
+
+            tgt_l: The target length for each parameter
+
+            description: A short description identifying the penalizer.
+
+        """
+
+        super().__init__(params)
+        self.w = w
+        self.tgt_l = tgt_l
+        self.last_p = np.nan
+        self.description = description
+
+    def copy_state_from(self, other):
+        """ Copies the state of another penalizer to this penalizer.
+
+        Args:
+            other: The other penalizer to copy state form.
+        """
+        self.last_p = other.last_p
+
+    def clone(self, clean:bool = True):
+        """ Returns a copy of self.
+
+        Args:
+            clean: If true, attribute values that we might not want to transfer to a new object (such as record of last
+            penalty value) will not be copied.
+
+        Returns:
+            obj: The new object
+
+        """
+
+        self_copy = copy.deepcopy(self)
+        if clean:
+            self_copy.last_p = np.nan
+
+        return self_copy
+
+    def check_point(self) -> dict:
+        """ Returns a check point dictionary for the penalizer.
+
+        Returns:
+            d: A dictionary with the following keys:
+                last_p: The value of the last penalty that was computed
+        """
+
+        return {'last_p': self.last_p}
+
+    def get_marked_params(self, key: str) -> List[torch.nn.Parameter]:
+        """ Returns marked parameters.
+
+        There are no learnable parameters for this object, so this function always returns an empty list.
+
+        Returns:
+            params: A list. This will always be empty.
+        """
+
+        return []
+
+    def list_param_keys(self)  -> List[str]:
+        """ Returns the list of keys associated with internal, learnable parameters.
+
+        Because there are no learnable parameters for this penalizer, an empty list will be returned.
+
+        """
+        return []
+
+    def penalize_and_backwards(self, call_backwards: bool = True) -> torch.Tensor:
+        """ Computes the penalty over the parameters and then calls backwards.
+
+        Args:
+            call_backwards: True if backwards should be called.
+
+        Returns:
+            penalty: The calculated penalty
+        """
+
+        penalty = 0.0
+        if self.w > 0:
+            for p in self.params:
+                print('sum_p: ' + str(torch.sum(p)))
+                self.to(p.device)
+                cur_penalty = self.w*(torch.sqrt(torch.sum(p**2)) - self.tgt_l)**2
+                if call_backwards:
+                    cur_penalty.backward()
+                penalty += cur_penalty.detach().cpu().numpy()
+
+        self.last_p = penalty
+        return penalty
+
+    def __str__(self):
+        """ Returns a string with the state of the penalizer. """
+        return (self.description + ' state' +
+                '\n Last Penalty: ' + str(self.last_p))
+
 
 
 class UnsignedClusterPenalizer(ClusterPenalizer):
