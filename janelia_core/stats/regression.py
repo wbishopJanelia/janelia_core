@@ -478,6 +478,75 @@ def grouped_linear_regression_acm_stats(beta, acm, n_grps, alpha):
     return {'alpha': alpha, 'c_ints': c_ints, 'non_zero_p': non_zero_p, 'non_zero': non_zero}
 
 
+def grouped_linear_regression_acm_linear_restriction_stats(beta: np.ndarray, acm: np.ndarray, r: np.ndarray,
+                                                           q: np.ndarray, n_grps: int):
+    """ Given an asymptotic covariance matrix from linear regression, tests significance of linear restrictions.
+
+    Given a vector of K-coefficients, beta, we desire to produce a p-value for a null hypothesis taking the form of
+    J linear restrictions, which can be written as:
+
+    r*beta = q, where r is a matrix of size J by K and q is a vector of length J.
+
+    This function was based heavily on chapter 5 of Greene et al., Econometric Analysis.  In addition, to this
+    reference a good reference on Wald tests (the Wikipedia article is not a bad place to start) may also be
+    useful.
+
+    The basic approach we take here is we assume:
+
+    1) The distribution on beta is well approximated as a normal distribution with the asymptotic covariance matrix
+    provided to this function.
+
+    2) Under this assumption, we can compute the F-statistic (see Greene), which is defined as:
+
+        F = [r*beta - q]' (r' * acm * r)^{-1} [r*beta - q]/J,
+
+        which has a distribution equal to 1/J times a Chi-squared distribution with K degrees of freedom.
+
+    3) We can in principle calculate critical values comparing F*J to critical values from a Chi-square distribution.
+    However, again following Greene, we choose to use critical values from the F-distribution, which is more
+    conservative.  Specifically, we compare F (no need now to multiply by J) to the critical values from the
+    F(J, n_grps - K) distribution.
+
+    Args:
+
+        beta: The beta vector which was estimated
+
+        acm: The estimated asymptotic covariance matrix
+
+        r: The r matrix for linear restrictions.  Each row is a restriction.
+
+        q: The q vector for linear restrictions.
+
+        n_grps: The number of groups in the original data
+
+    Returns:
+
+        p: The calculated p value.
+
+    """
+
+    # Expand beta
+    beta = np.expand_dims(beta, 1)
+
+    # Make sure r is always 2-d, even if user only gave one linear restriction.
+    if r.ndim == 1:
+        r = np.expand_dims(r, 0)
+
+    # Make sure q is always a vector
+    if q.ndim == 1:
+        q = np.expand_dims(q, 1)
+
+    K = len(beta)
+    J = r.shape[0]
+
+    diff = np.matmul(r, beta) - q
+    test_acm = np.matmul(np.matmul(r, acm), r.T)
+
+    f = (np.matmul(np.matmul(diff.T, np.linalg.inv(test_acm)), diff)/J).squeeze()
+
+    return 1 - scipy.stats.f.cdf(f, J, n_grps - K)
+
+
 def naive_regression(y: np.ndarray, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """ Performs "naive" regression to predict x from y.
 
