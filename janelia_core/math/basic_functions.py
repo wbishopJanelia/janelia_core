@@ -59,7 +59,7 @@ def copy_and_delay(sig: np.ndarray, delay_inds: List[int] = None):
         a value of [0, 1] will be used.
 
     Returns:
-        delayed_sig: The copied and delayed data.  The first n_vars rows are the copy for delay[0], the
+        delayed_sig: The copied and delayed data.  The first n_vars columns are the copy for delay[0], the
         second n_vars rows correspond to delay[1] and so on...
 
     """
@@ -202,6 +202,52 @@ def find_first_before(a: np.ndarray, ind: int) -> int:
         return None
     else:
         return inds[-1]
+
+
+def find_disjoint_intervals(ints: np.ndarray) -> np.ndarray:
+    """ Given a list of intervals, finds those which are disjoint from the rest.
+
+    Args:
+        ints: The intervals. Each row is an interval.  The first column gives the starting index
+        and the second column gives the end index + 1 (so the convention for representing intervals
+        is the same used in slices.  For example, in interval that covered indices 0, 1 & 2, would have
+        a start index of 0 and an end index of 3.)
+
+    Returns:
+        disjoint_ints: The row indices of ints which correspond to disjoint intervals
+
+    """
+
+    def _check_for_overlapping_ints(start_0:int, stop_0:int, start_1:int, stop_1:int):
+        # Make sure we are always working with the convention that start_1 >= start_0
+        if start_0 > start_1:
+            start_1 = start_0
+            stop_0 = stop_1
+
+        if start_1 < stop_0: # Use < here because of convention of start and end points (see note above)
+            return True
+        else:
+            return False
+
+    n_ints = ints.shape[0]
+    disjoint_ints = np.ones(n_ints, dtype=np.bool)
+    for check_i in range(n_ints):
+        if disjoint_ints[check_i] == True:  # No need to check this interval if we know it overlaps with something else
+
+            cur_start = ints[check_i, 0]
+            cur_stop = ints[check_i, 1]
+
+            for compare_j in range(n_ints):
+                if check_i != compare_j:
+                    compare_start = ints[compare_j, 0]
+                    compare_stop = ints[compare_j, 1]
+
+                    if _check_for_overlapping_ints(cur_start, cur_stop, compare_start, compare_stop):
+                        disjoint_ints[check_i] = False
+                        disjoint_ints[compare_j] = False
+                        break
+
+    return disjoint_ints
 
 
 def generate_hypergrid_pts(d: int = 2, n_smps_per_dim = 100):

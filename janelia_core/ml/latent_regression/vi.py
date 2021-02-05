@@ -1418,7 +1418,8 @@ class MultiSubjectVIFitter():
 def eval_fits(s_collections: Sequence[SubjectVICollection],
               input_modules: Sequence[torch.nn.ModuleList],
               data: TimeSeriesBatch, batch_size: int = 100,
-             metric: Callable = None, return_preds: bool = True) -> List:
+              metric: Callable = None, return_preds: bool = True,
+              sample: bool = False) -> List:
     """ Measures model fits on a given set of data.
 
     This function generates predictions for each model using the posterior means of modes. It then evaluates these
@@ -1440,6 +1441,9 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
 
         return_preds: True if predictions should be returned
 
+        sample: True if when forming model parameters, instead of using means of posteriors, samples from the
+        posteriors should be used instead.
+
     Returns:
         metrics: metrics[i] is the fit quality for s_collections[i].  Note that if no metric is supplied, this will
         just be a list of negative log-likelihood values, but custom metric functions can return arbitrary objects.
@@ -1458,7 +1462,8 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
 
         # Make prediction
         pred_i = predict_with_truth(s_collection=s_coll_i, input_modules=input_modules_i,
-                                    data=data, batch_size=batch_size, time_grp=None)
+                                    data=data, batch_size=batch_size, time_grp=None,
+                                    sample=sample)
 
         # Evaluate fits
         if metric is None:
@@ -1479,12 +1484,12 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
 
 
 def predict(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleList,
-            data: TimeSeriesBatch, batch_size: int = 100) -> List[np.ndarray]:
+            data: TimeSeriesBatch, batch_size: int = 100, sample: bool = False) -> List[np.ndarray]:
     """ Predicts output given input from a model with posterior distributions over parameters.
 
-    If posterior distributions for a paremeter are present, predictions are based on the posterior mean.  If
-    posterior distributions for a parameter are not present, the parameter value in the subject model
-    will be used.
+    If posterior distributions for a parameter are present, predictions are based on the posterior mean by
+    default (but see sample input for using samples instead).  If posterior distributions for a parameter are not
+    present, the parameter value in the subject model will be used.
 
     Note: All predictions will be returned on host (cpu) memory as numpy arrays.
 
@@ -1498,6 +1503,9 @@ def predict(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleLis
         batch_size: The number of samples we predict on at a time.  This is helpful if using a GPU
         with limited memory.
 
+        sample: If true, instead of using posterior means for model parameters when forming predictions,
+        the posteriors will be sampled and these samples will be used for model parameters.
+
     Returns:
         pred_mn: The predicted means given the input.
     """
@@ -1506,9 +1514,10 @@ def predict(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleLis
     n_batches = int(np.ceil(float(n_total_smps)/batch_size))
 
     # Define a helper function
-    def _get_post_means(dists: List[CondVAEDistribution], all_props: List[torch.Tensor], prop_inds: List[int],
-                        squeeze_output: bool = False):
-        """ Gets the posterior means for a list of distributions, handling cases where some distributions are None.
+    def _get_post_vls(dists: List[CondVAEDistribution], all_props: List[torch.Tensor], prop_inds: List[int],
+                        squeeze_output: bool = False, sample: bool = False):
+        """ Gets the posterior means (or samples the posteriors) for a list of distributions, handling cases where some
+        distributions are None.
 
         Args:
             dists: The distributions to get posterior means for.  Can be None, in which case this function returns None.
@@ -1520,6 +1529,8 @@ def predict(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleLis
             of the distributions, prop_inds can be None.
 
             squeeze_output: True if output should be squeezed.
+
+            sample: If true, posteriors will be sampled instead of using their means
 
         Returns:
 
@@ -1534,29 +1545,36 @@ def predict(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleLis
         if prop_inds is None:
             prop_inds = [None]*n_dists
 
-        mns = [None]*n_dists
+        vls = [None]*n_dists
         for d_i, d in enumerate(dists):
             if d is not None:
                 if prop_inds[d_i] is not None:
-                    mns[d_i] = d(all_props[prop_inds[d_i]])
+                    if sample:
+                        vls[d_i] = d.form_standard_sample(d.sample(all_props[prop_inds[d_i]]))
+                    else:
+                        vls[d_i] = d(all_props[prop_inds[d_i]])
                 else:
-                    mns[d_i] = d()
+                    if sample:
+                        vls[d_i] = d.form_standard_sample(d.sample())
+                    else:
+                        vls[d_i] = d()
 
         if squeeze_output:
-            mns = [torch.squeeze(mn) if mn is not None else None for mn in mns]
+            vls = [torch.squeeze(v) if v is not None else None for v in vls]
 
-        return mns
+        return vls
 
     # Get the parameters
 
-    p = _get_post_means(s_collection.p_dists, s_collection.props, s_collection.p_props)
-    u = _get_post_means(s_collection.u_dists, s_collection.props, s_collection.u_props)
-    scales = _get_post_means(s_collection.scale_dists, s_collection.props, s_collection.scale_props,
-                             squeeze_output=True)
-    offsets = _get_post_means(s_collection.offset_dists, s_collection.props, s_collection.offset_props,
-                              squeeze_output=True)
-    direct_mappings = _get_post_means(s_collection.direct_mapping_dists, s_collection.props,
-                                      s_collection.direct_mapping_props, squeeze_output=True)
+    p = _get_post_vls(s_collection.p_dists, s_collection.props, s_collection.p_props, sample=sample)
+    u = _get_post_vls(s_collection.u_dists, s_collection.props, s_collection.u_props, sample=sample)
+    scales = _get_post_vls(s_collection.scale_dists, s_collection.props, s_collection.scale_props,
+                           squeeze_output=True, sample=sample)
+    offsets = _get_post_vls(s_collection.offset_dists, s_collection.props, s_collection.offset_props,
+                            squeeze_output=True, sample=sample)
+    direct_mappings = _get_post_vls(s_collection.direct_mapping_dists, s_collection.props,
+                                    s_collection.direct_mapping_props, squeeze_output=True,
+                                    sample=sample)
 
     s_collection_device = next(s_collection.s_mdl.parameters()).device
 
@@ -1594,7 +1612,7 @@ def predict(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleLis
 
 def predict_with_truth(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleList,
                        data: TimeSeriesBatch, batch_size: int = 100,
-                       time_grp: int = None):
+                       time_grp: int = None, sample: bool = False):
     """ Predicts output for a model, using posterior over modes, and including true data in output for reference.
 
     This is a wrapper function around predict for convenience.
@@ -1613,6 +1631,9 @@ def predict_with_truth(s_collection: SubjectVICollection, input_modules: torch.n
 
         time_grp: The index of the group in data with time stamps.  If None, no time stamps will be returned.
 
+        sample: True if instead of using posterior means for model parameters when making predictions, samples from
+        each distribution should be used instead.
+
     Returns:
 
         predictions: A dictionary with the following keys:
@@ -1626,7 +1647,7 @@ def predict_with_truth(s_collection: SubjectVICollection, input_modules: torch.n
     output_grps = s_collection.output_grps
 
     pred = predict(s_collection=s_collection, input_modules=input_modules,
-                   data=data, batch_size=batch_size)
+                   data=data, batch_size=batch_size, sample=sample)
     truth = [data.data[h][data.i_y].cpu().numpy() for h in output_grps]
 
     if time_grp is not None:
