@@ -723,7 +723,10 @@ class CondMatrixProductDistribution(CondVAEDistribution):
         """
 
         n_cols = len(self.dists)
-        # TODO: Bug here 
+
+        if smp is None:
+            smp = [None]*len(self.dists)
+
         kl = self.dists[0].kl(d_2.dists[0], x=x, smp=smp[0], return_device=return_device)
         for c_i in range(1, n_cols):
             kl += self.dists[c_i].kl(d_2.dists[c_i], x=x, smp=smp[c_i], return_device=return_device)
@@ -737,7 +740,105 @@ class CondMatrixProductDistribution(CondVAEDistribution):
         return list()
 
 
-class MatrixGaussianProductDistribution(CondMatrixProductDistribution):
+class CondGaussianMatrixProductDistribution(CondMatrixProductDistribution):
+    """ Represents conditional Gaussian distributions over matrices.
+
+    Consider a matrix, W, with N rows and M columns.  Given a tensor X with N rows and P columns of conditioning data,
+    this object represents:
+
+            P(W|X) = \prod_i=1^N P_i(W[i,:]| X[i, :]),
+
+        where:
+
+            P_i(W[i,:] | X[i, :]) = \prod_j=1^M P_j(W[i,j] | X[i,:]),
+
+        where the P_j distributions are conditional Gaussian distributions specified by the user.
+
+    In other words, we model all entries of W as conditionally independent given X, where entries of W are modeled as
+    distributed according to a different conditional Gaussian distribution depending on what column they are in.
+
+    This objects extends CondMatrixProductDistribution, and it's main purpose is to allow KL divergences to be
+    computed not only between itself and another CondMatrixProductDistribution but also a CondGaussianDistribtion when
+    both distributions are over matrices of the same shape.
+
+    """
+
+    def __init__(self, dists: Sequence[CondGaussianDistribution]):
+
+        for d in dists:
+            if not isinstance(d, CondGaussianDistribution):
+                raise(TypeError('All distributions must be CondGaussianDistribution objects.'))
+
+        super().__init__(dists=dists)
+
+    def kl(self, d_2, x: torch.tensor, smp: torch.tensor = None, return_device: torch.device = None):
+        """ Computes the KL divergence between the conditional distribution represented by this object and another.
+
+        The second distribtion can be either another CondMatrixProductDistribution or a CondGaussianDistribution over
+        matrices of the same size this distribution is over.
+
+        KL divergence is computed based on the closed form formula for KL divergence between two Gaussians.
+
+        Note: This function will move the conditioning data (x) to the appropriate device(s)
+            so calculations can be carried out without needing to move this object or the other conditional
+            distribution between devices.
+
+        Args:
+            d_2: The other conditional distribution in the KL divergence.
+
+            x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
+
+            smp: This input is ignored, as KL divergence is based on a closed form formula.
+
+            return_device: The device the calculated kl tensor should be returned to.  If None, this will
+            be the device the first parameter of this object is on.
+
+        Returns:
+            kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioning
+            input.
+        """
+
+        if isinstance(d_2, CondGaussianMatrixProductDistribution):
+            return super().kl(d_2=d_2, x=x, smp=smp, return_device=return_device)
+        elif isinstance(d_2, CondGaussianDistribution):
+
+            self_device = next(self.parameters()).device
+            d_2_device = next(d_2.parameters()).device
+
+            # Make (possible) copies of conditioning data on each device we need it
+            x_self = x.to(self_device)
+            x_d_2 = x.to(d_2_device)
+
+            if return_device is None:
+                return_device = self_device
+
+            mn_1 = torch.cat([d.mn_f(x_self).to(return_device) for d in self.dists], dim=1)
+            std_1 = torch.cat([d.std_f(x_self).to(return_device) for d in self.dists], dim=1)
+
+            mn_2 = d_2.mn_f(x_d_2).to(return_device)
+            std_2 = d_2.std_f(x_d_2).to(return_device)
+
+            if not mn_1.shape == mn_2.shape:
+                raise(ValueError('Cannot compute KL divergence between distributions over matrices of different shapes.'))
+
+            d = mn_1.shape[1]
+
+            sigma_ratio_sum = torch.sum((std_1 / std_2) ** 2, dim=1)
+
+            mn_diff = torch.sum(((mn_2 - mn_1) / std_2) ** 2, dim=1)
+
+            log_det_1 = 2 * torch.sum(torch.log(std_1), dim=1)
+            log_det_2 = 2 * torch.sum(torch.log(std_2), dim=1)
+            log_det_diff = log_det_2 - log_det_1
+
+            kl = .5 * (sigma_ratio_sum + mn_diff + log_det_diff - d)
+
+            return kl.squeeze()
+        else:
+            raise(TypeError('d_2 must be either a CondGaussianMatrixProductDistribution or a CondGaussianDistribution.'))
+
+
+class MatrixGaussianProductDistribution(CondGaussianMatrixProductDistribution):
     """ Represents a distribution over matrices where each entry is pulled iid from a separate Gaussian distribution.
 
     For a matrix, W, with N rows and M columns, we model:
@@ -818,8 +919,8 @@ class MatrixGaussianProductDistribution(CondMatrixProductDistribution):
         return super().log_prob(x=torch.zeros([self.n_rows, 1]), y=y)
 
 
-class CondMatrixHypercubePrior(CondMatrixProductDistribution):
-    """ Extends CondMatrixProductDistribution so the distribution for each column is a Gaussian with mean and standard
+class CondMatrixHypercubePrior(CondGaussianMatrixProductDistribution):
+    """ Extends CondGaussianMatrixProductDistribution so the distribution for each column is a Gaussian with mean and standard
     deviation functions which are sums of tiled hypercube basis functions.
 
     Specifically, For a matrix, W, under a CondMatrixProductDistribution, we model:
@@ -895,8 +996,8 @@ class CondMatrixHypercubePrior(CondMatrixProductDistribution):
             d.std_f[0].b_m.data[:] = d.std_f[0].b_m.data[:] + np.log(f)
 
 
-class GroupCondMatrixHypercubePrior(CondMatrixProductDistribution):
-    """ Extends CondMatrixProductDistribution so the distribution for each column is a Gaussian with
+class GroupCondMatrixHypercubePrior(CondGaussianMatrixProductDistribution):
+    """ Extends CondGaussianMatrixProductDistribution so the distribution for each column is a Gaussian with
     mean and standard deviation functions that depend on groups of properties.
 
     Specifically, For a matrix, W, under a CondMatrixProductDistribution, we model:
