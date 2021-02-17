@@ -3,6 +3,8 @@
 
 from typing import Sequence
 
+from janelia_core.ml.torch_fcns import knn_mc
+
 import numpy as np
 import torch
 from torch.nn.functional import relu
@@ -641,7 +643,7 @@ class PWLNNFcn(torch.nn.Module):
     """ Piecewise-linear nearest neighbor network function. """
 
     def __init__(self, init_centers: torch.Tensor, init_weights: torch.Tensor,
-                 init_offsets: torch.Tensor, k: int = 1):
+                 init_offsets: torch.Tensor, k: int = 1, m=100):
         """ Creates a new PWLNNFcn.
 
         Args:
@@ -653,11 +655,15 @@ class PWLNNFcn(torch.nn.Module):
             init_offsets: Initial offsets for each function. Of shape n_ctrs*output_dim
 
             k: Number of nearest neighbors to use.
+
+            m: The number of centers to compare at once when searching for nearest neighbors.  Larger
+            values use more memory but can result in significantly faster computation on GPU.
         """
 
         super().__init__()
 
         self.k = k
+        self.m = m
         self.n_fcns = init_centers.shape[0]
         self.d_in = init_centers.shape[1]
 
@@ -678,10 +684,7 @@ class PWLNNFcn(torch.nn.Module):
 
         # Find the k closest centers to each data point
         with torch.no_grad():
-            ctrs_expanded = torch.reshape(self.ctrs, [self.n_fcns, 1, self.d_in])
-            diffs = x - ctrs_expanded
-            sq_distances = torch.sum(diffs ** 2, dim=2)
-            top_k_indices = torch.topk(-sq_distances, k=self.k, dim=0).indices
+            top_k_indices = knn_mc(x=x, ctrs=self.ctrs, k=self.k, m=self.m)
 
         # Compute linear functions applied to each input data point
         selected_wts = self.wts[top_k_indices]
