@@ -19,6 +19,7 @@ from janelia_core.ml.torch_parameter_penalizers import ParameterPenalizer
 
 from janelia_core.ml.utils import format_and_check_learning_rates
 from janelia_core.ml.utils import torch_devices_memory_usage
+from janelia_core.ml.utils import list_torch_devices
 
 
 def format_output_list(base_str: str, it_str: str, vls: Sequence[float], inds: Sequence[int]):
@@ -1419,7 +1420,7 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
               input_modules: Sequence[torch.nn.ModuleList],
               data: TimeSeriesBatch, batch_size: int = 100,
               metric: Callable = None, return_preds: bool = True,
-              sample: bool = False) -> List:
+              sample: bool = False, use_gpu: bool = True) -> List:
     """ Measures model fits on a given set of data.
 
     This function generates predictions for each model using the posterior means of modes. It then evaluates these
@@ -1452,6 +1453,11 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
         predict_with_turth. This will only be returned in return_preds is true.
     """
 
+    devices, cuda_is_available = list_torch_devices(verbose=False)
+
+    if cuda_is_available and use_gpu:
+        data.to(devices[0])
+
     # Generate predictions
     n_mdls = len(s_collections)
     preds_with_truth = [None]*n_mdls
@@ -1460,10 +1466,17 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
         if c_i % 1 == 0:
             print('Generating predictions for fit: ' + str(c_i))
 
+        if cuda_is_available and use_gpu:
+            s_coll_i.to(devices[0])
+            input_modules_i.to(devices[0])
+
         # Make prediction
         pred_i = predict_with_truth(s_collection=s_coll_i, input_modules=input_modules_i,
                                     data=data, batch_size=batch_size, time_grp=None,
                                     sample=sample)
+
+        s_coll_i.to('cpu')
+        input_modules_i.to('cpu')
 
         # Evaluate fits
         if metric is None:
@@ -1476,6 +1489,8 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
 
         if return_preds:
             preds_with_truth[c_i] = pred_i
+
+    data.to('cpu')
 
     if return_preds:
         return [metrics, preds_with_truth]
