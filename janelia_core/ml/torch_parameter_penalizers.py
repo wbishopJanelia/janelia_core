@@ -161,7 +161,7 @@ class ClusterPenalizer(ParameterPenalizer):
             other: The other penalizer to copy state form.
         """
         with torch.no_grad():
-            self.c.data = other.c.data
+            self.c.data = copy.deepcopy(other.c.data)
         self.last_p = other.last_p
 
     def clone(self, clean:bool = True):
@@ -452,7 +452,7 @@ class ScalarPenalizer(ParameterPenalizer):
             other: The other penalizer to copy state form.
         """
         with torch.no_grad():
-            self.c.data = other.c.data
+            self.c.data = copy.deepcopy(other.c.data)
         self.last_p = other.last_p
 
     def clone(self, clean:bool = True):
