@@ -4,6 +4,8 @@
     bishopw@hhmi.org
 """
 
+import itertools
+
 import numpy as np
 import pathlib
 
@@ -251,22 +253,30 @@ class ROIDataset(DataSet):
 
         return save_dict
 
-    def down_select_rois(self, roi_group, roi_inds):
+    def down_select_rois(self, roi_groups: list, roi_inds):
         """ Down select the rois in a dataset.
 
         ROIs will be removed from dataset.rois and any data for the removed ROIS will
         also be removed from the appropriate ts_data entries.
 
         Args:
-            roi_group: The roi group of the rois to extract
+            roi_groups: The roi groups of the rois to extract.  Typically, this will only be a single
+            group. However, sometimes the same rois might be represented twice in the dataset (e.g., rois
+            before and after registration), and we want to remove both representations.
 
             roi_inds: The indices in dataset.roi_groups[roi_group].rois to keep.
         """
 
-        new_rois = [self.roi_groups[roi_group]['rois'][i] for i in roi_inds]
-        self.roi_groups[roi_group]['rois'] = new_rois
+        if not isinstance(roi_groups, list):
+            roi_groups = [roi_groups]
 
-        for label in self.roi_groups[roi_group]['ts_labels']:
+        for roi_group in roi_groups:
+            new_rois = [self.roi_groups[roi_group]['rois'][i] for i in roi_inds]
+            self.roi_groups[roi_group]['rois'] = new_rois
+
+        group_ts_labels = list(set(itertools.chain([self.roi_groups[grp]['ts_labels'] for grp in roi_groups])))
+
+        for label in group_ts_labels:
             old_vls = self.ts_data[label]['vls']
             new_vls = old_vls[:, roi_inds]
             self.ts_data[label]['vls'] = new_vls
