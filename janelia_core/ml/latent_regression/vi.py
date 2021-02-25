@@ -1455,6 +1455,7 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
 
     devices, cuda_is_available = list_torch_devices(verbose=False)
 
+    # Transfer data to gpu if gpu is available and is specified to use
     if cuda_is_available and use_gpu:
         data.to(devices[0])
 
@@ -1466,6 +1467,7 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
         if c_i % 1 == 0:
             print('Generating predictions for fit: ' + str(c_i))
 
+        # Transfer data to gpu if gpu is available and is specified to use
         if cuda_is_available and use_gpu:
             s_coll_i.to(devices[0])
             input_modules_i.to(devices[0])
@@ -1475,6 +1477,7 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
                                     data=data, batch_size=batch_size, time_grp=None,
                                     sample=sample)
 
+        # Make sure data is on cpu again
         s_coll_i.to('cpu')
         input_modules_i.to('cpu')
 
@@ -1490,6 +1493,7 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
         if return_preds:
             preds_with_truth[c_i] = pred_i
 
+    # Make sure data is on cpu again
     data.to('cpu')
 
     if return_preds:
