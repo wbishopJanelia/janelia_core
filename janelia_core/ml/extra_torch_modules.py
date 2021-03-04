@@ -2,6 +2,7 @@
 """
 
 from typing import Sequence
+from warnings import warn
 
 from janelia_core.ml.torch_fcns import knn_mc
 
@@ -168,7 +169,22 @@ class ConstantBoundedFcn(torch.nn.Module):
             vl: The value to set the function to.
 
         """
-        init_v = np.arctanh(2*(vl - self.lower_bound.numpy())/(self.upper_bound.numpy() - self.lower_bound.numpy()) - 1)
+
+        EP = 1e-10
+
+        # Make sure everything is within bounds
+        if any(vl < self.lower_bound.numpy()) or any(vl > self.upper_bound.numpy()):
+            warn('Some values out of bounds.  They will be set them to bounded values.')
+
+        y = 2*(vl - self.lower_bound.numpy())/(self.upper_bound.numpy() - self.lower_bound.numpy()) - 1
+        y[y < -1] = -1
+        y[y > 1] = 1
+
+        # Make sure values we put through archtanh are not exactly -1 or 1
+        y[y == -1] += EP
+        y[y == 1] -= EP
+
+        init_v = np.arctanh(y)
         self.v.data = torch.tensor(init_v)
         self.v.data = self.v.data.float()
 
