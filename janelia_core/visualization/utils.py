@@ -80,3 +80,22 @@ def alpha_overlay(base_img: np.ndarray, overlay_inds: list, overlay_clrs: np.nda
 
     return new_image
 
+
+def enforce_constant_clims(ims: list, clim: np.ndarray = None):
+    """ Applies the same color limits to a set of images.
+
+    Args:
+          ims: A list of images to apply the same color limits to
+
+          clim: Color limits to apply. If None, these will be set to the min and max values of the
+          current color limits in the provided images.
+    """
+
+    # Generate color limits if not provided
+    if clim is None:
+        min_vl = np.min([im.get_clim()[0] for im in ims])
+        max_vl = np.max([im.get_clim()[1] for im in ims])
+        clim = [min_vl, max_vl]
+
+    for im in ims:
+        im.set_clim(clim)
