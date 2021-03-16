@@ -487,7 +487,7 @@ def grouped_linear_regression_acm_linear_restriction_stats(beta: np.ndarray, acm
 
     r*beta = q, where r is a matrix of size J by K and q is a vector of length J.
 
-    This function was based heavily on chapter 5 of Greene et al., Econometric Analysis.  In addition, to this
+    This function was based heavily on chapter 5 of Greene, Econometric Analysis.  In addition, to this
     reference a good reference on Wald tests (the Wikipedia article is not a bad place to start) may also be
     useful.
 
@@ -506,6 +506,9 @@ def grouped_linear_regression_acm_linear_restriction_stats(beta: np.ndarray, acm
     However, again following Greene, we choose to use critical values from the F-distribution, which is more
     conservative.  Specifically, we compare F (no need now to multiply by J) to the critical values from the
     F(J, n_grps - K) distribution.
+
+    Note: This function can be used for computing statistics for linear restrictions of non-grouped results as well.
+    In this case, n_grps should just be seq equal to the number of samples in the data.
 
     Args:
 
@@ -763,6 +766,54 @@ def grouped_linear_regression_boot_strap_stats(bs_values: np.ndarray, alpha:floa
 
     # Return results
     return {'alpha': alpha, 'c_ints': c_ints, 'non_zero_p': non_zero_p, 'non_zero': non_zero}
+
+
+def linear_regression_ols_estimator(y: np.ndarray, x: np.ndarray, rcond: float = None):
+    """ Fits a linear model and stats using optimal least squares.
+
+     For group g, the model for the i^th observation is of the form:
+
+        y_i = x_i^T\beta + \ep_i,
+
+    where x_i are predictor variables of dimension P, and ep_i is noise with a fixed variance.
+
+    This function is based on chapter 4 of Greene, Econometric Analysis.
+
+    Args:
+
+        y: 1-d array of the predicted variable.  Of length n_smps.
+
+        x: Variables to predict from.  Of shape n_smps*d_x.
+
+        rcond: The value of rcond to provide to the least squares fitting.  See np.linalg.lstsq.
+
+    Returns:
+
+        beta: The estimate of beta
+
+        acm: The asymptotic covariance matrix for beta.
+
+    Raises:
+        ValueError: If the number of samples does not exceed the number of x variables.
+   """
+
+    n_smps, n_x_vars = x.shape
+
+    if n_x_vars >= n_smps:
+        raise(ValueError('Number of samples does not exceed number of x variables.'))
+
+    # Calculate beta
+    beta_est = np.linalg.lstsq(x, y, rcond=rcond)
+    beta = beta_est[0]
+
+    # Calculate the asymptotic variance matrix
+    Q = np.matmul(x.transpose(), x)  # This is actually 1/n * Q
+    er = y - np.matmul(x, beta)
+    s_sq = np.sum(er**2)/(n_smps - n_x_vars)
+
+    acm = s_sq*np.linalg.inv(Q)
+
+    return beta, acm
 
 
 def visualize_coefficient_stats(var_strs: Sequence, theta: np.ndarray = None, c_ints: np.ndarray = None,
