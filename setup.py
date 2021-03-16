@@ -25,6 +25,7 @@ setup(
 	"scikit-image",
 	"scikit-learn",
     "pandas",
+    "psutil",
 	"pyspark",
     "sphinx",
     "tqdm",
