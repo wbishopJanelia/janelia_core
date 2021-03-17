@@ -51,25 +51,28 @@ def save_structured_hdf5(o: Union[np.ndarray, list, dict], f: pathlib.Path, name
         if os.path.exists(f):
             os.remove(f)
 
-    def _recursive_save(o, f, group):
+    def _recursive_save(o, f, group, key):
         if isinstance(o, np.ndarray):
             with h5py.File(f, 'a') as f_h:
                 dset = f_h.create_dataset(group, data=o)
                 dset.attrs['type'] = HDF5_TYPES['nparray']
+                dset.attrs['name'] = key
         elif isinstance(o, list):
             with h5py.File(f, 'a') as f_h:
                 grp = f_h.create_group(group)
                 grp.attrs['type'] = HDF5_TYPES['list']
+                grp.attrs['name'] = key
             for v_i, v in enumerate(o):
-                _recursive_save(v, f, group + '/list_' + str(v_i))
+                _recursive_save(v, f, group + '/list_' + str(v_i), v_i)
         elif isinstance(o, dict):
             with h5py.File(f, 'a') as f_h:
                 grp = f_h.create_group(group)
                 grp.attrs['type'] = HDF5_TYPES['dict']
+                grp.attrs['name'] = key
             for k in o.keys():
-                _recursive_save(o[k], f, group + '/' + k)
+                _recursive_save(o[k], f, group + '/' + str(k), k)
 
-    _recursive_save(o, f, name)
+    _recursive_save(o, f, name, name)
 
 
 def load_structured_hdf5(f: pathlib.Path):
@@ -92,12 +95,16 @@ def load_structured_hdf5(f: pathlib.Path):
             with h5py.File(f, 'r') as f_h:
                 obj = f_h[grp]
                 obj_keys = list(obj.keys())
-
+                label_keys = [f_h[grp][k].attrs['name'] for k in obj_keys]
             if obj_type == HDF5_TYPES['list']:
-                list_inds = np.sort(np.asarray([int(vl[5:]) for vl in obj_keys]))
-                return [_recursive_load(f, grp + '/' + obj_keys[i]) for i in list_inds]
+                n_list_entries = len(label_keys)
+                return_list = [None]*n_list_entries
+                for i in range(n_list_entries):
+                    return_list[label_keys[i]] = _recursive_load(f, grp + '/' + obj_keys[i])
+                return return_list
             else:
-                return {k: _recursive_load(f, grp + '/' + k) for k in obj_keys}
+                # obj_type is a dictionary
+                return {label_k: _recursive_load(f, grp + '/' + k) for label_k, k in zip(label_keys, obj_keys)}
         else:
             raise(ValueError('Unrecogonized type: ' + obj_type))
 
