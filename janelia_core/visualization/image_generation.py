@@ -39,7 +39,7 @@ def alpha_composite(dest: np.ndarray, src: np.ndarray) -> np.ndarray:
 
 
 def generate_2d_fcn_image(f: Callable, dim_0_range: Sequence[float] = None, dim_1_range: Sequence[float] = None,
-                          n_pts_per_dim: Sequence[int] = None) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+                          n_pts_per_dim: Sequence[int] = None, vis_dim: int = None) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """ Generates an image of a 2d function.
 
     Args:
@@ -51,6 +51,8 @@ def generate_2d_fcn_image(f: Callable, dim_0_range: Sequence[float] = None, dim_
         dim_1_range: The range of dim 1 values to visualize the function over.  If None, [0.0, 1.0] will be used.
 
         n_pts_per_dim: The number of points to sample per dimension.
+
+        vis_dim: If f produces multiple dimension output, this is the dimension to visualize
 
     Returns:
 
@@ -72,7 +74,12 @@ def generate_2d_fcn_image(f: Callable, dim_0_range: Sequence[float] = None, dim_
     pts, dim_pts = list_grid_pts(grid_limits=np.asarray([dim_0_range, dim_1_range]),
                                  n_pts_per_dim=n_pts_per_dim)
 
-    return f(pts).reshape(n_pts_per_dim), dim_pts[0], dim_pts[1]
+    if vis_dim is None:
+        vls = f(pts)
+    else:
+        vls = f(pts)[:, vis_dim].squeeze()
+
+    return vls.reshape(n_pts_per_dim), dim_pts[0], dim_pts[1]
 
 
 def standard_rgba_to_premultiplied(img: np.ndarray) -> np.ndarray:

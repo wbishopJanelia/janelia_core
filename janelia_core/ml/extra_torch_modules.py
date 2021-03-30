@@ -449,6 +449,28 @@ class FixedOffsetExp(torch.nn.Module):
         return torch.exp(x) + self.o
 
 
+class FixedOffsetTanh(torch.nn.Module):
+
+    """ Computes y = abs(s)*(tanh(x) + 1) + m, where s is learnable and m is fixed.
+
+    This function can learn a different scale for each dimension of data.
+
+    The minimum of the above function is m.  This function can be used when wanting to apply a scaled Tanh
+    to values while making sure function values never go below a threshold.
+    """
+
+    def __init__(self, d: int, m: float):
+        """ Creates a new FixedOffsetTanh object. """
+
+        super().__init__()
+        self.m = m
+        self.s = torch.nn.Parameter(torch.ones(d))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes output from input. """
+        return torch.abs(self.s)*(torch.tanh(x) + 1) + self.m
+
+
 class FormMatrixByCols(torch.nn.Module):
     """ Forms a matrix output column by column, where each column is calculated from a seperate function.
 

@@ -12,6 +12,7 @@ import numpy as np
 import torch
 
 from janelia_core.math.basic_functions import list_grid_pts
+from janelia_core.ml.extra_torch_functions import log_cosh
 from janelia_core.ml.extra_torch_modules import FixedOffsetExp
 from janelia_core.ml.extra_torch_modules import IndSmpConstantBoundedFcn
 from janelia_core.ml.extra_torch_modules import IndSmpConstantRealFcn
@@ -22,7 +23,7 @@ from janelia_core.ml.extra_torch_modules import Tanh
 
 
 class CondVAEDistribution(torch.nn.Module):
-    """ CondVAEDistribution is an abstract base class for distributions used by VAEs."""
+    """ CondVAEDistribution is an abstract base class for conditional distributions used by VAEs."""
 
     def __init__(self):
         """ Creates a CondVAEDistribution object. """
@@ -129,7 +130,7 @@ class CondVAEDistribution(torch.nn.Module):
 
             x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
 
-            smp: An set samples in compact form. Sample i should be drawn from p(y_i|x[i,:]). This is an optional
+            smp: A set of samples in compact form. Sample i should be drawn from p(y_i|x[i,:]). This is an optional
             input that is provided because sometimes it may not be possible to compute the KL divergence
             between two distributions analytically.  In these cases, an object may still implement the kl method
             by computing an empirical estimate of the kl divergence as log p_1(y_i'|x_i) - log p_2(y_i'| x_i),
@@ -185,6 +186,106 @@ class CondVAEDistribution(torch.nn.Module):
             l: the list of parameters
         """
         raise NotImplementedError
+
+
+class CondFoldedNormalDistribution(CondVAEDistribution):
+    """ A multivariate conditional folded normal distribution.
+
+    A folder normal distribution is the distribution on the random variable, Y = abs(Z), when Z is
+    distributed N(\mu, \sigma^2). This object represents a conditional distribution over a set of random
+    variables, each of which is independent and distributed according to a Folded Normal, conditioned on X.
+
+    """
+
+    def __init__(self, mu_f, sigma_f):
+        """ Creates a new CondFoldedNormalDistribution object.
+
+        Args:
+            mu_f: A module whose forward function accepts input of size n_smps*d_x and outputs a vector of mu
+            parameters for size n_smps*d_y
+
+            sigma_f: A module whose forward function accepts input of sixe n_smps*d and outputs a vector of
+            standard deviations for each sample of size n_smps*dy
+
+        """
+
+        super().__init__()
+
+        self.mu_f = mu_f
+        self.sigma_f = sigma_f
+
+        self.register_buffer('log_constants', .5*torch.log(torch.tensor(2.0)) - .5*torch.log(torch.tensor(math.pi)))
+        self.register_buffer('sqrt_2_over_pi', torch.sqrt(2/torch.tensor(math.pi)))
+
+    def form_standard_sample(self, smp):
+        return smp
+
+    def form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor:
+        return smp
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes conditional mean given samples.
+
+        Args:
+            x: data samples are conditioned on. Of shape n_smps*d_x.
+
+        Returns:
+            mn: mn[i,:] is the mean conditioned on x[i,:]
+        """
+
+        mu = self.mu_f(x)
+        sigma = self.sigma_f(x)
+
+        return (sigma*self.sqrt_2_over_pi*torch.exp(-(mu**2)/(2*(sigma**2))) +
+                mu*torch.erf(mu/torch.sqrt(2*(sigma**2))))
+
+    def log_prob(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        """ Computes log P(y| x).
+
+        Args:
+            x: Data we condition on.  Of shape n_smps*d_x
+
+            y: Values we desire the log probability for.  Of shape n_smps*d_y.
+
+        Returns:
+            ll: Log-likelihood of each sample. Of shape n_smps.
+
+        """
+
+        mu = self.mu_f(x)
+        sigma = self.sigma_f(x)
+
+        sigma_sq = sigma**2
+        return torch.sum(self.log_constants - torch.log(sigma) - (y**2 + mu**2)/(2*sigma_sq) + log_cosh(mu*y/sigma_sq),
+                         dim=1)
+
+    def sample(self, x: torch.Tensor) -> torch.Tensor:
+        """ Samples from the reparameterized form of P(y|x).
+
+        If a sample without gradients is desired, wrap the call to sample in torch.no_grad().
+
+        Args:
+            x: Data we condition on.  Of shape nSmps*d_x.
+
+        Returns:
+            y: sampled data of shape nSmps*d_y.
+        """
+
+        mn = self.mu_f(x)
+        std = self.sigma_f(x)
+
+        z = torch.randn_like(std)
+
+        return torch.abs(mn + z*std)
+
+    def sample_to(self, smp: object, device: torch.device):
+        return smp.to(device)
+
+    def r_params(self):
+        return list(self.parameters())
+
+    def s_params(self) -> list:
+        return list()
 
 
 class CondBernoulliDistribution(CondVAEDistribution):
@@ -272,6 +373,145 @@ class CondBernoulliDistribution(CondVAEDistribution):
         return list(self.parameters())
 
 
+class CondGammaDistribution(CondVAEDistribution):
+    """ A distribution over a set of conditionally independent Gamma random variables.
+
+    We use the convention of parameterizing a Gamma distribution with concentration and rate parameters.
+
+    Much of the implementation here has been taken from torch's own Gamma distribution.
+
+    """
+
+    def __init__(self, conc_f: torch.nn.Module, rate_f: torch.nn.Module):
+        """ Creates a CondGammaDistribution object.
+
+        conc_f: A module whose forward function accepts input of size n_smps*d_x and outputs concentration values in
+        a tensor of size n_smps*d_y
+
+        rate_f: A module whose forward function accepts input of size n_smps*d_x and outputs rate values in
+        a tensor of size n_smps*d_y
+        """
+
+        super().__init__()
+        self.conc_f = conc_f
+        self.rate_f = rate_f
+
+    def form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor:
+        return smp
+
+    def form_standard_sample(self, smp):
+        return smp
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes conditional mean given samples.
+
+        Args:
+            x: data samples are conditioned on. Of shape n_smps*d_x.
+
+        Returns:
+            mn: mn[i,:] is the mean conditioned on x[i,:]
+        """
+
+        return self.conc_f(x)/self.rate_f(x)
+
+    def kl(self, d_2, x: torch.tensor, smp: torch.tensor = None, return_device: torch.device = None):
+        """ Computes the KL divergence between the conditional distribution represented by this object and another.
+
+        KL divergence is computed based on the closed form formula for KL divergence between two Gamma distributions.
+
+        Note: This function will move the conditioning data (x) to the appropriate device(s)
+            so calculations can be carried out without needing to move this object or the other conditional
+            distribution between devices.
+
+        Args:
+            d_2: The other conditional distribution in the KL divergence.
+
+            x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
+
+            smp: This input is ignored, as KL divergence is based on a closed form formula.
+
+            return_device: The device the calculated kl tensor should be returned to.  If None, this will
+            be the device the first parameter of this object is on.
+
+        Returns:
+            kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioing
+            input.
+        """
+
+        self_device = next(self.parameters()).device
+        d_2_device = next(d_2.parameters()).device
+
+        x_self = x.to(self_device)
+        x_d_2 = x.to(d_2_device)
+
+        if return_device is None:
+            return_device = self_device
+
+        self_conc = self.conc_f(x_self).to(return_device)
+        d_2_conc = d_2.conc_f(x_d_2).to(return_device)
+
+        self_rate = self.rate_f(x_self).to(return_device)
+        d_2_rate = d_2.rate_f(x_d_2).to(return_device)
+
+        return torch.sum((self_conc - d_2_conc) * torch.digamma(self_conc)
+                         - torch.lgamma(self_conc) + torch.lgamma(d_2_conc)
+                         + d_2_conc * (torch.log(self_rate) - torch.log(d_2_rate))
+                         + self_conc * ((d_2_rate - self_rate) / self_rate), dim=1)
+
+    def log_prob(self, x: torch.tensor, y: torch.Tensor) -> torch.tensor:
+        """ Computes log P(y| x).
+
+        Args:
+            x: Data we condition on.  Of shape n_smps*d_x
+
+            y: Values we desire the log probability for.  Of shape n_smps*d_y.
+
+        Returns:
+            ll: Log-likelihood of each sample. Of shape n_smps.
+
+        """
+        concentration = self.conc_f(x)
+        rate = self.rate_f(x)
+
+        return torch.sum((concentration * torch.log(rate) +
+                         (concentration - 1) * torch.log(y) -
+                         rate * y - torch.lgamma(concentration)), dim=1)
+
+    def sample(self, x: torch.Tensor) -> torch.Tensor:
+        """ Samples from the reparameterized form of P(y|x).
+
+          If a sample without gradients is desired, wrap the call to sample in torch.no_grad().
+
+          Args:
+              x: Data we condition on.  Of shape nSmps*d_x.
+
+          Returns:
+              y: sampled data of shape nSmps*d_y.
+          """
+
+        return torch._standard_gamma(self.conc_f(x))/self.rate_f(x)
+
+    def r_params(self):
+        return list(self.parameters())
+
+    def sample_to(self, smp: torch.Tensor, device: torch.device) -> torch.Tensor:
+        """ Moves a sample in compact form to a given device.
+
+        This function is provided because different distributions may return samples in arbitrary objects,
+        so a custom function may be needed to move a sample to a device.
+
+        Args:
+            smp: The sample to move.
+
+            device: The device to move the sample to.
+
+        """
+        return smp.to(device)
+
+    def s_params(self) -> list:
+        return list()
+
+
 class CondGaussianDistribution(CondVAEDistribution):
     """ Represents a multivariate distribution over a set of conditionally independent Gaussian random variables.
     """
@@ -319,8 +559,6 @@ class CondGaussianDistribution(CondVAEDistribution):
             ll: Log-likelihood of each sample. Of shape n_smps.
 
         """
-
-        d_x = x.shape[1]
 
         if len(y.shape) == 1:
             y = y.unsqueeze(1)
@@ -838,6 +1076,142 @@ class CondGaussianMatrixProductDistribution(CondMatrixProductDistribution):
             raise(TypeError('d_2 must be either a CondGaussianMatrixProductDistribution or a CondGaussianDistribution.'))
 
 
+class MatrixGammaProductDistribution(CondMatrixProductDistribution):
+    """ Represents a distribution over matrices where each entry is pulled iid from a separate Gamma distribution.
+
+    For a matrix, W, with N rows and M columns, we model:
+
+        P(W) = \prod_i=1^N \prod_j=1^M P_ij(W[i,j]),
+
+    where P_ij is a Gamma distribution with concentration parameter \alpha_ij and rate parameter \beta_ij.
+
+    Note: This function extends CondMatrixProductDistribution, allowing this distribution to be used in
+    code where conditional distributions are required, so that the resulting "conditional distributions"
+    are the same irrespective of conditioning input.
+
+    """
+
+    def __init__(self, shape: Sequence[int], beta_lb: float = .001, beta_ub: float = 10.0, beta_iv: float = 1.0,
+                 rate_lb: float = .001, rate_ub: float = 10.0, rate_iv: float = 1.0):
+        """ Creates a new MatrixGammaProductDistribution object.
+
+        Args:
+
+            shape: The shape of matrices this represents distributions over.
+
+            beta_lb: The lower bound that concentration parameters can take on
+
+            beta_ub: The upper bound that concentration parameters can take on
+
+            beta_iv: The initial value for concentration parameters.  All distributions will be initialized to have the
+            same initial values.
+
+            rate_lb: The lower bound that rate parameters can take on
+
+            rate_ub: The upper bound that rate parameters can take on
+
+            rate_iv: The initial value for rate parameters.  All distributions will be initialized to have the
+            same initial values.
+        """
+        n_rows, n_cols = shape
+        col_dists = [None]*n_cols
+        for c_i in range(n_cols):
+            conc_f = IndSmpConstantBoundedFcn(n=n_rows, lower_bound=beta_lb, upper_bound=beta_ub, init_value=beta_iv)
+            rate_f = IndSmpConstantBoundedFcn(n=n_rows, lower_bound=rate_lb, upper_bound=rate_ub, init_value=rate_iv)
+            col_dists[c_i] = CondGammaDistribution(conc_f=conc_f, rate_f=rate_f)
+
+        # Create the object
+        super().__init__(dists=col_dists)
+        self.n_rows = n_rows
+
+    def forward(self, x: torch.Tensor = None):
+        """ Overwrites parent forward so x does not have to be provided. """
+        return super().forward(x=torch.zeros([self.n_rows, 1]))
+
+    def sample(self, x: torch.Tensor = None) -> list:
+        """ Overwrites parent sample so x does not have to be provided. """
+        return super().sample(x=torch.zeros([self.n_rows, 1]))
+
+    def log_prob(self, x: torch.Tensor = None, y: Sequence = None) -> torch.Tensor:
+        """ Overwrites parent log_prob so x does not have to be provided.
+
+        Raises:
+            ValueError: If y is None.
+        """
+        if y is None:
+            raise(ValueError('y value cannot be none'))
+
+        return super().log_prob(x=torch.zeros([self.n_rows, 1]), y=y)
+
+
+class MatrixFoldedNormalProductDistribution(CondMatrixProductDistribution):
+    """ Represents a distribution over matrices where each entry is pulled iid from a Folded Normal distribution.
+
+    For a matrix, W, with N rows and M columns, we model:
+
+        P(W) = \prod_i=1^N \prod_j=1^M P_ij(W[i,j]),
+
+    where P_ij is a Folded Normal distribution with parameters \mu_ij and \sigma_ij.
+
+    Note: This function extends CondMatrixProductDistribution, allowing this distribution to be used in
+    code where conditional distributions are required, so that the resulting "conditional distributions"
+    are the same irrespective of conditioning input.
+
+    """
+
+    def __init__(self, shape: Sequence[int], mu_lb: float = 0.0, mu_ub: float = 10.0, mu_iv: float = 1.0,
+                 sigma_lb: float = .001, sigma_ub: float = 10.0, sigma_iv: float = 1.0):
+        """ Creates a new MatrixGammaProductDistribution object.
+
+        Args:
+
+            shape: The shape of matrices this represents distributions over.
+
+            mu_lb: The lower bound that mu parameters can take on
+
+            mu_ub: The upper bound that mu parameters can take on
+
+            mu_iv: The initial value for mu parameters.  All distributions will be initialized to have the
+            same initial values.
+
+            sigma_lb: The lower bound that sigma parameters can take on
+
+            sigma_ub: The upper bound that sigma parameters can take on
+
+            sigma_iv: The initial value for sigma parameters.  All distributions will be initialized to have the
+            same initial values.
+        """
+        n_rows, n_cols = shape
+        col_dists = [None]*n_cols
+        for c_i in range(n_cols):
+            mu_f = IndSmpConstantBoundedFcn(n=n_rows, lower_bound=mu_lb, upper_bound=mu_ub, init_value=mu_iv)
+            sigma_f = IndSmpConstantBoundedFcn(n=n_rows, lower_bound=sigma_lb, upper_bound=sigma_ub,
+                                               init_value=sigma_iv)
+            col_dists[c_i] = CondFoldedNormalDistribution(mu_f=mu_f, sigma_f=sigma_f)
+
+        # Create the object
+        super().__init__(dists=col_dists)
+        self.n_rows = n_rows
+
+    def forward(self, x: torch.Tensor = None):
+        """ Overwrites parent forward so x does not have to be provided. """
+        return super().forward(x=torch.zeros([self.n_rows, 1]))
+
+    def sample(self, x: torch.Tensor = None) -> list:
+        """ Overwrites parent sample so x does not have to be provided. """
+        return super().sample(x=torch.zeros([self.n_rows, 1]))
+
+    def log_prob(self, x: torch.Tensor = None, y: Sequence = None) -> torch.Tensor:
+        """ Overwrites parent log_prob so x does not have to be provided.
+
+        Raises:
+            ValueError: If y is None.
+        """
+        if y is None:
+            raise(ValueError('y value cannot be none'))
+
+        return super().log_prob(x=torch.zeros([self.n_rows, 1]), y=y)
+
 class MatrixGaussianProductDistribution(CondGaussianMatrixProductDistribution):
     """ Represents a distribution over matrices where each entry is pulled iid from a separate Gaussian distribution.
 
@@ -899,15 +1273,15 @@ class MatrixGaussianProductDistribution(CondGaussianMatrixProductDistribution):
             init_v = init_v.to(std_device)
             d.std_f.f.v.data = init_v
 
-    def forward(self, x: torch.tensor = None):
+    def forward(self, x: torch.Tensor = None) -> torch.Tensor:
         """ Overwrites parent forward so x does not have to be provided. """
         return super().forward(x=torch.zeros([self.n_rows, 1]))
 
-    def sample(self, x: torch.tensor = None):
+    def sample(self, x: torch.Tensor = None) -> list:
         """ Overwrites parent sample so x does not have to be provided. """
         return super().sample(x=torch.zeros([self.n_rows, 1]))
 
-    def log_prob(self, x: torch.tensor = None, y: Sequence = None):
+    def log_prob(self, x: torch.Tensor = None, y: Sequence = None) -> torch.Tensor:
         """ Overwrites parent log_prob so x does not have to be provided.
 
         Raises:

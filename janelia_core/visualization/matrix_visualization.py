@@ -76,7 +76,7 @@ def cmp_n_mats(mats: list, clim: list = None, show_colorbars: bool = False, titl
         else:
             subplot = subplots[i]
 
-        img_plots[i] = subplot.imshow(m, aspect='auto', cmap=cmap)
+        img_plots[i] = subplot.imshow(m, aspect='auto', cmap=cmap, interpolation='none')
 
         subplot.set_axis_off()
         if show_colorbars:
