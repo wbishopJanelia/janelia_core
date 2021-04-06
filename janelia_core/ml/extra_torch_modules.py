@@ -1,7 +1,7 @@
 """ Contains basic torch modules, supplementing those natviely in Torch.
 """
 
-from typing import Sequence
+from typing import Sequence, Union
 from warnings import warn
 
 from janelia_core.ml.torch_fcns import knn_mc
@@ -12,6 +12,8 @@ from torch.nn.functional import relu
 
 from janelia_core.math.basic_functions import int_to_arb_base
 
+# Define aliases
+OptionalTensor = Union[torch.Tensor, None]
 
 class Bias(torch.nn.ModuleList):
     """ Applies a bias transformation to the data y = x + o """
@@ -424,6 +426,39 @@ class FirstAndSecondOrderFcn(torch.nn.Module):
         return y
 
 
+class FixedOffsetCELU(torch.nn.Module):
+    """ Computes y = CELU(x; alpha) + alpha + o, where o and alpha are non-learnable.
+
+    This module simply shifts the CELU function up by alpha + 0, so that minimum value
+    it can ever take on is o.
+
+    """
+
+    def __init__(self, alpha: float, o: float):
+        """ Creates a new FixedOffsetCELU module.
+
+        """
+
+        super().__init__()
+        self.f = torch.nn.CELU(alpha=alpha)
+        self.alpha = alpha
+        self.o = o
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes output from input.
+
+        Args:
+
+            x: Input
+
+        Returns:
+
+            y: Output, the same shape as output
+        """
+
+        return self.f(x) + self.alpha + self.o
+
+
 class FixedOffsetExp(torch.nn.Module):
     """ Computes y = exp(x) + o, where o is a fixed, non-learnable offset. """
 
@@ -449,6 +484,32 @@ class FixedOffsetExp(torch.nn.Module):
         return torch.exp(x) + self.o
 
 
+class FixedOffsetAbs(torch.nn.Module):
+    """ Computes y = abs(x) + o, for a fixed o. """
+
+    def __init__(self, o: float):
+        """ Creates a new FixedOffsetSq module.
+
+        Args:
+            o: The fixed offsest
+        """
+
+        super().__init__()
+        self.o = o
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes output from input.
+
+        Args:
+
+            x: Input
+
+            y: Output, the same shape as input
+        """
+
+        return torch.abs(x) + self.o
+
+
 class FixedOffsetTanh(torch.nn.Module):
 
     """ Computes y = abs(s)*(tanh(x) + 1) + m, where s is learnable and m is fixed.
@@ -459,12 +520,16 @@ class FixedOffsetTanh(torch.nn.Module):
     to values while making sure function values never go below a threshold.
     """
 
-    def __init__(self, d: int, m: float):
+    def __init__(self, d: int, m: float, init_s_vls: OptionalTensor = None):
         """ Creates a new FixedOffsetTanh object. """
 
         super().__init__()
         self.m = m
-        self.s = torch.nn.Parameter(torch.ones(d))
+
+        if init_s_vls is None:
+            init_s_vls = torch.ones(d)
+
+        self.s = torch.nn.Parameter(init_s_vls)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """ Computes output from input. """

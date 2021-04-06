@@ -75,7 +75,7 @@ def format_and_check_learning_rates(learning_rates: Union[int, float, list]) -> 
 
 
 def torch_mod_to_fcn(m: torch.nn.Module):
-    """ Converts a torch Module to a standard python function.
+    """ Converts a torch Module or function to a standard python function accepting a numpy array as input.
 
     Returns a new python function which:
         1) Takes numpy input and converts that input to a torch Tensor

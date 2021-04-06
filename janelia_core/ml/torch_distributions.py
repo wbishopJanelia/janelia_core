@@ -491,6 +491,16 @@ class CondGammaDistribution(CondVAEDistribution):
 
         return torch._standard_gamma(self.conc_f(x))/self.rate_f(x)
 
+    def std(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes conditional standard deviation given samples.  """
+
+        return torch.sqrt(self.conc_f(x)/(self.rate_f(x)**2))
+
+    def mode(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes conditional mode given samples. """
+
+        return (self.conc_f(x) - 1)/(self.rate_f(x))
+
     def r_params(self):
         return list(self.parameters())
 
