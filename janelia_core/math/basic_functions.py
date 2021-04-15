@@ -214,7 +214,7 @@ def find_disjoint_intervals(ints: np.ndarray) -> np.ndarray:
         a start index of 0 and an end index of 3.)
 
     Returns:
-        disjoint_ints: The row indices of ints which correspond to disjoint intervals
+        disjoint_ints: Boolean array indicating indices of ints which correspond to disjoint intervals
 
     """
 
