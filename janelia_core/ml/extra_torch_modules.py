@@ -15,6 +15,7 @@ from janelia_core.math.basic_functions import int_to_arb_base
 # Define aliases
 OptionalTensor = Union[torch.Tensor, None]
 
+
 class Bias(torch.nn.ModuleList):
     """ Applies a bias transformation to the data y = x + o """
 
