@@ -4,6 +4,7 @@ import copy
 import importlib
 import pathlib
 from typing import Sequence, Union, Tuple
+import warnings
 
 #import imageio
 import importlib
@@ -14,10 +15,11 @@ import matplotlib.figure
 import matplotlib.pyplot as plt
 import matplotlib.transforms
 
-if importlib.util.find_spec('moveipy'):
+
+try:
     import moviepy.editor as editor
-else:
-    print('Unable to import moviepy.  Minor functionality will not be available.')
+except ModuleNotFoundError as error:
+    warnings.warn('Unable to import moviepy.  Minor functionality will not be available.')
 
 import numpy as np
 
