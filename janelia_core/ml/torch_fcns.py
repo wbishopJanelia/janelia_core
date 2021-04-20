@@ -40,7 +40,7 @@ def knn_do(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int, n_ctrs_used: int
         # If we are not using dropout, call knn_mc directly
         return knn_mc(x=x, ctrs=ctrs, k=k, m=m)
     else:
-        select_inds = torch.randperm(n_ctrs)
+        select_inds = torch.randperm(n_ctrs, device=x.device)
         select_inds = select_inds[0:n_ctrs_used]
         return select_inds[knn_mc(x=x, ctrs=ctrs[select_inds, :], k=k, m=m)]
 
