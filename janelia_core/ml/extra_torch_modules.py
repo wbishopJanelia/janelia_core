@@ -4,7 +4,7 @@
 from typing import Sequence, Union
 from warnings import warn
 
-from janelia_core.ml.torch_fcns import knn_mc
+from janelia_core.ml.torch_fcns import knn_do
 
 import numpy as np
 import torch
@@ -747,7 +747,7 @@ class PWLNNFcn(torch.nn.Module):
     """ Piecewise-linear nearest neighbor network function. """
 
     def __init__(self, init_centers: torch.Tensor, init_weights: torch.Tensor,
-                 init_offsets: torch.Tensor, k: int = 1, m=100):
+                 init_offsets: torch.Tensor, k: int = 1, m=100, n_used_fcns: int = None):
         """ Creates a new PWLNNFcn.
 
         Args:
@@ -762,6 +762,11 @@ class PWLNNFcn(torch.nn.Module):
 
             m: The number of centers to compare at once when searching for nearest neighbors.  Larger
             values use more memory but can result in significantly faster computation on GPU.
+
+            n_used_fcns: The number of functions to use at any point in time.  Setting this equal to n_ctrs,
+            results in using all centers all the time.  Setting this less than n_ctrs, will result in
+            randomly dropping out some functions during each call to forward.  Setting this to None, will
+            result in using all centers.
         """
 
         super().__init__()
@@ -770,6 +775,10 @@ class PWLNNFcn(torch.nn.Module):
         self.m = m
         self.n_fcns = init_centers.shape[0]
         self.d_in = init_centers.shape[1]
+
+        if n_used_fcns is None:
+            n_used_fcns = self.n_fcns
+        self.n_used_fcns = n_used_fcns
 
         self.ctrs = torch.nn.Parameter(init_centers)
         self.wts = torch.nn.Parameter(init_weights)
@@ -788,7 +797,7 @@ class PWLNNFcn(torch.nn.Module):
 
         # Find the k closest centers to each data point
         with torch.no_grad():
-            top_k_indices = knn_mc(x=x, ctrs=self.ctrs, k=self.k, m=self.m)
+            top_k_indices = knn_do(x=x, ctrs=self.ctrs, k=self.k, m=self.m, n_ctrs_used=self.n_used_fcns)
 
         # Compute linear functions applied to each input data point
         selected_wts = self.wts[top_k_indices]
