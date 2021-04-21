@@ -545,17 +545,21 @@ class CondGaussianDistribution(CondVAEDistribution):
 
         self.register_buffer('log_2_pi', torch.log(torch.tensor(2*math.pi)))
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, mn_kwargs = None) -> torch.Tensor:
         """ Computes conditional mean given samples.
 
         Args:
             x: data samples are conditioned on. Of shape n_smps*d_x.
+            mn_kwargs: key-word arguments to be passed to the mean function
 
         Returns:
             mn: mn[i,:] is the mean conditioned on x[i,:]
         """
 
-        return self.mn_f(x)
+        if mn_kwargs is None:
+            mn_kwargs = dict()
+
+        return self.mn_f(x, **mn_kwargs)
 
     def log_prob(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """ Computes log P(y| x).
@@ -584,20 +588,28 @@ class CondGaussianDistribution(CondVAEDistribution):
 
         return ll
 
-    def sample(self, x: torch.Tensor) -> torch.Tensor:
+    def sample(self, x: torch.Tensor, mn_kwargs = None, std_kwargs = None) -> torch.Tensor:
         """ Samples from the reparameterized form of P(y|x).
 
         If a sample without gradients is desired, wrap the call to sample in torch.no_grad().
 
         Args:
             x: Data we condition on.  Of shape nSmps*d_x.
+            mn_kwargs: key-word arguments to be passed to the mean function
+            std_kwargs: key-word arguments to be passed to the mean function
 
         Returns:
             y: sampled data of shape nSmps*d_y.
         """
 
-        mn = self.mn_f(x)
-        std = self.std_f(x)
+        if mn_kwargs is None:
+             mn_kwargs = dict()
+
+        if std_kwargs is None:
+             std_kwargs = dict()
+
+        mn = self.mn_f(x, **mn_kwargs)
+        std = self.std_f(x, **std_kwargs)
 
         z = torch.randn_like(std)
 
