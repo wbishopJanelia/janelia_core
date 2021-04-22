@@ -727,7 +727,8 @@ class MultiSubjectVIFitter():
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates=.01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, fix_priors: bool = False,
             enforce_priors: bool = True, update_int: int = 1, print_opts: dict = None,
-            cp_epochs: Sequence[int] = None, cp_penalizers: bool = True) -> [dict, Union[List, None]]:
+            cp_epochs: Sequence[int] = None, cp_penalizers: bool = True, pre_fit_functions: Sequence[Callable] = None)\
+            -> [dict, Union[List, None]]:
         """
 
         Args:
@@ -770,6 +771,8 @@ class MultiSubjectVIFitter():
             penalizers will be made).  If no check points should be made, set this to None.
 
             cp_penalizers: True if penalizers should be included in the check points.
+
+            pre_fit_function: Function to be called before fitting (useful for e.g. dropout)
 
         Return:
             log: A dictionary with the following entries:
@@ -817,6 +820,10 @@ class MultiSubjectVIFitter():
 
         if not self.distributed:
             raise(RuntimeError('self.distribute() must be called before fitting.'))
+
+        if pre_fit_functions is not None:
+            for function in pre_fit_functions:
+                function.apply(self)
 
         # See what devices we are using for fitting (this is so we can later query their memory usage)
         all_devices = self.get_used_devices()
