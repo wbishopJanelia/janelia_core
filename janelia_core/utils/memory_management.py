@@ -11,7 +11,7 @@ def get_current_memory_usage():
         mem: Memory used in gigabytes
     """
 
-    MB_TO_GB = 1024**3
+    BYTES_TO_GB = 1024**3
 
     process = psutil.Process(os.getpid())
-    return process.memory_info()[0]/MB_TO_GB
+    return process.memory_info()[0]/BYTES_TO_GB

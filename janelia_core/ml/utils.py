@@ -10,6 +10,7 @@ from typing import Union
 import numpy as np
 import torch
 
+from janelia_core.utils.memory_management import get_current_memory_usage
 
 def format_and_check_learning_rates(learning_rates: Union[int, float, list]) -> [np.ndarray, np.ndarray]:
     """ Takes learning rates in different formats and puts them in a standard format, running basic checks.
@@ -140,3 +141,45 @@ def torch_devices_memory_usage(devices: Sequence[torch.device], type: str = 'mem
         return [torch.cuda.max_memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in devices]
     else:
         return [torch.cuda.memory_allocated(device=d) if d.type == 'cuda' else np.nan for d in devices]
+
+
+def summarize_memory_stats(devices: Sequence[torch.device]):
+    """ Gets memory used across cpu and gpus.
+
+    Args:
+
+        devices: The devices to summarize memory usage over
+
+    Returns:
+
+        memory_usage: memory_usage[i] contains the summary for device i as a dictionary with the following keys:
+
+            type: The type of device - either 'cpu' or 'cuda'
+
+            current: The current memory usage of the device in GB. If the device is cpu, this is the memory used by
+            the process that called this function.
+
+            max: The max memory used for the device.  If the device type is cpu, this will be nan.
+
+    """
+
+    BYTES_TO_GB = 1024 ** 3
+
+    n_devices = len(devices)
+
+    # See if we are using any GPUs
+    memory_usage = [None]*n_devices
+    for d_i, d in enumerate(devices):
+        if d.type == 'cuda':
+            device_type = 'cuda'
+            current_mem = torch_devices_memory_usage([d])[0]/BYTES_TO_GB
+            max_mem = torch_devices_memory_usage([d])[0]/BYTES_TO_GB
+        else:
+            device_type = 'cpu'
+            current_mem = get_current_memory_usage()
+            max_mem = np.nan
+
+        memory_usage[d_i] = {'type': device_type, 'current': current_mem, 'max': max_mem}
+
+    return memory_usage
+

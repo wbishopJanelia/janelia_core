@@ -1222,6 +1222,7 @@ class MatrixFoldedNormalProductDistribution(CondMatrixProductDistribution):
 
         return super().log_prob(x=torch.zeros([self.n_rows, 1]), y=y)
 
+
 class MatrixGaussianProductDistribution(CondGaussianMatrixProductDistribution):
     """ Represents a distribution over matrices where each entry is pulled iid from a separate Gaussian distribution.
 

@@ -50,8 +50,8 @@ def cmp_n_mats(mats: list, clim: list = None, show_colorbars: bool = False, titl
 
     # Generate color limits if not provided
     if clim is None:
-        min_vl = np.min([np.min(m) for m in mats])
-        max_vl = np.max([np.max(m) for m in mats])
+        min_vl = np.nanmin([np.nanmin(m) for m in mats])
+        max_vl = np.nanmax([np.nanmax(m) for m in mats])
         clim = [min_vl, max_vl]
 
     # Generate default grid info if not provided
