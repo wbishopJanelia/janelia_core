@@ -20,7 +20,7 @@ HDF5_TYPES = {'nparray': 'nparray',
 
 
 
-def append_ts(filename: str) -> str:
+def append_ts(filename: str, no_underscores: bool = False) -> str:
     """ Appends a time stamp to a string.
 
     The primary use case for this file is taking a file name and appending a time stamp to
@@ -29,9 +29,20 @@ def append_ts(filename: str) -> str:
 
     The time stamps will be of the format _<4 digit year>_<2 digit month>_<two digit day>_<2 digit military time hour>...
                                             _<2 digit minute>_<2 digit second>_<0 padded microsecond>
-    """
-    return (filename + '_' + '{:%Y_%m_%d_%H_%M_%S_%f}').format(datetime.datetime.now())
 
+    Args:
+
+        filename: The filename to append to
+
+        no_underscores: If true, underscores in the date string above will be omitted.
+    """
+
+    data_str = '{:%Y_%m_%d_%H_%M_%S_%f}'.format(datetime.datetime.now())
+
+    if no_underscores:
+        data_str = data_str.replace('_', '')
+
+    return filename + '_' + data_str
 
 def save_structured_hdf5(o: Union[np.ndarray, list, dict], f: pathlib.Path, name: str, overwrite: bool = False):
     """ Saves structured data to an hdf5 file.
