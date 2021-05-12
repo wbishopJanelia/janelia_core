@@ -10,6 +10,23 @@ import re
 import numpy as np
 
 
+def bound(a: np.ndarray, lb: float, ub: float) -> np.ndarray:
+    """ Thresholds values in array between lower and upper bounds.
+
+     Args:
+
+         a: The array with values to threshold
+
+         lb: The lower bound to apply
+
+         ub: The upper bound to apply
+     """
+
+    a[a < lb] = lb
+    a[a > ub] = ub
+    return a
+
+
 def combine_slices(slices: Sequence[slice]) -> Sequence[slice]:
     """ Combines multiple simple slices into a potentially smaller number of simple slices.
 

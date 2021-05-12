@@ -217,7 +217,7 @@ class ConstantRealFcn(torch.nn.Module):
     intsead of predicting the conditional mean with a neural network, you might want a constant conditional mean.
     """
 
-    def __init__(self, init_vl: np.ndarray):
+    def __init__(self, init_vl: np.ndarray, learnable_values: bool = True):
         """ Creates a ConstantRealFcn object.
 
         Args:
@@ -229,7 +229,12 @@ class ConstantRealFcn(torch.nn.Module):
 
         self.n_dims = len(init_vl)
 
-        self.vl = torch.nn.Parameter(torch.zeros(self.n_dims), requires_grad=True)
+        if learnable_values:
+            self.vl = torch.nn.Parameter(torch.zeros(self.n_dims), requires_grad=True)
+        else:
+            self.register_buffer('vl', torch.zeros(self.n_dims))
+            self.dummy_param = torch.nn.Parameter(torch.empty(0))  # Dummy parameter so that we can figure out which
+                                                                   # device this module is on
         self.set_vl(init_vl)
 
     def set_vl(self, vl: np.ndarray):
@@ -828,6 +833,40 @@ class PWLNNFcn(torch.nn.Module):
             big_inds = self.ctrs > ctr_bounds[1]
             self.ctrs.data[small_inds] = ctr_bounds[0]
             self.ctrs.data[big_inds] = ctr_bounds[1]
+
+
+class QuadSurf(torch.nn.Module):
+    """ A surface defined by: z = a*(x - x_0)^2 + b*(y - y_0)^2"""
+
+    def __init__(self, ctr: torch.Tensor, coefs: torch.Tensor):
+        """ Creates a new QuadSurf Module.
+
+
+        Args:
+
+            ctr: the vector [x_0, x_1]
+
+            coefs: the vector [a, b]
+        """
+
+        super().__init__()
+
+        self.ctr = torch.nn.Parameter(ctr)
+        self.coefs = torch.nn.Parameter(coefs)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes output from input.
+
+        Args:
+            x: Input of shape n_smps*2
+
+        Returns:
+            output: Of shape n_smps*3, where each row is of the form [z, x, y], where x & y are the original x & y
+            from the input
+        """
+
+        z = torch.sum(self.coefs*((x - self.ctr)**2), dim=1)
+        return torch.cat([x, z.unsqueeze(1)], dim=1)
 
 
 class Relu(torch.nn.ModuleList):
