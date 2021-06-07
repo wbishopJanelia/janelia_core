@@ -1464,7 +1464,7 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
 
     # Transfer data to gpu if gpu is available and is specified to use
     if cuda_is_available and use_gpu:
-        data.to(devices[0])
+        data.to(devices[1])
 
     # Generate predictions
     n_mdls = len(s_collections)
@@ -1476,8 +1476,8 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
 
         # Transfer data to gpu if gpu is available and is specified to use
         if cuda_is_available and use_gpu:
-            s_coll_i.to(devices[0])
-            input_modules_i.to(devices[0])
+            s_coll_i.to(devices[1])
+            input_modules_i.to(devices[1])
 
         # Make prediction
         pred_i = predict_with_truth(s_collection=s_coll_i, input_modules=input_modules_i,
@@ -1489,13 +1489,25 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
         input_modules_i.to('cpu')
 
         # Evaluate fits
-        if metric is None:
+        if metric is None or metric == 'neg_ll':
             y = [torch.Tensor(pred_i['truth'][h]) for h in range(len(pred_i['truth']))]
             mn = [torch.Tensor(pred_i['pred'][h]) for h in range(len(pred_i['pred']))]
             with torch.no_grad():
                 metrics[c_i] = s_coll_i.s_mdl.neg_ll(y=y, mn=mn).detach().cpu().numpy().item()
+
+        elif metric == 'neg_ll_norm':
+            y = [torch.Tensor(pred_i['truth'][h]) for h in range(len(pred_i['truth']))]
+            mn = [torch.Tensor(pred_i['pred'][h]) for h in range(len(pred_i['pred']))]
+            naive = [torch.ones_like(torch.Tensor(pred_i['pred'][h]))*np.mean(pred_i['pred'][h]) for h in range(len(pred_i['pred']))]
+
+            with torch.no_grad():
+                negll = s_coll_i.s_mdl.neg_ll(y=y, mn=mn).detach().cpu().numpy().item()
+                negll_naive = s_coll_i.s_mdl.neg_ll(y=y, mn=naive).detach().cpu().numpy().item()
+            negll_norm = (negll - negll_naive)/(-negll_naive)
+            metrics[c_i] = negll_norm
+
         else:
-                metrics[c_i] = metric(pred_i)
+            metrics[c_i] = metric(pred_i)
 
         if return_preds:
             preds_with_truth[c_i] = pred_i
@@ -1638,7 +1650,7 @@ def predict(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleLis
 
 def predict_with_truth(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleList,
                        data: TimeSeriesBatch, batch_size: int = 100,
-                       time_grp: int = None, sample: bool = False):
+                       time_grp: int = None, sample: bool = False, dtype: np.dtype = np.float32):
     """ Predicts output for a model, using posterior over modes, and including true data in output for reference.
 
     This is a wrapper function around predict for convenience.
@@ -1681,6 +1693,8 @@ def predict_with_truth(s_collection: SubjectVICollection, input_modules: torch.n
     else:
         time = None
 
-    return {'pred': pred, 'truth': truth, 'time': time}
+    return {'pred': [p.astype(dtype) for p in pred],
+            'truth': [t.astype(dtype) for t in truth],
+            'time': time}
 
 
