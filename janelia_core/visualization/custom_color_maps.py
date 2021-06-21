@@ -249,6 +249,28 @@ def make_red_green_c_map(n: int = 256, inc_transp: bool = False) -> matplotlib.c
                                                                (1.0, [0.0, 1.0, 0.0, 1.0])], N=n)
 
 
+def make_purple_green_c_map(n: int = 256, inc_transp: bool = False) -> matplotlib.colors.LinearSegmentedColormap:
+    """ Generates a color map that linearly goes from purple at 0, to black at .5 and then to green at 1.
+
+    Args:
+        n: The number of values in the color map
+
+        inc_transp: True if values in the middle of the map (black) should also be transparent.
+
+    Returns:
+        cmap: The generated color map.
+    """
+
+    if inc_transp:
+        middle_alpha = 0.0
+    else:
+        middle_alpha = 1.0
+
+    return matplotlib.colors.LinearSegmentedColormap.from_list(name='purple_to_green',
+                                                               colors=[(0,  [75.0/255, 0.0, 146.0/255.0, 1.0]),
+                                                                       (.5, [0.0, 0.0, 0.0, middle_alpha]),
+                                                                       (1.0, [26.0/255, 1.0, 26.0/255.0, 1.0])], N=n)
+
 
 
 

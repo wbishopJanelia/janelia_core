@@ -4,13 +4,12 @@
 from typing import Sequence, Union
 from warnings import warn
 
-from janelia_core.ml.torch_fcns import knn_do
-
 import numpy as np
 import torch
 from torch.nn.functional import relu
 
 from janelia_core.math.basic_functions import int_to_arb_base
+from janelia_core.ml.torch_fcns import knn_do
 
 # Define aliases
 OptionalTensor = Union[torch.Tensor, None]
@@ -569,7 +568,8 @@ class IndSmpConstantBoundedFcn(torch.nn.Module):
     each sample in a conditional Gaussian distribution.
     """
 
-    def __init__(self, n: int, lower_bound: float = -1.0, upper_bound: float = 1.0, init_value: float = .05):
+    def __init__(self, n: int, lower_bound: float = -1.0, upper_bound: float = 1.0, init_value: float = .05,
+                 check_sizes: bool = True):
         """
         Creates an IndSmpConstantBoundedFcn object.
 
@@ -582,6 +582,9 @@ class IndSmpConstantBoundedFcn(torch.nn.Module):
 
             init_value: The initial value to assign to each sample.  All samples will have the same initial value.
 
+            check_sizes: If true, checks that the number of rows of input matches n (the number of samples) whenn
+            calling forward.  If false, this check is omitted.
+
         """
         super().__init__()
 
@@ -592,6 +595,8 @@ class IndSmpConstantBoundedFcn(torch.nn.Module):
         init_vls = init_value*np.ones(n, dtype=np.float32)
 
         self.f = ConstantBoundedFcn(lower_bound=l_bounds, upper_bound=u_bounds, init_value=init_vls)
+
+        self.check_sizes = check_sizes
 
     def forward(self, x):
         """ Assigns a value to each sample in x.
@@ -606,7 +611,7 @@ class IndSmpConstantBoundedFcn(torch.nn.Module):
             ValueError: If the number of samples in x does not match the the number of samples the function represents.
         """
 
-        if self.n != x.shape[0]:
+        if self.check_sizes and self.n != x.shape[0]:
             raise(ValueError(' Number of input samples does not match number of output values.'))
 
         place_holder_input = torch.zeros(1)
@@ -631,19 +636,24 @@ class IndSmpConstantRealFcn(torch.nn.Module):
     conditional Gaussian distribution.
     """
 
-    def __init__(self, n: int, init_mn: float = 0.0, init_std: float = 0.1):
+    def __init__(self, n: int, init_mn: float = 0.0, init_std: float = 0.1, check_sizes: bool = True):
         """ Creates a IndSmpConstantBoundedFcn object.
 
         Args:
             n: The number of samples this function will assign values to.
 
             init_value: The initial value to assign to each sample.
+
+            check_sizes: If true, checks that the number of rows of input matches n (the number of samples) whenn
+            calling forward.  If false, this check is omitted.
         """
 
         super().__init__()
         self.n = n
         self.f = ConstantRealFcn(np.zeros(n))
         torch.nn.init.normal_(self.f.vl, mean=init_mn, std=init_std)
+
+        self.check_sizes = check_sizes
 
     def forward(self, x):
         """ Assigns a value to each sample in x.
@@ -658,7 +668,7 @@ class IndSmpConstantRealFcn(torch.nn.Module):
             ValueError: If the number of samples in x does not match the the number of samples the function represents.
         """
 
-        if self.n != x.shape[0]:
+        if self.check_sizes and self.n != x.shape[0]:
             raise(ValueError('Number of input samples does not match number of output samples.'))
 
         place_holder_input = torch.zeros(1)
@@ -1151,6 +1161,111 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         return torch.sum(self.b_m[self._x_to_idx(x)], dim=1).view([n_smps, 1])
 
 
+class SumOfRelus(torch.nn.Module):
+    """
+    A sum of Relu functions.
+
+    The idea behind this function is we tile an input space by a collection of scaled ReLU functions, where the
+    centers for each function determine the location of these functions and the weights and scales determine how they
+    are oriented and the slope in the non-zero part of the relu. We then sum the results of passing a data
+    point through all these functions tiling the landscape to get a final output.
+
+
+    Specifically, this ia function from x \in R^d_in to y \in R^d_out, where the i^th dimensoun of output is
+
+        y[i] = \sum_i s_ij*relu(w_ij'*(x - c_j)),
+
+    where w_ij is a weight vector for output dimension i and relu function j, c_j is the center for relu function
+    c_j and s_ij is the scale for output dimension i of relu function j.
+
+    """
+
+    def __init__(self, init_ctrs: torch.Tensor, init_w: torch.Tensor, init_s: torch.Tensor):
+        """ Creates a new PWLManifold object.
+
+        init_ctrs: initial centers of shape n_ctrs*input_dim
+
+        init_w: initial weights of shape n_ctrs*output_dim*input_dim
+
+        init_s: initial scales of shape n_ctrs*output_dim
+        """
+
+        super().__init__()
+
+        self.ctrs = torch.nn.Parameter(init_ctrs)
+        self.w = torch.nn.Parameter(init_w)
+        self.s = torch.nn.Parameter(init_s)
+        self.n_fcns, self.d_in = init_ctrs.shape
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes output from input.
+
+        Args:
+            x: Input of shape n_smps*input_dim
+
+        Returns:
+            y: Output of shape n_smps*output_dim
+        """
+
+        x_centered = x - self.ctrs.unsqueeze(1)
+        relu_output = torch.relu(torch.sum(x_centered.unsqueeze(1)*self.w.unsqueeze(2), axis=-1))
+        scaled_relu_output = relu_output*self.s.unsqueeze(-1)
+        return torch.sum(scaled_relu_output, axis=0).t()
+
+
+class SwissRole(torch.nn.Module):
+    """ Represents a swiss role function.
+
+
+    This is function that maps from (x,y) to (x,y,z) according to
+
+    x = x
+    y = a*(y+b)*sin(c*y)
+    z = a*(y+b)*cos(c*y),
+
+    where a, b and c are learnable parameters.
+
+    """
+
+    def __init__(self, a: torch.Tensor, b: torch.Tensor, c: torch.Tensor):
+        """ Creates a new SwissRole object.
+
+        Args:
+
+            a: The a parameter.  Shuold be a 1-d vector with a single entry
+
+            b: The b parameter.  Shuold be a 1-d vector with a single entry
+
+            c: The c parameter.  Shuold be a 1-d vector with a single entry
+
+        Raises:
+
+            ValueError: If any of the parameters have the wrong shape
+        """
+
+        if a.shape != torch.Size([1]) or b.shape != torch.Size([1]) or c.shape != torch.Size([1]):
+            raise(ValueError('All inputs must be 1-d tensors with a single element.'))
+
+        super().__init__()
+        self.a = torch.nn.Parameter(a)
+        self.b = torch.nn.Parameter(b)
+        self.c = torch.nn.Parameter(c)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes output from input.
+
+        Args:
+            x: Input of shape n_smps*2
+
+        Returns:
+            y: Output of shape n_smps*3
+        """
+
+        return torch.stack([x[:,0],
+                            self.a*(x[:, 1] + self.b)*torch.sin(self.c*x[:, 1]),
+                            self.a*(x[:, 1] + self.b)*torch.cos(self.c*x[:, 1])]).t()
+
+
 class Tanh(torch.nn.Module):
     """ A module implementing y = s*tanh(x) + o """
 
@@ -1203,8 +1318,6 @@ class Unsqueeze(torch.nn.Module):
 
         super().__init__()
         self.dim = dim
-
-        raise(NotImplementedError('This function is implemented but has never been tested.  Test before using.'))
 
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         """ Computes input from output. """

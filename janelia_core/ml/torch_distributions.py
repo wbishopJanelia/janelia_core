@@ -1101,19 +1101,19 @@ class MatrixGammaProductDistribution(CondMatrixProductDistribution):
 
     """
 
-    def __init__(self, shape: Sequence[int], beta_lb: float = .001, beta_ub: float = 10.0, beta_iv: float = 1.0,
-                 rate_lb: float = .001, rate_ub: float = 10.0, rate_iv: float = 1.0):
+    def __init__(self, shape: Sequence[int], conc_lb: float = 1.0, conc_ub: float = 1000.0, conc_iv: float = 10.0,
+                 rate_lb: float = .001, rate_ub: float = 1000.0, rate_iv: float = 10.0):
         """ Creates a new MatrixGammaProductDistribution object.
 
         Args:
 
             shape: The shape of matrices this represents distributions over.
 
-            beta_lb: The lower bound that concentration parameters can take on
+            conc_lb: The lower bound that concentration parameters can take on
 
-            beta_ub: The upper bound that concentration parameters can take on
+            conc_ub: The upper bound that concentration parameters can take on
 
-            beta_iv: The initial value for concentration parameters.  All distributions will be initialized to have the
+            conc_iv: The initial value for concentration parameters.  All distributions will be initialized to have the
             same initial values.
 
             rate_lb: The lower bound that rate parameters can take on
@@ -1126,32 +1126,34 @@ class MatrixGammaProductDistribution(CondMatrixProductDistribution):
         n_rows, n_cols = shape
         col_dists = [None]*n_cols
         for c_i in range(n_cols):
-            conc_f = IndSmpConstantBoundedFcn(n=n_rows, lower_bound=beta_lb, upper_bound=beta_ub, init_value=beta_iv)
-            rate_f = IndSmpConstantBoundedFcn(n=n_rows, lower_bound=rate_lb, upper_bound=rate_ub, init_value=rate_iv)
+            conc_f = IndSmpConstantBoundedFcn(n=n_rows, lower_bound=conc_lb, upper_bound=conc_ub, init_value=conc_iv,
+                                              check_sizes=False)
+            rate_f = IndSmpConstantBoundedFcn(n=n_rows, lower_bound=rate_lb, upper_bound=rate_ub, init_value=rate_iv,
+                                              check_sizes=False)
             col_dists[c_i] = CondGammaDistribution(conc_f=conc_f, rate_f=rate_f)
 
         # Create the object
         super().__init__(dists=col_dists)
         self.n_rows = n_rows
 
-    def forward(self, x: torch.Tensor = None):
-        """ Overwrites parent forward so x does not have to be provided. """
-        return super().forward(x=torch.zeros([self.n_rows, 1]))
+    #def forward(self, x: torch.Tensor = None):
+    #    """ Overwrites parent forward so x does not have to be provided. """
+    #    return super().forward(x=torch.zeros([self.n_rows, 1]))
 
-    def sample(self, x: torch.Tensor = None) -> list:
-        """ Overwrites parent sample so x does not have to be provided. """
-        return super().sample(x=torch.zeros([self.n_rows, 1]))
+    #def sample(self, x: torch.Tensor = None) -> list:
+    #    """ Overwrites parent sample so x does not have to be provided. """
+    #    return super().sample(x=torch.zeros([self.n_rows, 1]))
 
-    def log_prob(self, x: torch.Tensor = None, y: Sequence = None) -> torch.Tensor:
-        """ Overwrites parent log_prob so x does not have to be provided.
+    #def log_prob(self, x: torch.Tensor = None, y: Sequence = None) -> torch.Tensor:
+    #    """ Overwrites parent log_prob so x does not have to be provided.
 
-        Raises:
-            ValueError: If y is None.
-        """
-        if y is None:
-            raise(ValueError('y value cannot be none'))
-
-        return super().log_prob(x=torch.zeros([self.n_rows, 1]), y=y)
+    #    Raises:
+    #        ValueError: If y is None.
+    #   """
+    #    if y is None:
+    #        raise(ValueError('y value cannot be none'))
+    #
+    #    return super().log_prob(x=torch.zeros([self.n_rows, 1]), y=y)
 
 
 class MatrixFoldedNormalProductDistribution(CondMatrixProductDistribution):
@@ -1257,8 +1259,9 @@ class MatrixGaussianProductDistribution(CondGaussianMatrixProductDistribution):
         n_rows, n_cols = shape
         col_dists = [None]*n_cols
         for c_i in range(n_cols):
-            mn_f = IndSmpConstantRealFcn(n=n_rows, init_mn=mn_mn, init_std=mn_std)
-            std_f = IndSmpConstantBoundedFcn(n=n_rows, lower_bound=std_lb, upper_bound=std_ub, init_value=std_iv)
+            mn_f = IndSmpConstantRealFcn(n=n_rows, init_mn=mn_mn, init_std=mn_std, check_sizes=False)
+            std_f = IndSmpConstantBoundedFcn(n=n_rows, lower_bound=std_lb, upper_bound=std_ub, init_value=std_iv,
+                                             check_sizes=False)
             col_dists[c_i] = CondGaussianDistribution(mn_f=mn_f, std_f=std_f)
 
         # Create the object
@@ -1284,24 +1287,24 @@ class MatrixGaussianProductDistribution(CondGaussianMatrixProductDistribution):
             init_v = init_v.to(std_device)
             d.std_f.f.v.data = init_v
 
-    def forward(self, x: torch.Tensor = None) -> torch.Tensor:
-        """ Overwrites parent forward so x does not have to be provided. """
-        return super().forward(x=torch.zeros([self.n_rows, 1]))
+    #def forward(self, x: torch.Tensor = None) -> torch.Tensor:
+    #    """ Overwrites parent forward so x does not have to be provided. """
+    #    return super().forward(x=torch.zeros([self.n_rows, 1]))
 
-    def sample(self, x: torch.Tensor = None) -> list:
-        """ Overwrites parent sample so x does not have to be provided. """
-        return super().sample(x=torch.zeros([self.n_rows, 1]))
+    #def sample(self, x: torch.Tensor = None) -> list:
+    #    """ Overwrites parent sample so x does not have to be provided. """
+    #    return super().sample(x=torch.zeros([self.n_rows, 1]))
 
-    def log_prob(self, x: torch.Tensor = None, y: Sequence = None) -> torch.Tensor:
-        """ Overwrites parent log_prob so x does not have to be provided.
+    #def log_prob(self, x: torch.Tensor = None, y: Sequence = None) -> torch.Tensor:
+    #    """ Overwrites parent log_prob so x does not have to be provided.
+    #
+    #    Raises:
+    #        ValueError: If y is None.
+    #    """
+    #    if y is None:
+    #        raise(ValueError('y value cannot be none'))
 
-        Raises:
-            ValueError: If y is None.
-        """
-        if y is None:
-            raise(ValueError('y value cannot be none'))
-
-        return super().log_prob(x=torch.zeros([self.n_rows, 1]), y=y)
+    #    return super().log_prob(x=torch.zeros([self.n_rows, 1]), y=y)
 
 
 class CondMatrixHypercubePrior(CondGaussianMatrixProductDistribution):
@@ -1344,6 +1347,7 @@ class CondMatrixHypercubePrior(CondGaussianMatrixProductDistribution):
 
         """
 
+
         if std_init <= min_std:
             raise(ValueError('std_init must be greater than min_std'))
 
@@ -1353,16 +1357,16 @@ class CondMatrixHypercubePrior(CondGaussianMatrixProductDistribution):
 
             # Create mean function, setting it's initial value
             mn_f = SumOfTiledHyperCubeBasisFcns(**mn_hc_params)
-            n_basis_fcns_per_mn_cube = np.cumprod(mn_hc_params['n_div_per_hc_side_per_dim'])[-1]
-            mn_cube_vl = mn_init/n_basis_fcns_per_mn_cube
-            mn_f.b_m.data = mn_cube_vl*torch.ones_like(mn_f.b_m.data)
+            #n_basis_fcns_per_mn_cube = np.cumprod(mn_hc_params['n_div_per_hc_side_per_dim'])[-1]
+            #mn_cube_vl = mn_init/n_basis_fcns_per_mn_cube
+            #mn_f.b_m.data = mn_cube_vl*torch.ones_like(mn_f.b_m.data)
 
             # Create standard deviation function, setting it's initial value
             std_hc_f = SumOfTiledHyperCubeBasisFcns(**std_hc_params)
 
-            n_basis_fcns_per_std_cube = np.cumprod(std_hc_params['n_div_per_hc_side_per_dim'])[-1]
-            std_cube_vl = np.log(std_init - min_std)/n_basis_fcns_per_std_cube
-            std_hc_f.b_m.data = std_cube_vl*torch.ones_like(std_hc_f.b_m.data)
+            #n_basis_fcns_per_std_cube = np.cumprod(std_hc_params['n_div_per_hc_side_per_dim'])[-1]
+            #std_cube_vl = np.log(std_init - min_std)/n_basis_fcns_per_std_cube
+            #std_hc_f.b_m.data = std_cube_vl*torch.ones_like(std_hc_f.b_m.data)
 
             std_f = torch.nn.Sequential(std_hc_f, FixedOffsetExp(min_std))
 
@@ -1370,6 +1374,13 @@ class CondMatrixHypercubePrior(CondGaussianMatrixProductDistribution):
             col_dists[c_i] = CondGaussianDistribution(mn_f=mn_f, std_f=std_f)
 
         super().__init__(dists=col_dists)
+        self.n_cols = n_cols
+        self.mn_hc_params = mn_hc_params
+        self.std_hc_params = std_hc_params
+        self.min_std = min_std
+
+        self.set_mn(mn_init)
+        self.set_std(std_init)
 
     def increase_std(self, f: float):
         """ Increases the standard deviation by a factor which is approximately log(f).
@@ -1379,6 +1390,34 @@ class CondMatrixHypercubePrior(CondGaussianMatrixProductDistribution):
         """
         for d in self.dists:
             d.std_f[0].b_m.data[:] = d.std_f[0].b_m.data[:] + np.log(f)
+
+    def set_mn(self, v: float):
+        """ Set the mean to a single value everyhwere.
+
+        Args:
+
+            v: The value to set the mean to
+        """
+
+        for c_i in range(self.n_cols):
+            mn_hc_f = self.dists[c_i].mn_f
+            n_basis_fcns_per_mn_cube = np.cumprod(self.mn_hc_params['n_div_per_hc_side_per_dim'])[-1]
+            mn_cube_vl = v / n_basis_fcns_per_mn_cube
+            mn_hc_f.b_m.data = mn_cube_vl * torch.ones_like(mn_hc_f.b_m.data)
+
+    def set_std(self, v: float):
+        """ Sets the standard deviation to a single value everywhere.
+
+        Args:
+
+            v: The value to set the standard deviation to
+
+        """
+        for c_i in range(self.n_cols):
+            std_hc_f = self.dists[c_i].std_f[0]
+            n_basis_fcns_per_std_cube = np.cumprod(self.std_hc_params['n_div_per_hc_side_per_dim'])[-1]
+            std_cube_vl = np.log(v - self.min_std) / n_basis_fcns_per_std_cube
+            std_hc_f.b_m.data = std_cube_vl * torch.ones_like(std_hc_f.b_m.data)
 
 
 class GroupCondMatrixHypercubePrior(CondGaussianMatrixProductDistribution):
