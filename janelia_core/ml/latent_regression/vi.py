@@ -1464,7 +1464,7 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
 
     # Transfer data to gpu if gpu is available and is specified to use
     if cuda_is_available and use_gpu:
-        data.to(devices[1])
+        data.to(devices[0])
 
     # Generate predictions
     n_mdls = len(s_collections)
@@ -1476,8 +1476,8 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
 
         # Transfer data to gpu if gpu is available and is specified to use
         if cuda_is_available and use_gpu:
-            s_coll_i.to(devices[1])
-            input_modules_i.to(devices[1])
+            s_coll_i.to(devices[0])
+            input_modules_i.to(devices[0])
 
         # Make prediction
         pred_i = predict_with_truth(s_collection=s_coll_i, input_modules=input_modules_i,
