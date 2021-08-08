@@ -24,6 +24,10 @@ Core code for William Bishop's work at Janelia.
 5) Install pytorch by running this command:
     - Mac: conda install pytorch torchvision -c pytorch
     - Windows: conda install pytorch -c pytorch, pip install torchvision
+    
+6) Optionally install moviepy by running this command:  pip install moviepy==2.0.0.dev1.
+    - moviepy is required for only one visualization function.  If you do not need this function, there is 
+    no need to install it - the rest of the code will function fine without it
 
 #### Installing pyklb
 
