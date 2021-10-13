@@ -837,8 +837,7 @@ def visualize_coefficient_stats(var_strs: Sequence, theta: np.ndarray = None, c_
         will be used for all plotting.
 
         sig: sig[i] is True if the coefficient for var_strs[i] is significant. Significant values will have a
-        star plotted to indicate they are significant.  In addition, the line style of confidence intervals
-        for significant values will be solid lines, while those for insignificant ones will be dashed.
+        star plotted to indicate they are significant.
 
         theta_size: The size of the marker to use when plotting point estimages of coefficients.
 
