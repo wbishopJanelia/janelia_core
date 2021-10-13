@@ -249,7 +249,7 @@ def make_red_green_c_map(n: int = 256, inc_transp: bool = False) -> matplotlib.c
                                                                (1.0, [0.0, 1.0, 0.0, 1.0])], N=n)
 
 
-def make_purple_green_c_map(n: int = 256, inc_transp: bool = False) -> matplotlib.colors.LinearSegmentedColormap:
+def make_purple_green_c_map(n: int = 256, inc_transp: bool = False, gentle: bool = False) -> matplotlib.colors.LinearSegmentedColormap:
     """ Generates a color map that linearly goes from purple at 0, to black at .5 and then to green at 1.
 
     Args:
@@ -266,10 +266,21 @@ def make_purple_green_c_map(n: int = 256, inc_transp: bool = False) -> matplotli
     else:
         middle_alpha = 1.0
 
-    return matplotlib.colors.LinearSegmentedColormap.from_list(name='purple_to_green',
-                                                               colors=[(0,  [75.0/255, 0.0, 146.0/255.0, 1.0]),
-                                                                       (.5, [0.0, 0.0, 0.0, middle_alpha]),
-                                                                       (1.0, [26.0/255, 1.0, 26.0/255.0, 1.0])], N=n)
+    if not gentle:
+        return matplotlib.colors.LinearSegmentedColormap.from_list(name='purple_to_green',
+                                                                   colors=[(0,  [75.0/255, 0.0, 146.0/255.0, 1.0]),
+                                                                           (.5, [0.0, 0.0, 0.0, middle_alpha]),
+                                                                           (1.0, [26.0/255, 1.0, 26.0/255.0, 1.0])],
+                                                                   N=n)
+    else:
+        return matplotlib.colors.LinearSegmentedColormap.from_list(name='purple_to_green',
+                                                                   colors=[(0, [75.0 / 255, 0.0, 146.0 / 255.0, 1.0]),
+                                                                           (.4, [75.0 / 255, 0.0, 146.0 / 255.0, .1]),
+                                                                           (.5, [0.0, 0.0, 0.0, middle_alpha]),
+                                                                           (.6, [26.0 / 255, 1.0, 26.0 / 255.0, .1]),
+                                                                           (1.0, [26.0 / 255, 1.0, 26.0 / 255.0, 1.0])],
+                                                                   N=n)
+
 
 
 
