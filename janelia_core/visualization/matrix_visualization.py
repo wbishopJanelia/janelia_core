@@ -14,8 +14,8 @@ import numpy as np
 
 def colorized_tbl(tbl: np.ndarray, dim_0_lbls: list = None, dim_1_lbls: list = None,
                   tbl_fontsize=12, tbl_values_x_offset: float = 0.1, tbl_value_format_str: str = '{:.1e}',
-                  show_colorbar = True, cmap: Union[str, matplotlib.colors.Colormap] = None,
-                  ax: plt.Axes = None, label_fontsize=12, xtick_rotation: float = 0.0,
+                  show_colorbar = True, cmap: Union[str, matplotlib.colors.Colormap] = None, vmin: float = None,
+                  vmax: float = None, ax: plt.Axes = None, label_fontsize=12, xtick_rotation: float = 0.0,
                   ytick_rotation: float = 0.0):
     """ Plots a table of values with colors corresponding to values in each table entry.
 
@@ -43,6 +43,10 @@ def colorized_tbl(tbl: np.ndarray, dim_0_lbls: list = None, dim_1_lbls: list = N
 
         cmap: The colormap to use when mapping colors to values.
 
+        vmin: The lower value that the colormap should satureate at.  If None, will be set from data.
+
+        vmax: The upper value that the colormap should saturate at.  If None, will be set from data.
+
         ax: Axes to plot the table in.  If None, a new figure and axes will be created.
 
         label_fontsize: Fontsize in points for axes labels and the optional colorbar
@@ -54,7 +58,7 @@ def colorized_tbl(tbl: np.ndarray, dim_0_lbls: list = None, dim_1_lbls: list = N
     if ax is None:
         ax = plt.subplot(1,1,1)
 
-    im = ax.imshow(tbl, cmap=cmap)
+    im = ax.imshow(tbl, cmap=cmap, vmin=vmin, vmax=vmax)
 
     n_rows, n_cols = tbl.shape
 
