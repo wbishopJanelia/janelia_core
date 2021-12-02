@@ -696,7 +696,7 @@ def visualize_projs(horz_projs:  Sequence[np.ndarray], sag_projs: Sequence[np.nd
     z_proj_rect = (h_0_p, v_1_p, dy_perc_w, dx_perc_h)
     x_proj_rect = (h_0_p, v_0_p, dy_perc_w, dz_perc_h)
     y_proj_rect = (h_1_p, v_1_p, dz_perc_w, dx_perc_h)
-    cmap_rect = (h_1_p, v_0_p, dz_perc_w, dz_perc_h)
+    cmap_rect = (h_1_p, v_0_p, .3*dz_perc_w, dz_perc_h)
 
     # Now we add the axes, adding the title while it is convenient
     z_proj_axes = f.add_axes(z_proj_rect)
@@ -712,7 +712,8 @@ def visualize_projs(horz_projs:  Sequence[np.ndarray], sag_projs: Sequence[np.nd
     x_proj_axes.set_aspect('equal')
     y_proj_axes.set_aspect('equal')
     if plot_cmap:
-        cmap_axes.set_aspect('equal')
+        pass
+        #cmap_axes.set_aspect('equal')
 
     # Get rid of units on the projection axes
 
