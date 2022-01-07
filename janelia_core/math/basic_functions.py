@@ -4,6 +4,7 @@
     bishopw@hhmi.org
 """
 
+import math
 from typing import List, Sequence, Tuple, Union
 import re
 
@@ -516,6 +517,57 @@ def optimal_orthonormal_transform(m_0: np.ndarray, m_1: np.ndarray) -> np.ndarra
     s = np.matmul(m_0.transpose(), m_1)
     u, _, v_transpose = np.linalg.svd(s)
     return (np.matmul(u, v_transpose)).transpose()
+
+
+def pts_in_arc(pts, ctr, arc_angle):
+    """ Checks if points are withing a given arc.
+
+    Args:
+
+        pts: The coordinates of the points, of shape n_pts*2
+
+        ctr: The origin for defining the arc.
+
+        arc_angle: The angle the arc covers.  Can be in the range (-inf, inf).
+
+    Returns:
+
+        pts_in: A boolean array of length n_pts, indicating which points are in the arc
+
+    """
+
+    if arc_angle[1] < arc_angle[0]:
+        raise(ValueError('arc_angle[1] must be >= arc_angle[0]'))
+
+    two_pi = 2*np.pi
+
+    n_pts = pts.shape[0]
+    if arc_angle[1] - arc_angle[0] > two_pi:
+        return np.ones(n_pts, dtype=bool)
+    else:
+        # Make sure the start of the arc angle is in the range [0, 2*pi]
+        if np.sign(arc_angle[0]) >= 0:
+            shift = -1*np.floor(arc_angle[0]/two_pi)*two_pi
+        else:
+            shift = np.ceil(np.abs(arc_angle[0])/two_pi)*two_pi
+        arc_angle = [an + shift for an in arc_angle]
+
+        # Now handle special case that the end of the arc is over 2*pi
+        if arc_angle[1] <= two_pi:
+            ang_0 = arc_angle
+            ang_1 = [0, 0]
+        else:
+            ang_0 = [arc_angle[0], two_pi]
+            ang_1 = [0, arc_angle[1] - two_pi]
+
+        # Now get the angle of each point
+        ctred_pts = pts - ctr
+        angs = np.asarray([math.atan2(v[0], v[1]) for v in ctred_pts])
+        angs[angs < 0] += two_pi
+
+        return np.asarray([(a >= ang_0[0] and a <= ang_0[1]) or (a >= ang_1[0] and a <= ang_1[1]) for a in angs])
+
+
 
 
 def select_subslice(s1: slice, s2: slice) -> slice:

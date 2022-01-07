@@ -1357,17 +1357,9 @@ class CondMatrixHypercubePrior(CondGaussianMatrixProductDistribution):
 
             # Create mean function, setting it's initial value
             mn_f = SumOfTiledHyperCubeBasisFcns(**mn_hc_params)
-            #n_basis_fcns_per_mn_cube = np.cumprod(mn_hc_params['n_div_per_hc_side_per_dim'])[-1]
-            #mn_cube_vl = mn_init/n_basis_fcns_per_mn_cube
-            #mn_f.b_m.data = mn_cube_vl*torch.ones_like(mn_f.b_m.data)
 
             # Create standard deviation function, setting it's initial value
             std_hc_f = SumOfTiledHyperCubeBasisFcns(**std_hc_params)
-
-            #n_basis_fcns_per_std_cube = np.cumprod(std_hc_params['n_div_per_hc_side_per_dim'])[-1]
-            #std_cube_vl = np.log(std_init - min_std)/n_basis_fcns_per_std_cube
-            #std_hc_f.b_m.data = std_cube_vl*torch.ones_like(std_hc_f.b_m.data)
-
             std_f = torch.nn.Sequential(std_hc_f, FixedOffsetExp(min_std))
 
             # Create the distribution for the column

@@ -172,7 +172,7 @@ class ConstantBoundedFcn(torch.nn.Module):
 
         """
 
-        EP = 1e-10
+        EP = 1E-7
 
         # Make sure everything is within bounds
         if any(vl < self.lower_bound.numpy()) or any(vl > self.upper_bound.numpy()):
