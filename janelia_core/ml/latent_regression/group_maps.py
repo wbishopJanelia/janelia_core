@@ -356,6 +356,7 @@ class ConcatenateAndSelectMap(torch.nn.Module):
 
         sel_tensors = [torch.cat([inds + input_offsets[g] for g, inds in enumerate(input_grp_inds) if inds is not None])
                        for input_grp_inds in output_inds]
+        sel_tensors = [t.long() for t in sel_tensors]
 
         # Register the indices for selecting input as buffers
         self.sel_tensors = []

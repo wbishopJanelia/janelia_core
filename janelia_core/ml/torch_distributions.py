@@ -550,6 +550,7 @@ class CondGaussianDistribution(CondVAEDistribution):
 
         Args:
             x: data samples are conditioned on. Of shape n_smps*d_x.
+            mn_kwargs: key-word arguments to be passed to the mean function
 
         Returns:
             mn: mn[i,:] is the mean conditioned on x[i,:]
@@ -591,10 +592,13 @@ class CondGaussianDistribution(CondVAEDistribution):
 
         Args:
             x: Data we condition on.  Of shape nSmps*d_x.
+            mn_kwargs: key-word arguments to be passed to the mean function
+            std_kwargs: key-word arguments to be passed to the mean function
 
         Returns:
             y: sampled data of shape nSmps*d_y.
         """
+
 
         mn = self.mn_f(x)
         std = self.std_f(x)

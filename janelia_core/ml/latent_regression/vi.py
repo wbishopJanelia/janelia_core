@@ -19,6 +19,7 @@ from janelia_core.ml.torch_parameter_penalizers import ParameterPenalizer
 
 from janelia_core.ml.utils import format_and_check_learning_rates
 from janelia_core.ml.utils import torch_devices_memory_usage
+from janelia_core.ml.utils import list_torch_devices
 
 
 def format_output_list(base_str: str, it_str: str, vls: Sequence[float], inds: Sequence[int]):
@@ -726,7 +727,8 @@ class MultiSubjectVIFitter():
     def fit(self, n_epochs: int = 10, n_batches: int = 10, learning_rates=.01,
             adam_params: dict = {}, s_inds: Sequence[int] = None, fix_priors: bool = False,
             enforce_priors: bool = True, update_int: int = 1, print_opts: dict = None,
-            cp_epochs: Sequence[int] = None, cp_penalizers: bool = True) -> [dict, Union[List, None]]:
+            cp_epochs: Sequence[int] = None, cp_penalizers: bool = True, pre_fit_functions: Sequence[Callable] = None)\
+            -> [dict, Union[List, None]]:
         """
 
         Args:
@@ -769,6 +771,8 @@ class MultiSubjectVIFitter():
             penalizers will be made).  If no check points should be made, set this to None.
 
             cp_penalizers: True if penalizers should be included in the check points.
+
+            pre_fit_function: Function to be called before fitting (useful for e.g. dropout)
 
         Return:
             log: A dictionary with the following entries:
@@ -816,6 +820,10 @@ class MultiSubjectVIFitter():
 
         if not self.distributed:
             raise(RuntimeError('self.distribute() must be called before fitting.'))
+
+        if pre_fit_functions is not None:
+            for function in pre_fit_functions:
+                function.apply(self)
 
         # See what devices we are using for fitting (this is so we can later query their memory usage)
         all_devices = self.get_used_devices()
@@ -1419,7 +1427,7 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
               input_modules: Sequence[torch.nn.ModuleList],
               data: TimeSeriesBatch, batch_size: int = 100,
               metric: Callable = None, return_preds: bool = True,
-              sample: bool = False) -> List:
+              sample: bool = False, use_gpu: bool = True) -> List:
     """ Measures model fits on a given set of data.
 
     This function generates predictions for each model using the posterior means of modes. It then evaluates these
@@ -1452,6 +1460,12 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
         predict_with_turth. This will only be returned in return_preds is true.
     """
 
+    devices, cuda_is_available = list_torch_devices(verbose=False)
+
+    # Transfer data to gpu if gpu is available and is specified to use
+    if cuda_is_available and use_gpu:
+        data.to(devices[0])
+
     # Generate predictions
     n_mdls = len(s_collections)
     preds_with_truth = [None]*n_mdls
@@ -1460,22 +1474,46 @@ def eval_fits(s_collections: Sequence[SubjectVICollection],
         if c_i % 1 == 0:
             print('Generating predictions for fit: ' + str(c_i))
 
+        # Transfer data to gpu if gpu is available and is specified to use
+        if cuda_is_available and use_gpu:
+            s_coll_i.to(devices[0])
+            input_modules_i.to(devices[0])
+
         # Make prediction
         pred_i = predict_with_truth(s_collection=s_coll_i, input_modules=input_modules_i,
                                     data=data, batch_size=batch_size, time_grp=None,
                                     sample=sample)
 
+        # Make sure data is on cpu again
+        s_coll_i.to('cpu')
+        input_modules_i.to('cpu')
+
         # Evaluate fits
-        if metric is None:
+        if metric is None or metric == 'neg_ll':
             y = [torch.Tensor(pred_i['truth'][h]) for h in range(len(pred_i['truth']))]
             mn = [torch.Tensor(pred_i['pred'][h]) for h in range(len(pred_i['pred']))]
             with torch.no_grad():
                 metrics[c_i] = s_coll_i.s_mdl.neg_ll(y=y, mn=mn).detach().cpu().numpy().item()
+
+        elif metric == 'neg_ll_norm':
+            y = [torch.Tensor(pred_i['truth'][h]) for h in range(len(pred_i['truth']))]
+            mn = [torch.Tensor(pred_i['pred'][h]) for h in range(len(pred_i['pred']))]
+            naive = [torch.ones_like(torch.Tensor(pred_i['pred'][h]))*np.mean(pred_i['pred'][h]) for h in range(len(pred_i['pred']))]
+
+            with torch.no_grad():
+                negll = s_coll_i.s_mdl.neg_ll(y=y, mn=mn).detach().cpu().numpy().item()
+                negll_naive = s_coll_i.s_mdl.neg_ll(y=y, mn=naive).detach().cpu().numpy().item()
+            negll_norm = (negll - negll_naive)/(-negll_naive)
+            metrics[c_i] = negll_norm
+
         else:
-                metrics[c_i] = metric(pred_i)
+            metrics[c_i] = metric(pred_i)
 
         if return_preds:
             preds_with_truth[c_i] = pred_i
+
+    # Make sure data is on cpu again
+    data.to('cpu')
 
     if return_preds:
         return [metrics, preds_with_truth]
@@ -1612,7 +1650,7 @@ def predict(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleLis
 
 def predict_with_truth(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleList,
                        data: TimeSeriesBatch, batch_size: int = 100,
-                       time_grp: int = None, sample: bool = False):
+                       time_grp: int = None, sample: bool = False, dtype: np.dtype = np.float32):
     """ Predicts output for a model, using posterior over modes, and including true data in output for reference.
 
     This is a wrapper function around predict for convenience.
@@ -1655,6 +1693,8 @@ def predict_with_truth(s_collection: SubjectVICollection, input_modules: torch.n
     else:
         time = None
 
-    return {'pred': pred, 'truth': truth, 'time': time}
+    return {'pred': [p.astype(dtype) for p in pred],
+            'truth': [t.astype(dtype) for t in truth],
+            'time': time}
 
 
