@@ -988,6 +988,54 @@ class SumAlongDim(torch.nn.Module):
         return torch.sum(x, dim=self.dim, keepdim=True)
 
 
+class MultiDSumOfTiledHyperCubeBasisFcns(torch.nn.Module):
+    """A module consisting of a collection of separate SumOfTiledHyperCubeBasisFcns that together output
+     a multi-dimensional vector of outputs, where each entry of the output is produced by one function"""
+    def __init__(self, n_cols: int, n_divisions_per_dim: Sequence[int], dim_ranges: np.ndarray,
+                 n_div_per_hc_side_per_dim: Sequence[int], init_val: float = 0.):
+        """
+        Creates a MultiDSumOfTiledHyperCubeBasisFcns object.
+
+        Args:
+
+            n_cols: The number of columns (corresponding to the output dimensionality) in the matrices we represent
+             distributions over.
+
+            n_divisions_per_dim: n_divisions_per_dim[i] gives the number of divisions for dimension i.
+
+            dim_ranges: The range for dimension i is dim_ranges[i,0] <= x[i] < dim_ranges[i,1]
+
+            n_div_per_hc_side_per_dim: The number of divisions per hypercube side for each dimension
+
+            init_val: Value with which the bump functions get initialized
+
+        """
+
+        super().__init__()
+
+        col_dists = [None] * n_cols
+        for c_i in range(n_cols):
+            # Create the SumOfTiledHyperCubeBasisFcns object for the column
+            col_dists[c_i] = SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=n_divisions_per_dim,
+                                                          dim_ranges=dim_ranges,
+                                                          n_div_per_hc_side_per_dim=n_div_per_hc_side_per_dim,
+                                                          init_val=init_val)
+
+        self.col_dists = torch.nn.ModuleList(col_dists)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes output given input.
+
+        Args:
+            x: Input of shape n_smps*d_x.  Each x point should be within the region specified when creating teach of he
+            SumOfTiledHyperCubeBasisFcns objects.
+
+        Returns:
+            y: Output of shape n_smps*n_cols.
+        """
+        return torch.cat([d(x) for d in self.col_dists], dim=1)
+
+
 class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
     """ A module to represent a function which is a sum of tiled hypercube basis functions.
 
@@ -1030,7 +1078,8 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
          hypercubes.  These two things make forward evaluation of the function efficient.
      """
 
-    def __init__(self, n_divisions_per_dim: Sequence[int], dim_ranges: np.ndarray, n_div_per_hc_side_per_dim: Sequence[int]):
+    def __init__(self, n_divisions_per_dim: Sequence[int], dim_ranges: np.ndarray,
+                 n_div_per_hc_side_per_dim: Sequence[int], init_val: float = 0.):
         """
         Creates a SumOfTiledHyperCubeBasisFcns object.
 
@@ -1041,6 +1090,8 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
             dim_ranges: The range for dimension i is dim_ranges[i,0] <= x[i] < dim_ranges[i,1]
 
             n_div_per_hc_side_per_dim: The number of divisions per hypercube side for each dimension
+
+            init_val: Value with which the bump functions get initialized
 
         """
 
@@ -1107,7 +1158,8 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         # Also, we put all magnitudes in a single 1-d vector for fast indexing
 
         n_bump_fcns = np.cumprod(n_bump_fcns_per_dim)[-1]
-        self.b_m = torch.nn.Parameter(torch.zeros(n_bump_fcns), requires_grad=True)
+
+        self.b_m = torch.nn.Parameter(torch.ones(n_bump_fcns)*(init_val / n_active_bump_fcns), requires_grad=True)
 
     def _x_to_idx(self, x: torch.Tensor, run_checks: bool = True):
         """ Given x data computes the indices of active bump functions for each point.
