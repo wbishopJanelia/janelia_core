@@ -761,17 +761,16 @@ class LogGaussianBumpFcn(torch.nn.Module):
 class PWLNNFcn(torch.nn.Module):
     """ Piecewise-linear nearest neighbor network function. """
 
-    def __init__(self, init_centers: torch.Tensor, init_weights: torch.Tensor,
-                 init_offsets: torch.Tensor, k: int = 1, m=100, n_used_fcns: int = None):
+    def __init__(self, d_out: int, d_in: int = 32, k: int = 1, m=100, n_fcns: int = 100, n_used_fcns: int = None,
+                 init_ctrs: torch.Tensor = None, init_wts: torch.Tensor = None,
+                 init_offsets: torch.Tensor = None):
         """ Creates a new PWLNNFcn.
 
         Args:
-
-            init_centers: Initial centeres for each function. Of shape n_ctrs*input_dim
-
-            init_weights: Initial weights for each function. Of shape n_ctrs*input_dim*output_dim
-
-            init_offsets: Initial offsets for each function. Of shape n_ctrs*output_dim
+            
+            d_in: Input dimensionality
+            
+            d_out: Output dimensionality
 
             k: Number of nearest neighbors to use.
 
@@ -782,22 +781,73 @@ class PWLNNFcn(torch.nn.Module):
             results in using all centers all the time.  Setting this less than n_ctrs, will result in
             randomly dropping out some functions during each call to forward.  Setting this to None, will
             result in using all centers.
+            
+            init_ctrs: Initial centeres for each function. Of shape n_ctrs*d_in
+
+            init_wts: Initial weights for each function. Of shape n_ctrs*d_in*d_out
+
+            init_offsets: Initial offsets for each function. Of shape n_ctrs*d_out
+            
         """
 
         super().__init__()
 
         self.k = k
         self.m = m
-        self.n_fcns = init_centers.shape[0]
-        self.d_in = init_centers.shape[1]
-
+        self.n_fcns = n_fcns
+        self.d_in = d_in
+        self.d_out = d_out
+        
+        # Set number of used functions
         if n_used_fcns is None:
             n_used_fcns = self.n_fcns
         self.n_used_fcns = n_used_fcns
 
-        self.ctrs = torch.nn.Parameter(init_centers)
-        self.wts = torch.nn.Parameter(init_weights)
-        self.offsets = torch.nn.Parameter(init_offsets)
+        # Create parameters
+        self.ctrs = torch.nn.Parameter(torch.zeros(size=(n_fcns, d_in)))
+        self.wts = torch.nn.Parameter(torch.empty(size=(n_fcns, d_in, d_out)))
+        self.offsets = torch.nn.Parameter(torch.zeros(size=(n_fcns, d_out)))
+
+        # Initialize weights
+        with torch.no_grad():
+            torch.nn.init.xavier_uniform_(self.wts, gain=1e-3)
+            
+        # Initialize with given initial parameters if given
+        self.init_parameters(init_ctrs=init_ctrs, init_wts=init_wts, init_offsets=init_offsets)
+
+    def init_parameters(self, init_ctrs: torch.Tensor = None, init_wts: torch.Tensor = None,
+                        init_offsets: torch.Tensor = None):
+        """
+        Initialize parameters with specified values
+        
+        Args:
+            init_ctrs: Values to initialize function centers with
+            
+            init_wts: Values to initialize function weights with
+            
+            init_offsets: Values to initialize function offsets with
+            
+        Raises:
+        ValueError if any of the tensors used for initialization does not have the expected dimensionality
+        """
+        # Check for correct dimensionalities
+        if init_ctrs is not None and init_ctrs.shape != self.ctrs.data.shape:
+            raise ValueError('Dimensionality of init_ctrs {} is incorrect, expected {}'.format(init_ctrs.shape,
+                                                                                               self.ctrs.data.shape))
+        if init_wts is not None and init_wts.shape != self.wts.data.shape:
+            raise ValueError('Dimensionality of init_wts {} is incorrect, expected {}'.format(init_wts.shape,
+                                                                                               self.wts.data.shape))
+        if init_offsets is not None and init_offsets.shape != self.offsets.data.shape:
+            raise ValueError('Dimensionality of init_ctrs {} is incorrect, expected {}'.format(init_offsets.shape,
+                                                                                               self.offsets.data.shape))
+        
+        # Initialize parameters with specified values if applicable
+        if init_ctrs is not None:
+            self.ctrs.data = init_ctrs
+        if init_wts is not None:
+            self.wts.data = init_wts
+        if init_offsets is not None:
+            self.offsets.data = init_offsets
 
     def forward(self, x: torch.Tensor):
         """ Computes output from input.
@@ -1013,6 +1063,8 @@ class MultiDSumOfTiledHyperCubeBasisFcns(torch.nn.Module):
 
         super().__init__()
 
+        self.n_cols = n_cols
+
         col_dists = [None] * n_cols
         for c_i in range(n_cols):
             # Create the SumOfTiledHyperCubeBasisFcns object for the column
@@ -1034,6 +1086,15 @@ class MultiDSumOfTiledHyperCubeBasisFcns(torch.nn.Module):
             y: Output of shape n_smps*n_cols.
         """
         return torch.cat([d(x) for d in self.col_dists], dim=1)
+
+    def set_val(self, v: float):
+        """ Set the output value to a single value everywhere for the distribution in each column.
+
+        Args:
+            v: The value to set the output value to
+        """
+        for c_i in range(self.n_cols):
+            self.col_dists[c_i].set_val(v)
 
 
 class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
@@ -1161,6 +1222,8 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
 
         self.b_m = torch.nn.Parameter(torch.ones(n_bump_fcns)*(init_val / n_active_bump_fcns), requires_grad=True)
 
+        self.n_active_bump_fcns = n_active_bump_fcns
+
     def _x_to_idx(self, x: torch.Tensor, run_checks: bool = True):
         """ Given x data computes the indices of active bump functions for each point.
 
@@ -1211,6 +1274,16 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         """
         n_smps = x.shape[0]
         return torch.sum(self.b_m[self._x_to_idx(x)], dim=1).view([n_smps, 1])
+    
+    def set_val(self, v: float):
+        """ Set the output value to a single value everywhere.
+
+        Args:
+
+            v: The value to set the output value to
+        """
+        cube_vl = v / self.n_active_bump_fcns
+        self.b_m.data = cube_vl * torch.ones_like(self.b_m.data)
 
 
 class SumOfRelus(torch.nn.Module):
