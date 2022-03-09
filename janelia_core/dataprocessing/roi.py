@@ -23,15 +23,20 @@ class ROI():
 
     @classmethod
     def from_dict(cls, d: dict):
-        """ Creates a new ROI object from a dictioary.
+        """ Creates a new ROI object from a dictionary.
 
         Args:
-            d: A dictionary with the keys 'voxel_inds' and 'weights'
+            d: A dictionary with the keys 'voxel_inds' and 'weights'  Extra keys in the dictionary will be
+            added as additional attributes.
 
         Returns:
             A new ROI object
         """
-        return cls(**d)
+        roi_obj = cls(voxel_inds=d['voxel_inds'], weights=d['weights'])
+        for k in d.keys():
+            if k not in set(['voxel_inds', 'weights']):
+                setattr(roi_obj, k, d[k])
+        return roi_obj
 
     @classmethod
     def from_array(cls, arr: np.ndarray, start_inds: np.ndarray = None):
