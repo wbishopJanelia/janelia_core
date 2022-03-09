@@ -14,6 +14,7 @@ import warnings
 
 import h5py
 import numpy as np
+import tifffile
 
 try:
     import pyklb
@@ -136,6 +137,7 @@ def read_img_file(f_name: pathlib.Path, img_slice: slice = slice(None, None, Non
     The following file types are supported:
         1) .klb
         2) .h5
+        3) .tiff
     
     Args:
         f_name: File name as pathlib.Path object
@@ -161,9 +163,11 @@ def read_img_file(f_name: pathlib.Path, img_slice: slice = slice(None, None, Non
         if img_slice != slice(None, None, None):
             raise(NotImplementedError('Slicing while reading in .klb files is not currently supported.'))
         return pyklb.readfull(str(f_name))  # pyklb requires string input
-    if ext == '.h5':
+    elif ext == '.h5':
         with h5py.File(f_name) as f:
             return f[h5_data_group][img_slice]
+    elif ext == '.tiff':
+            return tifffile.imread(f_name)
     else:
         raise ValueError('File is a ' + ext + ' file, which is not currently supported.')
 

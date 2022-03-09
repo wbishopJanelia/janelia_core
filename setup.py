@@ -28,6 +28,7 @@ setup(
     "psutil",
 	"pyspark",
     "sphinx",
+    "tifffile",
     "tqdm",
     ],
 )
