@@ -28,6 +28,8 @@ setup(
     "psutil",
 	"pyspark",
     "sphinx",
+    "sphinx-autoapi",
+    "sphinx_rtd_theme",
     "tqdm",
     ],
 )
