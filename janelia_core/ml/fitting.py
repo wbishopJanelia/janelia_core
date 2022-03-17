@@ -5,7 +5,7 @@ import torch
 
 def match_torch_module(tgt_m: torch.nn.Module, fit_m: torch.nn.Module, dim_ranges: torch.Tensor,
                        optim_opts: dict = None, n_its: int = 1000, n_smps:int = 100, device: torch.device = None,
-                       update_int: int = 100):
+                       update_int: int = 100) -> torch.Tensor:
     """ Optimizes one torch module to match another.
 
     Args:
@@ -27,6 +27,11 @@ def match_torch_module(tgt_m: torch.nn.Module, fit_m: torch.nn.Module, dim_range
         device: The device to perform optimization on. If none, optimization will be performed on cpu.
 
         update_int: The interval, in iterations, at which we print fitting status
+
+    Returns:
+
+        er: The objective at the end of optimization
+
 
     """
 
@@ -59,8 +64,10 @@ def match_torch_module(tgt_m: torch.nn.Module, fit_m: torch.nn.Module, dim_range
         y_hat = fit_m(x)
         er = torch.sum((y - y_hat)**2)
 
-        if i % update_int == 0:
+        if (i % update_int == 0) and (update_int < n_its):
             print('It: ' + str(i) + ', Error: ' + '{:e}'.format(er))
 
         er.backward()
         optimizer.step()
+
+    return er
