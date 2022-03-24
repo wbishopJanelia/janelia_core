@@ -13,7 +13,7 @@ def basic_perm_test(x_0: np.ndarray, x_1: np.ndarray, n_perms: int = 1000, f: Ca
 
         t = abs(f(x_0) - f(x_1)),
 
-    where f() is be default median().  In this case, the p-value is for the difference of medians of two
+    where f() is by default median().  In this case, the p-value is for the difference of medians of two
     samples.  However, the user can specify custom f functions (e.g., mean) to calculate the p-value
     for other statistics.
 
@@ -105,7 +105,6 @@ def paired_grouped_perm_test(x0: np.ndarray, x1: np.ndarray, grp_ids: np.ndarray
         mean() will be used.
 
     Returns:
-
         t: The value of the test statistic
 
         p: The p-value
@@ -146,7 +145,7 @@ def paired_grouped_perm_test(x0: np.ndarray, x1: np.ndarray, grp_ids: np.ndarray
     return [t, p]
 
 
-def all_pairs_perm_tests(x: Sequence[np.ndarray], test_opts: dict = None, update_int=10):
+def all_pairs_perm_tests(x: Sequence[np.ndarray], test_opts: dict = None, update_int=10) -> np.ndarray:
     """ Performs a set of permutation tests between all pairs of conditions.
 
     Args:

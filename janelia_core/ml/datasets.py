@@ -1,4 +1,4 @@
-""" Tools for representing and working with dataset. """
+""" Tools for representing and working with datasets. """
 
 from typing import Sequence
 

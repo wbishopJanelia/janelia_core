@@ -7,7 +7,7 @@ import numpy as np
 class Point:
 
     def __init__(self, c: np.ndarray, cs_names: list = None, **kwargs):
-        """ Create a new point object.
+        """ Creates a new point object.
 
         Args:
             c: Of shape n_coord_systems*n_dims.  Each row gives the location of a point in a given coordinate
@@ -20,7 +20,7 @@ class Point:
             **kwargs: Additional keyword arguments that will be added as attributes of the object.
 
         Raises:
-            ValueError: If the length of cs_names does not the number of coordinate systems in c.
+            ValueError: If the length of cs_names does not equal the number of coordinate systems in c.
         """
 
         if c.ndim == 1:

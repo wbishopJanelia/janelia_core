@@ -54,7 +54,22 @@ extensions = [
     'sphinx_rtd_theme',
 ]
 
+# Napoleon settings
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = False
+
+# Make sure __init__ methods are documented
+autoclass_content = 'both'
+autoapi_python_class_content = 'both'
+
+# Specify defaults for autodoc
+#autodoc_default_options = {
+#    'special-members': '__init__',
+#}
+
 autoapi_dirs = ['../../janelia_core']
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

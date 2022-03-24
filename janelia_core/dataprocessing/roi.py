@@ -1,4 +1,4 @@
-""" Module for working with and representing rois. """
+""" Module for working with and representing regions of interest (ROIS) in imaging data. """
 
 import copy
 

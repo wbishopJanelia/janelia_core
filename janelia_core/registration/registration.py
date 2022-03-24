@@ -1,7 +1,5 @@
 """ Tools for registering imaging data.
 
-    William Bishop
-    bishopw@hhmi.org
 """
 
 from copy import deepcopy
@@ -31,6 +29,7 @@ def calc_dataset_ref_image(dataset: DataSet, img_field: str, ref_inds: np.ndarra
     """ Calculates a reference image.
 
         This function will:
+
             1) Median filter each plane in all images.
             2) Calculate a reference image by taking the mean of the mediate filtered images.
 
@@ -43,8 +42,7 @@ def calc_dataset_ref_image(dataset: DataSet, img_field: str, ref_inds: np.ndarra
 
             median_filter_shape: The shape of the median filter to use.
 
-            sc: A spark context to use to distribute computations.  If none, no spark context will be used.
-
+            sc: A spark context to use to distribute computations.  If None, no spark context will be used.
 
         Returns:
             ref_image: The reference image.
@@ -72,6 +70,7 @@ def register_dataset_images(dataset: DataSet, img_field: str, ref_image: np.ndar
     """ Calculates transforms to register images through time.
 
     Currently this function calculates translations in x-y.  This function will:
+
         1) Median filter each plane in all images.
         2) Calculate the optimal translation to align the max projection of each median filtered image to the
            the reference image.
@@ -97,8 +96,9 @@ def register_dataset_images(dataset: DataSet, img_field: str, ref_image: np.ndar
 
         sc: A spark context to use to distribute computations.  If none, no spark context will be used.
 
-    Returns: None. Each entry in the images list (which is a dictionary) will have an the transform
-    for that image added as a 'transform' entry of the dictionary.
+    Returns:
+        None. Each entry in the images list (which is a dictionary) will have an the transform
+        for that image added as a 'transform' entry of the dictionary.
 
     """
 
@@ -158,24 +158,25 @@ def estimate_translation(fixed: np.ndarray, moving: np.ndarray, metric_sampling:
                          factors: Iterable =(4, 2, 1), level_iters: Iterable =(1000, 1000, 1000),
                          sigmas: Iterable =(8, 4, 1)):
     """
-
     Estimate translation between 2D or 3D images using dipy.align.
 
     This is code provided by Davis Bennett with minor reformatting by Will Bishop.
 
     Args:
+        fixed : numpy array, 2D or 3D.  The reference image.
 
-    fixed : numpy array, 2D or 3D.  The reference image.
+        moving : numpy array, 2D or 3D.  The image to be transformed.
 
-    moving : numpy array, 2D or 3D.  The image to be transformed.
+        metric_sampling : float, within the interval (0,  1]. Fraction of the metric sampling to use for optimization
 
-    metric_sampling : float, within the interval (0,  1]. Fraction of the metric sampling to use for optimization
+        factors : iterable.  The image pyramid factors to use
 
-    factors : iterable.  The image pyramid factors to use
+        level_iters : iterable. Number of iterations per pyramid level
 
-    level_iters : iterable. Number of iterations per pyramid level
+        sigmas : iterable. Standard deviation of gaussian blurring for each pyramid level
 
-    sigmas : iterable. Standard deviation of gaussian blurring for each pyramid level
+    Returns:
+        tx: The learned transform
     """
 
     metric = MutualInformationMetric(32, metric_sampling)
@@ -202,7 +203,8 @@ def apply_2d_dipy_affine_transform(moving_imgs: np.ndarray, t: dipy.align.imaffi
 
         t: The transform to apply.
 
-    Returns: The shifted image.  Will be of dtype float32.
+    Returns:
+        The shifted image.  Will be of dtype float32.
     """
 
     # If we have a single image, still put it in a trivial stack to make processing below standard
@@ -260,13 +262,12 @@ def median_filter_2d_dipy_affine_transforms(transforms: Sequence, filter_len: in
 def get_valid_translated_image_window(shifts: np.ndarray, image_shape: np.ndarray) -> tuple:
     """ Gets a window of an image which is still valid after a shift.
 
-    Returns an window of a shifted image for which pixels in that window were
-    shifted versions of pixels in an unshifted image.  This allows us to
-    remove pixels from consideration in a shifted which were not based on
+    Returns an window of a shifted image for which pixels in that window were shifted versions of pixels in an
+    unshifted image.  This allows us to remove pixels from consideration in a shifted which were not based on
     pixels in the original image.
 
-    Multiple shifts can be supplied.  In that case, the window will be valid for
-    all shifts.  (Useful when finding valid windows for time series of shifted images).
+    Multiple shifts can be supplied.  In that case, the window will be valid for all shifts.  (Useful when finding valid
+    windows for time series of shifted images).
 
     Args:
         shifts: The shifts to calculate the window for.  Each row is a shift.
@@ -274,8 +275,9 @@ def get_valid_translated_image_window(shifts: np.ndarray, image_shape: np.ndarra
         image_shape: The shape of the image.  Dimensions should be listed here in the
         same order they are listed in shifts.
 
-    Returns: A tuple.  Each entry contains valid indices for a dimension, so that the valid window for an image
-    can be recovered as image[t], if t is the returned tuple.
+    Returns:
+        A tuple.  Each entry contains valid indices for a dimension, so that the valid window for an image
+        can be recovered as image[t], if t is the returned tuple.
 
     """
     if shifts.ndim == 1:

@@ -9,7 +9,7 @@ import torch
 from torch.nn.functional import relu
 
 from janelia_core.math.basic_functions import int_to_arb_base
-from janelia_core.ml.torch_fcns import knn_do
+from janelia_core.ml.extra_torch_functions import knn_do
 
 # Define aliases
 OptionalTensor = Union[torch.Tensor, None]

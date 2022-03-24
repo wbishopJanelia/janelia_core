@@ -9,7 +9,7 @@ setup(
     author='William Bishop',
     author_email='bishopw@hhmi.org',
     packages=['janelia_core'],
-    python_requires='>=3.7.0',
+    python_requires='>=3.8.0',
     description='Core code which supports William Bishops research projects at Janelia.',
     long_description = long_description,
     install_requires=[

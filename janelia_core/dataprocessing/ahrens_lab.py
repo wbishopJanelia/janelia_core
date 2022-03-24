@@ -3,9 +3,6 @@
     While the tools here were originally developed for working with Ahrens lab data, they
     are written to be generally useful for many datasets.
 
-    William Bishop
-    bishopw@hhmi.org
-
 """
 
 from typing import Tuple
@@ -52,7 +49,6 @@ def down_sample_ephys_vls(ts: np.ndarray, image_acq_starts: np.ndarray, n_images
         then this should be an array with times that image acqusition starts.
 
     Returns:
-
         ds_ts: The time stamps of the down sampled values.  Time stamps correspond to the start of image acquisitions.
 
         ds_vls: The down sampled values.
@@ -65,8 +61,6 @@ def down_sample_ephys_vls(ts: np.ndarray, image_acq_starts: np.ndarray, n_images
         ValueError: If the first or last image acquisition times fall outside of the range of time stamps for the values.
 
         ValueError: If 'constant' down-sampling is selected, but non-constant values are detected in a sampling period.
-
-
 
     """
 

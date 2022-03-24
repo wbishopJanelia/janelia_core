@@ -1,7 +1,9 @@
-""" Tools for regression.
+""" Tools for computing statistics in various ways when working with linear regression models.
 
-    William Bishop
-    bishopw@hhmi.org
+The tools provided here are designed for use when assumptions underlying standard approaches to computing statistics
+for linear regression models do not apply.  In particular, there are multiple methods for handling grouped errors as
+well as methods for computing statistics via boostrap methods.
+
 """
 
 import copy
@@ -23,7 +25,6 @@ def corr(x: np.ndarray, y: np.ndarray) -> Union[float, np.ndarray]:
         y: The other set of data; same shape as x
 
     Returns:
-
         pearson_corr: The pearson correlation between x and y.  If x & y are multidimensional, then pearson_corr
         is an array and pearson_corr[i] is the correlation for dimension i.
     """
@@ -49,7 +50,7 @@ def corr(x: np.ndarray, y: np.ndarray) -> Union[float, np.ndarray]:
 def normalized_r_squared(truth: np.ndarray, pred:np.ndarray) -> float:
     """ Computes normalized r-squared for a collection of variables.
 
-    Normalized r-squared is defined as follows:  1 - ( \sum r_i) / ( \sum s_i), where
+    Normalized r-squared is defined as follows:  1 - ( \sum r_i) / ( \sum s_i), where:
 
         r_i is the squared error between predictions and truth for variable i and s_i is the squared error
         of variable i between the mean value and truth.
@@ -63,8 +64,10 @@ def normalized_r_squared(truth: np.ndarray, pred:np.ndarray) -> float:
     Args:
         truth: True data of shape n_smps*n_vars
 
-        pred: Prdicated data of shape n_smps*n_vars
-
+        pred: Predicated data of shape n_smps*n_vars
+        
+    Returns:
+        norm_r_sq: The normlaized r-squared
 
     """
 
@@ -78,14 +81,14 @@ def normalized_r_squared(truth: np.ndarray, pred:np.ndarray) -> float:
 def r_squared(truth: np.ndarray, pred: np.ndarray) -> np.ndarray:
     """ Computes the r-squared value for a collection of variables.
 
-    Computes proportion of variance predicted variables capture of ground truth variables.
+    Computes the proportion of variance predicted variables capture of ground truth variables.
+
     Args:
         truth: True data of shape n_smps*n_vars
 
-        pred: Prdicated data of shape n_smps*n_vars
+        pred: Predicated data of shape n_smps*n_vars
 
     Returns:
-
         r_sq: r_sq[i] contains the r-squared value for pred[:, i]
     """
 
@@ -102,17 +105,16 @@ def r_squared(truth: np.ndarray, pred: np.ndarray) -> np.ndarray:
 
 
 def grouped_linear_regression_boot_strap(y: np.ndarray, x: np.ndarray, g: np.ndarray, n_bs_smps: int, include_mean: bool = True,
-                                         rcond: float = None):
+                                         rcond: float = None) -> Tuple[np.ndarray, np.ndarray]:
     """ Fits a linear regression model, performing a grouped bootstrap to get confidence intervals on coefficients.
 
-    By grouped boot-strap, we mean samples are selected in groups.
+    By grouped bootstrap, we mean samples are selected in groups.
 
-    This function returns the coefficients for each boot-strap sample.  Use grouped_linear_regression_boot_strap_stats
+    This function returns the coefficients for each bootstrap sample.  Use grouped_linear_regression_boot_strap_stats
     to compute statistics (such as confidence intervals on the coefficients) and visualize_boot_strap_results to
     visualize a summary of the fit results.
 
     Args:
-
         y: 1-d array of the predicted variable.  Of length n_smps.
 
         x: Variables to predict from.  Of shape n_smps*d_x.
@@ -127,7 +129,6 @@ def grouped_linear_regression_boot_strap(y: np.ndarray, x: np.ndarray, g: np.nda
         rcond: The value of rcond to provide to the least squares fitting.  See np.linalg.lstsq.
 
     Returns:
-
         bs_beta: Of shape n_boot_strap_smps*n_coefs.  bs_beta[i,:] contains the coefficients of the linear regression
         model for the i^th bootstrap sample.  If include_mean is True, the last column of bs_beta contains the mean.
 
@@ -175,21 +176,17 @@ def grouped_linear_regression_boot_strap(y: np.ndarray, x: np.ndarray, g: np.nda
 
 def grouped_linear_regression_wild_bootstrap(y: np.ndarray, x: np.ndarray, g: np.ndarray,
                                              test_coefs: Sequence[int] = None, n_bs_smps:int = 1000,
-                                             rcond: float = None):
-    """ Computes linear model and stats using a wild bootstrap.
+                                             rcond: float = None) -> np.ndarray:
+    """ Computes a linear model and stats using a wild bootstrap.
 
     For group g, the model for the i^th observation is of the form:
 
         y_gi = x_gi^T\beta + o_g + \ep_gi,
 
-    where x_gi are predictor variables of dimension P, o_g is a group offset and ep_gi is zero-mean noise.  In this model,
-    it assumes all groups shared the same \beta but each group gets its own o_g and \ep_gi.
+    where x_gi are predictor variables of dimension P, o_g is a group offset and ep_gi is zero-mean noise.  In this
+    model, it assumes all groups shared the same \beta but each group gets its own o_g and \ep_gi.
 
-    This function will estimate beta as well as p-values that individual coefficents in beta are non-zero.
-
-    Optionally, the user can also request confidence intervals for each coefficient of \beta.  However, these confidence
-    intervals are formed by inverting hypothesis tests for candidate coefficient values, which is computationally
-    expensive and so is not done by default.
+    This function will estimate beta as well as p-values that individual coefficients in beta are non-zero.
 
     The bootstrap procedure is based on the "Wild Cluster bootstrap-t with H0 imposed" bootstrap described in:
 
@@ -205,7 +202,6 @@ def grouped_linear_regression_wild_bootstrap(y: np.ndarray, x: np.ndarray, g: np
         "A Practioner's Guide to Cluster-Robust Inference" by A. Cameron and Douglas Miller, 2015.
 
     Args:
-
         y: 1-d array of the predicted variable.  Of length n_smps.
 
         x: Variables to predict from.  Of shape n_smps*d_x.
@@ -220,6 +216,9 @@ def grouped_linear_regression_wild_bootstrap(y: np.ndarray, x: np.ndarray, g: np
 
         rcond: The value of rcond to provide to the least squares fitting within the call to
         grouped_linear_regression_within_estimator.  See that function as well np.linalg.lstsq.
+
+    Returns:
+        p_vls: The computed p-values for rejecting the null hypothesis that each coefficient is 0.
     """
 
     n_x_vars = x.shape[1]
@@ -272,22 +271,22 @@ def grouped_linear_regression_wild_bootstrap(y: np.ndarray, x: np.ndarray, g: np
     return p_vls
 
 
-def grouped_linear_regression_ols_estimator(y: np.ndarray, x: np.ndarray, g: np.ndarray, rcond: float = None):
+def grouped_linear_regression_ols_estimator(y: np.ndarray, x: np.ndarray, g: np.ndarray,
+                                            rcond: float = None) -> Tuple[np.ndarray, np.ndarray, int]:
     """ Fits a linear model and stats using optimal least squares, accounting for grouped errors.
 
      For group g, the model for the i^th observation is of the form:
 
         y_gi = x_gi^T\beta + \ep_gi,
 
-    where x_gi are predictor variables of dimension P, and ep_gi is noise.  In this model,
-    it assumes all groups shared the same \beta but each group gets its own \ep_gi.
+    where x_gi are predictor variables of dimension P, and ep_gi is noise.  In this model, it assumes all groups shared
+    the same \beta but each group gets its own \ep_gi.
 
     Note: A small sample correction is applied when calculating the asymptotic covariance matrix, as outlined in
 
         "A Practioner's Guide to Cluster-Robust Inference" by A. Cameron and Douglas Miller, 2015.
 
     Args:
-
         y: 1-d array of the predicted variable.  Of length n_smps.
 
         x: Variables to predict from.  Of shape n_smps*d_x.
@@ -298,7 +297,6 @@ def grouped_linear_regression_ols_estimator(y: np.ndarray, x: np.ndarray, g: np.
         rcond: The value of rcond to provide to the least squares fitting.  See np.linalg.lstsq.
 
     Returns:
-
         beta: The estimate of beta
 
         acm: The asymptotic covariance matrix for beta.
@@ -342,7 +340,8 @@ def grouped_linear_regression_ols_estimator(y: np.ndarray, x: np.ndarray, g: np.
     return [beta, acm, n_grps]
 
 
-def grouped_linear_regression_within_estimator(y: np.ndarray, x: np.ndarray, g: np.ndarray, rcond: float = None):
+def grouped_linear_regression_within_estimator(y: np.ndarray, x: np.ndarray, g: np.ndarray,
+                                               rcond: float = None) -> Tuple[np.ndarray, np.ndarray, dict, int]:
     """ Computes linear model and stats using the within estimator for a fixed-effects linear model.
 
     For group g, the model for the i^th observation is of the form:
@@ -361,7 +360,6 @@ def grouped_linear_regression_within_estimator(y: np.ndarray, x: np.ndarray, g: 
         "A Practioner's Guide to Cluster-Robust Inference" by A. Cameron and Douglas Miller, 2015.
 
     Args:
-
         y: 1-d array of the predicted variable.  Of length n_smps.
 
         x: Variables to predict from.  Of shape n_smps*d_x.
@@ -372,7 +370,6 @@ def grouped_linear_regression_within_estimator(y: np.ndarray, x: np.ndarray, g: 
         rcond: The value of rcond to provide to the least squares fitting.  See np.linalg.lstsq.
 
     Returns:
-
         beta: The estimate of beta
 
         acm: The asymptotic covariance matrix for beta.
@@ -438,7 +435,7 @@ def grouped_linear_regression_within_estimator(y: np.ndarray, x: np.ndarray, g: 
     return [beta, acm, offsets, n_grps]
 
 
-def grouped_linear_regression_acm_stats(beta, acm, n_grps, alpha):
+def grouped_linear_regression_acm_stats(beta, acm, n_grps, alpha) -> dict:
     """ Calculates statistics given an estimate of an asymptotic covariance matrix.
 
     Confidence intervals and p-values for individual coefficients are calculated assuming a t-distribution on the
@@ -454,7 +451,6 @@ def grouped_linear_regression_acm_stats(beta, acm, n_grps, alpha):
         alpha: The alpha value to use when constructing 1-alpha confidence intervals
 
     Returns:
-
         stats: A dictionary with the following keys:
 
             alpha: The alpha value for which confidence intervals were calculated.
@@ -479,7 +475,7 @@ def grouped_linear_regression_acm_stats(beta, acm, n_grps, alpha):
 
 
 def grouped_linear_regression_acm_linear_restriction_stats(beta: np.ndarray, acm: np.ndarray, r: np.ndarray,
-                                                           q: np.ndarray, n_grps: int):
+                                                           q: np.ndarray, n_grps: int) -> float:
     """ Given an asymptotic covariance matrix from linear regression, tests significance of linear restrictions.
 
     Given a vector of K-coefficients, beta, we desire to produce a p-value for a null hypothesis taking the form of
@@ -511,7 +507,6 @@ def grouped_linear_regression_acm_linear_restriction_stats(beta: np.ndarray, acm
     In this case, n_grps should just be seq equal to the number of samples in the data.
 
     Args:
-
         beta: The beta vector which was estimated
 
         acm: The estimated asymptotic covariance matrix
@@ -523,7 +518,6 @@ def grouped_linear_regression_acm_linear_restriction_stats(beta: np.ndarray, acm
         n_grps: The number of groups in the original data
 
     Returns:
-
         p: The calculated p value.
 
     """
@@ -569,9 +563,9 @@ def naive_regression(y: np.ndarray, x: np.ndarray) -> Tuple[np.ndarray, np.ndarr
         x: Data to predict from of shape [n_smps, p]
 
     Returns:
-        b - the b matrix above
+        b: the b matrix above
 
-        o - the offset vector above
+        o: the offset vector above
 
     """
 
@@ -624,7 +618,7 @@ def visualize_boot_strap_results(bs_values: np.ndarray, var_strs: Sequence, thet
 
         plot_zero_line: True if a dotted line denoting 0 should be added to the plot.
 
-        show_nz_sig: True if coefficients significantly different than 0 should be denoted with starts. This is
+        show_nz_sig: True if coefficients significantly different than 0 should be denoted with stars. This is
         computed simply by testing if the confidence interval for a coefficient contains 0.
 
         alpha: The alpha value for constructing confidence intervals and determining if coefficients are significantly
@@ -702,7 +696,7 @@ def visualize_boot_strap_results(bs_values: np.ndarray, var_strs: Sequence, thet
     return ax
 
 
-def grouped_linear_regression_boot_strap_stats(bs_values: np.ndarray, alpha:float =.05):
+def grouped_linear_regression_boot_strap_stats(bs_values: np.ndarray, alpha:float =.05) -> dict:
     """ For getting statistics from the results of grouped_linear_regression_boot_strap.
 
     This function will compute:
@@ -713,7 +707,6 @@ def grouped_linear_regression_boot_strap_stats(bs_values: np.ndarray, alpha:floa
         2) P-values that coefficients are significantly different than 0, based on inverting percentile confidence
         intervals
 
-
     Args:
         bs_values: The results of grouped_linear_regresson_boot_strap.  bs_vls[i,:] are the coefficient for
         the i^th bootstrap sample.
@@ -721,7 +714,6 @@ def grouped_linear_regression_boot_strap_stats(bs_values: np.ndarray, alpha:floa
         alpha: The alpha values to use when computing confidence intervals
 
     Returns:
-
         stats: A dictionary with the following keys:
 
             alpha: The alpha value for which confidence intervals were calculated.
@@ -768,7 +760,7 @@ def grouped_linear_regression_boot_strap_stats(bs_values: np.ndarray, alpha:floa
     return {'alpha': alpha, 'c_ints': c_ints, 'non_zero_p': non_zero_p, 'non_zero': non_zero}
 
 
-def linear_regression_ols_estimator(y: np.ndarray, x: np.ndarray, rcond: float = None):
+def linear_regression_ols_estimator(y: np.ndarray, x: np.ndarray, rcond: float = None) -> Tuple[np.ndarray, np.ndarray]:
     """ Fits a linear model and stats using optimal least squares.
 
      For group g, the model for the i^th observation is of the form:
@@ -780,7 +772,6 @@ def linear_regression_ols_estimator(y: np.ndarray, x: np.ndarray, rcond: float =
     This function is based on chapter 4 of Greene, Econometric Analysis.
 
     Args:
-
         y: 1-d array of the predicted variable.  Of length n_smps.
 
         x: Variables to predict from.  Of shape n_smps*d_x.
@@ -788,7 +779,6 @@ def linear_regression_ols_estimator(y: np.ndarray, x: np.ndarray, rcond: float =
         rcond: The value of rcond to provide to the least squares fitting.  See np.linalg.lstsq.
 
     Returns:
-
         beta: The estimate of beta
 
         acm: The asymptotic covariance matrix for beta.
@@ -854,7 +844,6 @@ def visualize_coefficient_stats(var_strs: Sequence, theta: np.ndarray = None, c_
         ax: Axes to plot into. If None, a new figure with axes will be created.
 
     Returns:
-
         as: The axes the plot was generated in.
     """
 

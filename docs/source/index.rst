@@ -9,7 +9,7 @@ tools originally developed to support Will Bishop's various projects at the Jane
 .. note:: This project is under active development.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Table of Contents
 
 Indices and tables

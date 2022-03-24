@@ -1,7 +1,4 @@
 """ Tools for calculating baseline values for fluorescence data.
-
-    William Bishop
-    bishopw@hhmi.org
 """
 
 import multiprocessing
@@ -10,7 +7,7 @@ import os
 import numpy as np
 from scipy.ndimage.filters import percentile_filter
 
-from janelia_core.math.stats import HistogramFilter
+from janelia_core.stats.histogram import HistogramFilter
 
 
 def percentile_filter_1d(data: np.ndarray, window_length: int, filter_start: int, write_offset:int,
@@ -38,29 +35,30 @@ def percentile_filter_1d(data: np.ndarray, window_length: int, filter_start: int
 
     To perform standard, causal filtering with a window of size 101 set:
         window_length = 101
+        filter_start: 0
         write_offset = 100
 
-    Diagram of window placement and parameters:
+    Diagram of window placement and parameters::
 
-                      |--------------------|: Window length
-                   t=0
-                   |
-             Data: XXX|XXXXXXXXXXXXXXXXXXXX|XXXX
-                   ^  ^                    ^
-                   |  |                    |
-                   |  window start         window end
-                   |
-                   filter start
-                   |--------------------|: Location of first window for filtering
+             Location of first window for filtering:
 
-    Filtered Data: YYY YYYYYYYYYYYYYYYYYYYY YYYY
-                                ^
-                                |
-                    filtered value written here
+                        |--------------------|: Window length
+                     t=0
+                     |
+               Data: XXX|XXXXXXXXXXXXXXXXXXXX|XXXX
+                        ^                    ^
+                        |                    |
+                        filter start         window end
 
-                      |---------|: Write offset
+     Filtered Data:    |----------|: Write offset
+                    YYY|YYYYYYYYYYYYYYYYYYYY|YYYY
+                                  ^
+                                  |
+                      filtered value written here
+
 
     Args:
+
         data: an array of data.
 
         window_length: The length of samples in a window
@@ -74,15 +72,15 @@ def percentile_filter_1d(data: np.ndarray, window_length: int, filter_start: int
         p: The percentile to use in the baseline calculations.
 
         n_hist_bins: Percentiles are calculated using a histogram binning technique to improve computational
-        efficiency.  This is the number of bins to use in the histogram between the min and max value in the
-        data.
+        efficiency.  This is the number of bins to use in the histogram between the min and max value in the data.
 
     Returns:
 
-        y: The filtered data.  The same shape as one time point of data. Any points for which a percentile
-        was not calculated will be nan.
+        y: The filtered data.  The same shape as one time point of data. Any points for which a percentile was not
+        calculated will be nan.
 
     Raises:
+
         RuntimeError: If data with more than 2 dimensions is given as input data
 
     """
@@ -156,17 +154,16 @@ def percentile_filter_multi_d(data: np.ndarray, window_length: int, filter_start
 
         window_length, filter_start, write_offset, p: See percentile_filter
 
-        mask: A boolean array the size of one time point of data.  Entries with a value of 1 indicate
-        percentiles for that variable should be calculated.  If None, percentiles for all variables
-        will be calculated.
+        mask: A boolean array the size of one time point of data.  Entries with a value of 1 indicate percentiles for
+        that variable should be calculated.  If None, percentiles for all variables will be calculated.
 
         n_processes: The number of processes to use when calculating baselines.  When calculating baselines for many
         variables on machines with multiple cores, setting this greater than 1 can improve computation time.
 
     Returns:
 
-        y: The filtered data.  The same shape as one time point of data.  If a mask was used so percentiles were
-        not calculated for some variables, the percentiles for these variables will be nan.
+        y: The filtered data.  The same shape as one time point of data.  If a mask was used so percentiles were not
+        calculated for some variables, the percentiles for these variables will be nan.
 
     Raises:
         RuntimeError: If data with more than 2 dimensions is given as input data
@@ -268,12 +265,12 @@ def calculate_causal_percentile_baselines(data: np.ndarray, window_size: int, p:
                                           n_hist_bins: int=1000,  n_processes=None) -> np.ndarray:
     """ A wrapper function for calculating baseline values for multiple variables in parallel.
 
-    This funcion wraps around calculate_causal_percentile_baseline, allowing a user to use multiple
+    This function wraps around calculate_causal_percentile_baseline, allowing a user to use multiple
     cores to calculate baselines in parallel.
 
     Args:
-        data: An array or size time * (data_shape) with data to calculate baselines for.  Here data_shape
-        is the shape of the data at each point in time.
+        data: An array or size time * (data_shape) with data to calculate baselines for.  Here data_shape is the shape
+        of the data at each point in time.
 
         window_size: See calculate_causal_percentile_baseline()
 
@@ -281,8 +278,8 @@ def calculate_causal_percentile_baselines(data: np.ndarray, window_size: int, p:
 
         n_hist_bins: See calculate_causal_percentile_baseline()
 
-        n_processes: The number of processes to use.  If none, this will be set to the number of processors
-        on the machine.
+        n_processes: The number of processes to use.  If none, this will be set to the number of processors on the
+        machine.
 
     Returns:
         baselines - The baselines for the variables.  Will be the same shape as data.

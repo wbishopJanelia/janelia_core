@@ -8,14 +8,14 @@
 
 from operator import add
 import time
-from typing import Callable
+from typing import Callable, List
 
 from morphsnakes import morphological_chan_vese
 import numpy as np
 import pyspark
 
 from janelia_core.dataprocessing.utils import get_reg_image_data
-
+from janelia_core.dataprocessing.roi import ROI
 
 def std_through_time(images: list, image_slice: slice = slice(None, None, None),
                      t_dict: dict = None, sc: pyspark.SparkContext=None,
@@ -32,9 +32,9 @@ def std_through_time(images: list, image_slice: slice = slice(None, None, None),
         image_slice: The slice of each image to extract.  If registration is being performed, (see t_dict),
         coordinates of image_slice should be for the images after registration.
 
-        t_dict: If this is not none, images will be registered before any statistics are calculated.  This dictionary
+        t_dict: If this is not None, images will be registered before any statistics are calculated.  This dictionary
         has two entries:
-            transforms: A list of registration transforms to apply to the images as they are being read in.  If none,
+            transforms: A list of registration transforms to apply to the images as they are being read in.  If None,
             no registration will be applied.
 
             image_shape: This is the shape of the original images being read in.
@@ -49,7 +49,7 @@ def std_through_time(images: list, image_slice: slice = slice(None, None, None),
         correct_denom: If true, standard deviation is calculated by dividing by sqrt(n - 1) where n is the
         number of images.  If false, division by sqrt(n) is used.
 
-        h5_data_group: The hdfs data group holding image data in hdfs files
+        h5_data_group: The hdfs data group holding image data in hdf5 files
 
     Returns:
         A dict with the standard deviation, mean and uncentered second moments for each voxel as numpy arrays. The keys
@@ -130,7 +130,7 @@ def create_morphsnakes_brain_mask(img: np.ndarray, p: np.ndarray, morph_params: 
 
     Returns:
         mask: A binary array the same shape as an image.  Each entry indicates if the corresponding voxel in the images
-         belongs to the brain or not.
+        belongs to the brain or not.
 
     """
 
@@ -195,7 +195,7 @@ def create_threshold_brain_mask(stats: dict, std_p: int=70, mean_p: int=70, verb
     return np.bitwise_and(stats['std'] > std_t, stats['mean'] > mean_t)
 
 
-def identify_rois_in_brain_mask(brain_mask: np.ndarray, rois: list, p_in=.9) -> np.ndarray:
+def identify_rois_in_brain_mask(brain_mask: np.ndarray, rois: List[ROI], p_in=.9) -> np.ndarray:
     """
     Identifies ROIs that significantly overlap with a brain mask.
 
@@ -203,8 +203,7 @@ def identify_rois_in_brain_mask(brain_mask: np.ndarray, rois: list, p_in=.9) -> 
         brain_mask: A binary np.ndarray the same shape as the shape of images rois were extracted from, indicating
         which voxels belong to the brain.
 
-        rois: A list of rois.  Each entry should have a dictionary with entries 'x', 'y' and 'z' listing the x, y and z
-        coordinates of an roi.
+        rois: A list of rois objects.
 
         p_in: The percentage of voxels of an roi that must overlap with the brain mask to be considered in the mask.
 
@@ -215,7 +214,7 @@ def identify_rois_in_brain_mask(brain_mask: np.ndarray, rois: list, p_in=.9) -> 
     return rois_in_brain[0]
 
 
-def identify_small_rois(roi_extents: np.ndarray, rois: list):
+def identify_small_rois(roi_extents: np.ndarray, rois: List[ROI]) -> np.ndarray:
     """ Identifies ROIS that fit within a rectangular box of a set size.
 
     Args:
