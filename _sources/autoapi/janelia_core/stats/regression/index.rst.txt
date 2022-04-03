@@ -1,0 +1,491 @@
+:py:mod:`janelia_core.stats.regression`
+=======================================
+
+.. py:module:: janelia_core.stats.regression
+
+.. autoapi-nested-parse::
+
+   Tools for computing statistics in various ways when working with linear regression models.
+
+   The tools provided here are designed for use when assumptions underlying standard approaches to computing statistics
+   for linear regression models do not apply.  In particular, there are multiple methods for handling grouped errors as
+   well as methods for computing statistics via boostrap methods.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.stats.regression.corr
+   janelia_core.stats.regression.normalized_r_squared
+   janelia_core.stats.regression.r_squared
+   janelia_core.stats.regression.grouped_linear_regression_boot_strap
+   janelia_core.stats.regression.grouped_linear_regression_wild_bootstrap
+   janelia_core.stats.regression.grouped_linear_regression_ols_estimator
+   janelia_core.stats.regression.grouped_linear_regression_within_estimator
+   janelia_core.stats.regression.grouped_linear_regression_acm_stats
+   janelia_core.stats.regression.grouped_linear_regression_acm_linear_restriction_stats
+   janelia_core.stats.regression.naive_regression
+   janelia_core.stats.regression.visualize_boot_strap_results
+   janelia_core.stats.regression.grouped_linear_regression_boot_strap_stats
+   janelia_core.stats.regression.linear_regression_ols_estimator
+   janelia_core.stats.regression.visualize_coefficient_stats
+
+
+
+.. py:function:: corr(x: numpy.ndarray, y: numpy.ndarray) -> Union[float, numpy.ndarray]
+
+   Calculates the pearson correlation between two series of data.
+
+   If the data is multi-dimensional, the pearson correlation is calculated for each dimension.
+
+   Args:
+       x: One set of data of shape n_smps*n_dim
+
+       y: The other set of data; same shape as x
+
+   Returns:
+       pearson_corr: The pearson correlation between x and y.  If x & y are multidimensional, then pearson_corr
+       is an array and pearson_corr[i] is the correlation for dimension i.
+
+
+.. py:function:: normalized_r_squared(truth: numpy.ndarray, pred: numpy.ndarray) -> float
+
+   Computes normalized r-squared for a collection of variables.
+
+   Normalized r-squared is defined as follows:  1 - ( \sum r_i) / ( \sum s_i), where:
+
+       r_i is the squared error between predictions and truth for variable i and s_i is the squared error
+       of variable i between the mean value and truth.
+
+   Normalized squared error is equal to standard r-squared when there is only one variable.  When there
+   is more than one variable but all variables have the same variance, then normalized r-squared is equal
+   to the average of the r-squared values for each individual variable.  However, when some variables have
+   higher variance than others, normalized r-squared weights those with higher variance more than those with
+   less variance.
+
+   Args:
+       truth: True data of shape n_smps*n_vars
+
+       pred: Predicated data of shape n_smps*n_vars
+
+   Returns:
+       norm_r_sq: The normlaized r-squared
+
+
+
+.. py:function:: r_squared(truth: numpy.ndarray, pred: numpy.ndarray) -> numpy.ndarray
+
+   Computes the r-squared value for a collection of variables.
+
+   Computes the proportion of variance predicted variables capture of ground truth variables.
+
+   Args:
+       truth: True data of shape n_smps*n_vars
+
+       pred: Predicated data of shape n_smps*n_vars
+
+   Returns:
+       r_sq: r_sq[i] contains the r-squared value for pred[:, i]
+
+
+.. py:function:: grouped_linear_regression_boot_strap(y: numpy.ndarray, x: numpy.ndarray, g: numpy.ndarray, n_bs_smps: int, include_mean: bool = True, rcond: float = None) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   Fits a linear regression model, performing a grouped bootstrap to get confidence intervals on coefficients.
+
+   By grouped bootstrap, we mean samples are selected in groups.
+
+   This function returns the coefficients for each bootstrap sample.  Use grouped_linear_regression_boot_strap_stats
+   to compute statistics (such as confidence intervals on the coefficients) and visualize_boot_strap_results to
+   visualize a summary of the fit results.
+
+   Args:
+       y: 1-d array of the predicted variable.  Of length n_smps.
+
+       x: Variables to predict from.  Of shape n_smps*d_x.
+
+       g: 1-d array indicating groups of samples.  Of length n_smps.  Samples from the same group should
+       have the same value in g.
+
+       n_bs_smps: The number of boot strap samples to draw
+
+       include_mean: True if models should have a mean term included.  False if not.
+
+       rcond: The value of rcond to provide to the least squares fitting.  See np.linalg.lstsq.
+
+   Returns:
+       bs_beta: Of shape n_boot_strap_smps*n_coefs.  bs_beta[i,:] contains the coefficients of the linear regression
+       model for the i^th bootstrap sample.  If include_mean is True, the last column of bs_beta contains the mean.
+
+       beta: The beta fit to the data.  If include_mean is True, the last entry of bs_beta contains the mean.
+
+
+
+.. py:function:: grouped_linear_regression_wild_bootstrap(y: numpy.ndarray, x: numpy.ndarray, g: numpy.ndarray, test_coefs: Sequence[int] = None, n_bs_smps: int = 1000, rcond: float = None) -> numpy.ndarray
+
+   Computes a linear model and stats using a wild bootstrap.
+
+   For group g, the model for the i^th observation is of the form:
+
+       y_gi = x_gi^Teta + o_g + \ep_gi,
+
+   where x_gi are predictor variables of dimension P, o_g is a group offset and ep_gi is zero-mean noise.  In this
+   model, it assumes all groups shared the same eta but each group gets its own o_g and \ep_gi.
+
+   This function will estimate beta as well as p-values that individual coefficients in beta are non-zero.
+
+   The bootstrap procedure is based on the "Wild Cluster bootstrap-t with H0 imposed" bootstrap described in:
+
+       "Boostrap-based Improvements for Inference with Clustered Errors"by Cameron, Gelback & Miller, 2008
+
+   Within each boostrap iteration, the standard-error needed for calculating Wald statistics is estimated with the
+   within estimator of:
+
+       "Computing Robust Standard Errors for Within-groups Estimators" by M. Arellano, 1987,
+
+   where a small-sample correction is also applied as recommended in:
+
+       "A Practioner's Guide to Cluster-Robust Inference" by A. Cameron and Douglas Miller, 2015.
+
+   Args:
+       y: 1-d array of the predicted variable.  Of length n_smps.
+
+       x: Variables to predict from.  Of shape n_smps*d_x.
+
+       g: 1-d array indicating groups of samples.  Of length n_smps.  Samples from the same group should
+       have the same value in g.
+
+       test_coefs: If None, statistical significant that each individual entry in eta is different than 0 will be
+       calculated.  If not, this is a list of indices of beta to test for
+
+       n_bs_smps: The number of bootstrap samples to use when calculating p-values.
+
+       rcond: The value of rcond to provide to the least squares fitting within the call to
+       grouped_linear_regression_within_estimator.  See that function as well np.linalg.lstsq.
+
+   Returns:
+       p_vls: The computed p-values for rejecting the null hypothesis that each coefficient is 0.
+
+
+.. py:function:: grouped_linear_regression_ols_estimator(y: numpy.ndarray, x: numpy.ndarray, g: numpy.ndarray, rcond: float = None) -> Tuple[numpy.ndarray, numpy.ndarray, int]
+
+   Fits a linear model and stats using optimal least squares, accounting for grouped errors.
+
+    For group g, the model for the i^th observation is of the form:
+
+       y_gi = x_gi^Teta + \ep_gi,
+
+   where x_gi are predictor variables of dimension P, and ep_gi is noise.  In this model, it assumes all groups shared
+   the same eta but each group gets its own \ep_gi.
+
+   Note: A small sample correction is applied when calculating the asymptotic covariance matrix, as outlined in
+
+       "A Practioner's Guide to Cluster-Robust Inference" by A. Cameron and Douglas Miller, 2015.
+
+   Args:
+       y: 1-d array of the predicted variable.  Of length n_smps.
+
+       x: Variables to predict from.  Of shape n_smps*d_x.
+
+       g: 1-d array indicating groups of samples.  Of length n_smps.  Samples from the same group should
+       have the same value in g.
+
+       rcond: The value of rcond to provide to the least squares fitting.  See np.linalg.lstsq.
+
+   Returns:
+       beta: The estimate of beta
+
+       acm: The asymptotic covariance matrix for beta.
+
+       n_grps: The number of groups in the analysis
+
+   Raises:
+       ValueError: If the number of samples does not exceed the number of x variables.
+
+
+.. py:function:: grouped_linear_regression_within_estimator(y: numpy.ndarray, x: numpy.ndarray, g: numpy.ndarray, rcond: float = None) -> Tuple[numpy.ndarray, numpy.ndarray, dict, int]
+
+   Computes linear model and stats using the within estimator for a fixed-effects linear model.
+
+   For group g, the model for the i^th observation is of the form:
+
+       y_gi = x_gi^Teta + o_g + \ep_gi,
+
+   where x_gi are predictor variables of dimension P, o_g is a group offset and ep_gi is zero-mean noise.  In this model,
+   it assumes all groups shared the same eta but each group gets its own o_g and \ep_gi.
+
+   This function will estimate beta as well as the asymptotic covariance matrix for beta using the method of:
+
+       "Computing Robust Standard Errors for Within-groups Estimators" by M. Arellano, 1987.
+
+   It will then apply a finite sample correction as recommended in:
+
+       "A Practioner's Guide to Cluster-Robust Inference" by A. Cameron and Douglas Miller, 2015.
+
+   Args:
+       y: 1-d array of the predicted variable.  Of length n_smps.
+
+       x: Variables to predict from.  Of shape n_smps*d_x.
+
+       g: 1-d array indicating groups of samples.  Of length n_smps.  Samples from the same group should
+       have the same value in g.
+
+       rcond: The value of rcond to provide to the least squares fitting.  See np.linalg.lstsq.
+
+   Returns:
+       beta: The estimate of beta
+
+       acm: The asymptotic covariance matrix for beta.
+
+       offsets: A dictionary with the o_g values for each group.  Keys will be values of g used to indicate groups and
+       values will be the offset for each group.
+
+       n_grps: The number of groups in the analysis
+
+
+.. py:function:: grouped_linear_regression_acm_stats(beta, acm, n_grps, alpha) -> dict
+
+   Calculates statistics given an estimate of an asymptotic covariance matrix.
+
+   Confidence intervals and p-values for individual coefficients are calculated assuming a t-distribution on the
+   estimates for the individual entries of beta.
+
+   Args:
+       beta: The estimate of beta
+
+       acm: The asymptotic variance matrix for beta
+
+       n_grps: The number of groups in the original regression
+
+       alpha: The alpha value to use when constructing 1-alpha confidence intervals
+
+   Returns:
+       stats: A dictionary with the following keys:
+
+           alpha: The alpha value for which confidence intervals were calculated.
+
+           c_ints: Confidence intervals.  c_ints[:,i] is the 1-alpha percentile confidence interval for beta[i]
+
+           non_zero_p: Indicates the p-value for null hypothesis that beta[i] is 0.
+
+           non_zero: non_zero[i] is true if the confidence interval for beta[i] does not contain 0.
+
+
+.. py:function:: grouped_linear_regression_acm_linear_restriction_stats(beta: numpy.ndarray, acm: numpy.ndarray, r: numpy.ndarray, q: numpy.ndarray, n_grps: int) -> float
+
+   Given an asymptotic covariance matrix from linear regression, tests significance of linear restrictions.
+
+   Given a vector of K-coefficients, beta, we desire to produce a p-value for a null hypothesis taking the form of
+   J linear restrictions, which can be written as:
+
+   r*beta = q, where r is a matrix of size J by K and q is a vector of length J.
+
+   This function was based heavily on chapter 5 of Greene, Econometric Analysis.  In addition, to this
+   reference a good reference on Wald tests (the Wikipedia article is not a bad place to start) may also be
+   useful.
+
+   The basic approach we take here is we assume:
+
+   1) The distribution on beta is well approximated as a normal distribution with the asymptotic covariance matrix
+   provided to this function.
+
+   2) Under this assumption, we can compute the F-statistic (see Greene), which is defined as:
+
+       F = [r*beta - q]' (r' * acm * r)^{-1} [r*beta - q]/J,
+
+       which has a distribution equal to 1/J times a Chi-squared distribution with K degrees of freedom.
+
+   3) We can in principle calculate critical values comparing F*J to critical values from a Chi-square distribution.
+   However, again following Greene, we choose to use critical values from the F-distribution, which is more
+   conservative.  Specifically, we compare F (no need now to multiply by J) to the critical values from the
+   F(J, n_grps - K) distribution.
+
+   Note: This function can be used for computing statistics for linear restrictions of non-grouped results as well.
+   In this case, n_grps should just be seq equal to the number of samples in the data.
+
+   Args:
+       beta: The beta vector which was estimated
+
+       acm: The estimated asymptotic covariance matrix
+
+       r: The r matrix for linear restrictions.  Each row is a restriction.
+
+       q: The q vector for linear restrictions.
+
+       n_grps: The number of groups in the original data
+
+   Returns:
+       p: The calculated p value.
+
+
+
+.. py:function:: naive_regression(y: numpy.ndarray, x: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   Performs "naive" regression to predict x from y.
+
+   By naive regression, we assume that all x variables are mutually independent. The parameters this
+   function provides is the correct regression model for this case.  If not all variables are
+   independent, the parameters returned by this function are sub-optimal.
+
+   This function will return the parameters, b (a matrix) and o (a vector of offsets) to predict:
+
+   y_i = x_i^T*b + o
+
+   where we asume y_i \in R^m and x_i \in R^p.
+
+   Args:
+       y: Data to predict of shape [n_smps, m]
+
+       x: Data to predict from of shape [n_smps, p]
+
+   Returns:
+       b: the b matrix above
+
+       o: the offset vector above
+
+
+
+.. py:function:: visualize_boot_strap_results(bs_values: numpy.ndarray, var_strs: Sequence, theta: numpy.ndarray = None, var_clrs: numpy.ndarray = None, violin_plots: bool = True, plot_c_ints: bool = True, show_nz_sig: bool = True, plot_zero_line: bool = True, alpha: float = 0.05, theta_size: int = 5, er_bar_pts: int = 2, sig_size: int = 5, sig_y_vl: float = None, ax: matplotlib.pyplot.axes = None) -> matplotlib.pyplot.axes
+
+   For visualizing the results of grouped_linear_regression_boot_strap.
+
+   Args:
+       bs_values: The coefficients for each bootstrap sample. bs_values[i,:] are the coefficients for bootstrap sample
+       i.
+
+       var_strs: The names of each of the coefficients in bs_values.
+
+       theta: Point estimates for each coefficient.  If None, point values will not be plotted.
+
+       var_clrs: Of shape n_coefs*3.  var_clrs[i,:] is a color for plotting the values associated with coefficient i.
+
+       violin_plots: If true, violin plots of coefficient values will be plotted.
+
+       plot_c_ints: True if confidence intervals for each coefficient should be plotted.
+
+       plot_zero_line: True if a dotted line denoting 0 should be added to the plot.
+
+       show_nz_sig: True if coefficients significantly different than 0 should be denoted with stars. This is
+       computed simply by testing if the confidence interval for a coefficient contains 0.
+
+       alpha: The alpha value for constructing confidence intervals and determining if coefficients are significantly
+       different than 0.
+
+       theta_size: The size of the marker to use when plotting point estimages of coefficients.
+
+       er_bar_pts: The width of error bars to plot for confidence intervals.
+
+       sig_size: The size of the marker to use when denoting which coefficients are significanly different 0.
+
+       sig_y_vl: If not None, this is the y-value used for showing significant stars.
+
+       ax: The axis to plot into.  If none, one will be created.
+
+   Returns:
+       ax: The axes the plot was created in
+
+
+
+.. py:function:: grouped_linear_regression_boot_strap_stats(bs_values: numpy.ndarray, alpha: float = 0.05) -> dict
+
+   For getting statistics from the results of grouped_linear_regression_boot_strap.
+
+   This function will compute:
+
+       1) Confidence intervals for each coefficient.  Currently percentile confidence intervals are computed. See
+       "All of Statistics" by Wasserman for more information on percentile confidence intervals for the bootstrap.
+
+       2) P-values that coefficients are significantly different than 0, based on inverting percentile confidence
+       intervals
+
+   Args:
+       bs_values: The results of grouped_linear_regresson_boot_strap.  bs_vls[i,:] are the coefficient for
+       the i^th bootstrap sample.
+
+       alpha: The alpha values to use when computing confidence intervals
+
+   Returns:
+       stats: A dictionary with the following keys:
+
+           alpha: The alpha value for which confidence intervals were calculated.
+
+           c_ints: Confidence intervals.  c_ints[:,i] is the 1-alpha percentile confidence interval for coefficient i.
+
+           non_zero_p: Indicates the p-value for null hypothesis that the coefficient is 0.
+
+           non_zero: Indicates coefficients with 1-alpha confidence intervals which do not contain 0.  non_zero[i] is
+           true if the confidence interval for coefficient i does not contain 0.
+
+
+
+.. py:function:: linear_regression_ols_estimator(y: numpy.ndarray, x: numpy.ndarray, rcond: float = None) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   Fits a linear model and stats using optimal least squares.
+
+    For group g, the model for the i^th observation is of the form:
+
+       y_i = x_i^Teta + \ep_i,
+
+   where x_i are predictor variables of dimension P, and ep_i is noise with a fixed variance.
+
+   This function is based on chapter 4 of Greene, Econometric Analysis.
+
+   Args:
+       y: 1-d array of the predicted variable.  Of length n_smps.
+
+       x: Variables to predict from.  Of shape n_smps*d_x.
+
+       rcond: The value of rcond to provide to the least squares fitting.  See np.linalg.lstsq.
+
+   Returns:
+       beta: The estimate of beta
+
+       acm: The asymptotic covariance matrix for beta.
+
+   Raises:
+       ValueError: If the number of samples does not exceed the number of x variables.
+
+
+.. py:function:: visualize_coefficient_stats(var_strs: Sequence, theta: numpy.ndarray = None, c_ints: numpy.ndarray = None, var_clrs: numpy.ndarray = None, sig: numpy.ndarray = None, er_bar_pts: int = 2, theta_size=5, sig_size: int = 5, sig_y_vl: float = None, x_axis_rot: float = -75, ax: matplotlib.pyplot.axes = None, plot_zero_line: bool = True) -> matplotlib.pyplot.axes
+
+   For visualizing estimated coefficients with confidence intervals.
+
+   Args:
+       var_strs: Strings giving the name of each coefficient
+
+       theta: Point estimate for each coefficient, order corresponds to var_strs.  If None, point estimates will
+       not be plotted.
+
+       c_ints: c_ints[i,:] is the lower (left column) and upper (right column) limits on the confidence interval
+       for the coefficient in var_strs[i].  If None, confidencce intervals will not be plotted.
+
+       var_clrs: var_clrs[i,:] is the color to use for plotting the coefficient for var_strs[i].  If None, black
+       will be used for all plotting.
+
+       sig: sig[i] is True if the coefficient for var_strs[i] is significant. Significant values will have a
+       star plotted to indicate they are significant.
+
+       theta_size: The size of the marker to use when plotting point estimages of coefficients.
+
+       er_bar_pts: The width of error bars to plot for confidence intervals.
+
+       sig_size: The size of the marker to use when denoting which coefficients are significanly different 0.
+
+       sig_y_vl: If not None, this is the y-value used for showing significant stars.
+
+       plot_zero_line: True if a line indicating 0 should be plotted
+
+       x_axis_rot: Rotation in degrees of x-axis labels.
+
+       ax: Axes to plot into. If None, a new figure with axes will be created.
+
+   Returns:
+       as: The axes the plot was generated in.
+
+

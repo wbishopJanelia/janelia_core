@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.dataprocessing.ahrens_lab &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing.ahrens_lab</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/dataprocessing/ahrens_lab/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.dataprocessing.ahrens_lab">
+<span id="janelia-core-dataprocessing-ahrens-lab"></span><h1><a class="reference internal" href="#module-janelia_core.dataprocessing.ahrens_lab" title="janelia_core.dataprocessing.ahrens_lab"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing.ahrens_lab</span></code></a><a class="headerlink" href="#module-janelia_core.dataprocessing.ahrens_lab" title="Permalink to this headline"></a></h1>
+<p>Data tools used for working with results from the Ahrens lab.</p>
+<p>While the tools here were originally developed for working with Ahrens lab data, they
+are written to be generally useful for many datasets.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.ahrens_lab.down_sample_ephys_vls" title="janelia_core.dataprocessing.ahrens_lab.down_sample_ephys_vls"><code class="xref py py-obj docutils literal notranslate"><span class="pre">down_sample_ephys_vls</span></code></a>(ts: numpy.ndarray, image_acq_starts: numpy.ndarray, n_images: int, vls: numpy.ndarray, ds_type: str = 'mean', acq_start_type: str = 'boolean') → Tuple[numpy.ndarray, numpy.ndarray]</p></td>
+<td><p>A function to take raw ephys data and down-sample it to the imaging rate of an experiment.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.ahrens_lab.find_camera_triggers_in_ephys" title="janelia_core.dataprocessing.ahrens_lab.find_camera_triggers_in_ephys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_camera_triggers_in_ephys</span></code></a>(sig: numpy.ndarray, th: float = 3.8, smp_tol: int = 2) → numpy.ndarray</p></td>
+<td><p>Finds indices where the camera was triggered in the raw ephys data.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="janelia_core.dataprocessing.ahrens_lab.down_sample_ephys_vls">
+<code class="sig-prename descclassname">janelia_core.dataprocessing.ahrens_lab.</code><code class="sig-name descname">down_sample_ephys_vls</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ts</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">image_acq_starts</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">n_images</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">vls</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">ds_type</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'mean'</span></em>, <em class="sig-param"><span class="n">acq_start_type</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'boolean'</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>numpy.ndarray<span class="p">, </span>numpy.ndarray<span class="p">]</span><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/ahrens_lab.html#down_sample_ephys_vls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.ahrens_lab.down_sample_ephys_vls" title="Permalink to this definition"></a></dt>
+<dd><p>A function to take raw ephys data and down-sample it to the imaging rate of an experiment.</p>
+<p>Values are down-sampled between image acquisitions, so that the down-sampled value for image i will be a function
+of the data that falls between the start of acquisition of image i and the start of acquisition for image i+1.</p>
+<dl>
+<dt>Args:</dt><dd><p>ts: Time stamps for the raw ephys data.</p>
+<p>image_acq_starts: An array indicating the time image acquisition starts for each volume.  This can be either a
+binary array of an array of time stamps (see acq_start_type below for more details).</p>
+<p>n_images: The number of images that were acquired.</p>
+<p>vls: The raw ephys values to down sample</p>
+<p>ds_type: The type of down-sampling to perform. Options are:</p>
+<blockquote>
+<div><p>‘mean’ The down-sampled value is the mean value between the start of image acquisitions.</p>
+<p>‘mode’ The down-sampled value is the mode between the start of image acquisitions.</p>
+<p>‘max’ The down-sampled value is the max between the start of image acquisitions.</p>
+<p>‘consant’ The down-sampled value is the constant value between the start of image acquisitions.  If
+selected, a check will be performed to ensure values are actually constant, and if this check is failed,
+an error will be raised.</p>
+</div></blockquote>
+<p>acq_start_type: Indicates the way of specifying image acquisition starts.  If ‘boolean’, then image_acq_starts
+should be a binary array with a value of 1 indicating each point in time image acquisition starts.  If ‘time’
+then this should be an array with times that image acqusition starts.</p>
+</dd>
+<dt>Returns:</dt><dd><p>ds_ts: The time stamps of the down sampled values.  Time stamps correspond to the start of image acquisitions.</p>
+<p>ds_vls: The down sampled values.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If n_images is greater than the number of image starts in image_acq_starts.  We require n_images to
+be strictly less than the number of image acquisition starts so a period of image acquisition is well defined
+for the last requested image.</p>
+<p>ValueError: If the first or last image acquisition times fall outside of the range of time stamps for the values.</p>
+<p>ValueError: If ‘constant’ down-sampling is selected, but non-constant values are detected in a sampling period.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.dataprocessing.ahrens_lab.find_camera_triggers_in_ephys">
+<code class="sig-prename descclassname">janelia_core.dataprocessing.ahrens_lab.</code><code class="sig-name descname">find_camera_triggers_in_ephys</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sig</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">th</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">3.8</span></em>, <em class="sig-param"><span class="n">smp_tol</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">2</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/ahrens_lab.html#find_camera_triggers_in_ephys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.ahrens_lab.find_camera_triggers_in_ephys" title="Permalink to this definition"></a></dt>
+<dd><p>Finds indices where the camera was triggered in the raw ephys data.</p>
+<dl>
+<dt>Args:</dt><dd><p>sig: 1-d array of camera trigger data</p>
+<p>th: the threshold that indicates a camera threshold</p>
+<p>smp_tol: After extracting camera triggers, we do a check and make sure all camera triggers are the
+same number of samples apart +/- a tolerance; this is the tolerance</p>
+</dd>
+<dt>Returns:</dt><dd><p>inds: The indices of sig where values first pass th</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If the first value of sig is greather than th (since then timing of the onset cannot be
+determined)</p>
+<p>RuntimeError: If the tolerance check is not passed</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

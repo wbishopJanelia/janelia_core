@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.visualization.utils &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.utils</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/visualization/utils/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.visualization.utils">
+<span id="janelia-core-visualization-utils"></span><h1><a class="reference internal" href="#module-janelia_core.visualization.utils" title="janelia_core.visualization.utils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.utils</span></code></a><a class="headerlink" href="#module-janelia_core.visualization.utils" title="Permalink to this headline"></a></h1>
+<p>Basic visualization utilities.</p>
+<p>William Bishop
+<a class="reference external" href="mailto:bishopw&#37;&#52;&#48;hhmi&#46;org">bishopw<span>&#64;</span>hhmi<span>&#46;</span>org</a></p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.utils.alpha_overlay" title="janelia_core.visualization.utils.alpha_overlay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">alpha_overlay</span></code></a>(base_img: numpy.ndarray, overlay_inds: list, overlay_clrs: numpy.ndarray, overlay_alpha: numpy.ndarray) → numpy.ndarray</p></td>
+<td><p>Takes a base image and overlays another image, performing alpha blending.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.utils.enforce_constant_clims" title="janelia_core.visualization.utils.enforce_constant_clims"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enforce_constant_clims</span></code></a>(ims: list, clim: numpy.ndarray = None)</p></td>
+<td><p>Applies the same color limits to a set of images.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="janelia_core.visualization.utils.alpha_overlay">
+<code class="sig-prename descclassname">janelia_core.visualization.utils.</code><code class="sig-name descname">alpha_overlay</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base_img</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">overlay_inds</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">overlay_clrs</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">overlay_alpha</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/utils.html#alpha_overlay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.utils.alpha_overlay" title="Permalink to this definition"></a></dt>
+<dd><p>Takes a base image and overlays another image, performing alpha blending.</p>
+<p>Note: The output of this function will be floating point numbers (not integers).</p>
+<dl>
+<dt>Args:</dt><dd><p>base_img: The image to overlay things on top of.  Should be of size n_pixels*n_pixels*3,
+where the last dimension contains the RGB values of each pixel in the image.</p>
+<p>overlay_inds: List of length 2.  overlay_inds[i] contains indices of pixels in the i^th
+dimension to overlay</p>
+<p>overlay_clrs: An array of size n_overlay_pixels*3.  overlay_clrs[i, :] gives the RGB
+values of the corresponding pixel to overlay indexed in overlay_inds.</p>
+<p>overlay_alpha: An array of length n_overlay_pixels.  overlay_alpha[i] gives the alpha
+values of the corresponding pixel to overlay indexed in overlay_inds.</p>
+</dd>
+</dl>
+<p>Returns:</p>
+<blockquote>
+<div><p>new_image: The new image of size n_pixels*n_pixels*3</p>
+</div></blockquote>
+<p>Raises:</p>
+<blockquote>
+<div><p>RuntimeError: If inputs do not have expected dimensions.</p>
+</div></blockquote>
+<p>Example:</p>
+<blockquote>
+<div><p>import numpy as np
+import matplotlib.pyplot as plt</p>
+<p>base_img = 255*np.ones([10, 10, 3], dtype=np.int)</p>
+<p>red_inds = np.indices([4,4])
+red_inds = [np.reshape(i, i.size) for i in red_inds]
+red_clrs = 0*np.ones([16, 3], dtype=np.int)
+red_clrs[:,0] = 255
+red_alpha = 255*.5*np.ones(16, dtype=np.int)</p>
+<p>blue_inds = np.indices([4,4])
+blue_inds = [np.reshape(i, i.size)+2 for i in blue_inds]
+blue_clrs = 0*np.ones([16, 3], dtype=np.int)
+blue_clrs[:,2] = 255
+blue_alpha = 255*.2*np.ones(16, dtype=np.int)</p>
+<p>new_image = alpha_overlay(base_img, red_inds, red_clrs, red_alpha)
+new_image = alpha_overlay(new_image, blue_inds, blue_clrs, blue_alpha)</p>
+<p>plt.imshow(np.ndarray.astype(new_image, np.int))</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.utils.enforce_constant_clims">
+<code class="sig-prename descclassname">janelia_core.visualization.utils.</code><code class="sig-name descname">enforce_constant_clims</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ims</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">clim</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/utils.html#enforce_constant_clims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.utils.enforce_constant_clims" title="Permalink to this definition"></a></dt>
+<dd><p>Applies the same color limits to a set of images.</p>
+<dl>
+<dt>Args:</dt><dd><p>ims: A list of images to apply the same color limits to</p>
+<p>clim: Color limits to apply. If None, these will be set to the min and max values of the
+current color limits in the provided images.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

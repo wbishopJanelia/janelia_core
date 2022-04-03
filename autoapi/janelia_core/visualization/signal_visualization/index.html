@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.visualization.signal_visualization &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.signal_visualization</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/visualization/signal_visualization/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.visualization.signal_visualization">
+<span id="janelia-core-visualization-signal-visualization"></span><h1><a class="reference internal" href="#module-janelia_core.visualization.signal_visualization" title="janelia_core.visualization.signal_visualization"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.signal_visualization</span></code></a><a class="headerlink" href="#module-janelia_core.visualization.signal_visualization" title="Permalink to this headline"></a></h1>
+<p>Tools for visualizing signals.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.signal_visualization.plot_segmented_signal" title="janelia_core.visualization.signal_visualization.plot_segmented_signal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_segmented_signal</span></code></a>(tm_pts: numpy.ndarray, sig: numpy.ndarray, ax: matplotlib.pyplot.Axes = None, delta: float = 0.6, remove_tm_btw_chunks: bool = True, tm_padding: float = 1.0, color: str = 'k', linewidth: float = 1.0) → matplotlib.pyplot.Axes</p></td>
+<td><p>Plots a signal that exists at different chunks in time.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="janelia_core.visualization.signal_visualization.plot_segmented_signal">
+<code class="sig-prename descclassname">janelia_core.visualization.signal_visualization.</code><code class="sig-name descname">plot_segmented_signal</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tm_pts</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">sig</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">matplotlib.pyplot.Axes</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">delta</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.6</span></em>, <em class="sig-param"><span class="n">remove_tm_btw_chunks</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">tm_padding</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">color</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'k'</span></em>, <em class="sig-param"><span class="n">linewidth</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span> &#x2192; matplotlib.pyplot.Axes<a class="reference internal" href="../../../../_modules/janelia_core/visualization/signal_visualization.html#plot_segmented_signal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.signal_visualization.plot_segmented_signal" title="Permalink to this definition"></a></dt>
+<dd><p>Plots a signal that exists at different chunks in time.</p>
+<p>Each chunk will be plotted as a separate trace, and the user can chose to remove time between chunks.</p>
+<dl>
+<dt>Args:</dt><dd><p>tm_pts: The array of time points the signal is sampled at</p>
+<p>sig: The array of signal values</p>
+<p>ax: Axes to plot into.  If None, a figure with axes will be crated.</p>
+<p>delta: The threshold to use when determining if two sequential time points belong to the same chunk or not</p>
+<p>remove_tm_btw_chunks: True if time periods between chunks should be removed</p>
+<p>tm_padding: The amount of padding (in units of time) to add between chunks</p>
+<p>color: The color to plot the signal in</p>
+<p>linewidth: The linewidth to plot the signal with</p>
+</dd>
+<dt>Returns:</dt><dd><p>ax: The axis everything was plotted in</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

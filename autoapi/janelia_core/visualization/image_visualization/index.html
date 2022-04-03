@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.visualization.image_visualization &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.image_visualization</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/visualization/image_visualization/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.visualization.image_visualization">
+<span id="janelia-core-visualization-image-visualization"></span><h1><a class="reference internal" href="#module-janelia_core.visualization.image_visualization" title="janelia_core.visualization.image_visualization"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.image_visualization</span></code></a><a class="headerlink" href="#module-janelia_core.visualization.image_visualization" title="Permalink to this headline"></a></h1>
+<p>Tools for visualizing images.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.image_visualization.GroupedStackedImageVisualizer" title="janelia_core.visualization.image_visualization.GroupedStackedImageVisualizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GroupedStackedImageVisualizer</span></code></a></p></td>
+<td><p>A QWidget for viewing a set of stacked images.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.image_visualization.visualize_2d_function" title="janelia_core.visualization.image_visualization.visualize_2d_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visualize_2d_function</span></code></a>(f: Callable, dim_0_range: Sequence[float] = None, dim_1_range: Sequence[float] = None, n_pts_per_dim: Sequence[int] = None, ax=None)</p></td>
+<td><p>Visualizes a 2-d function.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="janelia_core.visualization.image_visualization.visualize_2d_function">
+<code class="sig-prename descclassname">janelia_core.visualization.image_visualization.</code><code class="sig-name descname">visualize_2d_function</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">Callable</span></em>, <em class="sig-param"><span class="n">dim_0_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dim_1_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">n_pts_per_dim</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_visualization.html#visualize_2d_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_visualization.visualize_2d_function" title="Permalink to this definition"></a></dt>
+<dd><p>Visualizes a 2-d function.</p>
+<dl>
+<dt>Args:</dt><dd><p>f: The function to visualize. Should accept input of shape [n by 2], where n is an arbitrary number
+of values and output values of length n.</p>
+<p>dim_0_range: The range of dim 0 values to visualize the function over.  If None, [0.0, 1.0] will be used.</p>
+<p>dim_1_range: The range of dim 1 values to visualize the function over.  If None, [0.0, 1.0] will be used.</p>
+<p>n_pts_per_dim: The number of points to sample per dimension.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.visualization.image_visualization.GroupedStackedImageVisualizer">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.visualization.image_visualization.</code><code class="sig-name descname">GroupedStackedImageVisualizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">imgs</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">titles</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">color_maps</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_visualization.html#GroupedStackedImageVisualizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_visualization.GroupedStackedImageVisualizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>A QWidget for viewing a set of stacked images.</p>
+<p>This object creates a set of ImageViews, side by side.  Each image stack can
+be seen in it’s own image view, but as you move through the image stack in one
+image view, the other image views are also updated.</p>
+<p>Creates a GroupedStackedImageVisualizer object.</p>
+<dl>
+<dt>Args:</dt><dd><p>imgs: A list of images.  Each entry contains an image to display.</p>
+<p>titles: A list of titles for the images. If None, no special titles will be display.</p>
+<p>color_maps: Either (1) a list of colormaps or (2) a single colormp or (3) None.
+If a list of colormaps, the list gives the colormaps for each image.  If a single
+colormap, the colormap that will be used for all images.  If None, default
+colormaps will be used.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.visualization.image_visualization.GroupedStackedImageVisualizer.init_ui">
+<code class="sig-name descname">init_ui</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">levels_range</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_visualization.html#GroupedStackedImageVisualizer.init_ui"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_visualization.GroupedStackedImageVisualizer.init_ui" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes the UI for a GroupedStackedImageVisualizer object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>levels_range: range[0] gives the lower level and range[1] gives the upper
+range to set levels to.  If none, levels will be set automatically.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

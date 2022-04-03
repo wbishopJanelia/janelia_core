@@ -1,0 +1,113 @@
+:py:mod:`janelia_core.stats.histogram`
+======================================
+
+.. py:module:: janelia_core.stats.histogram
+
+.. autoapi-nested-parse::
+
+   Tools for working with histograms.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.stats.histogram.HistogramFilter
+
+
+
+
+.. py:class:: HistogramFilter(min=0, max=0, n_bins=1000)
+
+   Object for updating a histogram of counts with streaming data.
+
+   This object is useful when needing to calculate percentiles of data over moving windows.
+
+   The user specifies a min and max value of the histograms and a number of bins to include in this range.  The user
+   can then add and remove values to the histogram, which will add and remove counts to the appropriate bins in the
+   histogram.  If a user tries to add or remove a value falling outside of the range of the histogram, that value will
+   be ignored.
+
+   Bins of the histogram have inclusive leading edges and exclusive trailing edges.  For example, if we construct a
+   histogram with 2 bins with a min value of 0 and a max value of 1, the bins will have edges [0, .5) and [.5, 1).
+
+   Note: At the moment this function is optimized for speed when adding and removing values but can be subject to
+   floating point errors.  If more exact results are required, use other means of calculating histograms.
+
+
+   Creates a HistogramFilter.
+
+   Args:
+       min,max: Set the range of values we want to calculate histograms values over.  Values outside of this
+       range will be ignored when adding or removing values from the buffer.
+
+       n_bins: The number of bins in the histogram.
+
+
+   .. py:method:: reset(self, data: numpy.ndarray = None)
+
+      Resets the buffer.
+
+      If no data is provided, all counts in the buffer are set to 0.  If data is provided,
+      the buffer is filled with counts of the values in the provided data.
+
+      Args:
+          data: If provided, counts in the buffer are reset based on this data.
+
+
+   .. py:method:: add_value(self, vl)
+
+      Adds a value to the buffer.
+
+
+   .. py:method:: remove_value(self, vl)
+
+      Removes a value from the buffer.
+
+
+   .. py:method:: percentile(self, percentile: float) -> int
+
+      Returns the bin containing a given percentile.
+
+      By "bin containing given percentile" this function returns the smallest index of a bin
+      for which the counts in that bin exceed the requested percentile.
+
+      Args:
+          percentile: The requested percentile
+
+      Returns:
+          bin_idx: The bin containing the requested percentile.
+
+      Raises:
+          RuntimeError: If percentile is outside of the range [0, 1).
+
+
+   .. py:method:: get_bin_starting_edges(self) -> numpy.ndarray
+
+      Returns an array of starting edges for each bin in the buffer.
+
+
+
+   .. py:method:: _get_bin(self, vl) -> int
+
+      Returns the bin of a histogram a value falls into.
+
+      If the value falls outside of the range of the histogram (defined by the min and max values of the
+      HistogramBuffer object) a warning will be printed and None will be returned.
+
+      Note: This function is not the most robust with respect to floating point errors and could probably
+      be improved in this regard.
+
+      Args:
+          vl: The value the bin should be returned for
+
+      Returns:
+          bin: The index of self.buffer for the bin the value falls in.
+
+
+

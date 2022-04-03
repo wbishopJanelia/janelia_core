@@ -1,0 +1,116 @@
+:py:mod:`janelia_core.visualization.exp_viewing`
+================================================
+
+.. py:module:: janelia_core.visualization.exp_viewing
+
+.. autoapi-nested-parse::
+
+   GUI tools for visualizing data from imaging experiments.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.visualization.exp_viewing.KeyPressWindow
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.visualization.exp_viewing.visualize_exp
+   janelia_core.visualization.exp_viewing.view_images_with_continuous_values
+
+
+
+.. py:function:: visualize_exp(dataset: janelia_core.dataprocessing.dataset.DataSet, cont_var_key: str, image_keys: list, cont_var_inds: list = None, cont_var_labels: list = None, func: types.FunctionType = None, sc: pyspark.SparkContext = None) -> pyqtgraph.Qt.QtGui.QWidget
+
+   Function for visually exploring the data in a Dataset object.
+
+   This function will create a GUI that plots continuous variables through time, allowing
+   the user to zoom in on the continuous variables.  After zooming in on a region of the
+   continuous variables, the user can load the images for that region.
+
+   Args:
+       dataset: The dataset to explore.
+
+       cont_var_key: The key of the dictionary containing continuous variables to examine.
+
+       image_keys: A list of keys to dictionaries containing image series to examine.
+
+       cont_var_inds: A list of indices of continuous variables to plot. If None, all variables will be plotted.
+
+       cont_var_labels: A list of labels for each continuous variable. If None, no labels will be generated.
+
+       func: A function to apply when processing each image.  If none, max projection in z will be used.
+
+       sc: A spark context, which can be optionally provided to speed up loading images.
+
+   Returns:
+       The created window.
+
+
+.. py:function:: view_images_with_continuous_values(cont_var_dict: dict, image_dicts: list, func: types.FunctionType = None, cont_var_inds: list = None, cont_var_labels: list = None, image_labels: list = None, sc: pyspark.SparkContext = None) -> pyqtgraph.Qt.QtGui.QWidget
+
+   Function to explore continuous variables and series of images together.
+
+   There will be a slider on the bottom of the GUI for the continuous variable data which the user can move to scroll
+   through time.  This slider will scroll through time for all image series.  Additionally, there are sliders for each
+   individual time series.
+
+   Note: Continuous variables and image series must have the same time stamps.
+
+   Args:
+       cont_var_dict: A dictionary containing data for a time series of continuous values.  Must have two keys.
+       The first, 'ts',is a 1-d numpy.ndarray with timestamps.  The second 'vls' is a list of or numpy array of data
+       for each point in ts, where each row of data is a vector of continuous values for a time point.
+
+       image_dicts: A list of dictionaries. Each dictionary contains data for one time series of images. These
+       dictionaries must have a 'ts' key, with timestamps (as cont_var_dict) and a 'vls' key, which will contain
+       either (1) a 3-d numpy.ndarray of dimensions n_ts*n_pixels_n_pixels or (2) a list of paths to image files of
+       length n_ts.
+
+       func: A function to apply when processing each image.  If none, max projection in z will be used.
+
+       cont_var_inds: A list of indices of continuous variables to plot.
+
+       cont_var_labels: A list of strings with the labels for each continuous variable (each column in 'vls' of the
+       cont_var_dict).
+
+       image_labels: A list of strings with labels for each series of images in image_dicts.
+
+       sc: A spark context, which can be optionally provided to speed up loading images.
+
+   Returns:
+       The created window.
+
+
+.. py:class:: KeyPressWindow(*args, **kwargs)
+
+   Bases: :py:obj:`pyqtgraph.GraphicsWindow`
+
+   Class to create windows that respond to key press events.
+
+   This code is from: https://stackoverflow.com/questions/40423999/pyqtgraph-where-to-find-signal-for-key-preses
+
+   Creates a new KeyPressWidget object.
+
+   .. py:attribute:: sigKeyPress
+      
+
+      
+
+   .. py:method:: keyPressEvent(self, ev)
+
+      Responds to a key press event
+
+
+

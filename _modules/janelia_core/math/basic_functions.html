@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.math.basic_functions &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.math.basic_functions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.math.basic_functions</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Basic math functions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="bound"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.bound">[docs]</a><span class="k">def</span> <span class="nf">bound</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">lb</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">ub</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Thresholds values in array between lower and upper bounds.</span>
+
+<span class="sd">     Args:</span>
+<span class="sd">         a: The array with values to threshold</span>
+
+<span class="sd">         lb: The lower bound to apply</span>
+
+<span class="sd">         ub: The upper bound to apply</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="n">a</span><span class="p">[</span><span class="n">a</span> <span class="o">&lt;</span> <span class="n">lb</span><span class="p">]</span> <span class="o">=</span> <span class="n">lb</span>
+    <span class="n">a</span><span class="p">[</span><span class="n">a</span> <span class="o">&gt;</span> <span class="n">ub</span><span class="p">]</span> <span class="o">=</span> <span class="n">ub</span>
+    <span class="k">return</span> <span class="n">a</span></div>
+
+
+<div class="viewcode-block" id="combine_slices"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.combine_slices">[docs]</a><span class="k">def</span> <span class="nf">combine_slices</span><span class="p">(</span><span class="n">slices</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">slice</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">slice</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot; Combines multiple simple slices into a potentially smaller number of simple slices.</span>
+
+<span class="sd">    This function identifies overlap in slices and then combines overlapping slices into a single slice. This function</span>
+<span class="sd">    will also get rid of slices which index nothing (have the same start and stop).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        slices: A sequence of slice objects.  All slice objects must be simple (see is_simple_slice).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        c_slices: A sequence of combined slices.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If all slices are not simple.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Handle the case of an empty list first</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">slices</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_simple_slice</span><span class="p">(</span><span class="n">slices</span><span class="p">):</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;All slices must be simple.&#39;</span><span class="p">))</span>
+
+    <span class="n">min_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slices</span><span class="p">])</span>
+    <span class="n">max_stop</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">stop</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slices</span><span class="p">])</span>
+
+    <span class="n">shifted_slices</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">start</span><span class="o">-</span><span class="n">min_start</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">stop</span><span class="o">-</span><span class="n">min_start</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slices</span><span class="p">]</span>
+
+    <span class="n">bin_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">max_stop</span><span class="o">-</span><span class="n">min_start</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">shifted_slices</span><span class="p">:</span>
+        <span class="n">bin_array</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">shifted_c_slices</span> <span class="o">=</span> <span class="n">find_binary_runs</span><span class="p">(</span><span class="n">bin_array</span><span class="p">)</span>
+    <span class="n">c_slices</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">start</span><span class="o">+</span><span class="n">min_start</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">stop</span><span class="o">+</span><span class="n">min_start</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">shifted_c_slices</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">c_slices</span></div>
+
+
+<div class="viewcode-block" id="copy_and_delay"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.copy_and_delay">[docs]</a><span class="k">def</span> <span class="nf">copy_and_delay</span><span class="p">(</span><span class="n">sig</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">delay_inds</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Forms delayed copies of data.</span>
+
+<span class="sd">    Delays can be positive or negative.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        sig: The data to delay of shape [n_pts, n_vars]</span>
+
+<span class="sd">        delay_inds: The amount to delay signals by.  Each entry is an amount to delay by.   If None,</span>
+<span class="sd">        a value of [0, 1] will be used.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        delayed_sig: The copied and delayed data.  The first n_vars columns are the copy for delay[0], the</span>
+<span class="sd">        second n_vars rows correspond to delay[1] and so on...</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">delay_inds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">delay_inds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">n_pts</span><span class="p">,</span> <span class="n">n_vars</span> <span class="o">=</span> <span class="n">sig</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">n_copies</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">delay_inds</span><span class="p">)</span>
+
+    <span class="n">delayed_sig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_pts</span><span class="p">,</span> <span class="n">n_vars</span><span class="o">*</span><span class="n">n_copies</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">d_i</span><span class="p">,</span> <span class="n">delay_ind</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">delay_inds</span><span class="p">):</span>
+        <span class="n">var_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">d_i</span><span class="o">*</span><span class="n">n_vars</span><span class="p">,</span> <span class="p">(</span><span class="n">d_i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">n_vars</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">delay_ind</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">source_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">tgt_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">delay_ind</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">source_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">delay_ind</span><span class="p">)</span>
+            <span class="n">tgt_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">delay_ind</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">source_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">delay_ind</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">tgt_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">delay_ind</span><span class="p">)</span>
+
+        <span class="n">delayed_sig</span><span class="p">[</span><span class="n">tgt_slice</span><span class="p">,</span> <span class="n">var_slice</span><span class="p">]</span> <span class="o">=</span> <span class="n">sig</span><span class="p">[</span><span class="n">source_slice</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="k">return</span> <span class="n">delayed_sig</span></div>
+
+
+<div class="viewcode-block" id="divide_into_nearly_equal_parts"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.divide_into_nearly_equal_parts">[docs]</a><span class="k">def</span> <span class="nf">divide_into_nearly_equal_parts</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Produces k nearly equal integer values which sum to n.</span>
+
+<span class="sd">    All values will differ by no more than 1.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        n: The number to divide</span>
+
+<span class="sd">        k: The number to divide n by.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        An array of length k of values that sum to n.  Larger values will be in lower indices.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;</span> <span class="n">n</span><span class="p">:</span>
+        <span class="n">base_vl</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">base_vl</span> <span class="o">=</span> <span class="n">n</span><span class="o">//</span><span class="n">k</span>
+
+    <span class="n">vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">base_vl</span><span class="p">)</span>
+    <span class="n">rem</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="p">(</span><span class="n">base_vl</span><span class="o">*</span><span class="n">k</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rem</span><span class="p">):</span>
+        <span class="n">vls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">vls</span></div>
+
+
+<div class="viewcode-block" id="find_binary_runs"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.find_binary_runs">[docs]</a><span class="k">def</span> <span class="nf">find_binary_runs</span><span class="p">(</span><span class="n">seq</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Finds runs of contiguous True values in a 1-d numpy array.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        seq: Array of binary values.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        slices: slices[i] contains a slice object for a contiguous portion of seq with all True values.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If seq is not a 1-d array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;seq must be a 1-d numpy array.&#39;</span><span class="p">))</span>
+
+    <span class="n">seq_b</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
+    <span class="n">matched_seqs</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x01</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="sa">b</span><span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="n">seq_b</span><span class="p">)</span>
+
+    <span class="n">slices</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">span</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="n">m</span><span class="o">.</span><span class="n">span</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matched_seqs</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">slices</span></div>
+
+
+<div class="viewcode-block" id="find_first_after"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.find_first_after">[docs]</a><span class="k">def</span> <span class="nf">find_first_after</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ind</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Given a logical array, finds first true value after or at a given index.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        a: The logical array to search</span>
+
+<span class="sd">        ind: The index to start the search at.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        first_ind: The index the first true value occurs at. If no match is found, returns None.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If ind is negative or out of the range of the array.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">len_a</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ind</span> <span class="o">&gt;</span> <span class="n">len_a</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Index &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">+</span>
+                           <span class="s1">&#39; is out of range for an array with length &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">len_a</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">ind</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Index must be positive.&#39;</span><span class="p">))</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="n">ind</span><span class="p">:</span><span class="n">len_a</span><span class="p">]</span>
+    <span class="n">inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">inds</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">inds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ind</span></div>
+
+
+<div class="viewcode-block" id="find_first_before"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.find_first_before">[docs]</a><span class="k">def</span> <span class="nf">find_first_before</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ind</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Given a logical array, finds first true value before or at a given index.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        a: The logical array to search</span>
+
+<span class="sd">        ind: The index to start the search at.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        first_ind: The index the first true value occurs at. If no match is found, returns None.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If ind is negative or out of the range of the array.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">len_a</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ind</span> <span class="o">&gt;</span> <span class="n">len_a</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Index &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">+</span>
+                           <span class="s1">&#39; is out of range for an array with length &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">len_a</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">ind</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Index must be positive.&#39;</span><span class="p">))</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">ind</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">inds</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">inds</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="find_disjoint_intervals"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.find_disjoint_intervals">[docs]</a><span class="k">def</span> <span class="nf">find_disjoint_intervals</span><span class="p">(</span><span class="n">ints</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Given a list of intervals, finds those which are disjoint from the rest.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ints: The intervals. Each row is an interval.  The first column gives the starting index</span>
+<span class="sd">        and the second column gives the end index + 1 (so the convention for representing intervals</span>
+<span class="sd">        is the same used in slices.  For example, in interval that covered indices 0, 1 &amp; 2, would have</span>
+<span class="sd">        a start index of 0 and an end index of 3.)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        disjoint_ints: Boolean array indicating indices of ints which correspond to disjoint intervals</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_check_for_overlapping_ints</span><span class="p">(</span><span class="n">start_0</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">stop_0</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">start_1</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">stop_1</span><span class="p">:</span><span class="nb">int</span><span class="p">):</span>
+        <span class="c1"># Make sure we are always working with the convention that start_1 &gt;= start_0</span>
+        <span class="k">if</span> <span class="n">start_0</span> <span class="o">&gt;</span> <span class="n">start_1</span><span class="p">:</span>
+            <span class="n">start_1</span> <span class="o">=</span> <span class="n">start_0</span>
+            <span class="n">stop_0</span> <span class="o">=</span> <span class="n">stop_1</span>
+
+        <span class="k">if</span> <span class="n">start_1</span> <span class="o">&lt;</span> <span class="n">stop_0</span><span class="p">:</span> <span class="c1"># Use &lt; here because of convention of start and end points (see note above)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">n_ints</span> <span class="o">=</span> <span class="n">ints</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">disjoint_ints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_ints</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">check_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_ints</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">disjoint_ints</span><span class="p">[</span><span class="n">check_i</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>  <span class="c1"># No need to check this interval if we know it overlaps with something else</span>
+
+            <span class="n">cur_start</span> <span class="o">=</span> <span class="n">ints</span><span class="p">[</span><span class="n">check_i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">cur_stop</span> <span class="o">=</span> <span class="n">ints</span><span class="p">[</span><span class="n">check_i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">compare_j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_ints</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">check_i</span> <span class="o">!=</span> <span class="n">compare_j</span><span class="p">:</span>
+                    <span class="n">compare_start</span> <span class="o">=</span> <span class="n">ints</span><span class="p">[</span><span class="n">compare_j</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+                    <span class="n">compare_stop</span> <span class="o">=</span> <span class="n">ints</span><span class="p">[</span><span class="n">compare_j</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="n">_check_for_overlapping_ints</span><span class="p">(</span><span class="n">cur_start</span><span class="p">,</span> <span class="n">cur_stop</span><span class="p">,</span> <span class="n">compare_start</span><span class="p">,</span> <span class="n">compare_stop</span><span class="p">):</span>
+                        <span class="n">disjoint_ints</span><span class="p">[</span><span class="n">check_i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="n">disjoint_ints</span><span class="p">[</span><span class="n">compare_j</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">break</span>
+
+    <span class="k">return</span> <span class="n">disjoint_ints</span></div>
+
+
+<div class="viewcode-block" id="generate_hypergrid_pts"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.generate_hypergrid_pts">[docs]</a><span class="k">def</span> <span class="nf">generate_hypergrid_pts</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">n_smps_per_dim</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Generates points on a hypergrid over the unit cube.</span>
+
+<span class="sd">    This function will place all points in an array for easy function evaluation.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        d: The dimensionality of the grid.</span>
+
+<span class="sd">        n_smps_per_dim: The number of samples per dimension to generate.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pts: The generated points of shape n_pts*d</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dim_coords</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">n_smps_per_dim</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_smps_per_dim</span><span class="p">)</span>
+    <span class="n">all_coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">dim_coords</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span>
+    <span class="n">grid_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">all_coords</span><span class="p">)</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grid_coords</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">coords</span></div>
+
+
+<div class="viewcode-block" id="int_to_arb_base"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.int_to_arb_base">[docs]</a><span class="k">def</span> <span class="nf">int_to_arb_base</span><span class="p">(</span><span class="n">base_10_vl</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">max_digit_vls</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; This is a function to convert non-zero integers to an arbitrary base.</span>
+
+<span class="sd">    The base can be arbitrary in that each digit can take on a different number of values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        base_10_vl: The values to convert</span>
+
+<span class="sd">        max_digit_vls: The length of max_digit_vls gives the length of the output representation.  max_digit_vls[i]</span>
+<span class="sd">        gives the max value that digit i can take on.  All digit values start at 0.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        rep: The values in the converted format.  The least significant digit is at location 0. rep[i,:] is the</span>
+<span class="sd">        converted value for base_10_vl[i].</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the dtype of base_10_vl is not int</span>
+
+<span class="sd">        ValueError: If base_10_vl contains negative values</span>
+
+<span class="sd">        ValueError: If any value in base_10_vl is too larger to represent in the base given</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">n_vls</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">base_10_vl</span><span class="p">)</span>
+    <span class="n">n_digits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">max_digit_vls</span><span class="p">)</span>
+
+    <span class="n">cum_digit_prods</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumprod</span><span class="p">(</span><span class="n">max_digit_vls</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">max_poss_vl</span> <span class="o">=</span> <span class="n">cum_digit_prods</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">base_10_vl</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Input array must be interger array.&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">base_10_vl</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Values to convert must be non-negative.&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">base_10_vl</span> <span class="o">&gt;</span> <span class="n">max_poss_vl</span><span class="p">):</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;One or more values is too large to represent in the specified base.&#39;</span><span class="p">))</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">base_10_vl</span>
+
+    <span class="n">rep</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_vls</span><span class="p">,</span> <span class="n">n_digits</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">d_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_digits</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">d_i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cur_digit_vl</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cur_digit_vl</span> <span class="o">=</span> <span class="n">cum_digit_prods</span><span class="p">[</span><span class="n">d_i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">cur_digit</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">res</span><span class="o">/</span><span class="n">cur_digit_vl</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">-=</span> <span class="n">cur_digit</span><span class="o">*</span><span class="n">cur_digit_vl</span>
+        <span class="n">rep</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_digit</span>
+
+    <span class="k">return</span> <span class="n">rep</span></div>
+
+
+<div class="viewcode-block" id="is_fully_specified_slice"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.is_fully_specified_slice">[docs]</a><span class="k">def</span> <span class="nf">is_fully_specified_slice</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">slice</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">slice</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Returns true if slice has non non-negative, non-None start and stop values.</span>
+
+<span class="sd">    Accepts either a single slice object or a sequence of slice objects.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        s: A single slice object or sequence of slice objects.  If a sequence, this</span>
+<span class="sd">        function will return true only if all slice objects have non-negative, non-None start and stop values.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        is_fully_specified: True if all slice objects are fully specified</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">check_slice</span><span class="p">(</span><span class="n">s_i</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">s_i</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">s_i</span><span class="o">.</span><span class="n">stop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">s_i</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">s_i</span><span class="o">.</span><span class="n">stop</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">check_slice</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">s_i</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+            <span class="n">passes</span> <span class="o">=</span> <span class="n">check_slice</span><span class="p">(</span><span class="n">s_i</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">passes</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">passes</span></div>
+
+
+<div class="viewcode-block" id="is_simple_slice"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.is_simple_slice">[docs]</a><span class="k">def</span> <span class="nf">is_simple_slice</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">slice</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">slice</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Returns true if a slice is fully specified and has a step size of 1 or None; otherwise returns false.</span>
+
+<span class="sd">     Args:</span>
+<span class="sd">        s: A single slice object or sequence of slice objects.  If a sequence, this</span>
+<span class="sd">        function will return true only if all slice objects have non-negative, non-None start and stop values.</span>
+
+<span class="sd">     Returns:</span>
+<span class="sd">        is_simple: True if all slice objects are simple</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">check_slice</span><span class="p">(</span><span class="n">s_i</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_fully_specified_slice</span><span class="p">(</span><span class="n">s_i</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="p">(</span><span class="n">s_i</span><span class="o">.</span><span class="n">step</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">s_i</span><span class="o">.</span><span class="n">step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">check_slice</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">s_i</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+            <span class="n">passes</span> <span class="o">=</span> <span class="n">check_slice</span><span class="p">(</span><span class="n">s_i</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">passes</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">passes</span></div>
+
+
+<div class="viewcode-block" id="is_standard_slice"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.is_standard_slice">[docs]</a><span class="k">def</span> <span class="nf">is_standard_slice</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">slice</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">slice</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Returns true if a slice has non-negative start and stop values.</span>
+
+<span class="sd">    Accepts either a single slice object or a sequence of slice objects.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        s: A single slice object or sequence of slice objects.  If a sequence, this</span>
+<span class="sd">        function will return true only if all slice objects are standard.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        is_standard: True if all slice objects are standard.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">check_slice</span><span class="p">(</span><span class="n">s_i</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">s_i</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">s_i</span><span class="o">.</span><span class="n">stop</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">check_slice</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">s_i</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+            <span class="n">is_standard</span> <span class="o">=</span> <span class="n">check_slice</span><span class="p">(</span><span class="n">s_i</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_standard</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">is_standard</span></div>
+
+
+<div class="viewcode-block" id="list_grid_pts"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.list_grid_pts">[docs]</a><span class="k">def</span> <span class="nf">list_grid_pts</span><span class="p">(</span><span class="n">grid_limits</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_pts_per_dim</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates a list of points filling a multi-dimensional grid.</span>
+
+<span class="sd">    This function will generate a specified number of points in a range for a set of N-dimensions.</span>
+<span class="sd">    It will then return a set of N-dimensional points formed from the cartesian product of all the</span>
+<span class="sd">    points along each dimension.</span>
+
+<span class="sd">    This function serves as a wrapper around numpy.meshgrid, essentially just repackaging</span>
+<span class="sd">    the generated points into a single list.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        grid_limits: grid_limits[i, :] are the limits of the grid for dimension i. Points for</span>
+<span class="sd">        this dimension will *include* the end points of the grid.</span>
+
+<span class="sd">        n_pts_per_dim: n_pts_per_dim[i] are the number of points to generate along dimension i. Must be greater than 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The list of returned points of shape n_pts*N</span>
+
+<span class="sd">        dim_pts: The points along each dimension sampled. dim_pts[i] are the sample points for dimension i.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If n_pts_per_dim is less than 1 for any dimension.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">n_pts_per_dim</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Must specify at least 2 points per dimension.&#39;</span><span class="p">))</span>
+
+    <span class="n">n_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">n_pts_per_dim</span><span class="p">)</span>
+    <span class="n">dim_pts</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">grid_limits</span><span class="p">[</span><span class="n">d</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">stop</span><span class="o">=</span><span class="n">grid_limits</span><span class="p">[</span><span class="n">d</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">num</span><span class="o">=</span><span class="n">n_pts_per_dim</span><span class="p">[</span><span class="n">d</span><span class="p">])</span>
+               <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_dims</span><span class="p">)]</span>
+    <span class="n">m_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">dim_pts</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+    <span class="n">m_pts</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vls</span><span class="p">,</span> <span class="n">vls</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="k">for</span> <span class="n">vls</span> <span class="ow">in</span> <span class="n">m_pts</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">m_pts</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">dim_pts</span></div>
+
+
+<div class="viewcode-block" id="l_th"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.l_th">[docs]</a><span class="k">def</span> <span class="nf">l_th</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Thresholds an array with a lower bound.</span>
+
+<span class="sd">    Values less than the threshold value are set to the threshold value.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        a: the array to threshold</span>
+
+<span class="sd">        t: the threshold to use</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The thresholded array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">)]</span> <span class="o">=</span> <span class="n">t</span>
+    <span class="k">return</span> <span class="n">a</span></div>
+
+
+<div class="viewcode-block" id="nan_matrix"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.nan_matrix">[docs]</a><span class="k">def</span> <span class="nf">nan_matrix</span><span class="p">(</span><span class="n">shape</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Generates a matrix of a given shape and data type initialized to nan values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        shape: Shape of the matrix to generate.</span>
+
+<span class="sd">        dtype: Data type of the matrix to generate.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The generated matrix.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">m</span></div>
+
+
+<div class="viewcode-block" id="optimal_orthonormal_transform"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.optimal_orthonormal_transform">[docs]</a><span class="k">def</span> <span class="nf">optimal_orthonormal_transform</span><span class="p">(</span><span class="n">m_0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">m_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Learns an optimal orthonormal transformation to transform one matrix to another.</span>
+
+<span class="sd">    We learn a matrix o^* = argmin_{o: oo^T = I} ||m_0 - m_1 o||_2.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        m_0: The matrix to transform to</span>
+
+<span class="sd">        m_1: The matrix to transform from</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        o: The optimal orthonormal matrix.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">m_0</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span> <span class="n">m_1</span><span class="p">)</span>
+    <span class="n">u</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">v_transpose</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v_transpose</span><span class="p">))</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="pts_in_arc"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.pts_in_arc">[docs]</a><span class="k">def</span> <span class="nf">pts_in_arc</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">ctr</span><span class="p">,</span> <span class="n">arc_angle</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Checks if points are withing a given arc.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pts: The coordinates of the points, of shape n_pts*2</span>
+
+<span class="sd">        ctr: The origin for defining the arc.</span>
+
+<span class="sd">        arc_angle: The angle the arc covers.  Can be in the range (-inf, inf).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pts_in: A boolean array of length n_pts, indicating which points are in the arc</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">arc_angle</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">arc_angle</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;arc_angle[1] must be &gt;= arc_angle[0]&#39;</span><span class="p">))</span>
+
+    <span class="n">two_pi</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+    <span class="n">n_pts</span> <span class="o">=</span> <span class="n">pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">arc_angle</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">arc_angle</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">two_pi</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Make sure the start of the arc angle is in the range [0, 2*pi]</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">arc_angle</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">shift</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">arc_angle</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">two_pi</span><span class="p">)</span><span class="o">*</span><span class="n">two_pi</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">arc_angle</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="n">two_pi</span><span class="p">)</span><span class="o">*</span><span class="n">two_pi</span>
+        <span class="n">arc_angle</span> <span class="o">=</span> <span class="p">[</span><span class="n">an</span> <span class="o">+</span> <span class="n">shift</span> <span class="k">for</span> <span class="n">an</span> <span class="ow">in</span> <span class="n">arc_angle</span><span class="p">]</span>
+
+        <span class="c1"># Now handle special case that the end of the arc is over 2*pi</span>
+        <span class="k">if</span> <span class="n">arc_angle</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">two_pi</span><span class="p">:</span>
+            <span class="n">ang_0</span> <span class="o">=</span> <span class="n">arc_angle</span>
+            <span class="n">ang_1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ang_0</span> <span class="o">=</span> <span class="p">[</span><span class="n">arc_angle</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">two_pi</span><span class="p">]</span>
+            <span class="n">ang_1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">arc_angle</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">two_pi</span><span class="p">]</span>
+
+        <span class="c1"># Now get the angle of each point</span>
+        <span class="n">ctred_pts</span> <span class="o">=</span> <span class="n">pts</span> <span class="o">-</span> <span class="n">ctr</span>
+        <span class="n">angs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ctred_pts</span><span class="p">])</span>
+        <span class="n">angs</span><span class="p">[</span><span class="n">angs</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">two_pi</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([(</span><span class="n">a</span> <span class="o">&gt;=</span> <span class="n">ang_0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">a</span> <span class="o">&lt;=</span> <span class="n">ang_0</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;=</span> <span class="n">ang_1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">a</span> <span class="o">&lt;=</span> <span class="n">ang_1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">angs</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="select_subslice"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.select_subslice">[docs]</a><span class="k">def</span> <span class="nf">select_subslice</span><span class="p">(</span><span class="n">s1</span><span class="p">:</span> <span class="nb">slice</span><span class="p">,</span> <span class="n">s2</span><span class="p">:</span> <span class="nb">slice</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">slice</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Selects a smaller portion of a slice.</span>
+
+<span class="sd">    Accepts either a single slice or a sequence of slices.</span>
+
+<span class="sd">    This function expects slices to have start and stop values which are not None and non-negative.</span>
+
+<span class="sd">    A subslice of a larger slice, s1, is specified by a second slice, s2.  Specifically, s2.start and s2.stop</span>
+<span class="sd">    give the start and stop of the subslice.  s2.start and s2.stop specify the start and stop relative to s1.start.</span>
+<span class="sd">    For example, if s1.start=5, s2.start=0, s2.stop = 2 then the returned subslice would have a start of 5 and a stop</span>
+<span class="sd">    of 7. For simplicity, this function currently assumes s2.step = 1 but makes no assumption s1.step.  The step of</span>
+<span class="sd">    the returned subslice will be equal to s1.step.</span>
+
+<span class="sd">    When s1 and s2 are sequences of slices, s2[i] specifies the subslice for s1[i]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        s1: The slice to select from.  Can also be a tuple of slices.</span>
+
+<span class="sd">        s2: The portion of the slice to select.  Can also be a tuple of slices. The step size of this slice must be 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        subslice: The returned subslice.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If any slice in s1 or s2 is not a fully specified slice</span>
+<span class="sd">        ValueError: If the step size for any s2 slice is not 1.</span>
+<span class="sd">        ValueError: If the subslice specified by any s2 slice is not contained within the corresponding s1 slice.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">is_fully_specified_slice</span><span class="p">(</span><span class="n">s1</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">is_fully_specified_slice</span><span class="p">(</span><span class="n">s2</span><span class="p">)):</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Slices must have start and stop values which are not None and non-negative.&#39;</span><span class="p">))</span>
+
+    <span class="n">return_tuple</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">slice</span><span class="p">:</span>
+        <span class="n">s1</span> <span class="o">=</span> <span class="p">(</span><span class="n">s1</span><span class="p">,)</span>
+        <span class="n">s2</span> <span class="o">=</span> <span class="p">(</span><span class="n">s2</span><span class="p">,)</span>
+        <span class="n">return_tuple</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">for</span> <span class="n">s2_i</span> <span class="ow">in</span> <span class="n">s2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">s2_i</span><span class="o">.</span><span class="n">step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">s2_i</span><span class="o">.</span><span class="n">step</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;s2.step must be 1&#39;</span><span class="p">))</span>
+
+    <span class="n">n_slices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+
+    <span class="n">subslice</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">n_slices</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_slices</span><span class="p">):</span>
+        <span class="n">new_start</span> <span class="o">=</span> <span class="n">s1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="n">s2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">start</span>
+        <span class="n">new_stop</span> <span class="o">=</span> <span class="n">s1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="n">s2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">new_start</span> <span class="o">&gt;</span> <span class="n">s1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">new_stop</span> <span class="o">&gt;</span> <span class="n">s1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span><span class="p">):</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Requested subslice is not contained within s1&#39;</span><span class="p">))</span>
+
+        <span class="n">subslice</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">new_start</span><span class="p">,</span> <span class="n">new_stop</span><span class="p">,</span> <span class="n">s1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">return_tuple</span><span class="p">:</span>
+        <span class="n">subslice</span> <span class="o">=</span> <span class="n">subslice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">subslice</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">subslice</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">subslice</span></div>
+
+
+<div class="viewcode-block" id="slice_contains"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.slice_contains">[docs]</a><span class="k">def</span> <span class="nf">slice_contains</span><span class="p">(</span><span class="n">s1</span><span class="p">:</span> <span class="nb">slice</span><span class="p">,</span> <span class="n">s2</span><span class="p">:</span> <span class="nb">slice</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Checks if the range of slice s1 is contained in the range of slice s2.</span>
+
+<span class="sd">    This function accepts either single slices or a sequence of slices for s1 and s2. If a</span>
+<span class="sd">    sequence of slices is provided, s1[i] is interpreted as the slice for dimension i. If s1</span>
+<span class="sd">    and s2 are sequences but of different lengths, this function will immediately return false.</span>
+
+<span class="sd">    This function currently does not accept slices with negative start or stop values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        s1: The slice we are checking to see if it is contained by s2. Can also be</span>
+<span class="sd">        a sequence of slices.</span>
+
+<span class="sd">        s2: The slice we are checking to see if it contains s1.  Can also be a sequence</span>
+<span class="sd">        of slices</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        NotImplementedError: If slice objects contain negative start or stop values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">check_single_slice</span><span class="p">(</span><span class="n">sl1</span><span class="p">,</span> <span class="n">sl2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">is_standard_slice</span><span class="p">(</span><span class="n">sl1</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">is_standard_slice</span><span class="p">(</span><span class="n">sl2</span><span class="p">)):</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">((</span><span class="s1">&#39;Checking for containment of slices containing negative start or stop&#39;</span>
+                                       <span class="s1">&#39; values is not currently supported.&#39;</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">sl2</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;=</span> <span class="n">sl1</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">sl2</span><span class="o">.</span><span class="n">stop</span> <span class="o">&gt;=</span> <span class="n">sl1</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">check_single_slice</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n_s1_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n_s1_dims</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s2</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_s1_dims</span><span class="p">):</span>
+                <span class="n">contained</span> <span class="o">=</span> <span class="n">check_single_slice</span><span class="p">(</span><span class="n">s1</span><span class="p">[</span><span class="n">d</span><span class="p">],</span> <span class="n">s2</span><span class="p">[</span><span class="n">d</span><span class="p">])</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">contained</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="k">return</span> <span class="n">contained</span></div>
+
+
+<div class="viewcode-block" id="u_th"><a class="viewcode-back" href="../../../autoapi/janelia_core/math/basic_functions/index.html#janelia_core.math.basic_functions.u_th">[docs]</a><span class="k">def</span> <span class="nf">u_th</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Thresholds an array with an upper bound.</span>
+
+<span class="sd">    Values greater than the threshold value are set to the threshold value.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        a: the array to threshold</span>
+
+<span class="sd">        t: the threshold to use</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The thresholded array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="n">t</span><span class="p">)]</span> <span class="o">=</span> <span class="n">t</span>
+    <span class="k">return</span> <span class="n">a</span></div>
+
+
+
+
+
+
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

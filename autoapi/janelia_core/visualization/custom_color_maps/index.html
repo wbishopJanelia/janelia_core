@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.visualization.custom_color_maps &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.custom_color_maps</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/visualization/custom_color_maps/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.visualization.custom_color_maps">
+<span id="janelia-core-visualization-custom-color-maps"></span><h1><a class="reference internal" href="#module-janelia_core.visualization.custom_color_maps" title="janelia_core.visualization.custom_color_maps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.custom_color_maps</span></code></a><a class="headerlink" href="#module-janelia_core.visualization.custom_color_maps" title="Permalink to this headline"></a></h1>
+<p>Custom color maps, including color maps over multiple parameters.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.custom_color_maps.MultiParamCMap" title="janelia_core.visualization.custom_color_maps.MultiParamCMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiParamCMap</span></code></a></p></td>
+<td><p>An object representing a color map over multiple parameters.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.custom_color_maps.generate_normalized_rgb_cmap" title="janelia_core.visualization.custom_color_maps.generate_normalized_rgb_cmap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_normalized_rgb_cmap</span></code></a>(base_map: matplotlib.colors.Colormap, n: int = 1000) → matplotlib.colors.ListedColormap</p></td>
+<td><p>Generates a colormap of RGB values, where each value has a norm of 1.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.custom_color_maps.generate_two_param_norm_map" title="janelia_core.visualization.custom_color_maps.generate_two_param_norm_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_two_param_norm_map</span></code></a>(clr_param_range: Sequence, norm_param_range: Sequence, p1_cmap: matplotlib.colors.Colormap, clims: Sequence[float], norm_lims: Sequence[float]) → MultiParamCMap</p></td>
+<td><p>Generates a MultiParamCMap for two parameters.  The first indexes color; the second the norm of the color.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.custom_color_maps.generate_two_param_hsv_map" title="janelia_core.visualization.custom_color_maps.generate_two_param_hsv_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_two_param_hsv_map</span></code></a>(clr_param_range: Sequence, vl_param_range: Sequence, p1_cmap: matplotlib.colors.Colormap, clims: Sequence[float], vllims: Sequence[float]) → MultiParamCMap</p></td>
+<td><p>Generates a MultiParamCMap for two parameters, which index hue and value of hsv colors.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.custom_color_maps.visualize_two_param_map" title="janelia_core.visualization.custom_color_maps.visualize_two_param_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visualize_two_param_map</span></code></a>(cmap: MultiParamCMap, plot_ax: matplotlib.pyplot.Axes = None, p0_vls: numpy.ndarray = None, p1_vls: numpy.ndarray = None)</p></td>
+<td><p>Plots a visualization of a two-parameter MultiParamCMap, i.e., the 2-d version of making 1-d colorbar.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.custom_color_maps.make_red_green_c_map" title="janelia_core.visualization.custom_color_maps.make_red_green_c_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_red_green_c_map</span></code></a>(n: int = 256, inc_transp: bool = False) → matplotlib.colors.LinearSegmentedColormap</p></td>
+<td><p>Generates a color map that linearly goes from red at 0, to black at .5 and then to green at 1.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.custom_color_maps.make_purple_green_c_map" title="janelia_core.visualization.custom_color_maps.make_purple_green_c_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_purple_green_c_map</span></code></a>(n: int = 256, inc_transp: bool = False, gentle: bool = False) → matplotlib.colors.LinearSegmentedColormap</p></td>
+<td><p>Generates a color map that linearly goes from purple at 0, to black at .5 and then to green at 1.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="janelia_core.visualization.custom_color_maps.MultiParamCMap">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.visualization.custom_color_maps.</code><code class="sig-name descname">MultiParamCMap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">param_vl_ranges</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">clrs</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/custom_color_maps.html#MultiParamCMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.custom_color_maps.MultiParamCMap" title="Permalink to this definition"></a></dt>
+<dd><p>An object representing a color map over multiple parameters.</p>
+<p>Unlike a typical colormap, which has a single index, these color maps allow indexing over multiple parameters.</p>
+<p>For all colormaps, the user specifies a list of values for each parameter and combinations of these parameter
+values are then mapped to colors.  When using a colormap, values to be assigned colors are rounded to the nearest
+parameter values included in the colormap.  Saturation is also supported, so that values to be assigned colors
+outside of the range of the values specified for the colormap are assigned colors at the limits of the colormap.</p>
+<p>Creates a new MultiParamCMap object.</p>
+<dl>
+<dt>Args:</dt><dd><p>param_vl_ranges: param_vls[i] specifies values for the i^th parameter that specific colors will be assigned
+to and is a tuple of the form (start_vl, stop_vl, step_size), which specifies the values
+start_vl, start_vl + step_size, … up too all values strictly less than stop_vl.</p>
+<p>clrs: clrs[i_0, i_1, i_2 … , :] is the color to assign to the combination of param_vls[0][i_0],
+param_vls[1][i_1], param_vls[2][i_2] …  The number of dimensions in clrs must be equal to the length of
+param_vls plus 1, with the last dimension containing rgb values of colors.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.visualization.custom_color_maps.MultiParamCMap.__getitem__">
+<code class="sig-name descname">__getitem__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">param_vls</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/custom_color_maps.html#MultiParamCMap.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.custom_color_maps.MultiParamCMap.__getitem__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns colors for combinations of parameter values.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>param_vls: Values of parameters go generate colors for.  param_vls[i] contains parameter values for the i^th
+parameter.  All entries in param_vls must be numpy arrays of the same shape.</p>
+</dd>
+<dt>Returns:</dt><dd><p>clrs: The colors at each combination of parameter values.  Will be of shape [<a href="#id1"><span class="problematic" id="id2">*</span></a>param_vls[0].shape, 3], so
+that clrs[d_0, d_1, d_2, …, :] is the color for the parameter combination param_vls[0][d_0, d_1, d_2],
+param_vls[1][d_0, d_1, d_2], param_vls[1][d_0, d_1, d_2], …</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.visualization.custom_color_maps.MultiParamCMap.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/custom_color_maps.html#MultiParamCMap.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.custom_color_maps.MultiParamCMap.to_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the attributes of the colormap as a dictionary for serialization.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.visualization.custom_color_maps.MultiParamCMap.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cls</span></em>, <em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/custom_color_maps.html#MultiParamCMap.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.custom_color_maps.MultiParamCMap.from_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a MultiParamCMap from a dictionary.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.custom_color_maps.generate_normalized_rgb_cmap">
+<code class="sig-prename descclassname">janelia_core.visualization.custom_color_maps.</code><code class="sig-name descname">generate_normalized_rgb_cmap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base_map</span><span class="p">:</span> <span class="n">matplotlib.colors.Colormap</span></em>, <em class="sig-param"><span class="n">n</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">1000</span></em><span class="sig-paren">)</span> &#x2192; matplotlib.colors.ListedColormap<a class="reference internal" href="../../../../_modules/janelia_core/visualization/custom_color_maps.html#generate_normalized_rgb_cmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.custom_color_maps.generate_normalized_rgb_cmap" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a colormap of RGB values, where each value has a norm of 1.</p>
+<dl>
+<dt>Args:</dt><dd><p>base_map: The base map to sample.  RGB values of this map will be normalized.</p>
+<p>n: The number of values in the generated map.</p>
+</dd>
+<dt>Returns:</dt><dd><p>map: The created colormap.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.custom_color_maps.generate_two_param_norm_map">
+<code class="sig-prename descclassname">janelia_core.visualization.custom_color_maps.</code><code class="sig-name descname">generate_two_param_norm_map</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">clr_param_range</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">norm_param_range</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">p1_cmap</span><span class="p">:</span> <span class="n">matplotlib.colors.Colormap</span></em>, <em class="sig-param"><span class="n">clims</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">norm_lims</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#janelia_core.visualization.custom_color_maps.MultiParamCMap" title="janelia_core.visualization.custom_color_maps.MultiParamCMap">MultiParamCMap</a><a class="reference internal" href="../../../../_modules/janelia_core/visualization/custom_color_maps.html#generate_two_param_norm_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.custom_color_maps.generate_two_param_norm_map" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a MultiParamCMap for two parameters.  The first indexes color; the second the norm of the color.</p>
+<dl>
+<dt>Args:</dt><dd><p>clr_param_range: The range of values for parameter 0, which indexes into color, in the form
+(start_vl, stop_vl, step).</p>
+<p>norm_param_range: The range of values for parameter 1, which indexes into the norm of RGB colors.</p>
+<p>p1_cmap: The map specifying colors.  These colors will be displayed for max norm values.</p>
+<p>clims: The lower and upper parameter values when indexing into p1_cmap.</p>
+<p>norm_lims: The low and upper parameter values when indexing into norm values.</p>
+</dd>
+</dl>
+<p>To use a reversed color (value) scale, start_vl should be less than stop_vl and step should be a negative value
+in clr_param_range (vl_param_range) and clims (vllims) should also be flipped so that clims[0] &gt; clims[1].</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>map: The generated map</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.custom_color_maps.generate_two_param_hsv_map">
+<code class="sig-prename descclassname">janelia_core.visualization.custom_color_maps.</code><code class="sig-name descname">generate_two_param_hsv_map</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">clr_param_range</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">vl_param_range</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">p1_cmap</span><span class="p">:</span> <span class="n">matplotlib.colors.Colormap</span></em>, <em class="sig-param"><span class="n">clims</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">vllims</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#janelia_core.visualization.custom_color_maps.MultiParamCMap" title="janelia_core.visualization.custom_color_maps.MultiParamCMap">MultiParamCMap</a><a class="reference internal" href="../../../../_modules/janelia_core/visualization/custom_color_maps.html#generate_two_param_hsv_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.custom_color_maps.generate_two_param_hsv_map" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a MultiParamCMap for two parameters, which index hue and value of hsv colors.</p>
+<dl>
+<dt>Args:</dt><dd><p>clr_param_range: The range of values for parameter 0, which indexes into hue, in the form
+(start_vl, stop_vl, step).</p>
+<p>vl_param_range: The range of values for parameter 1, which indexes into value of hsv colors, in the same form
+as clr_param_range.</p>
+<p>p1_cmap: The color map that p1_values will index into. These colors will the be displayed
+for value levels of 1.</p>
+<p>clims: The lower and upper parameter values when indexing into p1_cmap.</p>
+<p>vllims: The lower and upper parameter values when indexing into value values.</p>
+</dd>
+</dl>
+<p>To use a reversed color (value) scale, start_vl should be less than stop_vl and step should be a negative value
+in clr_param_range (vl_param_range) and clims (vllims) should also be flipped so that clims[0] &gt; clims[1].</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>map: The generated colormap.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.custom_color_maps.visualize_two_param_map">
+<code class="sig-prename descclassname">janelia_core.visualization.custom_color_maps.</code><code class="sig-name descname">visualize_two_param_map</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cmap</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#janelia_core.visualization.custom_color_maps.MultiParamCMap" title="janelia_core.visualization.custom_color_maps.MultiParamCMap">MultiParamCMap</a></span></em>, <em class="sig-param"><span class="n">plot_ax</span><span class="p">:</span> <span class="n">matplotlib.pyplot.Axes</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">p0_vls</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">p1_vls</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/custom_color_maps.html#visualize_two_param_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.custom_color_maps.visualize_two_param_map" title="Permalink to this definition"></a></dt>
+<dd><p>Plots a visualization of a two-parameter MultiParamCMap, i.e., the 2-d version of making 1-d colorbar.</p>
+<dl>
+<dt>Args:</dt><dd><p>cmap: The color map to plot</p>
+<p>plot_ax: The axis to produce the colormap in.  If None, a new figure with axes will be created.</p>
+<p>p0_vls: A list of values to generate the colormap for.</p>
+<p>p1_vls: A list of values to generate the colormap for.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If the colormap is not for two parameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.custom_color_maps.make_red_green_c_map">
+<code class="sig-prename descclassname">janelia_core.visualization.custom_color_maps.</code><code class="sig-name descname">make_red_green_c_map</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">256</span></em>, <em class="sig-param"><span class="n">inc_transp</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; matplotlib.colors.LinearSegmentedColormap<a class="reference internal" href="../../../../_modules/janelia_core/visualization/custom_color_maps.html#make_red_green_c_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.custom_color_maps.make_red_green_c_map" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a color map that linearly goes from red at 0, to black at .5 and then to green at 1.</p>
+<dl>
+<dt>Args:</dt><dd><p>n: The number of values in the color map</p>
+<p>inc_transp: True if values in the middle of the map (black) should also be transparent.</p>
+</dd>
+<dt>Returns:</dt><dd><p>cmap: The generated color map.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.custom_color_maps.make_purple_green_c_map">
+<code class="sig-prename descclassname">janelia_core.visualization.custom_color_maps.</code><code class="sig-name descname">make_purple_green_c_map</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">256</span></em>, <em class="sig-param"><span class="n">inc_transp</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">gentle</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; matplotlib.colors.LinearSegmentedColormap<a class="reference internal" href="../../../../_modules/janelia_core/visualization/custom_color_maps.html#make_purple_green_c_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.custom_color_maps.make_purple_green_c_map" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a color map that linearly goes from purple at 0, to black at .5 and then to green at 1.</p>
+<dl>
+<dt>Args:</dt><dd><p>n: The number of values in the color map</p>
+<p>inc_transp: True if values in the middle of the map (black) should also be transparent.</p>
+</dd>
+<dt>Returns:</dt><dd><p>cmap: The generated color map.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,51 @@
+:py:mod:`janelia_core.visualization.signal_visualization`
+=========================================================
+
+.. py:module:: janelia_core.visualization.signal_visualization
+
+.. autoapi-nested-parse::
+
+   Tools for visualizing signals.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.visualization.signal_visualization.plot_segmented_signal
+
+
+
+.. py:function:: plot_segmented_signal(tm_pts: numpy.ndarray, sig: numpy.ndarray, ax: matplotlib.pyplot.Axes = None, delta: float = 0.6, remove_tm_btw_chunks: bool = True, tm_padding: float = 1.0, color: str = 'k', linewidth: float = 1.0) -> matplotlib.pyplot.Axes
+
+   Plots a signal that exists at different chunks in time.
+
+   Each chunk will be plotted as a separate trace, and the user can chose to remove time between chunks.
+
+   Args:
+       tm_pts: The array of time points the signal is sampled at
+
+       sig: The array of signal values
+
+       ax: Axes to plot into.  If None, a figure with axes will be crated.
+
+       delta: The threshold to use when determining if two sequential time points belong to the same chunk or not
+
+       remove_tm_btw_chunks: True if time periods between chunks should be removed
+
+       tm_padding: The amount of padding (in units of time) to add between chunks
+
+       color: The color to plot the signal in
+
+       linewidth: The linewidth to plot the signal with
+
+   Returns:
+       ax: The axis everything was plotted in
+
+

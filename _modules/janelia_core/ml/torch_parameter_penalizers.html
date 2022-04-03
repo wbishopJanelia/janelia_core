@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.torch_parameter_penalizers &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.ml.torch_parameter_penalizers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.ml.torch_parameter_penalizers</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Holds modules for penalizing torch parameters.</span>
+
+<span class="sd">See the base class ParameterPenalizer for more information.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Sequence</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+
+<div class="viewcode-block" id="ParameterPenalizer"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer">[docs]</a><span class="k">class</span> <span class="nc">ParameterPenalizer</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; An abstract class for parameter penalizers.</span>
+
+<span class="sd">    The main idea behind a penalizer object is that when fitting models instead of simply applying a penalty function,</span>
+<span class="sd">    we might want to penalize parameters with respect to a function which also has its own learnable parameters. For</span>
+<span class="sd">    example, lets say there are a group of parameters and we want to penalize things so that the l_2 distance between</span>
+<span class="sd">    all the parameters in that group is small. Instead of calculating the l_2 distance between all pairs of parameters</span>
+<span class="sd">    and penalizing the sum of those distances, it might be simpler to have a penalizer with a center parameter which is</span>
+<span class="sd">    learned and penalizing the distance of each parameter in the group to the center.</span>
+
+<span class="sd">    Note one point of confusion is there are now two sets of parameters - one set is the set of parameters that we</span>
+<span class="sd">    want to penalize and the other set is the set of internal, learnable parameters of the penalizer itself.  In</span>
+<span class="sd">    the example above, the center would be an internal, learnable parameter of the penalizer.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot; Creates an instance of a penalizer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params: The parameters to penalize over.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+
+<div class="viewcode-block" id="ParameterPenalizer.check_point"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.check_point">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">check_point</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Returns a dictionary of parameters and values for the penalizer that should be saved in a check point.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ParameterPenalizer.clone"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.clone">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clean</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a copy of self.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            clean: If true, attribute values that we might not want to transfer to a new object (such as record of last</span>
+<span class="sd">            penalty value) will not be copied.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            obj: The new object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ParameterPenalizer.copy_state_from"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.copy_state_from">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">copy_state_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Copies the state of one penalizer to this penalizer.</span>
+
+<span class="sd">        State should be the internal parameters of the penalizers as well as other internal varialbes it may keep but</span>
+<span class="sd">        it should not include the parameters the penalizer actually penalizes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other: The other penalizer to copy state from</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ParameterPenalizer.get_marked_params"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.get_marked_params">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">get_marked_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; Returns all learnable parameters marked with the key string.</span>
+
+<span class="sd">        Penalizers must associate each of their internal, learnable parameters with a unique key</span>
+<span class="sd">        (e.g., fast_learning_rate_params).  Each parameter should be associated with only one key</span>
+<span class="sd">        (though multiple parameters can use the same key).  This function will return a list of parameters</span>
+<span class="sd">        associated with the requested key.  If no parameters match the key an empty list should be returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ParameterPenalizer.list_param_keys"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.list_param_keys">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">list_param_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; Returns a list of keys associated with internal, learnable parameters.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            keys: The list of keys.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ParameterPenalizer.penalize_and_backwards"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.penalize_and_backwards">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">penalize_and_backwards</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">call_backwards</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Calculates a penalty over parameters and calls backwards on the penalty.</span>
+
+<span class="sd">        The reason for having the penalizer call backwards is that there may be complicated situations, such as</span>
+<span class="sd">        when parameters are spread over multiple GPUs, that we need to call backwards multiple times as we</span>
+<span class="sd">        move things between GPUs when calculating the penalty.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d: The distribution to penalize</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            penalty: The scalar penalty.  Note this is a float and not a tensor, as we assume backwards has</span>
+<span class="sd">            been called in this function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ParameterPenalizer.__str__"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.__str__">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Returns a string of the current state of the penalizer. &quot;&quot;&quot;</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ClusterPenalizer"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer">[docs]</a><span class="k">class</span> <span class="nc">ClusterPenalizer</span><span class="p">(</span><span class="n">ParameterPenalizer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This penalizer encourages clustering of parameters in tensors.</span>
+
+<span class="sd">    In particular, given a set of paremters p_0, ..., p_N of arbitrary shape, the penalty computed by this object is:</span>
+
+<span class="sd">        w\sum_{i=1}^N ||p_i - c||_2^2 where c is a tensor the same shape as any of the p_i parameters representing</span>
+<span class="sd">        the center of a cluster and w is a penalty weight.</span>
+
+<span class="sd">    There is only one parameter for this penalizer, which is tagged with &#39;fast&#39;, to indicate that in models trained</span>
+<span class="sd">    with slow and fast learning rates, we would expect the center to be updated with the fast learning rate.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">],</span> <span class="n">w</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">init_ctr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+                 <span class="n">description</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">learnable_parameters</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates an instance of a ClusterPenalizer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params: The parameters to penalize</span>
+
+<span class="sd">            w: The weight to apply the penalty</span>
+
+<span class="sd">            init_ctr: The initial value of c</span>
+
+<span class="sd">            description: A string that will be used to identify the penalizer in the string returned</span>
+<span class="sd">            by __str__()</span>
+
+<span class="sd">            learnable_parameters: True if c should be learnable; false if it should be fixed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">w</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learnable_parameters</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="n">learnable_parameters</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">init_ctr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">init_ctr</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">if</span> <span class="n">description</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s1">&#39;Parameter Penalizer&#39;</span>
+
+<div class="viewcode-block" id="ClusterPenalizer.copy_state_from"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.copy_state_from">[docs]</a>    <span class="k">def</span> <span class="nf">copy_state_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Copies the state of another penalizer to this penalizer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other: The other penalizer to copy state form.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">last_p</span></div>
+
+<div class="viewcode-block" id="ClusterPenalizer.clone"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.clone">[docs]</a>    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clean</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a copy of self.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            clean: If true, attribute values that we might not want to transfer to a new object (such as record of last</span>
+<span class="sd">            penalty value) will not be copied.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            obj: The new object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">self_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">clean</span><span class="p">:</span>
+            <span class="n">self_copy</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="k">return</span> <span class="n">self_copy</span></div>
+
+<div class="viewcode-block" id="ClusterPenalizer.check_point"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.check_point">[docs]</a>    <span class="k">def</span> <span class="nf">check_point</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Returns a check point dictionary for the penalizer.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            d: A dictionary with the following keys:</span>
+
+<span class="sd">                c: The center of the parameter</span>
+
+<span class="sd">                last_p: The value of the last penalty that was computed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="n">c</span><span class="p">,</span> <span class="s1">&#39;last_p&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="ClusterPenalizer.get_marked_params"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.get_marked_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_marked_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; Returns marked parameters.</span>
+
+<span class="sd">        The only parameter of the penalizer is the centers tensor, c, which is marked with the tag &#39;fast&#39;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            params: A list.  If the key was fast this will hold the &#39;c&#39; parameter.  If not, this list will be empty.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;fast&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="ClusterPenalizer.list_param_keys"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.list_param_keys">[docs]</a>    <span class="k">def</span> <span class="nf">list_param_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; Returns the list of keys associated with internal, learnabke parameters. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;fast&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ClusterPenalizer.penalize_and_backwards"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.penalize_and_backwards">[docs]</a>    <span class="k">def</span> <span class="nf">penalize_and_backwards</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">call_backwards</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes the penalty over the parameters and then calls backwards.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            call_backwards: True if backwards should be called.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            penalty: The calculated penalty</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">penalty</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">cur_penalty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">p</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">call_backwards</span><span class="p">:</span>
+                    <span class="n">cur_penalty</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="n">penalty</span> <span class="o">+=</span> <span class="n">cur_penalty</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">penalty</span>
+        <span class="k">return</span> <span class="n">penalty</span></div>
+
+<div class="viewcode-block" id="ClusterPenalizer.__str__"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a string with the state of the penalizer. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">+</span> <span class="s1">&#39; state&#39;</span><span class="o">+</span>
+                <span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> Center: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span> <span class="o">+</span>
+                <span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> Last Penalty: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">last_p</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="TargetLengthPenalizer"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer">[docs]</a><span class="k">class</span> <span class="nc">TargetLengthPenalizer</span><span class="p">(</span><span class="n">ParameterPenalizer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Penalizes the l-2 norm of a parameter as it deviates from a target length.</span>
+
+<span class="sd">    The l-2 norm is calculated by summing the square of all elements in a parameter, no matter what it&#39;s shape is,</span>
+<span class="sd">    and then taking the square root.</span>
+
+<span class="sd">    The penalty for a parameter is calculated as: w*(l - tgt_l)**2, where w is a penalty weight, l is the l_2 norm</span>
+<span class="sd">    of the parameter and tgt_l is the target length we would like the parameter to have.</span>
+
+<span class="sd">    This object can hold multiple parameters and will return the sum of penalizing all of them.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">],</span> <span class="n">w</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">tgt_l</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new TargetLengthPenalizer object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params: the parameters to penalize.  Each parameter will be treated independently.</span>
+
+<span class="sd">            w: the weight to apply to the penalty</span>
+
+<span class="sd">            tgt_l: The target length for each parameter</span>
+
+<span class="sd">            description: A short description identifying the penalizer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">w</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tgt_l</span> <span class="o">=</span> <span class="n">tgt_l</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+
+<div class="viewcode-block" id="TargetLengthPenalizer.copy_state_from"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.copy_state_from">[docs]</a>    <span class="k">def</span> <span class="nf">copy_state_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Copies the state of another penalizer to this penalizer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other: The other penalizer to copy state form.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">last_p</span></div>
+
+<div class="viewcode-block" id="TargetLengthPenalizer.clone"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.clone">[docs]</a>    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clean</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a copy of self.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            clean: If true, attribute values that we might not want to transfer to a new object (such as record of last</span>
+<span class="sd">            penalty value) will not be copied.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            obj: The new object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">self_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">clean</span><span class="p">:</span>
+            <span class="n">self_copy</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="k">return</span> <span class="n">self_copy</span></div>
+
+<div class="viewcode-block" id="TargetLengthPenalizer.check_point"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.check_point">[docs]</a>    <span class="k">def</span> <span class="nf">check_point</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Returns a check point dictionary for the penalizer.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            d: A dictionary with the following keys:</span>
+
+<span class="sd">                last_p: The value of the last penalty that was computed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;last_p&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="TargetLengthPenalizer.get_marked_params"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.get_marked_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_marked_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; Returns marked parameters.</span>
+
+<span class="sd">        There are no learnable parameters for this object, so this function always returns an empty list.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            params: A list. This will always be empty.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="TargetLengthPenalizer.list_param_keys"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.list_param_keys">[docs]</a>    <span class="k">def</span> <span class="nf">list_param_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; Returns the list of keys associated with internal, learnable parameters.</span>
+
+<span class="sd">        Because there are no learnable parameters for this penalizer, an empty list will be returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="TargetLengthPenalizer.penalize_and_backwards"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.penalize_and_backwards">[docs]</a>    <span class="k">def</span> <span class="nf">penalize_and_backwards</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">call_backwards</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes the penalty over the parameters and then calls backwards.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            call_backwards: True if backwards should be called.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            penalty: The calculated penalty</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">penalty</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;sum_p: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">p</span><span class="p">)))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">cur_penalty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="o">*</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">p</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">tgt_l</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+                <span class="k">if</span> <span class="n">call_backwards</span><span class="p">:</span>
+                    <span class="n">cur_penalty</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="n">penalty</span> <span class="o">+=</span> <span class="n">cur_penalty</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">penalty</span>
+        <span class="k">return</span> <span class="n">penalty</span></div>
+
+<div class="viewcode-block" id="TargetLengthPenalizer.__str__"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a string with the state of the penalizer. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">+</span> <span class="s1">&#39; state&#39;</span> <span class="o">+</span>
+                <span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> Last Penalty: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">last_p</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="UnsignedClusterPenalizer"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.UnsignedClusterPenalizer">[docs]</a><span class="k">class</span> <span class="nc">UnsignedClusterPenalizer</span><span class="p">(</span><span class="n">ClusterPenalizer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This is the same as the ClusterPenalizer but the penalty is computed after taking absolute values of parameters.</span>
+
+<span class="sd">    In particular, given a set of paremters p_0, ..., p_N of arbitrary shape, the penalty computed by this object is:</span>
+
+<span class="sd">        w\sum_{i=1}^N ||abs(p_i) - abs(c)||_2^2 where c is a tensor the same shape as any of the p_i parameters</span>
+<span class="sd">        representing the center of a cluster and w is a penalty weight.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">],</span> <span class="n">w</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">init_ctr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+                 <span class="n">description</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">learnable_parameters</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new UnsignedClusterPenalizer instance.</span>
+
+<span class="sd">        See __init__ of parent for more information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">init_ctr</span><span class="o">=</span><span class="n">init_ctr</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                         <span class="n">learnable_parameters</span><span class="o">=</span><span class="n">learnable_parameters</span><span class="p">)</span>
+
+<div class="viewcode-block" id="UnsignedClusterPenalizer.penalize_and_backwards"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.UnsignedClusterPenalizer.penalize_and_backwards">[docs]</a>    <span class="k">def</span> <span class="nf">penalize_and_backwards</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">call_backwards</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes the penalty over the parameters and then calls backwards.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            call_backwards: True if backwards should be called.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            penalty: The calculated penalty</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">penalty</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">cur_penalty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">call_backwards</span><span class="p">:</span>
+                    <span class="n">cur_penalty</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="n">penalty</span> <span class="o">+=</span> <span class="n">cur_penalty</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">penalty</span>
+        <span class="k">return</span> <span class="n">penalty</span></div></div>
+
+
+<div class="viewcode-block" id="ScalarPenalizer"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer">[docs]</a><span class="k">class</span> <span class="nc">ScalarPenalizer</span><span class="p">(</span><span class="n">ParameterPenalizer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Applies an element-wise penalty to parameters, which is the squared distance of each element from a center.</span>
+
+<span class="sd">        In particular, given a set of paremters p_0, ..., p_N of arbitrary shape, the penalty computed by this object is:</span>
+
+<span class="sd">            w\sum_{i=1}^N ||p_i - c||_2^2 where c the scalar center.</span>
+
+<span class="sd">    There is only one parameter for this penalizer, which is tagged with &#39;fast&#39;, to indicate that in models trained</span>
+<span class="sd">    with slow and fast learning rates, we would expect the center to be updated with the fast learning rate.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">],</span> <span class="n">w</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">init_ctr</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">description</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">learnable_parameters</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates an instance of a ClusterPenalizer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params: The parameters to penalize</span>
+
+<span class="sd">            w: The weight to apply to the penalty</span>
+
+<span class="sd">            init_ctr: The initial value of c</span>
+
+<span class="sd">            description: A string that will be used to identify the penalizer in the string returned</span>
+<span class="sd">            by __str__()</span>
+
+<span class="sd">            learnable_parameters: True if c should be learnable; false if it should be fixed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">w</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learnable_parameters</span> <span class="o">=</span> <span class="n">learnable_parameters</span>
+
+        <span class="k">if</span> <span class="n">learnable_parameters</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="n">init_ctr</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="n">init_ctr</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">if</span> <span class="n">description</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s1">&#39;Scalar Parameter Penalizer&#39;</span>
+
+<div class="viewcode-block" id="ScalarPenalizer.copy_state_from"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.copy_state_from">[docs]</a>    <span class="k">def</span> <span class="nf">copy_state_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Copies the state of another penalizer to this penalizer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other: The other penalizer to copy state form.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">last_p</span></div>
+
+<div class="viewcode-block" id="ScalarPenalizer.clone"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.clone">[docs]</a>    <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clean</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a copy of self.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            clean: If true, attribute values that we might not want to transfer to a new object (such as record of last</span>
+<span class="sd">            penalty value) will not be copied.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            obj: The new object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">self_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">clean</span><span class="p">:</span>
+            <span class="n">self_copy</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="k">return</span> <span class="n">self_copy</span></div>
+
+<div class="viewcode-block" id="ScalarPenalizer.check_point"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.check_point">[docs]</a>    <span class="k">def</span> <span class="nf">check_point</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Returns a check point dictionary for the penalizer.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            d: A dictionary with the following keys:</span>
+
+<span class="sd">                c: The center of the parameter</span>
+
+<span class="sd">                last_p: The value of the last penalty that was computed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="n">c</span><span class="p">,</span> <span class="s1">&#39;last_p&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="ScalarPenalizer.get_marked_params"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.get_marked_params">[docs]</a>    <span class="k">def</span> <span class="nf">get_marked_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; Returns marked parameters.</span>
+
+<span class="sd">        The only parameter of the penalizer is the centers tensor, c, which is marked with the tag &#39;fast&#39;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            params: A list.  If the key was fast this will hold the &#39;c&#39; parameter.  If not, this list will be empty.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;fast&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">learnable_parameters</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="ScalarPenalizer.list_param_keys"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.list_param_keys">[docs]</a>    <span class="k">def</span> <span class="nf">list_param_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; Returns the list of keys associated with internal, learnable parameters. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;fast&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ScalarPenalizer.penalize_and_backwards"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.penalize_and_backwards">[docs]</a>    <span class="k">def</span> <span class="nf">penalize_and_backwards</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">call_backwards</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes the penalty over the parameters and then calls backwards.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            call_backwards: True if backwards should be called.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            penalty: The calculated penalty</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">penalty</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">cur_penalty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">p</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">call_backwards</span><span class="p">:</span>
+                    <span class="n">cur_penalty</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="n">penalty</span> <span class="o">+=</span> <span class="n">cur_penalty</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">penalty</span>
+        <span class="k">return</span> <span class="n">penalty</span></div>
+
+<div class="viewcode-block" id="ScalarPenalizer.__str__"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.__str__">[docs]</a>    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a string with the state of the penalizer. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">+</span> <span class="s1">&#39; state&#39;</span><span class="o">+</span>
+                <span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> Center: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span> <span class="o">+</span>
+                <span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> Last Penalty: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">last_p</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="UnsignedScalarPenalizer"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.UnsignedScalarPenalizer">[docs]</a><span class="k">class</span> <span class="nc">UnsignedScalarPenalizer</span><span class="p">(</span><span class="n">ScalarPenalizer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Penalizes the elements of parameters, with the squared distance of each element from a center.</span>
+
+<span class="sd">        In particular, given a set of paremters p_0, ..., p_N of arbitrary shape, the penalty computed by this object is:</span>
+
+<span class="sd">        w\sum_{i=1}^N ||abs(p_i) - abs(c)||_2^2 where c the scalar center.</span>
+
+<span class="sd">    There is only one parameter for this penalizer, which is tagged with &#39;fast&#39;, to indicate that in models trained</span>
+<span class="sd">    with slow and fast learning rates, we would expect the center to be updated with the fast learning rate.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">],</span> <span class="n">w</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">init_ctr</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">description</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">learnable_parameters</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new instance of an UnsignedScalarPenalizer object.</span>
+
+<span class="sd">        See __init__() of paraent for more information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">init_ctr</span><span class="o">=</span><span class="n">init_ctr</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                         <span class="n">learnable_parameters</span><span class="o">=</span><span class="n">learnable_parameters</span><span class="p">)</span>
+
+<div class="viewcode-block" id="UnsignedScalarPenalizer.penalize_and_backwards"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.UnsignedScalarPenalizer.penalize_and_backwards">[docs]</a>    <span class="k">def</span> <span class="nf">penalize_and_backwards</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">call_backwards</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes the penalty over the parameters and then calls backwards.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            call_backwards: True if backwards should be called.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            penalty: The calculated penalty</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">penalty</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">cur_penalty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">call_backwards</span><span class="p">:</span>
+                    <span class="n">cur_penalty</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="n">penalty</span> <span class="o">+=</span> <span class="n">cur_penalty</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_p</span> <span class="o">=</span> <span class="n">penalty</span>
+        <span class="k">return</span> <span class="n">penalty</span></div></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

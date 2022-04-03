@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.cv &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.ml.cv</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.ml.cv</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Contains tools for performing cross validation with data.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">janelia_core.math.basic_functions</span> <span class="kn">import</span> <span class="n">divide_into_nearly_equal_parts</span>
+
+
+<div class="viewcode-block" id="generate_balanced_folds"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/cv/index.html#janelia_core.ml.cv.generate_balanced_folds">[docs]</a><span class="k">def</span> <span class="nf">generate_balanced_folds</span><span class="p">(</span><span class="n">labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_folds</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">balance_across_folds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                            <span class="n">balance_within_folds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">test_train_closure</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                            <span class="n">randomize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot; Given an array of labels, generate test and train folds with balanced labels.</span>
+
+<span class="sd">    This function first breaks the data into disjoint testing sets.  By default, this function will</span>
+<span class="sd">    assign points into disjoint test folds so that all points are used for testing once.  In this case,</span>
+<span class="sd">    the number of data points of a class in any test fold will be within 1 of eachother. However, see</span>
+<span class="sd">    the options to balance_within_folds and balance_across_folds for alternative behavior.</span>
+
+<span class="sd">    After assigning test points for each fold, the training points for each fold are assigned. By default,</span>
+<span class="sd">    all points not used for testing and used for training in a fold. However, see test_train_closure option</span>
+<span class="sd">    for the different ways training points can be assigned to sets.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        labels: labels[i] contains the label for data point i</span>
+
+<span class="sd">        n_folds: The number of folds to break the data into</span>
+
+<span class="sd">        balance_across_folds: If true, this ensures the number of test points of each class is the</span>
+<span class="sd">        same across folds. (Though within folds, the number of test points of each class may differ).</span>
+
+<span class="sd">        balance_within_folds: If true, this ensures the number of test points of each class is the</span>
+<span class="sd">        same in each fold.   (Though across folds, the number of test points of each class may differ.)</span>
+
+<span class="sd">        test_train_closure: If this is a true, the union across folds of test points must</span>
+<span class="sd">        equal the union across folds of train points.  This ensures that if a point is used</span>
+<span class="sd">        for training in one fold, it will also be used for testing in the other folds.</span>
+
+<span class="sd">        randomize: True if assignment to folds should be randomized.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        folds: A list of length n_folds.  folds[i] contains a dictionary with the fields:</span>
+
+<span class="sd">            test_inds: Containing indices of test points for the fold</span>
+
+<span class="sd">            train_inds: Containing indices of train points for the fold</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        RuntimeError: If there are not enough points of each class to have at least one point of each class</span>
+<span class="sd">        in each test fold.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">n_data_pts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+
+    <span class="c1"># See how many points of each class there are</span>
+    <span class="n">class_labels</span><span class="p">,</span> <span class="n">class_counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Make sure we have enough points of each class</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">cnt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">class_counts</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cnt</span> <span class="o">&lt;</span> <span class="n">n_folds</span><span class="p">:</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Not enough data points with class label &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">class_labels</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>  <span class="o">+</span>
+                  <span class="s1">&#39; to break into &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_folds</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; folds.&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Cut down number of data points to balance classes across folds if needed</span>
+    <span class="k">if</span> <span class="n">balance_across_folds</span><span class="p">:</span>
+        <span class="n">class_counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">n_folds</span><span class="o">*</span><span class="p">(</span><span class="n">cnt</span><span class="o">//</span><span class="n">n_folds</span><span class="p">)</span> <span class="k">for</span> <span class="n">cnt</span> <span class="ow">in</span> <span class="n">class_counts</span><span class="p">])</span>
+
+    <span class="c1"># Cut down number of data points to balance classes within folds if needed</span>
+    <span class="k">if</span> <span class="n">balance_within_folds</span><span class="p">:</span>
+        <span class="n">min_cnt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">class_counts</span><span class="p">)</span>
+        <span class="n">class_counts</span> <span class="o">=</span> <span class="n">min_cnt</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">class_counts</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+
+    <span class="c1"># Assign test points for each fold</span>
+    <span class="n">folds</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;test_inds&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span> <span class="s1">&#39;train_inds&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)}</span> <span class="k">for</span> <span class="n">f_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_folds</span><span class="p">)]</span>
+
+    <span class="k">for</span> <span class="n">cls_i</span><span class="p">,</span> <span class="n">cls_l</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">class_labels</span><span class="p">):</span>
+        <span class="n">data_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">labels</span> <span class="o">==</span> <span class="n">cls_l</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">randomize</span><span class="p">:</span>
+            <span class="n">data_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="n">data_inds</span><span class="p">)</span>
+
+        <span class="n">n_test_smps_per_fold</span> <span class="o">=</span> <span class="n">divide_into_nearly_equal_parts</span><span class="p">(</span><span class="n">class_counts</span><span class="p">[</span><span class="n">cls_i</span><span class="p">],</span> <span class="n">n_folds</span><span class="p">)</span>
+
+        <span class="n">start_i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">f_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_folds</span><span class="p">):</span>
+            <span class="n">end_i</span> <span class="o">=</span> <span class="n">start_i</span> <span class="o">+</span> <span class="n">n_test_smps_per_fold</span><span class="p">[</span><span class="n">f_i</span><span class="p">]</span>
+            <span class="n">folds</span><span class="p">[</span><span class="n">f_i</span><span class="p">][</span><span class="s1">&#39;test_inds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">folds</span><span class="p">[</span><span class="n">f_i</span><span class="p">][</span><span class="s1">&#39;test_inds&#39;</span><span class="p">],</span> <span class="n">data_inds</span><span class="p">[</span><span class="n">start_i</span><span class="p">:</span><span class="n">end_i</span><span class="p">]])</span>
+            <span class="n">start_i</span> <span class="o">=</span> <span class="n">end_i</span>
+
+    <span class="c1"># Assign train points</span>
+    <span class="k">for</span> <span class="n">f_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_folds</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">test_train_closure</span><span class="p">:</span>
+            <span class="n">train_inds</span> <span class="o">=</span> <span class="p">[</span><span class="n">folds</span><span class="p">[</span><span class="n">c_i</span><span class="p">][</span><span class="s1">&#39;test_inds&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">c_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_folds</span><span class="p">)</span> <span class="k">if</span> <span class="n">c_i</span> <span class="o">!=</span> <span class="n">f_i</span><span class="p">]</span>
+            <span class="n">train_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">train_inds</span><span class="p">)</span>
+            <span class="n">folds</span><span class="p">[</span><span class="n">f_i</span><span class="p">][</span><span class="s1">&#39;train_inds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">train_inds</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">folds</span><span class="p">[</span><span class="n">f_i</span><span class="p">][</span><span class="s1">&#39;train_inds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_data_pts</span><span class="p">),</span> <span class="n">folds</span><span class="p">[</span><span class="n">f_i</span><span class="p">][</span><span class="s1">&#39;test_inds&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">folds</span></div>
+
+
+<div class="viewcode-block" id="parameter_combinations"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/cv/index.html#janelia_core.ml.cv.parameter_combinations">[docs]</a><span class="k">def</span> <span class="nf">parameter_combinations</span><span class="p">(</span><span class="n">param_values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Generates all possible combination of parameter values from sets of possible values for individual parameters.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        param_values: Each key in the dictionary is a parameter name.  Each value is a sequence of possible parameter</span>
+<span class="sd">        values.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A list of parameter dictionaries.  Each dictionary will have the same keys as param_values but the value associated</span>
+<span class="sd">        with each key will be only one parameter value.  The list will contain dictionaries of all possible parameter</span>
+<span class="sd">        values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="n">param_values</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">n_params</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">param_values</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">params</span><span class="p">]</span>
+
+    <span class="n">param_ind_combos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">n_params</span><span class="p">)</span>
+    <span class="n">param_ind_combos</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">inds</span><span class="p">,</span> <span class="n">inds</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="k">for</span> <span class="n">inds</span> <span class="ow">in</span> <span class="n">param_ind_combos</span><span class="p">]</span> <span class="c1"># Flatten indices</span>
+
+    <span class="n">n_combos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">param_ind_combos</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">param_combos</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">n_combos</span>
+    <span class="k">for</span> <span class="n">c_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_combos</span><span class="p">):</span>
+        <span class="n">param_combos</span><span class="p">[</span><span class="n">c_i</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span><span class="n">param_values</span><span class="p">[</span><span class="n">p</span><span class="p">][</span><span class="n">param_ind_combos</span><span class="p">[</span><span class="n">p_i</span><span class="p">][</span><span class="n">c_i</span><span class="p">]]</span> <span class="k">for</span> <span class="n">p_i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">params</span><span class="p">)}</span>
+
+    <span class="k">return</span> <span class="n">param_combos</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

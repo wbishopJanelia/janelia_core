@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.dataprocessing.utils &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.dataprocessing.utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.dataprocessing.utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Utilities for working with time series data.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">pathlib</span>
+<span class="kn">import</span> <span class="nn">types</span>
+
+<span class="kn">import</span> <span class="nn">dipy.align.imaffine</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pyspark</span>
+
+<span class="kn">from</span> <span class="nn">janelia_core.fileio.exp_reader</span> <span class="kn">import</span> <span class="n">read_img_file</span>
+<span class="kn">from</span> <span class="nn">janelia_core.math.basic_functions</span> <span class="kn">import</span> <span class="n">is_standard_slice</span>
+<span class="kn">from</span> <span class="nn">janelia_core.math.basic_functions</span> <span class="kn">import</span> <span class="n">slice_contains</span>
+
+
+<div class="viewcode-block" id="get_image_data"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/utils/index.html#janelia_core.dataprocessing.utils.get_image_data">[docs]</a><span class="k">def</span> <span class="nf">get_image_data</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">img_slice</span><span class="p">:</span> <span class="nb">slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">h5_data_group</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Gets image data for a single image.</span>
+
+<span class="sd">    This is a wrapper that allows us to get image data for a single image from a file or from a numpy array</span>
+<span class="sd">    seamlessly in our code.  If image is already a numpy array, image is simply returned</span>
+<span class="sd">    as is.  Otherwise, image is assumed to be a path to a image which is opened and the data</span>
+<span class="sd">    is loaded and returned as a numpy array.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image: Either a numpy array or path to the image.</span>
+
+<span class="sd">        img_slice: The slice of the image that should be returned</span>
+
+<span class="sd">        h5_data_group: The hdfs group holding image data in h5 files.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The image data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">image</span><span class="p">[</span><span class="n">img_slice</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">read_img_file</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">image</span><span class="p">),</span> <span class="n">img_slice</span><span class="o">=</span><span class="n">img_slice</span><span class="p">,</span> <span class="n">h5_data_group</span><span class="o">=</span><span class="n">h5_data_group</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_reg_image_data"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/utils/index.html#janelia_core.dataprocessing.utils.get_reg_image_data">[docs]</a><span class="k">def</span> <span class="nf">get_reg_image_data</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">image_slice</span><span class="p">:</span> <span class="nb">slice</span><span class="p">,</span> <span class="n">image_shape</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                       <span class="n">t</span><span class="p">:</span> <span class="n">dipy</span><span class="o">.</span><span class="n">align</span><span class="o">.</span><span class="n">imaffine</span><span class="o">.</span><span class="n">AffineMap</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">h5_data_group</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Gets registered image data for a single image.</span>
+
+<span class="sd">    This is a wrapper around get_image_data that allows the user to register an image before getting data from it.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image: Either a numpy array or path to the image.</span>
+
+<span class="sd">        image_shape: The shape of the original image.  This is used to check that the requested window contains</span>
+<span class="sd">        valid data after registration.  If t is none, this argument does not need to be supplied.</span>
+
+<span class="sd">        t: The registration transform.  If this is none, no registration will be performed.</span>
+
+<span class="sd">        image_slice: The slice of the image that should be returned.  Coordinates are *after* image registration.</span>
+
+<span class="sd">        h5_data_group: The hdfs group holding image data in h5 files.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The image data</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the requested slice for the registered image includes voxels for which there was no data in the</span>
+<span class="sd">        original image to calculate the registered image for.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Add imports from registration here to avoid circular imports</span>
+    <span class="kn">from</span> <span class="nn">janelia_core.registration.registration</span> <span class="kn">import</span> <span class="n">apply_2d_dipy_affine_transform</span>
+    <span class="kn">from</span> <span class="nn">janelia_core.registration.registration</span> <span class="kn">import</span> <span class="n">get_valid_translated_image_window</span>
+
+    <span class="c1"># Just call get_image_data if we are not doing registration.</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">get_image_data</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">img_slice</span><span class="o">=</span><span class="n">image_slice</span><span class="p">,</span> <span class="n">h5_data_group</span><span class="o">=</span><span class="n">h5_data_group</span><span class="p">)</span>
+
+    <span class="c1"># Helper function to form slices we will need to pull data from before registration</span>
+    <span class="k">def</span> <span class="nf">expand_slice</span><span class="p">(</span><span class="n">s_in</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">delta</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">slice</span><span class="p">(</span><span class="n">s_in</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">s_in</span><span class="o">.</span><span class="n">stop</span> <span class="o">+</span> <span class="n">delta</span><span class="p">,</span> <span class="n">s_in</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">slice</span><span class="p">(</span><span class="n">s_in</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="n">delta</span><span class="p">,</span> <span class="n">s_in</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">s_in</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+
+    <span class="c1"># Helper function to form slices we will need to pull data from after registration</span>
+    <span class="k">def</span> <span class="nf">get_final_slice</span><span class="p">(</span><span class="n">s_in</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">delta</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">s_in</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">s_in</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">s_in</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">slice</span><span class="p">(</span><span class="o">-</span><span class="n">delta</span><span class="p">,</span> <span class="n">s_in</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">s_in</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="n">delta</span><span class="p">,</span> <span class="n">s_in</span><span class="o">.</span><span class="n">step</span><span class="p">)</span>
+
+    <span class="n">n_slice_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_slice</span><span class="p">)</span>
+
+    <span class="c1"># Make sure user specified a standard slice</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_standard_slice</span><span class="p">(</span><span class="n">image_slice</span><span class="p">):</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Only an image_slice with non-negative start and stop values is currently supported.&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Determine the rounded number of pixels we will shift - we will shift by the exact shift but</span>
+    <span class="c1"># use the rounded value for determining the region of data that we need to pull before registration</span>
+    <span class="n">shift</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">affine</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="n">rounded_shift</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">shift</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">shift</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="c1"># Make sure the requested slice will have valid data in it after registration</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">image_shape</span> <span class="o">=</span> <span class="n">image_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">valid_window</span> <span class="o">=</span> <span class="n">get_valid_translated_image_window</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">shift</span><span class="p">,</span> <span class="n">image_shape</span><span class="p">)</span> <span class="c1"># Account for sign convention on shifts</span>
+
+    <span class="k">if</span> <span class="n">n_slice_dims</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">good_window</span> <span class="o">=</span> <span class="n">slice_contains</span><span class="p">(</span><span class="n">image_slice</span><span class="p">,</span> <span class="n">valid_window</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">good_window</span> <span class="o">=</span> <span class="n">slice_contains</span><span class="p">(</span><span class="n">image_slice</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">valid_window</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">good_window</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Requested slice contains bad data after registration. Valid window is: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">valid_window</span><span class="p">)))</span>
+
+    <span class="c1"># Form the slices we pull data from before and after registration</span>
+    <span class="k">if</span> <span class="n">n_slice_dims</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">orig_slice</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">expand_slice</span><span class="p">(</span><span class="n">image_slice</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">rounded_shift</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_slice_dims</span><span class="p">)])</span>
+        <span class="n">final_slice</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">get_final_slice</span><span class="p">(</span><span class="n">image_slice</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">rounded_shift</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_slice_dims</span><span class="p">)])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">orig_slice</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">image_slice</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">expand_slice</span><span class="p">(</span><span class="n">image_slice</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">rounded_shift</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                            <span class="n">expand_slice</span><span class="p">(</span><span class="n">image_slice</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">rounded_shift</span><span class="p">[</span><span class="mi">1</span><span class="p">])])</span>
+        <span class="n">final_slice</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">image_slice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">image_slice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">image_slice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">step</span><span class="p">),</span>
+                             <span class="n">get_final_slice</span><span class="p">(</span><span class="n">image_slice</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">rounded_shift</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                             <span class="n">get_final_slice</span><span class="p">(</span><span class="n">image_slice</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">rounded_shift</span><span class="p">[</span><span class="mi">1</span><span class="p">])])</span>
+
+    <span class="c1"># Perform the registration</span>
+    <span class="n">orig_img</span> <span class="o">=</span> <span class="n">get_image_data</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">img_slice</span><span class="o">=</span><span class="n">orig_slice</span><span class="p">,</span> <span class="n">h5_data_group</span><span class="o">=</span><span class="n">h5_data_group</span><span class="p">)</span>
+    <span class="n">reg_img</span> <span class="o">=</span> <span class="n">apply_2d_dipy_affine_transform</span><span class="p">(</span><span class="n">orig_img</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+    <span class="c1"># Now return the requested slice of the registered image</span>
+    <span class="k">return</span> <span class="n">reg_img</span><span class="p">[</span><span class="n">final_slice</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="get_processed_image_data"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/utils/index.html#janelia_core.dataprocessing.utils.get_processed_image_data">[docs]</a><span class="k">def</span> <span class="nf">get_processed_image_data</span><span class="p">(</span><span class="n">images</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">img_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                             <span class="n">t_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">func_args</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">h5_data_group</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span>
+                             <span class="n">sc</span><span class="p">:</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">SparkContext</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Gets processed image data for multiple images.</span>
+<span class="sd">    </span>
+<span class="sd">    This is a wrapper that allows retrieving images from files or from numpy arrays,</span>
+<span class="sd">    applying light processing independently to each image and returning the result.</span>
+
+<span class="sd">    Images can be optionally registered before apply preprocessing.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        images: A list of images.  Each entry is either a numpy array or a path to an image file.</span>
+<span class="sd">        </span>
+<span class="sd">        func: A function to apply to each image.  If none, images will be returned unaltered.  Should accept input</span>
+<span class="sd">        of the form func(image: np.ndarray, **keyword_args)</span>
+
+<span class="sd">        img_slice: The slice of each image that should be returned before any processing is applied.  If registration is</span>
+<span class="sd">        applied (see t_dict parameter), then the slice coordinates are for images after registration.</span>
+
+<span class="sd">        t_dict: A dictionary with information for performing image registration as images are loaded.  If set to None,</span>
+<span class="sd">        no image registration will be performed.  t_dict should have two fields:</span>
+
+<span class="sd">            transforms: A list of registration transforms to apply to the images as they are being read in.  If none,</span>
+<span class="sd">            no registration will be applied.</span>
+
+<span class="sd">            image_shape: This is the shape of the original images being read in.</span>
+
+<span class="sd">        func_args: A list of extra keyword arguments to pass to the function for each image.  If None, no arguments</span>
+<span class="sd">        will be passed.</span>
+
+<span class="sd">        h5_data_group: The hdfs group holding image data in h5 files.</span>
+<span class="sd">        </span>
+<span class="sd">        sc: An optional pySpark.SparkContext object to use in speeding up reading of images.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        The processed image data as a list.  Each processed image is an entry in the list.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">n_images</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">images</span><span class="p">)</span>
+    <span class="n">do_reg</span> <span class="o">=</span> <span class="n">t_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">do_reg</span><span class="p">:</span>
+        <span class="n">img_transforms</span> <span class="o">=</span> <span class="n">t_dict</span><span class="p">[</span><span class="s1">&#39;transforms&#39;</span><span class="p">]</span>
+        <span class="n">img_full_shape</span> <span class="o">=</span> <span class="n">t_dict</span><span class="p">[</span><span class="s1">&#39;image_shape&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">img_transforms</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">n_images</span>
+        <span class="n">img_full_shape</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">x</span>
+
+    <span class="k">if</span> <span class="n">func_args</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">func_args</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">()]</span><span class="o">*</span><span class="n">n_images</span>
+
+    <span class="n">images_w_transforms_and_args</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">img_transforms</span><span class="p">,</span> <span class="n">func_args</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">get_reg_image_data</span><span class="p">(</span><span class="n">i_t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">image_slice</span><span class="o">=</span><span class="n">img_slice</span><span class="p">,</span> <span class="n">image_shape</span><span class="o">=</span><span class="n">img_full_shape</span><span class="p">,</span>
+                                        <span class="n">t</span><span class="o">=</span><span class="n">i_t</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">h5_data_group</span><span class="o">=</span><span class="n">h5_data_group</span><span class="p">),</span> <span class="o">**</span><span class="n">i_t</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">i_t</span> <span class="ow">in</span> <span class="n">images_w_transforms_and_args</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">_process_img</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">get_reg_image_data</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">image_slice</span><span class="o">=</span><span class="n">img_slice</span><span class="p">,</span> <span class="n">image_shape</span><span class="o">=</span><span class="n">img_full_shape</span><span class="p">,</span>
+                                           <span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">h5_data_group</span><span class="o">=</span><span class="n">h5_data_group</span><span class="p">),</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sc</span><span class="o">.</span><span class="n">parallelize</span><span class="p">(</span><span class="n">images_w_transforms_and_args</span><span class="p">)</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_process_img</span><span class="p">)</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="write_planes_to_files"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/utils/index.html#janelia_core.dataprocessing.utils.write_planes_to_files">[docs]</a><span class="k">def</span> <span class="nf">write_planes_to_files</span><span class="p">(</span><span class="n">planes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+                          <span class="n">base_planes_dir</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">plane_suffix</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;plane&#39;</span><span class="p">,</span>
+                          <span class="n">skip_existing_files</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sc</span><span class="p">:</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">SparkContext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">h5_data_group</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Extracts one or more planes from image files, writing planes to separate files.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        planes: An array of indices of planes to extract.</span>
+
+<span class="sd">        files: A list of original image files to pull planes from.</span>
+
+<span class="sd">        base_planes_dir: The base directory to save plane files into.  Under this folder, separate subfolders</span>
+<span class="sd">        will be saved for each plane.</span>
+
+<span class="sd">        plane_suffix: The suffix to append to the file name to indicate the file contains just one plane.</span>
+
+<span class="sd">        skip_existing_files: If true, if a file for an extracted plane is found, it will not be overwritten.</span>
+<span class="sd">        If false, then errors will be thrown if files for extracted planes are found to already exist. Setting</span>
+<span class="sd">        this to true can be helpful if there is a need to run this function a second time to recover from an</span>
+<span class="sd">        error.</span>
+
+<span class="sd">        sc: An optional spark context to use to write files in parallel.</span>
+
+<span class="sd">        h5_data_group: The h5_data_group that original images are stored under if reading in .h5 files.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A list of the directories that images for each plane are saved into.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">base_planes_dir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">base_planes_dir</span><span class="p">)</span>
+
+    <span class="n">plane_dirs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">planes</span><span class="p">:</span>
+        <span class="n">plane_dir</span> <span class="o">=</span> <span class="n">base_planes_dir</span> <span class="o">/</span> <span class="p">(</span><span class="n">plane_suffix</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">plane</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">plane_dir</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">plane_dir</span><span class="p">)</span>
+        <span class="n">plane_dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plane_dir</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="n">write_planes_for_one_file</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">plane_dirs</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">plane_suffix</span><span class="p">,</span> <span class="n">skip_existing_files</span><span class="p">,</span>
+                                      <span class="n">h5_data_group</span><span class="o">=</span><span class="n">h5_data_group</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">write_plane_wrapper</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+            <span class="n">write_planes_for_one_file</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">planes</span><span class="p">,</span> <span class="n">plane_dirs</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">plane_suffix</span><span class="p">,</span> <span class="n">skip_existing_files</span><span class="p">,</span>
+                                      <span class="n">h5_data_group</span><span class="o">=</span><span class="n">h5_data_group</span><span class="p">)</span>
+        <span class="n">sc</span><span class="o">.</span><span class="n">parallelize</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="o">.</span><span class="n">foreach</span><span class="p">(</span><span class="n">write_plane_wrapper</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">plane_dirs</span></div>
+
+
+<div class="viewcode-block" id="write_planes_for_one_file"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/utils/index.html#janelia_core.dataprocessing.utils.write_planes_for_one_file">[docs]</a><span class="k">def</span> <span class="nf">write_planes_for_one_file</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">planes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">plane_dirs</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+                              <span class="n">plane_suffix</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;plane&#39;</span><span class="p">,</span> <span class="n">skip_existing_files</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">h5_data_group</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Writes specified planes from a 3d image file to separate .h5 files.</span>
+
+<span class="sd">    The new files will have the same name as the original with an added suffix to indicate they contain</span>
+<span class="sd">    just one plane.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        planes: An array of indices of planes to extract.</span>
+
+<span class="sd">        file: The original image file to pull planes from.</span>
+
+<span class="sd">        plane_dirs: List of directories to save the file for each file into.</span>
+
+<span class="sd">        plane_suffix: The suffix to append to the file name to indicate the file contains just one plane.</span>
+
+<span class="sd">        skip_existing_files: If true, if a file for an extracted plane is found, it will not be overwritten.</span>
+<span class="sd">        If false, then errors will be thrown if files for extracted planes are found to already exist. Setting</span>
+<span class="sd">        this to true can be helpful if there is a need to run this function a second time to recover from an</span>
+<span class="sd">        error.</span>
+
+<span class="sd">        h5_data_group: The h5_data_group that original images are stored under if reading in .h5 files.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create names of the files the planes will be saved into</span>
+    <span class="n">new_file_name</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">suffix_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span>
+    <span class="n">new_file_name</span> <span class="o">=</span> <span class="n">new_file_name</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="n">suffix_len</span><span class="p">]</span>
+    <span class="n">plane_file_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">plane_dirs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">new_file_name</span> <span class="o">+</span> <span class="n">plane_suffix</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">planes</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;.h5&#39;</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">plane_dirs</span><span class="p">))]</span>
+
+    <span class="c1"># Check if our files exist</span>
+    <span class="n">n_planes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">planes</span><span class="p">)</span>
+    <span class="n">existing_plane_files</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n_planes</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+    <span class="n">some_plane_files_exist</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">all_plane_files_exist</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">plane_file_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">plane_file_paths</span><span class="p">):</span>
+        <span class="n">plane_file_exists</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">plane_file_path</span><span class="p">)</span>
+        <span class="n">existing_plane_files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">plane_file_exists</span>
+        <span class="n">some_plane_files_exist</span> <span class="o">=</span> <span class="n">some_plane_files_exist</span> <span class="ow">or</span> <span class="n">plane_file_exists</span>
+        <span class="n">all_plane_files_exist</span> <span class="o">=</span> <span class="n">all_plane_files_exist</span> <span class="ow">and</span> <span class="n">plane_file_exists</span>
+    <span class="c1"># Throw in an error if appropriate</span>
+    <span class="k">if</span> <span class="n">some_plane_files_exist</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">skip_existing_files</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Files for extracted planes already exist for 3d image file &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">file</span><span class="p">)))</span>
+
+    <span class="c1"># Write all planes that we need to to file</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">all_plane_files_exist</span><span class="p">:</span>
+        <span class="n">image_3d</span> <span class="o">=</span> <span class="n">read_img_file</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">h5_data_group</span><span class="o">=</span><span class="n">h5_data_group</span><span class="p">)</span>
+
+        <span class="c1"># Write planes to file</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">plane_file_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">plane_file_paths</span><span class="p">):</span>
+            <span class="n">data_in_plane</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">image_3d</span><span class="p">[</span><span class="n">planes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">:,</span> <span class="p">:],</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">existing_plane_files</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">plane_file_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">new_file</span><span class="p">:</span>
+                    <span class="n">new_file</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">data_in_plane</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">data_in_plane</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">data_in_plane</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

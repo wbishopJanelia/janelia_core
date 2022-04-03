@@ -1,0 +1,37 @@
+:py:mod:`janelia_core.utils.file_system`
+========================================
+
+.. py:module:: janelia_core.utils.file_system
+
+.. autoapi-nested-parse::
+
+   Utilities for working with file systems.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.utils.file_system.get_immediate_subfolders
+
+
+
+.. py:function:: get_immediate_subfolders(base_folder: Union[str, pathlib.Path]) -> List[str]
+
+   Gets the immediate subfolders  of a base folder.
+
+   Args:
+
+       base_folder: The folder to search for subfolders under.
+
+   Returns:
+
+       subfolders: A list of the names of subfolders.
+
+

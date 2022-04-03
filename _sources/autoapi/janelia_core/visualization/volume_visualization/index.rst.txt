@@ -1,0 +1,282 @@
+:py:mod:`janelia_core.visualization.volume_visualization`
+=========================================================
+
+.. py:module:: janelia_core.visualization.volume_visualization
+
+.. autoapi-nested-parse::
+
+   Utilities for viewing volumes.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.visualization.volume_visualization.comb_movies
+   janelia_core.visualization.volume_visualization.make_rgb_three_ch_z_plane_movie
+   janelia_core.visualization.volume_visualization.make_rgb_z_plane_movie
+   janelia_core.visualization.volume_visualization.make_z_plane_movie
+   janelia_core.visualization.volume_visualization.signed_max_proj
+   janelia_core.visualization.volume_visualization.visualize_rgb_max_project
+   janelia_core.visualization.volume_visualization.visualize_projs
+   janelia_core.visualization.volume_visualization.gen_composite_roi_vol
+
+
+
+.. py:function:: comb_movies(movie_paths: Sequence[pathlib.Path], save_path: pathlib.Path, fig_size: Sequence[int] = [21, 12], facecolor: Tuple[float] = (0, 0, 0), fps: int = 10, bitrate=-1)
+
+   Given a set of movies, combines them by putting their frames side-by-side.
+
+
+   Args:
+
+       movie_paths: Paths to movies to combined
+
+       save_path: The path to save the combined video to.
+
+
+
+.. py:function:: make_rgb_three_ch_z_plane_movie(z_imgs, save_path: str, fps: int = 10, title: str = None, cmaps: list = None, figsize: Sequence[int] = [7, 12], facecolor: Union[float] = (0, 0, 0), text_color: Union[float] = (1.0, 1.0, 1.0), bitrate=-1, one_index_z_plane: bool = False)
+
+
+.. py:function:: make_rgb_z_plane_movie(z_imgs: Sequence[numpy.ndarray], save_path: str, title: str = None, fps: int = 10, cmap: janelia_core.visualization.custom_color_maps.MultiParamCMap = None, cmap_param_strs: Sequence[str] = None, cmap_param_vls: Sequence[Sequence] = None, figsize: Sequence[int] = [7, 12], facecolor: Union[float] = (0, 0, 0), text_color: Union[float] = (1.0, 1.0, 1.0), bitrate=-1, one_index_z_plane: bool = False, ax_position=None)
+
+   Generates a sequence of movie of z-plane images already in RGB space.
+
+   Args:
+
+       z_imgs: A sequende of numpy arrays of the images for each plane.  Each array should be of the shape [dx, dy, 3]
+
+       save_path: The path for the saved video, including extension
+
+       title: If not None, the title to display over the video
+
+       fps: The frames per second of the generated movie.  Each plane is a different plane.
+
+       cmap: An optional color map used to generate the images.  If provided, this colormap will be plotted in the
+       video.
+
+       cmap_param_strs: String labels for parameter 0 and 1 in cmap.  Only used if cmap is provided.
+
+       cmap_param_vls: If not None, then cmap_param_vls[i] should contain a list of values for parameter i to plot
+       the color map at.  cmap_param_vls[i] can also be none, which means the range of values plotted will be the
+       range of values between the colormap saturation limits. Only used if cmap is provided.
+
+       figsize: The size of the figure to make the video as [width, height] in inches
+
+       facecolor: The background color of the figure to plot into
+
+       text_color: The color to use when plotting the title and colorbar ticks and labels
+
+       bitrate: The bitrate to use when saving the video
+
+       one_index_z_plane: True if z-plane numbers should start at 1 instead of 0 when generating titles for each plane
+
+       ax_position: Position of axes for plotting images.
+
+
+.. py:function:: make_z_plane_movie(volume: numpy.ndarray, save_path: str, clim: Sequence[float] = None, cmap: Union[str, matplotlib.colors.Colormap] = 'hot', title: str = None, cbar_label: str = None, fps: int = 10, figsize: Sequence[int] = [7, 12], facecolor: Union[float] = (0, 0, 0), text_color: Union[float] = (1.0, 1.0, 1.0), bitrate=-1, clim_percs: Sequence[float] = [0.1, 99.9], one_index_z_plane: bool = False) -> matplotlib.transforms.Bbox
+
+   Generates a movie of all the z-planes in a volume.
+
+   Args:
+       volume: The volume to visualize, with the z-dimension indexed by the first dimension.
+
+       save_path: The path for the saved video, including extension
+
+       clim: If not none, the color limits to apply to all planes.  If None, color limits will be automtically
+       calculated by 1) taking a user assigned lower and upper percentile values, 2) calculating the maximum
+       of the absolute value of these values and then 3) setting the limits to be +/- the maximum of the
+       absolute value calculated in (2).
+
+       cmap: The colormap to use for all planes
+
+       title: If not None, the title to display over the video
+
+       cbar_label: If not None, the label for the colorbar
+
+       fps: The frames per second of the generated movie.  Each plane is a different plane.
+
+       figsize: The size of the figure to make the video as [width, height] in inches
+
+       facecolor: The background color of the figure to plot into
+
+       text_color: The color to use when plotting the title and colorbar ticks and labels
+
+       bitrate: The bitrate to use when saving the video
+
+       clims_percs: The percentile limits to use if automatically setting clim between 0 and 100.
+       The value of c_perc_limits[0] is the lower limit and the value of c_perc_limits[1] is the upper
+       limit.
+
+       one_index_z_plane: True if z-plane numbers should start with 1 in the frame titles
+
+   Returns:
+
+       ax_pos: The bounding box for the axes used to show frames
+
+
+
+.. py:function:: signed_max_proj(vol: numpy.ndarray, dim: int)
+
+   Performs a signed max projection of a volume.
+
+   By "signed max project" we mean the find the entry with largest absolute value along the projection
+   and then return the original (signed) value.
+
+   This function will ignore nan values.
+
+   Args:
+       vol: The volume.
+
+       dim: The dimension to project along.
+
+   Returns:
+
+       proj: The projected volume
+
+
+.. py:function:: visualize_rgb_max_project(vol: numpy.ndarray, dim_m: numpy.ndarray = None, cmap_im: numpy.ndarray = None, overlays: Sequence[numpy.ndarray] = None, cmap_extent: Sequence[float] = None, cmap_xlabel: str = None, cmap_ylabel: str = None, title: str = None, f: matplotlib.figure.Figure = None, buffer=0.6, facecolor: Sequence[float] = (0, 0, 0), textcolor: Sequence[float] = (1, 1, 1))
+
+   Generates a figure of max-projections of rgb volumes.
+
+     Will generate a figure with the following layout:
+
+             y_dim            z_dim
+         --------------     ---------
+         |             |    |        |
+         |             |    | y-proj |    ^
+         |             |    |        |    |
+         |  z-proj     |    |        |   x_dim
+         |             |    |        |    |
+         |             |    |        |
+         |             |    |        |
+         ------------       ---------
+
+         --------------
+       ^ |             |     -------
+       | | x-proj      |    | cmap  |
+   z_dim |             |    |       |
+       | |             |     -------
+         ---------------
+             y_dim
+
+     Args:
+         vol: The volume to generate the max projection of. Should be 4 dimensional, with the last dimension containing
+         RGB values.  Dimensions are assumed to be in the convention [x, y, z],
+
+         dim_m: A scalar multiplier for each dimension in the order x, y, z to account for aspect ratios.  If None,
+         a value of [1, 1, 1] will be used.
+
+         cmap_im: An optional image of an colormap to include
+
+         overlays: If provided, overlays[0] is an image to overlay the z-projection, and overlays[1] and [2] and images
+         to overlay the x and y projections.  These overlays should be of the same dimensions as the projections.
+
+         cmap_extent: Values to associate the the image of the colormap in the form of [left, right, bottom, top].
+         Note that colormap will be plotted so colors associated with the smallest parameter values appear in the
+         bottom left of the colormap image.
+
+         cmap_xlabel: An optional label for the x-axis of the colormap
+
+         cmap_ylabel: An optional label for the y-axis of the colormap
+
+         title: A string to use as the title for the figure. If None, no title will be created.
+
+         f: Figure to plot into.  If not provided, one will be created
+
+         buffer: The amount of space to put around plots in inches.
+
+         facecolor: The color of the figure background, if we are creating a figure
+
+         textcolor: The color to plot text in
+
+     Raises:
+         ValueError: If vol is not 4 dimensional.
+
+
+
+.. py:function:: visualize_projs(horz_projs: Sequence[numpy.ndarray], sag_projs: Sequence[numpy.ndarray], cor_projs: Sequence[numpy.ndarray], cmaps: Sequence[matplotlib.colors.Colormap], clims: Union[None, Sequence[Union[None, tuple]]], dim_m: Sequence[float] = None, title: str = None, plot_cmap: bool = False, f: matplotlib.figure.Figure = None, buffer: float = 0.6, tgt_h: float = 3.0, facecolor: Sequence[float] = (0, 0, 0), textcolor: Sequence[float] = (1, 1, 1))
+
+   Visualizes horizontal, sagital and coronal projections of the same volume of data.
+
+     This function will generate a figure with the following layout:
+
+             y_dim                z_dim
+         --------------        -----------
+         |               |    |          |
+         |               |    | sag_proj |    ^
+         |               |    |          |    |
+         |  horz-proj    |    |          |   x_dim
+         |               |    |          |    |
+         |               |    |          |
+         |               |    |          |
+         ------------          -----------
+
+         ----------------
+       ^ |               |     ----------
+       | | coronal-proj  |    |    cmap  |
+   z_dim |               |    |          |
+       | |               |     ----------
+         ----------------
+
+     Multiple images can be shown, overlayed on eachother.  If a colormap is shown, it will
+     be the colormap for the topmost image.
+
+     Args:
+         horz_projs: horz_projs[i] is the i^th horizontal projection image. Images will be overlaid one on top of the
+         other, with the i+1th image over the ith image.  Each image shape should be [x_dim, y_dim], where x_dim
+         and y_dim refer to the figure above.
+
+         sag_projs: sag_projs[i] is the i^th sagital projection image.  Each image should be of shape [x_dim, z_dim].
+
+         cor_projs: cor_projs[i] is the i^th coronal projection image.  Each image should be of shape [y_dim, z_dim]
+
+         cmaps: cmaps[i] is the colormap for plotting the i^th image in each of the projections.
+
+         clims: clims[i] is a tuple of color limits to use when plotting the i^th image.  clims[i] can also be
+         None, meaning no color limits will be explicitly passed to the plotting command for the i^th images.
+         If clims is None, then no color limits will be explicitly passed for all images.
+
+         dim_m: A scalar multiplier for each dimension in the order x, y, z to account for aspect ratios.  If None,
+         a value of [1, 1, 1] will be used.
+
+         title: A string to use as the title for the figure. If None, no title will be created.
+
+         f: Figure to plot into.  If not provided, one will be created
+
+         buffer: The amount of space to put around plots in inches.
+
+         tgt_h: The height of the figure that will be created in inches if f is None.
+
+         facecolor: The color of the figure background, if we are creating a figure
+
+         textcolor: The color to plot text in
+
+
+
+.. py:function:: gen_composite_roi_vol(rois: Sequence[janelia_core.dataprocessing.dataset.ROI], weights: numpy.ndarray, vol_shape: Sequence[int], verbose: bool = False)
+
+   Generates a volume for visualization of a composite ROI.
+
+   Args:
+       rois: A list of rois to form the composite ROI out of.
+
+       weights: A list of weights for each roi in rois.
+
+       vol_shape: The shape of the volume to generate.  The indices of ROIS should index into this volume.
+
+       verbose: True if updates on progress should be printed
+
+   Returns:
+
+       comp_roi_vol: The volume with the composite ROI in it.
+
+
+

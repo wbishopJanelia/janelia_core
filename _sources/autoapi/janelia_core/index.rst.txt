@@ -1,0 +1,22 @@
+:py:mod:`janelia_core`
+======================
+
+.. py:module:: janelia_core
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   dataprocessing/index.rst
+   fileio/index.rst
+   math/index.rst
+   ml/index.rst
+   registration/index.rst
+   stats/index.rst
+   utils/index.rst
+   visualization/index.rst
+
+

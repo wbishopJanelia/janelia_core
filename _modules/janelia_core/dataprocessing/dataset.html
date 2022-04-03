@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.dataprocessing.dataset &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.dataprocessing.dataset</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.dataprocessing.dataset</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Tools for representing and working with time series datasets.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">itertools</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pathlib</span>
+
+<span class="kn">from</span> <span class="nn">janelia_core.dataprocessing.roi</span> <span class="kn">import</span> <span class="n">ROI</span>
+<span class="kn">from</span> <span class="nn">janelia_core.dataprocessing.point</span> <span class="kn">import</span> <span class="n">Point</span>
+
+
+<div class="viewcode-block" id="DataSet"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet">[docs]</a><span class="k">class</span> <span class="nc">DataSet</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A class for holding a basic data set.</span>
+
+<span class="sd">   &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts_data</span><span class="p">:</span> <span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new DataSet object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ts_data: A dictionary of time series data.  Each entry in the dictionary is one set of data (with a user</span>
+<span class="sd">            specified key).  Each set of data is itself stored in a dictionary with two entries.  The first with</span>
+<span class="sd">            the key &#39;ts&#39; is a 1-d numpy.ndarray with timestamps.  The second &#39;vls&#39; can be:</span>
+<span class="sd">                1) A list, with one entry per time point</span>
+<span class="sd">                2) A numpy array of data, with the first dimension corresponding to time</span>
+<span class="sd">                3) A janelia_core.fileio.data_handlers.NDArrayHandler object</span>
+
+<span class="sd">            If data is none the data attribute of the created object will be an empty dictionary.</span>
+
+<span class="sd">            metadata: A dictionary of metadata. If meta_data is None, the meta_data attribute of the created object will be</span>
+<span class="sd">            a empty dictionary.</span>
+
+<span class="sd">            **kwargs: Additional keyword arguments that will be added as attributes of the object.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ts_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span> <span class="o">=</span> <span class="n">ts_data</span>
+
+        <span class="k">if</span> <span class="n">metadata</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="n">metadata</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+<div class="viewcode-block" id="DataSet.from_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new Dataset object from a dictioary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d: A dictionary with the keys &#39;ts_data&#39; and &#39;metadata&#39;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new DataSet object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DataSet.to_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a dictionary from a Dataset object.</span>
+
+<span class="sd">        This is useful for saving the object in a manner which will still allow it to be loaded in the future should</span>
+<span class="sd">        the class definition of Dataset change.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            d: A dictionary with the object data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DataSet.update_image_folder"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet.update_image_folder">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">update_image_folder</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">img_field</span><span class="p">,</span> <span class="n">new_base</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Updates the folder images are stored under when a dataset holds paths to a time series of images.</span>
+
+<span class="sd">        When images are stored as paths in a ts_data dictionary, this function can be used to</span>
+<span class="sd">        update the part of the path specifying the folder they are stored in.  This is useful</span>
+<span class="sd">        when using a dataset across computers/operating systems where we need to specify that</span>
+<span class="sd">        images are stored in different locations.</span>
+
+<span class="sd">        This function expects images to be saved in dataset.ts_data[img_field][&#39;vls&#39;] with one</span>
+<span class="sd">        dictionary per image.  Each dictionary should have a &#39;file&#39; field with the path to each</span>
+<span class="sd">        image.  This is the field that will be udpated.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dataset: The dataset to update</span>
+
+<span class="sd">            img_field: The ts_data entry with the image information stored.</span>
+
+<span class="sd">            new_base: The folder the images are stored in.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">img_dicts</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">img_field</span><span class="p">][</span><span class="s1">&#39;vls&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">img_dict</span> <span class="ow">in</span> <span class="n">img_dicts</span><span class="p">:</span>
+            <span class="n">old_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">img_dict</span><span class="p">[</span><span class="s1">&#39;file&#39;</span><span class="p">])</span>
+            <span class="n">file_name</span> <span class="o">=</span> <span class="n">old_path</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">new_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">new_base</span><span class="p">)</span> <span class="o">/</span> <span class="n">file_name</span>
+            <span class="n">img_dict</span><span class="p">[</span><span class="s1">&#39;file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">new_path</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DataSet.has_ts_data"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet.has_ts_data">[docs]</a>    <span class="k">def</span> <span class="nf">has_ts_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns true if any time series data has non-zero data points.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ts_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">has_data</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ts_keys</span><span class="p">:</span>
+            <span class="n">has_data</span> <span class="o">=</span> <span class="n">has_data</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s1">&#39;ts&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">has_data</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">has_data</span></div>
+
+<div class="viewcode-block" id="DataSet.select_time_range"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet.select_time_range">[docs]</a>    <span class="k">def</span> <span class="nf">select_time_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">end_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Down selects data in a time range.</span>
+
+<span class="sd">        The start and end times are inclusive.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            start_time: The start time of the selection.</span>
+
+<span class="sd">            end_time: The end time of the selection.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">ts_data_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ts_data_keys</span><span class="p">:</span>
+            <span class="n">sel_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;ts&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">start_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;ts&#39;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">end_time</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_ts_data</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">sel_inds</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DataSet.select_ts_data"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet.select_ts_data">[docs]</a>    <span class="k">def</span> <span class="nf">select_ts_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">sel_inds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Selects data by index in a given dictionary of ts_data.</span>
+
+<span class="sd">        This function will allow selection to work seamlessly no matter the</span>
+<span class="sd">        type of &#39;vls&#39; in the dictionary data is being pulled from.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            key: The key of the ts_data to select data from.</span>
+
+<span class="sd">            sel_inds: A numpy array of indices to select.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new dictionary with the selected data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sel_ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;ts&#39;</span><span class="p">][</span><span class="n">sel_inds</span><span class="p">]</span>
+
+        <span class="n">vls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;vls&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vls</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>  <span class="c1"># TODO: Need to update to work NDArrayHandler objects</span>
+            <span class="n">sel_vls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;vls&#39;</span><span class="p">][</span><span class="n">sel_inds</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sel_vls</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;vls&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sel_inds</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;ts&#39;</span><span class="p">:</span> <span class="n">sel_ts</span><span class="p">,</span> <span class="s1">&#39;vls&#39;</span><span class="p">:</span> <span class="n">sel_vls</span><span class="p">}</span></div></div>
+
+
+<div class="viewcode-block" id="ROIDataset"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset">[docs]</a><span class="k">class</span> <span class="nc">ROIDataset</span><span class="p">(</span><span class="n">DataSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A dataset object for holding datasets which include roi information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">roi_groups</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Initializes an ROIDataset object.</span>
+
+<span class="sd">            ROI data is added to the ts_data dictionary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ts_data: A dictionary of time series data.  See description in Dataset.__init__()</span>
+
+<span class="sd">            metadata: A dictionary of metadata.  See description in Dataset.__init__()</span>
+
+<span class="sd">            roi_groups: A dictionary holding ROI groups.  A &quot;ROI group&quot; is a group of ROIs whose values are stored</span>
+<span class="sd">            together in entries in ts_data.  One group can have values stored in multiple entries in ts_data. Each entry</span>
+<span class="sd">            in roi_groups is specified by a key giving the name of the group and a value which is a dictionary with the</span>
+<span class="sd">            keys:</span>
+<span class="sd">                1) rois: A list of ROI objects representing the rois in the group</span>
+<span class="sd">                2) ts_labels: A list of ts_data entries with data for this group of rois.</span>
+<span class="sd">                3) Optional keys the user may specify. For example, a &quot;type&quot; can be specified.</span>
+
+<span class="sd">            If an entry in ts_data holds values for an ROI group, it must hold only values for those ROIs and the order</span>
+<span class="sd">            order of variables in ts_data &#39;vls&#39; must match the order of ROIs in the rois list for the group.</span>
+
+<span class="sd">            If roi_groups is none, an empty dictionary will be created.</span>
+
+<span class="sd">            **kwargs: Additional keyword arguments that will be added as attributes of the object.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ts_data</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">roi_groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">roi_groups</span> <span class="o">=</span> <span class="n">roi_groups</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">roi_groups</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+<div class="viewcode-block" id="ROIDataset.from_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new ROIDataset object from a dictionary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d: A dictionary with the keys &#39;ts_data&#39;, &#39;metadata&#39;, &#39;roi_groups&#39; and other attributes to add to the object</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new ROIDataset object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">standard_attrs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ts_data&#39;</span><span class="p">,</span> <span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="s1">&#39;roi_groups&#39;</span><span class="p">}</span>
+
+        <span class="n">roi_groups_keys</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;roi_groups&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">new_roi_groups_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">roi_groups_keys</span><span class="p">:</span>
+            <span class="n">cur_group</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;roi_groups&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">cur_group_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cur_group</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">cur_group_keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;rois&#39;</span><span class="p">)</span>
+
+            <span class="n">new_group_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k_i</span><span class="p">:</span> <span class="n">cur_group</span><span class="p">[</span><span class="n">k_i</span><span class="p">]</span> <span class="k">for</span> <span class="n">k_i</span> <span class="ow">in</span> <span class="n">cur_group_keys</span><span class="p">}</span>
+
+            <span class="n">rois_as_objs</span> <span class="o">=</span> <span class="p">[</span><span class="n">ROI</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">cur_group</span><span class="p">[</span><span class="s1">&#39;rois&#39;</span><span class="p">]]</span>
+            <span class="n">new_group_dict</span><span class="p">[</span><span class="s1">&#39;rois&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rois_as_objs</span>
+
+            <span class="n">new_roi_groups_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_group_dict</span>
+
+        <span class="n">nonstandard_attrs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">nonstandard_attrs</span> <span class="o">=</span> <span class="n">nonstandard_attrs</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">standard_attrs</span><span class="p">)</span>
+        <span class="n">nonstandard_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">nonstandard_attrs</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">ROIDataset</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;ts_data&#39;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">],</span> <span class="n">new_roi_groups_dict</span><span class="p">,</span> <span class="o">**</span><span class="n">nonstandard_dict</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ROIDataset.to_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Creates a dictionary from a Dataset object.</span>
+
+<span class="sd">        This is useful for saving the object in a manner which will still allow it to be loaded in the future should</span>
+<span class="sd">        the class definition of Dataset change.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            d: A dictionary with the object data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">other_attrs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">other_attrs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;roi_groups&#39;</span><span class="p">)</span>
+        <span class="n">save_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">other_attrs</span><span class="p">}</span>
+
+        <span class="n">roi_groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">roi_groups</span>
+        <span class="n">roi_group_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">roi_groups</span><span class="p">:</span>
+            <span class="n">other_group_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">roi_groups</span><span class="p">[</span><span class="n">grp</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">other_group_keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;rois&#39;</span><span class="p">)</span>
+
+            <span class="n">new_group_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">roi_groups</span><span class="p">[</span><span class="n">grp</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">other_group_keys</span><span class="p">}</span>
+
+            <span class="n">rois_as_dict</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">roi_groups</span><span class="p">[</span><span class="n">grp</span><span class="p">][</span><span class="s1">&#39;rois&#39;</span><span class="p">]]</span>
+            <span class="n">new_group_dict</span><span class="p">[</span><span class="s1">&#39;rois&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rois_as_dict</span>
+
+            <span class="n">roi_group_dict</span><span class="p">[</span><span class="n">grp</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_group_dict</span>
+
+        <span class="n">save_dict</span><span class="p">[</span><span class="s1">&#39;roi_groups&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">roi_group_dict</span>
+
+        <span class="k">return</span> <span class="n">save_dict</span></div>
+
+<div class="viewcode-block" id="ROIDataset.down_select_rois"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset.down_select_rois">[docs]</a>    <span class="k">def</span> <span class="nf">down_select_rois</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">roi_groups</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">roi_inds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Down select the rois in a dataset.</span>
+
+<span class="sd">        ROIs will be removed from dataset.rois and any data for the removed ROIS will</span>
+<span class="sd">        also be removed from the appropriate ts_data entries.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            roi_groups: The roi groups of the rois to extract.  Typically, this will only be a single</span>
+<span class="sd">            group. However, sometimes the same rois might be represented twice in the dataset (e.g., rois</span>
+<span class="sd">            before and after registration), and we want to remove both representations.</span>
+
+<span class="sd">            roi_inds: The indices in dataset.roi_groups[roi_group].rois to keep.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">roi_groups</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">roi_groups</span> <span class="o">=</span> <span class="p">[</span><span class="n">roi_groups</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">roi_group</span> <span class="ow">in</span> <span class="n">roi_groups</span><span class="p">:</span>
+            <span class="n">new_rois</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">roi_groups</span><span class="p">[</span><span class="n">roi_group</span><span class="p">][</span><span class="s1">&#39;rois&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">roi_inds</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">roi_groups</span><span class="p">[</span><span class="n">roi_group</span><span class="p">][</span><span class="s1">&#39;rois&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_rois</span>
+
+        <span class="n">group_ts_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">roi_groups</span><span class="p">[</span><span class="n">grp</span><span class="p">][</span><span class="s1">&#39;ts_labels&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">roi_groups</span><span class="p">])))</span>
+
+        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">group_ts_labels</span><span class="p">:</span>
+            <span class="n">old_vls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s1">&#39;vls&#39;</span><span class="p">]</span>
+            <span class="n">new_vls</span> <span class="o">=</span> <span class="n">old_vls</span><span class="p">[:,</span> <span class="n">roi_inds</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s1">&#39;vls&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_vls</span></div>
+
+<div class="viewcode-block" id="ROIDataset.extract_rois"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset.extract_rois">[docs]</a>    <span class="k">def</span> <span class="nf">extract_rois</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">roi_group</span><span class="p">,</span> <span class="n">roi_inds</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Extracts rois from a dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            roi_group: The roi group of the rois to extract</span>
+
+<span class="sd">            roi_inds: The indices of the dataset.rois to extract</span>
+
+<span class="sd">            labels: A list of labels of ts_data for the rois to pull out.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            rois: A list of the extracted rois.  Each entry as an ROI object.</span>
+<span class="sd">            These objects will have fields added holding the ts_data for that ROI.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">labels</span><span class="p">]</span>
+
+        <span class="n">n_rois</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">roi_inds</span><span class="p">)</span>
+        <span class="n">rois</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">n_rois</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">roi_ind</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">roi_inds</span><span class="p">):</span>
+            <span class="n">dataset_roi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">roi_groups</span><span class="p">[</span><span class="n">roi_group</span><span class="p">][</span><span class="s1">&#39;rois&#39;</span><span class="p">][</span><span class="n">roi_ind</span><span class="p">]</span>
+            <span class="n">roi</span> <span class="o">=</span> <span class="n">ROI</span><span class="p">(</span><span class="n">dataset_roi</span><span class="o">.</span><span class="n">voxel_inds</span><span class="p">,</span> <span class="n">dataset_roi</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">roi</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s1">&#39;vls&#39;</span><span class="p">][:,</span><span class="n">roi_ind</span><span class="p">])</span>
+            <span class="n">rois</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">roi</span>
+        <span class="k">return</span> <span class="n">rois</span></div>
+
+<div class="viewcode-block" id="ROIDataset.form_composite_rois"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset.form_composite_rois">[docs]</a>    <span class="k">def</span> <span class="nf">form_composite_rois</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">roi_groups</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">roi_weights</span><span class="p">:</span><span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ROI</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Forms composite rois as linear combinations of rois in a dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            roi_groups: A list of roi groups to use in forming the composite roi.</span>
+
+<span class="sd">            roi_weights: a list of weights.  roi_weights[i] is a np.ndarray of weights for</span>
+<span class="sd">            the rois in roi_groups[i].  Weights should be listed in the same order as rois in the group</span>
+<span class="sd">            they are for.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            comp_roi: The composite roi</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Get maximum possible extent of the composite roi</span>
+        <span class="n">min_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">roi_groups</span><span class="p">[</span><span class="n">roi_groups</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s1">&#39;rois&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bounding_box</span><span class="p">()]</span>
+        <span class="n">max_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">stop</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">roi_groups</span><span class="p">[</span><span class="n">roi_groups</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s1">&#39;rois&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bounding_box</span><span class="p">()]</span>
+        <span class="n">n_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">min_bounds</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">grp_i</span><span class="p">,</span> <span class="n">grp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">roi_groups</span><span class="p">):</span>
+            <span class="n">grp_w</span> <span class="o">=</span> <span class="n">roi_weights</span><span class="p">[</span><span class="n">grp_i</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">w_i</span><span class="p">,</span> <span class="n">roi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">roi_groups</span><span class="p">[</span><span class="n">grp</span><span class="p">][</span><span class="s1">&#39;rois&#39;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">grp_w</span><span class="p">[</span><span class="n">w_i</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">cur_min_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">roi</span><span class="o">.</span><span class="n">bounding_box</span><span class="p">()]</span>
+                    <span class="n">cur_max_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">stop</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">roi</span><span class="o">.</span><span class="n">bounding_box</span><span class="p">()]</span>
+                    <span class="n">min_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">min_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">cur_min_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_dims</span><span class="p">)]</span>
+                    <span class="n">max_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">max_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">cur_max_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_dims</span><span class="p">)]</span>
+
+        <span class="c1"># Create the composite roi in an array</span>
+        <span class="n">roi_side_lengths</span> <span class="o">=</span> <span class="p">[</span><span class="n">max_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">min_bounds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_dims</span><span class="p">)]</span>
+        <span class="n">comp_roi_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">roi_side_lengths</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">grp_i</span><span class="p">,</span> <span class="n">grp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">roi_groups</span><span class="p">):</span>
+            <span class="n">grp_w</span> <span class="o">=</span> <span class="n">roi_weights</span><span class="p">[</span><span class="n">grp_i</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">w_i</span><span class="p">,</span> <span class="n">roi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">roi_groups</span><span class="p">[</span><span class="n">grp</span><span class="p">][</span><span class="s1">&#39;rois&#39;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">grp_w</span><span class="p">[</span><span class="n">w_i</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">roi_inds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">roi</span><span class="o">.</span><span class="n">list_all_voxel_inds</span><span class="p">())</span>
+                    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_dims</span><span class="p">):</span>
+                        <span class="n">roi_inds</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">roi_inds</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">-</span> <span class="n">min_bounds</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
+                    <span class="n">roi_inds</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">roi_inds</span><span class="p">)</span>
+                    <span class="n">comp_roi_array</span><span class="p">[</span><span class="n">roi_inds</span><span class="p">]</span> <span class="o">=</span> <span class="n">comp_roi_array</span><span class="p">[</span><span class="n">roi_inds</span><span class="p">]</span> <span class="o">+</span> <span class="n">grp_w</span><span class="p">[</span><span class="n">w_i</span><span class="p">]</span><span class="o">*</span><span class="n">roi</span><span class="o">.</span><span class="n">weights</span>
+
+        <span class="c1"># Create the composite roi object</span>
+        <span class="k">return</span> <span class="n">ROI</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">comp_roi_array</span><span class="p">,</span> <span class="n">min_bounds</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ROIDataset.get_rois_center_of_mass"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset.get_rois_center_of_mass">[docs]</a>    <span class="k">def</span> <span class="nf">get_rois_center_of_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">roi_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">roi_inds</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Gets the center of mass of requested rois.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            roi_group: The roi group to calculate centers for</span>
+
+<span class="sd">            roi_inds: The indices in dataset.roi_groups[roi_group].rois of the rois to calculate</span>
+<span class="sd">            centers for.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ctrs: The centers.  ctrs[i,:] is the center for the roi specified by roi_inds[i] in the input.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">roi_groups</span><span class="p">[</span><span class="n">roi_group</span><span class="p">][</span><span class="s1">&#39;rois&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">center_of_mass</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">roi_inds</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="PointDataset"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.PointDataset">[docs]</a><span class="k">class</span> <span class="nc">PointDataset</span><span class="p">(</span><span class="n">DataSet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A dataset object for holding datasets with timeseries information associated with points in space.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">point_groups</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Initializes a PointDataset object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ts_data: A dictionary of time series data.  See description in Dataset.__init__()</span>
+
+<span class="sd">            metadata: A dictionary of metadata.  See description in Dataset.__init__()</span>
+
+<span class="sd">            point_groups: A dictionary holding point groups.  A &quot;point group&quot; is a group of points whose values</span>
+<span class="sd">            are stored together in entries in ts_data.  One group can have values stored in multiple entries in</span>
+<span class="sd">            ts_data.  Each entry in point_groups is specified by a key giving the name of the group and a value which</span>
+<span class="sd">            is a dictionary with the keys:</span>
+<span class="sd">                1) points: A list of Point objects representing the points in the group</span>
+<span class="sd">                2) ts_labels: A list of ts_data entries with data for this group of points.</span>
+<span class="sd">                3) Optional keys the user may specify. For example, a &quot;type&quot; can be specified.</span>
+
+<span class="sd">            If an entry in ts_data holds values for a point group, it must hold only values for those points and the</span>
+<span class="sd">            order of variables in the ts_data &#39;vls&#39; entry must match the order of points in the points list for the</span>
+<span class="sd">            group.</span>
+
+<span class="sd">            If point_groups is none, an empty dictionary will be created.</span>
+
+<span class="sd">            **kwards: Additional keyword arguments will be added as attributes of the object.</span>
+<span class="sd">        |&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ts_data</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">point_groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">point_groups</span> <span class="o">=</span> <span class="n">point_groups</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">point_groups</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+<div class="viewcode-block" id="PointDataset.to_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.PointDataset.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Create a dictionary from a Dataset object.</span>
+
+<span class="sd">        This is useful for saving the object in a manner which will still allow for it to be loaded in the</span>
+<span class="sd">        future should the class definition change.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            d: A dictionary with the object data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">other_attrs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">other_attrs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;point_groups&#39;</span><span class="p">)</span>
+        <span class="n">save_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">other_attrs</span><span class="p">}</span>
+
+        <span class="n">point_groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">point_groups</span>
+        <span class="n">point_groups_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">point_groups</span><span class="p">:</span>
+            <span class="n">other_group_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">point_groups</span><span class="p">[</span><span class="n">grp</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">other_group_keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;points&#39;</span><span class="p">)</span>
+
+            <span class="n">new_group_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">point_groups</span><span class="p">[</span><span class="n">grp</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">other_group_keys</span><span class="p">}</span>
+
+            <span class="n">points_as_dict</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">point_groups</span><span class="p">[</span><span class="n">grp</span><span class="p">][</span><span class="s1">&#39;points&#39;</span><span class="p">]]</span>
+            <span class="n">new_group_dict</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">points_as_dict</span>
+
+            <span class="n">point_groups_dict</span><span class="p">[</span><span class="n">grp</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_group_dict</span>
+
+        <span class="n">save_dict</span><span class="p">[</span><span class="s1">&#39;point_groups&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">point_groups_dict</span>
+
+        <span class="k">return</span> <span class="n">save_dict</span></div>
+
+<div class="viewcode-block" id="PointDataset.from_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.PointDataset.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new PointDataset object from a dictionary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d: A dictionary with the keys &#39;ts_data&#39;, &#39;metadata&#39;, &#39;roi_groups&#39; and other attributes to add to the object</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new PointDataset object</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">standard_attrs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ts_data&#39;</span><span class="p">,</span> <span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="s1">&#39;point_groups&#39;</span><span class="p">}</span>
+
+        <span class="n">point_groups_keys</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;point_groups&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">new_point_groups_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">point_groups_keys</span><span class="p">:</span>
+            <span class="n">cur_group</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;point_groups&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">cur_group_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">cur_group</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">cur_group_keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;points&#39;</span><span class="p">)</span>
+
+            <span class="n">new_group_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k_i</span><span class="p">:</span> <span class="n">cur_group</span><span class="p">[</span><span class="n">k_i</span><span class="p">]</span> <span class="k">for</span> <span class="n">k_i</span> <span class="ow">in</span> <span class="n">cur_group_keys</span><span class="p">}</span>
+
+            <span class="n">points_as_objs</span> <span class="o">=</span> <span class="p">[</span><span class="n">Point</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">cur_group</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]]</span>
+            <span class="n">new_group_dict</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">points_as_objs</span>
+
+            <span class="n">new_point_groups_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_group_dict</span>
+
+        <span class="n">nonstandard_attrs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">nonstandard_attrs</span> <span class="o">=</span> <span class="n">nonstandard_attrs</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">standard_attrs</span><span class="p">)</span>
+        <span class="n">nonstandard_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">nonstandard_attrs</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">PointDataset</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;ts_data&#39;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">],</span> <span class="n">new_point_groups_dict</span><span class="p">,</span> <span class="o">**</span><span class="n">nonstandard_dict</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

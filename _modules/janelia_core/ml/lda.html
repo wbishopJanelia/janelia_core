@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.lda &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.ml.lda</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.ml.lda</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Contains tools for performing linear discriminant analysis.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.linalg</span>
+
+
+<div class="viewcode-block" id="fisher_lda"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/lda/index.html#janelia_core.ml.lda.fisher_lda">[docs]</a><span class="k">def</span> <span class="nf">fisher_lda</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">use_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Computes Fisher LDA weights.</span>
+
+<span class="sd">    This function will calculate w = argmax w^TS_Bw / w^TS_Ww where:</span>
+
+<span class="sd">        S_B is the between class scatter matrix S_B = \sum_c (mu_c - mu)(mu_c - mu)^T,</span>
+<span class="sd">        where mu_c is the mean for class c and mu is mean over all data points.</span>
+
+<span class="sd">        S_W = \sum_c S_w_c, where S_w_c = \sum_i (x_i - mu_c)(x_i - mu_c)^T, where the sum</span>
+<span class="sd">        is over x_i belonging to class c.</span>
+
+<span class="sd">        This function will return C - 1 vectors, where C is the number of classes.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x: An array with feature vectors.  Each row is a vector.</span>
+
+<span class="sd">        y: An array with feature labels.</span>
+
+<span class="sd">        use_cov: If true, covariance matrices are used for each class scatter matrix instead</span>
+<span class="sd">        of  \sum_i (x_i - mu_c)(x_i - mu_c)^T.  This has a balancing affect if the number of</span>
+<span class="sd">        data points is different for each class.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        w: An array with weight vectors. Each column is a weight vector.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        import matplotlib.pyplot as plt</span>
+<span class="sd">        import numpy as np</span>
+<span class="sd">        import numpy.random</span>
+<span class="sd">        import scipy.linalg</span>
+
+<span class="sd">        # Generate some data</span>
+
+<span class="sd">        d_x = 10</span>
+<span class="sd">        n_labels_per_class = [100, 100, 10]</span>
+
+<span class="sd">        n_classes = len(n_labels_per_class)</span>
+<span class="sd">        class_means = list()</span>
+<span class="sd">        x = list()</span>
+<span class="sd">        y = list()</span>
+<span class="sd">        for c_i in range(n_classes):</span>
+<span class="sd">            class_mean = np.random.randn(d_x)</span>
+<span class="sd">            class_x = np.random.multivariate_normal(class_mean, np.eye(d_x), n_labels_per_class[c_i])</span>
+<span class="sd">            class_y = c_i*np.ones(n_labels_per_class[c_i])</span>
+
+<span class="sd">            class_means.append(class_mean)</span>
+<span class="sd">            x.append(class_x)</span>
+<span class="sd">            y.append(class_y)</span>
+
+<span class="sd">        x = np.concatenate(x)</span>
+<span class="sd">        y = np.concatenate(y)</span>
+
+<span class="sd">        # Calcualte fisher LDA weights</span>
+<span class="sd">        w = fisher_lda(x, y, use_cov=True)</span>
+
+<span class="sd">        ## Project the data</span>
+<span class="sd">        x_p = np.matmul(x, w)</span>
+
+<span class="sd">        ## Plot the data</span>
+<span class="sd">        for c_i in range(n_classes):</span>
+<span class="sd">            c_inds = np.where(y == c_i)[0]</span>
+<span class="sd">            plt.plot(x_p[c_inds,0], x_p[c_inds,1], &#39;o&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">d_x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">class_lbls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">n_classes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">class_lbls</span><span class="p">)</span>
+
+    <span class="c1"># Calculate within and between scatter matrices</span>
+
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">s_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">d_x</span><span class="p">,</span> <span class="n">d_x</span><span class="p">])</span>
+    <span class="n">s_w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">d_x</span><span class="p">,</span> <span class="n">d_x</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">c_i</span><span class="p">,</span> <span class="n">c_lbl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">class_lbls</span><span class="p">):</span>
+        <span class="n">c_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="n">c_lbl</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">class_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">c_inds</span><span class="p">,</span> <span class="p">:],</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">b_vec</span> <span class="o">=</span> <span class="n">class_mean</span> <span class="o">-</span> <span class="n">mu</span>
+        <span class="n">b_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">b_vec</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">s_b</span> <span class="o">=</span> <span class="n">s_b</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">b_vec</span><span class="p">,</span> <span class="n">b_vec</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_cov</span><span class="p">:</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">c_inds</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">class_mean</span>
+            <span class="n">s_w</span> <span class="o">=</span> <span class="n">s_w</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">s_w</span> <span class="o">=</span> <span class="n">s_w</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">c_inds</span><span class="p">,</span> <span class="p">:],</span> <span class="n">rowvar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Calculate weights</span>
+
+    <span class="p">[</span><span class="n">eig_vls</span><span class="p">,</span> <span class="n">eig_vecs</span><span class="p">]</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">s_b</span><span class="p">,</span> <span class="n">s_w</span><span class="p">)</span>
+
+    <span class="n">sort_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">eig_vls</span><span class="p">))</span>
+    <span class="n">keep_inds</span> <span class="o">=</span> <span class="n">sort_order</span><span class="p">[</span><span class="n">d_x</span> <span class="o">-</span> <span class="n">n_classes</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">d_x</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">eig_vecs</span><span class="p">[:,</span> <span class="n">keep_inds</span><span class="p">]</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

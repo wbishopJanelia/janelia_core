@@ -1,0 +1,22 @@
+:py:mod:`janelia_core.fileio`
+=============================
+
+.. py:module:: janelia_core.fileio
+
+.. autoapi-nested-parse::
+
+   Modules for reading from and writing to file.
+
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   ahrens_lab/index.rst
+   data_handlers/index.rst
+   exp_reader/index.rst
+
+

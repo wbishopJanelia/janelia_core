@@ -1,0 +1,82 @@
+:py:mod:`janelia_core.visualization.image_visualization`
+========================================================
+
+.. py:module:: janelia_core.visualization.image_visualization
+
+.. autoapi-nested-parse::
+
+   Tools for visualizing images.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.visualization.image_visualization.GroupedStackedImageVisualizer
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.visualization.image_visualization.visualize_2d_function
+
+
+
+.. py:function:: visualize_2d_function(f: Callable, dim_0_range: Sequence[float] = None, dim_1_range: Sequence[float] = None, n_pts_per_dim: Sequence[int] = None, ax=None)
+
+   Visualizes a 2-d function.
+
+   Args:
+       f: The function to visualize. Should accept input of shape [n by 2], where n is an arbitrary number
+       of values and output values of length n.
+
+       dim_0_range: The range of dim 0 values to visualize the function over.  If None, [0.0, 1.0] will be used.
+
+       dim_1_range: The range of dim 1 values to visualize the function over.  If None, [0.0, 1.0] will be used.
+
+       n_pts_per_dim: The number of points to sample per dimension.
+
+
+
+.. py:class:: GroupedStackedImageVisualizer(imgs: list, titles: list = None, color_maps=None)
+
+   Bases: :py:obj:`PyQt5.QtWidgets.QWidget`
+
+   A QWidget for viewing a set of stacked images.
+
+   This object creates a set of ImageViews, side by side.  Each image stack can
+   be seen in it's own image view, but as you move through the image stack in one
+   image view, the other image views are also updated.
+
+
+   Creates a GroupedStackedImageVisualizer object.
+
+   Args:
+       imgs: A list of images.  Each entry contains an image to display.
+
+       titles: A list of titles for the images. If None, no special titles will be display.
+
+       color_maps: Either (1) a list of colormaps or (2) a single colormp or (3) None.
+       If a list of colormaps, the list gives the colormaps for each image.  If a single
+       colormap, the colormap that will be used for all images.  If None, default
+       colormaps will be used.
+
+
+   .. py:method:: init_ui(self, levels_range: Sequence = None)
+
+      Initializes the UI for a GroupedStackedImageVisualizer object.
+
+      Args:
+          levels_range: range[0] gives the lower level and range[1] gives the upper
+          range to set levels to.  If none, levels will be set automatically.
+
+
+

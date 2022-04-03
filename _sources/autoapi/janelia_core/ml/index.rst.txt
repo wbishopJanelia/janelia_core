@@ -1,0 +1,30 @@
+:py:mod:`janelia_core.ml`
+=========================
+
+.. py:module:: janelia_core.ml
+
+.. autoapi-nested-parse::
+
+   Contains machine learning tools.
+
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   cv/index.rst
+   datasets/index.rst
+   extra_torch_functions/index.rst
+   extra_torch_modules/index.rst
+   fitting/index.rst
+   generation/index.rst
+   lda/index.rst
+   reduced_rank_models/index.rst
+   torch_distributions/index.rst
+   torch_parameter_penalizers/index.rst
+   utils/index.rst
+
+

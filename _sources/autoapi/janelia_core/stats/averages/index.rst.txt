@@ -1,0 +1,49 @@
+:py:mod:`janelia_core.stats.averages`
+=====================================
+
+.. py:module:: janelia_core.stats.averages
+
+.. autoapi-nested-parse::
+
+   Tools for taking different types of averages of data.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.stats.averages.aligned_mean
+
+
+
+.. py:function:: aligned_mean(vls: Sequence, align_inds: Sequence[int]) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, int]
+
+   Aligns time-series data and computes means and standard-errors across time.
+
+   Args:
+       vls: vls[i] is the i^th time series of shape [n_smps, n_dims]
+
+       align_inds: align_inds[i] is the index that the data in vls[i] should be aligned to
+
+   Returns:
+       mn: The mean values through time of shape [n_tm_pts, n_dims], where n_tm_pts is the number of
+       time points covered by all of the aligned data
+
+       std_ers: The standard errors through time of shape [n_tm_pts, n_dims].  If there was only one
+       point to calculate the mean at a given point, then the standard error for that point will be nan.
+
+       n_smps: An array of length n_tm_pts. n_smps[t] gives the number of samples that were available
+       for computing the mean and standard errors at time point t in mn and std_ers
+
+       ref_aling_ind: The index in the returned mn and std_ers that all time series were aligned to
+
+   Raises:
+       ValueError: If each entry in vls is not a 2-d array
+
+

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.torch_parameter_penalizers &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.torch_parameter_penalizers</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/ml/torch_parameter_penalizers/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.torch_parameter_penalizers">
+<span id="janelia-core-ml-torch-parameter-penalizers"></span><h1><a class="reference internal" href="#module-janelia_core.ml.torch_parameter_penalizers" title="janelia_core.ml.torch_parameter_penalizers"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.torch_parameter_penalizers</span></code></a><a class="headerlink" href="#module-janelia_core.ml.torch_parameter_penalizers" title="Permalink to this headline"></a></h1>
+<p>Holds modules for penalizing torch parameters.</p>
+<p>See the base class ParameterPenalizer for more information.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer" title="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParameterPenalizer</span></code></a></p></td>
+<td><p>An abstract class for parameter penalizers.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer" title="janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ClusterPenalizer</span></code></a></p></td>
+<td><p>This penalizer encourages clustering of parameters in tensors.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer" title="janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TargetLengthPenalizer</span></code></a></p></td>
+<td><p>Penalizes the l-2 norm of a parameter as it deviates from a target length.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.torch_parameter_penalizers.UnsignedClusterPenalizer" title="janelia_core.ml.torch_parameter_penalizers.UnsignedClusterPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnsignedClusterPenalizer</span></code></a></p></td>
+<td><p>This is the same as the ClusterPenalizer but the penalty is computed after taking absolute values of parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer" title="janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ScalarPenalizer</span></code></a></p></td>
+<td><p>Applies an element-wise penalty to parameters, which is the squared distance of each element from a center.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.torch_parameter_penalizers.UnsignedScalarPenalizer" title="janelia_core.ml.torch_parameter_penalizers.UnsignedScalarPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnsignedScalarPenalizer</span></code></a></p></td>
+<td><p>Penalizes the elements of parameters, with the squared distance of each element from a center.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_parameter_penalizers.</code><code class="sig-name descname">ParameterPenalizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.nn.Parameter<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ParameterPenalizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>An abstract class for parameter penalizers.</p>
+<p>The main idea behind a penalizer object is that when fitting models instead of simply applying a penalty function,
+we might want to penalize parameters with respect to a function which also has its own learnable parameters. For
+example, lets say there are a group of parameters and we want to penalize things so that the l_2 distance between
+all the parameters in that group is small. Instead of calculating the l_2 distance between all pairs of parameters
+and penalizing the sum of those distances, it might be simpler to have a penalizer with a center parameter which is
+learned and penalizing the distance of each parameter in the group to the center.</p>
+<p>Note one point of confusion is there are now two sets of parameters - one set is the set of parameters that we
+want to penalize and the other set is the set of internal, learnable parameters of the penalizer itself.  In
+the example above, the center would be an internal, learnable parameter of the penalizer.</p>
+<p>Creates an instance of a penalizer.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>params: The parameters to penalize over.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.check_point">
+<em class="property">abstract </em><code class="sig-name descname">check_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ParameterPenalizer.check_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.check_point" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dictionary of parameters and values for the penalizer that should be saved in a check point.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.clone">
+<em class="property">abstract </em><code class="sig-name descname">clone</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">clean</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ParameterPenalizer.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.clone" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a copy of self.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>clean: If true, attribute values that we might not want to transfer to a new object (such as record of last
+penalty value) will not be copied.</p>
+</dd>
+<dt>Returns:</dt><dd><p>obj: The new object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.copy_state_from">
+<em class="property">abstract </em><code class="sig-name descname">copy_state_from</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ParameterPenalizer.copy_state_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.copy_state_from" title="Permalink to this definition"></a></dt>
+<dd><p>Copies the state of one penalizer to this penalizer.</p>
+<p>State should be the internal parameters of the penalizers as well as other internal varialbes it may keep but
+it should not include the parameters the penalizer actually penalizes.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>other: The other penalizer to copy state from</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.get_marked_params">
+<em class="property">abstract </em><code class="sig-name descname">get_marked_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>torch.nn.Parameter<span class="p">]</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ParameterPenalizer.get_marked_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.get_marked_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns all learnable parameters marked with the key string.</p>
+<p>Penalizers must associate each of their internal, learnable parameters with a unique key
+(e.g., fast_learning_rate_params).  Each parameter should be associated with only one key
+(though multiple parameters can use the same key).  This function will return a list of parameters
+associated with the requested key.  If no parameters match the key an empty list should be returned.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.list_param_keys">
+<em class="property">abstract </em><code class="sig-name descname">list_param_keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">]</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ParameterPenalizer.list_param_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.list_param_keys" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of keys associated with internal, learnable parameters.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>keys: The list of keys.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.penalize_and_backwards">
+<em class="property">abstract </em><code class="sig-name descname">penalize_and_backwards</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">call_backwards</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ParameterPenalizer.penalize_and_backwards"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.penalize_and_backwards" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates a penalty over parameters and calls backwards on the penalty.</p>
+<p>The reason for having the penalizer call backwards is that there may be complicated situations, such as
+when parameters are spread over multiple GPUs, that we need to call backwards multiple times as we
+move things between GPUs when calculating the penalty.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>d: The distribution to penalize</p>
+</dd>
+<dt>Returns:</dt><dd><p>penalty: The scalar penalty.  Note this is a float and not a tensor, as we assume backwards has
+been called in this function.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.__str__">
+<em class="property">abstract </em><code class="sig-name descname">__str__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ParameterPenalizer.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer.__str__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a string of the current state of the penalizer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_parameter_penalizers.</code><code class="sig-name descname">ClusterPenalizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.nn.Parameter<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">w</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">init_ctr</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">description</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">''</span></em>, <em class="sig-param"><span class="n">learnable_parameters</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ClusterPenalizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer" title="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParameterPenalizer</span></code></a></p>
+<p>This penalizer encourages clustering of parameters in tensors.</p>
+<p>In particular, given a set of paremters p_0, …, p_N of arbitrary shape, the penalty computed by this object is:</p>
+<blockquote>
+<div><p>wsum_{i=1}^N ||p_i - c||_2^2 where c is a tensor the same shape as any of the p_i parameters representing
+the center of a cluster and w is a penalty weight.</p>
+</div></blockquote>
+<p>There is only one parameter for this penalizer, which is tagged with ‘fast’, to indicate that in models trained
+with slow and fast learning rates, we would expect the center to be updated with the fast learning rate.</p>
+<p>Creates an instance of a ClusterPenalizer.</p>
+<dl>
+<dt>Args:</dt><dd><p>params: The parameters to penalize</p>
+<p>w: The weight to apply the penalty</p>
+<p>init_ctr: The initial value of c</p>
+<p>description: A string that will be used to identify the penalizer in the string returned
+by __str__()</p>
+<p>learnable_parameters: True if c should be learnable; false if it should be fixed</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.copy_state_from">
+<code class="sig-name descname">copy_state_from</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ClusterPenalizer.copy_state_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.copy_state_from" title="Permalink to this definition"></a></dt>
+<dd><p>Copies the state of another penalizer to this penalizer.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>other: The other penalizer to copy state form.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.clone">
+<code class="sig-name descname">clone</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">clean</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ClusterPenalizer.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.clone" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a copy of self.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>clean: If true, attribute values that we might not want to transfer to a new object (such as record of last
+penalty value) will not be copied.</p>
+</dd>
+<dt>Returns:</dt><dd><p>obj: The new object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.check_point">
+<code class="sig-name descname">check_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ClusterPenalizer.check_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.check_point" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a check point dictionary for the penalizer.</p>
+<dl>
+<dt>Returns:</dt><dd><p>d: A dictionary with the following keys:</p>
+<blockquote>
+<div><p>c: The center of the parameter</p>
+<p>last_p: The value of the last penalty that was computed</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.get_marked_params">
+<code class="sig-name descname">get_marked_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>torch.nn.Parameter<span class="p">]</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ClusterPenalizer.get_marked_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.get_marked_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns marked parameters.</p>
+<p>The only parameter of the penalizer is the centers tensor, c, which is marked with the tag ‘fast’</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>params: A list.  If the key was fast this will hold the ‘c’ parameter.  If not, this list will be empty.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.list_param_keys">
+<code class="sig-name descname">list_param_keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">]</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ClusterPenalizer.list_param_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.list_param_keys" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the list of keys associated with internal, learnabke parameters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.penalize_and_backwards">
+<code class="sig-name descname">penalize_and_backwards</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">call_backwards</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ClusterPenalizer.penalize_and_backwards"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.penalize_and_backwards" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the penalty over the parameters and then calls backwards.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>call_backwards: True if backwards should be called.</p>
+</dd>
+<dt>Returns:</dt><dd><p>penalty: The calculated penalty</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.__str__">
+<code class="sig-name descname">__str__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ClusterPenalizer.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer.__str__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a string with the state of the penalizer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_parameter_penalizers.</code><code class="sig-name descname">TargetLengthPenalizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.nn.Parameter<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">w</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">tgt_l</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">description</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">''</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#TargetLengthPenalizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer" title="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParameterPenalizer</span></code></a></p>
+<p>Penalizes the l-2 norm of a parameter as it deviates from a target length.</p>
+<p>The l-2 norm is calculated by summing the square of all elements in a parameter, no matter what it’s shape is,
+and then taking the square root.</p>
+<p>The penalty for a parameter is calculated as: w*(l - tgt_l)**2, where w is a penalty weight, l is the l_2 norm
+of the parameter and tgt_l is the target length we would like the parameter to have.</p>
+<p>This object can hold multiple parameters and will return the sum of penalizing all of them.</p>
+<p>Creates a new TargetLengthPenalizer object.</p>
+<dl>
+<dt>Args:</dt><dd><p>params: the parameters to penalize.  Each parameter will be treated independently.</p>
+<p>w: the weight to apply to the penalty</p>
+<p>tgt_l: The target length for each parameter</p>
+<p>description: A short description identifying the penalizer.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.copy_state_from">
+<code class="sig-name descname">copy_state_from</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#TargetLengthPenalizer.copy_state_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.copy_state_from" title="Permalink to this definition"></a></dt>
+<dd><p>Copies the state of another penalizer to this penalizer.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>other: The other penalizer to copy state form.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.clone">
+<code class="sig-name descname">clone</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">clean</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#TargetLengthPenalizer.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.clone" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a copy of self.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>clean: If true, attribute values that we might not want to transfer to a new object (such as record of last
+penalty value) will not be copied.</p>
+</dd>
+<dt>Returns:</dt><dd><p>obj: The new object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.check_point">
+<code class="sig-name descname">check_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#TargetLengthPenalizer.check_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.check_point" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a check point dictionary for the penalizer.</p>
+<dl>
+<dt>Returns:</dt><dd><p>d: A dictionary with the following keys:</p>
+<blockquote>
+<div><p>last_p: The value of the last penalty that was computed</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.get_marked_params">
+<code class="sig-name descname">get_marked_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>torch.nn.Parameter<span class="p">]</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#TargetLengthPenalizer.get_marked_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.get_marked_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns marked parameters.</p>
+<p>There are no learnable parameters for this object, so this function always returns an empty list.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>params: A list. This will always be empty.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.list_param_keys">
+<code class="sig-name descname">list_param_keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">]</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#TargetLengthPenalizer.list_param_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.list_param_keys" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the list of keys associated with internal, learnable parameters.</p>
+<p>Because there are no learnable parameters for this penalizer, an empty list will be returned.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.penalize_and_backwards">
+<code class="sig-name descname">penalize_and_backwards</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">call_backwards</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#TargetLengthPenalizer.penalize_and_backwards"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.penalize_and_backwards" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the penalty over the parameters and then calls backwards.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>call_backwards: True if backwards should be called.</p>
+</dd>
+<dt>Returns:</dt><dd><p>penalty: The calculated penalty</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.__str__">
+<code class="sig-name descname">__str__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#TargetLengthPenalizer.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.TargetLengthPenalizer.__str__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a string with the state of the penalizer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_parameter_penalizers.UnsignedClusterPenalizer">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_parameter_penalizers.</code><code class="sig-name descname">UnsignedClusterPenalizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.nn.Parameter<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">w</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">init_ctr</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">description</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">learnable_parameters</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#UnsignedClusterPenalizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.UnsignedClusterPenalizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer" title="janelia_core.ml.torch_parameter_penalizers.ClusterPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ClusterPenalizer</span></code></a></p>
+<p>This is the same as the ClusterPenalizer but the penalty is computed after taking absolute values of parameters.</p>
+<p>In particular, given a set of paremters p_0, …, p_N of arbitrary shape, the penalty computed by this object is:</p>
+<blockquote>
+<div><p>wsum_{i=1}^N ||abs(p_i) - abs(c)||_2^2 where c is a tensor the same shape as any of the p_i parameters
+representing the center of a cluster and w is a penalty weight.</p>
+</div></blockquote>
+<p>Creates a new UnsignedClusterPenalizer instance.</p>
+<p>See __init__ of parent for more information.</p>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.UnsignedClusterPenalizer.penalize_and_backwards">
+<code class="sig-name descname">penalize_and_backwards</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">call_backwards</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#UnsignedClusterPenalizer.penalize_and_backwards"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.UnsignedClusterPenalizer.penalize_and_backwards" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the penalty over the parameters and then calls backwards.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>call_backwards: True if backwards should be called.</p>
+</dd>
+<dt>Returns:</dt><dd><p>penalty: The calculated penalty</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_parameter_penalizers.</code><code class="sig-name descname">ScalarPenalizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.nn.Parameter<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">w</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">init_ctr</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">description</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">learnable_parameters</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ScalarPenalizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer" title="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParameterPenalizer</span></code></a></p>
+<p>Applies an element-wise penalty to parameters, which is the squared distance of each element from a center.</p>
+<blockquote>
+<div><p>In particular, given a set of paremters p_0, …, p_N of arbitrary shape, the penalty computed by this object is:</p>
+<blockquote>
+<div><p>wsum_{i=1}^N ||p_i - c||_2^2 where c the scalar center.</p>
+</div></blockquote>
+</div></blockquote>
+<p>There is only one parameter for this penalizer, which is tagged with ‘fast’, to indicate that in models trained
+with slow and fast learning rates, we would expect the center to be updated with the fast learning rate.</p>
+<p>Creates an instance of a ClusterPenalizer.</p>
+<dl>
+<dt>Args:</dt><dd><p>params: The parameters to penalize</p>
+<p>w: The weight to apply to the penalty</p>
+<p>init_ctr: The initial value of c</p>
+<p>description: A string that will be used to identify the penalizer in the string returned
+by __str__()</p>
+<p>learnable_parameters: True if c should be learnable; false if it should be fixed</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.copy_state_from">
+<code class="sig-name descname">copy_state_from</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ScalarPenalizer.copy_state_from"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.copy_state_from" title="Permalink to this definition"></a></dt>
+<dd><p>Copies the state of another penalizer to this penalizer.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>other: The other penalizer to copy state form.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.clone">
+<code class="sig-name descname">clone</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">clean</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ScalarPenalizer.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.clone" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a copy of self.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>clean: If true, attribute values that we might not want to transfer to a new object (such as record of last
+penalty value) will not be copied.</p>
+</dd>
+<dt>Returns:</dt><dd><p>obj: The new object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.check_point">
+<code class="sig-name descname">check_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ScalarPenalizer.check_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.check_point" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a check point dictionary for the penalizer.</p>
+<dl>
+<dt>Returns:</dt><dd><p>d: A dictionary with the following keys:</p>
+<blockquote>
+<div><p>c: The center of the parameter</p>
+<p>last_p: The value of the last penalty that was computed</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.get_marked_params">
+<code class="sig-name descname">get_marked_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>torch.nn.Parameter<span class="p">]</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ScalarPenalizer.get_marked_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.get_marked_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns marked parameters.</p>
+<p>The only parameter of the penalizer is the centers tensor, c, which is marked with the tag ‘fast’</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>params: A list.  If the key was fast this will hold the ‘c’ parameter.  If not, this list will be empty.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.list_param_keys">
+<code class="sig-name descname">list_param_keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">]</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ScalarPenalizer.list_param_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.list_param_keys" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the list of keys associated with internal, learnable parameters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.penalize_and_backwards">
+<code class="sig-name descname">penalize_and_backwards</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">call_backwards</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ScalarPenalizer.penalize_and_backwards"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.penalize_and_backwards" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the penalty over the parameters and then calls backwards.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>call_backwards: True if backwards should be called.</p>
+</dd>
+<dt>Returns:</dt><dd><p>penalty: The calculated penalty</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.__str__">
+<code class="sig-name descname">__str__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#ScalarPenalizer.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer.__str__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a string with the state of the penalizer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_parameter_penalizers.UnsignedScalarPenalizer">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_parameter_penalizers.</code><code class="sig-name descname">UnsignedScalarPenalizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.nn.Parameter<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">w</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">init_ctr</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">description</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">learnable_parameters</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#UnsignedScalarPenalizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.UnsignedScalarPenalizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer" title="janelia_core.ml.torch_parameter_penalizers.ScalarPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ScalarPenalizer</span></code></a></p>
+<p>Penalizes the elements of parameters, with the squared distance of each element from a center.</p>
+<blockquote>
+<div><p>In particular, given a set of paremters p_0, …, p_N of arbitrary shape, the penalty computed by this object is:</p>
+<p>wsum_{i=1}^N ||abs(p_i) - abs(c)||_2^2 where c the scalar center.</p>
+</div></blockquote>
+<p>There is only one parameter for this penalizer, which is tagged with ‘fast’, to indicate that in models trained
+with slow and fast learning rates, we would expect the center to be updated with the fast learning rate.</p>
+<p>Creates a new instance of an UnsignedScalarPenalizer object.</p>
+<p>See __init__() of paraent for more information.</p>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_parameter_penalizers.UnsignedScalarPenalizer.penalize_and_backwards">
+<code class="sig-name descname">penalize_and_backwards</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">call_backwards</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_parameter_penalizers.html#UnsignedScalarPenalizer.penalize_and_backwards"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_parameter_penalizers.UnsignedScalarPenalizer.penalize_and_backwards" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the penalty over the parameters and then calls backwards.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>call_backwards: True if backwards should be called.</p>
+</dd>
+<dt>Returns:</dt><dd><p>penalty: The calculated penalty</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

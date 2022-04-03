@@ -1,0 +1,163 @@
+:py:mod:`janelia_core.dataprocessing.utils`
+===========================================
+
+.. py:module:: janelia_core.dataprocessing.utils
+
+.. autoapi-nested-parse::
+
+   Utilities for working with time series data.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.dataprocessing.utils.get_image_data
+   janelia_core.dataprocessing.utils.get_reg_image_data
+   janelia_core.dataprocessing.utils.get_processed_image_data
+   janelia_core.dataprocessing.utils.write_planes_to_files
+   janelia_core.dataprocessing.utils.write_planes_for_one_file
+
+
+
+.. py:function:: get_image_data(image, img_slice: slice = slice(None, None, None), h5_data_group: str = 'default') -> numpy.ndarray
+
+   Gets image data for a single image.
+
+   This is a wrapper that allows us to get image data for a single image from a file or from a numpy array
+   seamlessly in our code.  If image is already a numpy array, image is simply returned
+   as is.  Otherwise, image is assumed to be a path to a image which is opened and the data
+   is loaded and returned as a numpy array.
+
+   Args:
+       image: Either a numpy array or path to the image.
+
+       img_slice: The slice of the image that should be returned
+
+       h5_data_group: The hdfs group holding image data in h5 files.
+
+   Returns:
+       The image data.
+
+
+.. py:function:: get_reg_image_data(image, image_slice: slice, image_shape: numpy.ndarray = None, t: dipy.align.imaffine.AffineMap = None, h5_data_group: str = 'default')
+
+   Gets registered image data for a single image.
+
+   This is a wrapper around get_image_data that allows the user to register an image before getting data from it.
+
+   Args:
+       image: Either a numpy array or path to the image.
+
+       image_shape: The shape of the original image.  This is used to check that the requested window contains
+       valid data after registration.  If t is none, this argument does not need to be supplied.
+
+       t: The registration transform.  If this is none, no registration will be performed.
+
+       image_slice: The slice of the image that should be returned.  Coordinates are *after* image registration.
+
+       h5_data_group: The hdfs group holding image data in h5 files.
+
+   Returns:
+       The image data
+
+   Raises:
+       ValueError: If the requested slice for the registered image includes voxels for which there was no data in the
+       original image to calculate the registered image for.
+
+
+.. py:function:: get_processed_image_data(images: list, func: types.FunctionType = None, img_slice=slice(None, None, None), t_dict: dict = None, func_args: list = None, h5_data_group='default', sc: pyspark.SparkContext = None) -> list
+
+   Gets processed image data for multiple images.
+
+   This is a wrapper that allows retrieving images from files or from numpy arrays,
+   applying light processing independently to each image and returning the result.
+
+   Images can be optionally registered before apply preprocessing.
+
+   Args:
+       images: A list of images.  Each entry is either a numpy array or a path to an image file.
+
+       func: A function to apply to each image.  If none, images will be returned unaltered.  Should accept input
+       of the form func(image: np.ndarray, **keyword_args)
+
+       img_slice: The slice of each image that should be returned before any processing is applied.  If registration is
+       applied (see t_dict parameter), then the slice coordinates are for images after registration.
+
+       t_dict: A dictionary with information for performing image registration as images are loaded.  If set to None,
+       no image registration will be performed.  t_dict should have two fields:
+
+           transforms: A list of registration transforms to apply to the images as they are being read in.  If none,
+           no registration will be applied.
+
+           image_shape: This is the shape of the original images being read in.
+
+       func_args: A list of extra keyword arguments to pass to the function for each image.  If None, no arguments
+       will be passed.
+
+       h5_data_group: The hdfs group holding image data in h5 files.
+
+       sc: An optional pySpark.SparkContext object to use in speeding up reading of images.
+
+   Returns:
+       The processed image data as a list.  Each processed image is an entry in the list.
+
+
+.. py:function:: write_planes_to_files(planes: numpy.ndarray, files: list, base_planes_dir: pathlib.Path, plane_suffix: str = 'plane', skip_existing_files=False, sc: pyspark.SparkContext = None, h5_data_group='data') -> list
+
+   Extracts one or more planes from image files, writing planes to separate files.
+
+   Args:
+       planes: An array of indices of planes to extract.
+
+       files: A list of original image files to pull planes from.
+
+       base_planes_dir: The base directory to save plane files into.  Under this folder, separate subfolders
+       will be saved for each plane.
+
+       plane_suffix: The suffix to append to the file name to indicate the file contains just one plane.
+
+       skip_existing_files: If true, if a file for an extracted plane is found, it will not be overwritten.
+       If false, then errors will be thrown if files for extracted planes are found to already exist. Setting
+       this to true can be helpful if there is a need to run this function a second time to recover from an
+       error.
+
+       sc: An optional spark context to use to write files in parallel.
+
+       h5_data_group: The h5_data_group that original images are stored under if reading in .h5 files.
+
+   Returns:
+       A list of the directories that images for each plane are saved into.
+
+
+.. py:function:: write_planes_for_one_file(file: pathlib.Path, planes: numpy.ndarray, plane_dirs: list, plane_suffix: str = 'plane', skip_existing_files=False, h5_data_group='default')
+
+   Writes specified planes from a 3d image file to separate .h5 files.
+
+   The new files will have the same name as the original with an added suffix to indicate they contain
+   just one plane.
+
+   Args:
+       planes: An array of indices of planes to extract.
+
+       file: The original image file to pull planes from.
+
+       plane_dirs: List of directories to save the file for each file into.
+
+       plane_suffix: The suffix to append to the file name to indicate the file contains just one plane.
+
+       skip_existing_files: If true, if a file for an extracted plane is found, it will not be overwritten.
+       If false, then errors will be thrown if files for extracted planes are found to already exist. Setting
+       this to true can be helpful if there is a need to run this function a second time to recover from an
+       error.
+
+       h5_data_group: The h5_data_group that original images are stored under if reading in .h5 files.
+
+
+

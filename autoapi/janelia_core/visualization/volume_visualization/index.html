@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.visualization.volume_visualization &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.volume_visualization</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/visualization/volume_visualization/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.visualization.volume_visualization">
+<span id="janelia-core-visualization-volume-visualization"></span><h1><a class="reference internal" href="#module-janelia_core.visualization.volume_visualization" title="janelia_core.visualization.volume_visualization"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.volume_visualization</span></code></a><a class="headerlink" href="#module-janelia_core.visualization.volume_visualization" title="Permalink to this headline"></a></h1>
+<p>Utilities for viewing volumes.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.volume_visualization.comb_movies" title="janelia_core.visualization.volume_visualization.comb_movies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">comb_movies</span></code></a>(movie_paths: Sequence[pathlib.Path], save_path: pathlib.Path, fig_size: Sequence[int] = [21, 12], facecolor: Tuple[float] = (0, 0, 0), fps: int = 10, bitrate=-1)</p></td>
+<td><p>Given a set of movies, combines them by putting their frames side-by-side.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.volume_visualization.make_rgb_three_ch_z_plane_movie" title="janelia_core.visualization.volume_visualization.make_rgb_three_ch_z_plane_movie"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rgb_three_ch_z_plane_movie</span></code></a>(z_imgs, save_path: str, fps: int = 10, title: str = None, cmaps: list = None, figsize: Sequence[int] = [7, 12], facecolor: Union[float] = (0, 0, 0), text_color: Union[float] = (1.0, 1.0, 1.0), bitrate=-1, one_index_z_plane: bool = False)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.volume_visualization.make_rgb_z_plane_movie" title="janelia_core.visualization.volume_visualization.make_rgb_z_plane_movie"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rgb_z_plane_movie</span></code></a>(z_imgs: Sequence[numpy.ndarray], save_path: str, title: str = None, fps: int = 10, cmap: janelia_core.visualization.custom_color_maps.MultiParamCMap = None, cmap_param_strs: Sequence[str] = None, cmap_param_vls: Sequence[Sequence] = None, figsize: Sequence[int] = [7, 12], facecolor: Union[float] = (0, 0, 0), text_color: Union[float] = (1.0, 1.0, 1.0), bitrate=-1, one_index_z_plane: bool = False, ax_position=None)</p></td>
+<td><p>Generates a sequence of movie of z-plane images already in RGB space.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.volume_visualization.make_z_plane_movie" title="janelia_core.visualization.volume_visualization.make_z_plane_movie"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_z_plane_movie</span></code></a>(volume: numpy.ndarray, save_path: str, clim: Sequence[float] = None, cmap: Union[str, matplotlib.colors.Colormap] = 'hot', title: str = None, cbar_label: str = None, fps: int = 10, figsize: Sequence[int] = [7, 12], facecolor: Union[float] = (0, 0, 0), text_color: Union[float] = (1.0, 1.0, 1.0), bitrate=-1, clim_percs: Sequence[float] = [0.1, 99.9], one_index_z_plane: bool = False) → matplotlib.transforms.Bbox</p></td>
+<td><p>Generates a movie of all the z-planes in a volume.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.volume_visualization.signed_max_proj" title="janelia_core.visualization.volume_visualization.signed_max_proj"><code class="xref py py-obj docutils literal notranslate"><span class="pre">signed_max_proj</span></code></a>(vol: numpy.ndarray, dim: int)</p></td>
+<td><p>Performs a signed max projection of a volume.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.volume_visualization.visualize_rgb_max_project" title="janelia_core.visualization.volume_visualization.visualize_rgb_max_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visualize_rgb_max_project</span></code></a>(vol: numpy.ndarray, dim_m: numpy.ndarray = None, cmap_im: numpy.ndarray = None, overlays: Sequence[numpy.ndarray] = None, cmap_extent: Sequence[float] = None, cmap_xlabel: str = None, cmap_ylabel: str = None, title: str = None, f: matplotlib.figure.Figure = None, buffer=0.6, facecolor: Sequence[float] = (0, 0, 0), textcolor: Sequence[float] = (1, 1, 1))</p></td>
+<td><p>Generates a figure of max-projections of rgb volumes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.volume_visualization.visualize_projs" title="janelia_core.visualization.volume_visualization.visualize_projs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visualize_projs</span></code></a>(horz_projs: Sequence[numpy.ndarray], sag_projs: Sequence[numpy.ndarray], cor_projs: Sequence[numpy.ndarray], cmaps: Sequence[matplotlib.colors.Colormap], clims: Union[None, Sequence[Union[None, tuple]]], dim_m: Sequence[float] = None, title: str = None, plot_cmap: bool = False, f: matplotlib.figure.Figure = None, buffer: float = 0.6, tgt_h: float = 3.0, facecolor: Sequence[float] = (0, 0, 0), textcolor: Sequence[float] = (1, 1, 1))</p></td>
+<td><p>Visualizes horizontal, sagital and coronal projections of the same volume of data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.volume_visualization.gen_composite_roi_vol" title="janelia_core.visualization.volume_visualization.gen_composite_roi_vol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gen_composite_roi_vol</span></code></a>(rois: Sequence[janelia_core.dataprocessing.dataset.ROI], weights: numpy.ndarray, vol_shape: Sequence[int], verbose: bool = False)</p></td>
+<td><p>Generates a volume for visualization of a composite ROI.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="janelia_core.visualization.volume_visualization.comb_movies">
+<code class="sig-prename descclassname">janelia_core.visualization.volume_visualization.</code><code class="sig-name descname">comb_movies</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">movie_paths</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.10)">pathlib.Path</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">save_path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.10)">pathlib.Path</a></span></em>, <em class="sig-param"><span class="n">fig_size</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[21, 12]</span></em>, <em class="sig-param"><span class="n">facecolor</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">0, 0, 0</span></em>, <em class="sig-param"><span class="n">fps</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">bitrate</span><span class="o">=</span><span class="default_value">- 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/volume_visualization.html#comb_movies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.volume_visualization.comb_movies" title="Permalink to this definition"></a></dt>
+<dd><p>Given a set of movies, combines them by putting their frames side-by-side.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>movie_paths: Paths to movies to combined</p>
+<p>save_path: The path to save the combined video to.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.volume_visualization.make_rgb_three_ch_z_plane_movie">
+<code class="sig-prename descclassname">janelia_core.visualization.volume_visualization.</code><code class="sig-name descname">make_rgb_three_ch_z_plane_movie</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">z_imgs</span></em>, <em class="sig-param"><span class="n">save_path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">fps</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">title</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmaps</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[7, 12]</span></em>, <em class="sig-param"><span class="n">facecolor</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">0, 0, 0</span></em>, <em class="sig-param"><span class="n">text_color</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">1.0, 1.0, 1.0</span></em>, <em class="sig-param"><span class="n">bitrate</span><span class="o">=</span><span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">one_index_z_plane</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/volume_visualization.html#make_rgb_three_ch_z_plane_movie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.volume_visualization.make_rgb_three_ch_z_plane_movie" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.volume_visualization.make_rgb_z_plane_movie">
+<code class="sig-prename descclassname">janelia_core.visualization.volume_visualization.</code><code class="sig-name descname">make_rgb_z_plane_movie</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">z_imgs</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">save_path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">title</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fps</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">cmap</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.MultiParamCMap" title="janelia_core.visualization.custom_color_maps.MultiParamCMap">janelia_core.visualization.custom_color_maps.MultiParamCMap</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmap_param_strs</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmap_param_vls</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Sequence<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[7, 12]</span></em>, <em class="sig-param"><span class="n">facecolor</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">0, 0, 0</span></em>, <em class="sig-param"><span class="n">text_color</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">1.0, 1.0, 1.0</span></em>, <em class="sig-param"><span class="n">bitrate</span><span class="o">=</span><span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">one_index_z_plane</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">ax_position</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/volume_visualization.html#make_rgb_z_plane_movie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.volume_visualization.make_rgb_z_plane_movie" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a sequence of movie of z-plane images already in RGB space.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>z_imgs: A sequende of numpy arrays of the images for each plane.  Each array should be of the shape [dx, dy, 3]</p>
+<p>save_path: The path for the saved video, including extension</p>
+<p>title: If not None, the title to display over the video</p>
+<p>fps: The frames per second of the generated movie.  Each plane is a different plane.</p>
+<p>cmap: An optional color map used to generate the images.  If provided, this colormap will be plotted in the
+video.</p>
+<p>cmap_param_strs: String labels for parameter 0 and 1 in cmap.  Only used if cmap is provided.</p>
+<p>cmap_param_vls: If not None, then cmap_param_vls[i] should contain a list of values for parameter i to plot
+the color map at.  cmap_param_vls[i] can also be none, which means the range of values plotted will be the
+range of values between the colormap saturation limits. Only used if cmap is provided.</p>
+<p>figsize: The size of the figure to make the video as [width, height] in inches</p>
+<p>facecolor: The background color of the figure to plot into</p>
+<p>text_color: The color to use when plotting the title and colorbar ticks and labels</p>
+<p>bitrate: The bitrate to use when saving the video</p>
+<p>one_index_z_plane: True if z-plane numbers should start at 1 instead of 0 when generating titles for each plane</p>
+<p>ax_position: Position of axes for plotting images.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.volume_visualization.make_z_plane_movie">
+<code class="sig-prename descclassname">janelia_core.visualization.volume_visualization.</code><code class="sig-name descname">make_z_plane_movie</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">volume</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">save_path</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">clim</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmap</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">, </span>matplotlib.colors.Colormap<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">'hot'</span></em>, <em class="sig-param"><span class="n">title</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cbar_label</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fps</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">figsize</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[7, 12]</span></em>, <em class="sig-param"><span class="n">facecolor</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">0, 0, 0</span></em>, <em class="sig-param"><span class="n">text_color</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">1.0, 1.0, 1.0</span></em>, <em class="sig-param"><span class="n">bitrate</span><span class="o">=</span><span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">clim_percs</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[0.1, 99.9]</span></em>, <em class="sig-param"><span class="n">one_index_z_plane</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; matplotlib.transforms.Bbox<a class="reference internal" href="../../../../_modules/janelia_core/visualization/volume_visualization.html#make_z_plane_movie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.volume_visualization.make_z_plane_movie" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a movie of all the z-planes in a volume.</p>
+<dl>
+<dt>Args:</dt><dd><p>volume: The volume to visualize, with the z-dimension indexed by the first dimension.</p>
+<p>save_path: The path for the saved video, including extension</p>
+<p>clim: If not none, the color limits to apply to all planes.  If None, color limits will be automtically
+calculated by 1) taking a user assigned lower and upper percentile values, 2) calculating the maximum
+of the absolute value of these values and then 3) setting the limits to be +/- the maximum of the
+absolute value calculated in (2).</p>
+<p>cmap: The colormap to use for all planes</p>
+<p>title: If not None, the title to display over the video</p>
+<p>cbar_label: If not None, the label for the colorbar</p>
+<p>fps: The frames per second of the generated movie.  Each plane is a different plane.</p>
+<p>figsize: The size of the figure to make the video as [width, height] in inches</p>
+<p>facecolor: The background color of the figure to plot into</p>
+<p>text_color: The color to use when plotting the title and colorbar ticks and labels</p>
+<p>bitrate: The bitrate to use when saving the video</p>
+<p>clims_percs: The percentile limits to use if automatically setting clim between 0 and 100.
+The value of c_perc_limits[0] is the lower limit and the value of c_perc_limits[1] is the upper
+limit.</p>
+<p>one_index_z_plane: True if z-plane numbers should start with 1 in the frame titles</p>
+</dd>
+</dl>
+<p>Returns:</p>
+<blockquote>
+<div><p>ax_pos: The bounding box for the axes used to show frames</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.volume_visualization.signed_max_proj">
+<code class="sig-prename descclassname">janelia_core.visualization.volume_visualization.</code><code class="sig-name descname">signed_max_proj</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vol</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">dim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/volume_visualization.html#signed_max_proj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.volume_visualization.signed_max_proj" title="Permalink to this definition"></a></dt>
+<dd><p>Performs a signed max projection of a volume.</p>
+<p>By “signed max project” we mean the find the entry with largest absolute value along the projection
+and then return the original (signed) value.</p>
+<p>This function will ignore nan values.</p>
+<dl>
+<dt>Args:</dt><dd><p>vol: The volume.</p>
+<p>dim: The dimension to project along.</p>
+</dd>
+</dl>
+<p>Returns:</p>
+<blockquote>
+<div><p>proj: The projected volume</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.volume_visualization.visualize_rgb_max_project">
+<code class="sig-prename descclassname">janelia_core.visualization.volume_visualization.</code><code class="sig-name descname">visualize_rgb_max_project</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vol</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">dim_m</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmap_im</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">overlays</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>numpy.ndarray<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmap_extent</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmap_xlabel</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmap_ylabel</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">title</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">matplotlib.figure.Figure</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">buffer</span><span class="o">=</span><span class="default_value">0.6</span></em>, <em class="sig-param"><span class="n">facecolor</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">0, 0, 0</span></em>, <em class="sig-param"><span class="n">textcolor</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">1, 1, 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/volume_visualization.html#visualize_rgb_max_project"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.volume_visualization.visualize_rgb_max_project" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a figure of max-projections of rgb volumes.</p>
+<blockquote>
+<div><p>Will generate a figure with the following layout:</p>
+<blockquote>
+<div><blockquote>
+<div><blockquote>
+<div><p>y_dim            z_dim</p>
+</div></blockquote>
+<p>————–     ———
+|             |    |        |
+|             |    | y-proj |    ^
+|             |    |        |    |
+|  z-proj     |    |        |   x_dim
+|             |    |        |    |
+|             |    |        |
+|             |    |        |
+————       ———</p>
+</div></blockquote>
+<p>^ |             |     ——-
+| | x-proj      |    | cmap  |</p>
+</div></blockquote>
+</div></blockquote>
+<dl>
+<dt>z_dim |             |    |       |</dt><dd><blockquote>
+<div><div class="line-block">
+<div class="line">|             |     ——-
+—————
+    y_dim</div>
+</div>
+</div></blockquote>
+<dl>
+<dt>Args:</dt><dd><p>vol: The volume to generate the max projection of. Should be 4 dimensional, with the last dimension containing
+RGB values.  Dimensions are assumed to be in the convention [x, y, z],</p>
+<p>dim_m: A scalar multiplier for each dimension in the order x, y, z to account for aspect ratios.  If None,
+a value of [1, 1, 1] will be used.</p>
+<p>cmap_im: An optional image of an colormap to include</p>
+<p>overlays: If provided, overlays[0] is an image to overlay the z-projection, and overlays[1] and [2] and images
+to overlay the x and y projections.  These overlays should be of the same dimensions as the projections.</p>
+<p>cmap_extent: Values to associate the the image of the colormap in the form of [left, right, bottom, top].
+Note that colormap will be plotted so colors associated with the smallest parameter values appear in the
+bottom left of the colormap image.</p>
+<p>cmap_xlabel: An optional label for the x-axis of the colormap</p>
+<p>cmap_ylabel: An optional label for the y-axis of the colormap</p>
+<p>title: A string to use as the title for the figure. If None, no title will be created.</p>
+<p>f: Figure to plot into.  If not provided, one will be created</p>
+<p>buffer: The amount of space to put around plots in inches.</p>
+<p>facecolor: The color of the figure background, if we are creating a figure</p>
+<p>textcolor: The color to plot text in</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If vol is not 4 dimensional.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.volume_visualization.visualize_projs">
+<code class="sig-prename descclassname">janelia_core.visualization.volume_visualization.</code><code class="sig-name descname">visualize_projs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">horz_projs</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">sag_projs</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">cor_projs</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">cmaps</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>matplotlib.colors.Colormap<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">clims</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">, </span>Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a><span class="p">]</span><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dim_m</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">title</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plot_cmap</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">matplotlib.figure.Figure</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">buffer</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.6</span></em>, <em class="sig-param"><span class="n">tgt_h</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">3.0</span></em>, <em class="sig-param"><span class="n">facecolor</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">0, 0, 0</span></em>, <em class="sig-param"><span class="n">textcolor</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">1, 1, 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/volume_visualization.html#visualize_projs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.volume_visualization.visualize_projs" title="Permalink to this definition"></a></dt>
+<dd><p>Visualizes horizontal, sagital and coronal projections of the same volume of data.</p>
+<blockquote>
+<div><p>This function will generate a figure with the following layout:</p>
+<blockquote>
+<div><blockquote>
+<div><blockquote>
+<div><p>y_dim                z_dim</p>
+</div></blockquote>
+<p>————–        ———–
+|               |    |          |
+|               |    | sag_proj |    ^
+|               |    |          |    |
+|  horz-proj    |    |          |   x_dim
+|               |    |          |    |
+|               |    |          |
+|               |    |          |
+————          ———–</p>
+</div></blockquote>
+<p>^ |               |     ———-
+| | coronal-proj  |    |    cmap  |</p>
+</div></blockquote>
+</div></blockquote>
+<dl>
+<dt>z_dim |               |    |          |</dt><dd><blockquote>
+<div><div class="line-block">
+<div class="line">|               |     ———-
+—————-</div>
+</div>
+</div></blockquote>
+<p>Multiple images can be shown, overlayed on eachother.  If a colormap is shown, it will
+be the colormap for the topmost image.</p>
+<dl>
+<dt>Args:</dt><dd><p>horz_projs: horz_projs[i] is the i^th horizontal projection image. Images will be overlaid one on top of the
+other, with the i+1th image over the ith image.  Each image shape should be [x_dim, y_dim], where x_dim
+and y_dim refer to the figure above.</p>
+<p>sag_projs: sag_projs[i] is the i^th sagital projection image.  Each image should be of shape [x_dim, z_dim].</p>
+<p>cor_projs: cor_projs[i] is the i^th coronal projection image.  Each image should be of shape [y_dim, z_dim]</p>
+<p>cmaps: cmaps[i] is the colormap for plotting the i^th image in each of the projections.</p>
+<p>clims: clims[i] is a tuple of color limits to use when plotting the i^th image.  clims[i] can also be
+None, meaning no color limits will be explicitly passed to the plotting command for the i^th images.
+If clims is None, then no color limits will be explicitly passed for all images.</p>
+<p>dim_m: A scalar multiplier for each dimension in the order x, y, z to account for aspect ratios.  If None,
+a value of [1, 1, 1] will be used.</p>
+<p>title: A string to use as the title for the figure. If None, no title will be created.</p>
+<p>f: Figure to plot into.  If not provided, one will be created</p>
+<p>buffer: The amount of space to put around plots in inches.</p>
+<p>tgt_h: The height of the figure that will be created in inches if f is None.</p>
+<p>facecolor: The color of the figure background, if we are creating a figure</p>
+<p>textcolor: The color to plot text in</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.volume_visualization.gen_composite_roi_vol">
+<code class="sig-prename descclassname">janelia_core.visualization.volume_visualization.</code><code class="sig-name descname">gen_composite_roi_vol</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rois</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>janelia_core.dataprocessing.dataset.ROI<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">weights</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">vol_shape</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/volume_visualization.html#gen_composite_roi_vol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.volume_visualization.gen_composite_roi_vol" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a volume for visualization of a composite ROI.</p>
+<dl>
+<dt>Args:</dt><dd><p>rois: A list of rois to form the composite ROI out of.</p>
+<p>weights: A list of weights for each roi in rois.</p>
+<p>vol_shape: The shape of the volume to generate.  The indices of ROIS should index into this volume.</p>
+<p>verbose: True if updates on progress should be printed</p>
+</dd>
+</dl>
+<p>Returns:</p>
+<blockquote>
+<div><p>comp_roi_vol: The volume with the composite ROI in it.</p>
+</div></blockquote>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

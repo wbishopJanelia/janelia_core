@@ -1,0 +1,26 @@
+:py:mod:`janelia_core.stats`
+============================
+
+.. py:module:: janelia_core.stats
+
+.. autoapi-nested-parse::
+
+   Contains statistics tools.
+
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   averages/index.rst
+   bootstrap/index.rst
+   histogram/index.rst
+   multiple_comparisons/index.rst
+   permutation_tests/index.rst
+   regression/index.rst
+   utils/index.rst
+
+

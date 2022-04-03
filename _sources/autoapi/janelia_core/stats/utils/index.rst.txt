@@ -1,0 +1,45 @@
+:py:mod:`janelia_core.stats.utils`
+==================================
+
+.. py:module:: janelia_core.stats.utils
+
+.. autoapi-nested-parse::
+
+   Contains various useful functions when working with statistics.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.stats.utils.get_2d_confidence_ellipse
+
+
+
+.. py:function:: get_2d_confidence_ellipse(mn: numpy.ndarray, cov: numpy.ndarray, conf: float, n_side_pts: int = 100) -> numpy.ndarray
+
+   Generates points for plotting a 2-d ellipse containing conf% of probability mass for a Normal distribution.
+
+   Args:
+         mn: The mean for the distribution.
+
+         cov: The covariance matrix for the distribution.
+
+         conf: The confidence to produce the ellipse for
+
+         n_side_pts: The number of points to generate for each half of the ellipse.  Must be even.
+
+   Returns:
+       pts: The points defining the ellipse.  Each row is a point.  There will 2*n_side_pts total points returned.
+
+   Raises:
+       ValueError: If inputs are not the right shape
+
+
+

@@ -1,0 +1,156 @@
+:py:mod:`janelia_core.fileio.ahrens_lab`
+========================================
+
+.. py:module:: janelia_core.fileio.ahrens_lab
+
+.. autoapi-nested-parse::
+
+   Tools for reading in Ahrens lab experimental data.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.fileio.ahrens_lab.read_exp
+   janelia_core.fileio.ahrens_lab.read_ephys_data
+   janelia_core.fileio.ahrens_lab.read_stack_freq
+   janelia_core.fileio.ahrens_lab.read_separated_exp
+   janelia_core.fileio.ahrens_lab.read_raw_ephys_data
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.fileio.ahrens_lab.STACK_FREQ_STACK_FREQ_LINE
+   janelia_core.fileio.ahrens_lab.STACK_FREQ_EXP_DURATION_LINE
+   janelia_core.fileio.ahrens_lab.STACK_FREQ_N_IMAGES_LINE
+
+
+.. py:data:: STACK_FREQ_STACK_FREQ_LINE
+   :annotation: = 0
+
+   
+
+.. py:data:: STACK_FREQ_EXP_DURATION_LINE
+   :annotation: = 1
+
+   
+
+.. py:data:: STACK_FREQ_N_IMAGES_LINE
+   :annotation: = 2
+
+   
+
+.. py:function:: read_exp(image_folder: str = None, ephys_folder: str = None, ephys_file: str = 'frame_swim.mat', ephys_var_name: str = 'frame_swim', image_ext: str = '.h5', metadata_file: str = 'ch0.xml', stack_freq_file: str = 'Stack_frequency.txt', verbose: bool = True) -> janelia_core.dataprocessing.dataset.DataSet
+
+   Reads in Ahrens lab experimental data to a Dataset object.
+
+   Args:
+       image_folder: The folder holding the images, metadata file and stack frequency file.
+
+       ephys_folder: The folder holding the ephys data.
+
+       ephys_file: The name of the file holding ephys data.  If this is None, no ephys data will be loaded.
+
+       ephys_var_name: The variable name holding ephys data in ephys_file.
+
+       image_ext: The extension to use when looking for image files.
+
+       metadata_file: The name of the .xml file holding metadata.
+
+       stack_freq_file: The name of the file holding stack frequency information.
+
+       verbose: True if progress updates should be printed to screen.
+
+   Returns:
+       A Dataset object.  A DataSet object representing the experiment.  The data dictionary will have an
+       entry 'imgs'. This entry will contain a list of dictionaries.  Each dictionary will have a field 'file'
+       giving the file name of the image as a string. If ephys data was available, an entry 'ephys' will also
+       contain the ephys data.  The metadata for the experiment will have one entry 'imaging_metadata' with the
+       imaging metadata stored there.
+
+
+.. py:function:: read_ephys_data(ephys_file: pathlib.Path, var_name: str = 'frame_swim', verbose: bool = True) -> numpy.ndarray
+
+   Reads in electophysiological data for an Ahrens lab experiment.
+
+   Args:
+       ephys_file: The path to the .mat file holding the data
+
+       var_name: The name of the variable in the .mat file holding the
+       ephys_data
+
+   Returns:
+       A numpy.ndarray with the data
+
+
+.. py:function:: read_stack_freq(stack_freq_file: pathlib.Path) -> dict
+
+   Reads in stack frequency information from file.
+
+   Args:
+       stack_freq_file: The file with stack frequency information.
+
+   Returns:
+       A dictionary with the stack frequency information.
+
+
+.. py:function:: read_separated_exp(image_folders: list, image_labels: list, metadata_folder: pathlib.Path, ephys_folder: pathlib.Path = None, ephys_file: str = 'frame_swim.mat', ephys_var_name: str = 'frame_swim', image_ext: str = '.h5', metadata_file: str = 'ch0.xml', stack_freq_file: str = 'Stack_frequency.txt', verbose: bool = True) -> janelia_core.dataprocessing.dataset.DataSet
+
+   Reads in Ahrens lab experimental data after images have been split by color.
+
+   Args:
+       image_folders: List of folders holding split data (e.g., one folder for images of neurons and one for glia).
+
+       metadata_folder: Folder containing experiment metadata.
+
+       image_labels: List of string labels for each series of images in image_folder.
+
+       ephys_folder: The folder holding the ephys data.
+
+       ephys_file: The name of the file holding ephys data. If this is None, no ephys data will be loaded.
+
+       ephys_var_name: The variable name holding ephys data in ephys_file.
+
+       image_ext: The extension to use when looking for image files.
+
+       metadata_file: The name of the .xml file holding metadata.
+
+       stack_freq_file: The name of the file holding stack frequency information.
+
+       verbose: True if progress updates should be printed to screen.
+
+   Returns:
+       A Dataset object.  A DataSet object representing the experiment.  The data dictionary will have entries
+       containing the file names for the images for each color. If ephys data was available, an entry 'ephys' will also
+       contain the ephys data.  The metadata for the experiment will have an entry 'stack_freq_info' with the
+       information from the stack frequency file.
+
+
+.. py:function:: read_raw_ephys_data(in_file: str, num_channels: int = 10) -> numpy.ndarray
+
+   Reads in raw ephys data from an Ahrens lab experiment.
+
+   Raw files may end in .10chFlt.
+
+   This code is based on a similar function by Davis Bennett.
+
+   Args:
+       in_file: The file to open
+
+       num_channels: The number of channels in the file
+
+   Returns:
+       data: Raw data in a matrix of shape channels by time
+
+

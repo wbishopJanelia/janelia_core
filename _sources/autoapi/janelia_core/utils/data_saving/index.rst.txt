@@ -1,0 +1,87 @@
+:py:mod:`janelia_core.utils.data_saving`
+========================================
+
+.. py:module:: janelia_core.utils.data_saving
+
+.. autoapi-nested-parse::
+
+   Contains tools for saving research results.
+
+   The tools here enable results to be saved and archived for later retrieval.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.utils.data_saving.append_ts
+   janelia_core.utils.data_saving.save_structured_hdf5
+   janelia_core.utils.data_saving.load_structured_hdf5
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.utils.data_saving.HDF5_TYPES
+
+
+.. py:data:: HDF5_TYPES
+   
+
+   
+
+.. py:function:: append_ts(filename: str, no_underscores: bool = False) -> str
+
+   Appends a time stamp to a string.
+
+   The primary use case for this file is taking a file name and appending a time stamp to
+   it.  This is useful when multiple analyses are run and we want to save the results of
+   each with a unique name.
+
+   The time stamps will be of the format _<4 digit year>_<2 digit month>_<two digit day>_<2 digit military time hour>...
+                                           _<2 digit minute>_<2 digit second>_<0 padded microsecond>
+
+   Args:
+       filename: The filename to append to
+
+       no_underscores: If true, underscores in the date string above will be omitted.
+
+   Returns:
+       str: The filename with the time stamp appended.
+
+
+.. py:function:: save_structured_hdf5(o: Union[numpy.ndarray, list, dict], f: pathlib.Path, name: str, overwrite: bool = False)
+
+   Saves structured data to an hdf5 file.
+
+   Args:
+       o: The structured data to save, which can consist of nested dictionaries, lists and
+       numpy arrays containing numeric data.
+
+       f: A path to the file to save the data in.
+
+       name: The name to save the data under
+
+       overwrite: Overwrites existing file if it exists
+
+
+.. py:function:: load_structured_hdf5(f: pathlib.Path) -> dict
+
+   Loads data saved by save_structured_hdf5.
+
+   Args:
+       f: A path to the file with the saved data in it.
+
+   Returns:
+       d: A dictionary of loaded data.
+
+

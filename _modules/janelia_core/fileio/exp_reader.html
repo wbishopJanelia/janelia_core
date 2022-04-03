@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.fileio.exp_reader &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.fileio.exp_reader</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.fileio.exp_reader</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Tools for reading in experimental data from labs at Janelia.</span>
+
+<span class="sd"> William Bishop</span>
+<span class="sd"> bishopw@hhmi.org</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">pathlib</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">xml.etree</span> <span class="kn">import</span> <span class="n">ElementTree</span> <span class="k">as</span> <span class="n">ET</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">pyklb</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Unable to locate pyklb module.  Will not be able to read in .klb files.&#39;</span><span class="p">)</span>
+
+<span class="c1"># Regular expression to use for parsing sample numbers from image file names</span>
+<span class="n">IMG_SMP_NUM_FILE_NAME_REG_EXP</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;(.*)(TM)([0123456789]*)_&#39;</span>
+
+
+<div class="viewcode-block" id="find_images"><a class="viewcode-back" href="../../../autoapi/janelia_core/fileio/exp_reader/index.html#janelia_core.fileio.exp_reader.find_images">[docs]</a><span class="k">def</span> <span class="nf">find_images</span><span class="p">(</span><span class="n">image_folder</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">image_ext</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">image_folder_depth</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Locates image files, returning paths to files in a sorted list.</span>
+
+<span class="sd">    Image files are sorted by sample number.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_folder: The folder directly containing images or containing subfolders which contain the images.</span>
+
+<span class="sd">        image_ext: String to use when searching for files with the extension for image files.</span>
+
+<span class="sd">        image_folder_depth: The number of layers of subfolders under image_folder to look to find the image files. If</span>
+<span class="sd">        this is 0, then the images are directly under image_folder.</span>
+
+<span class="sd">        verbose: True if progress updates should be printed to screen</span>
+
+<span class="sd">    Returns: A list of image files as pathlib.Path objects.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Searching for image files...&#39;</span><span class="p">)</span>
+
+    <span class="n">image_glob_path</span> <span class="o">=</span> <span class="n">image_folder</span>
+    <span class="n">cur_depth</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">cur_depth</span> <span class="o">&lt;</span> <span class="n">image_folder_depth</span><span class="p">:</span>
+        <span class="n">image_glob_path</span> <span class="o">=</span> <span class="n">image_glob_path</span> <span class="o">/</span> <span class="s1">&#39;*&#39;</span>
+        <span class="n">cur_depth</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">image_glob_path</span> <span class="o">=</span> <span class="n">image_glob_path</span> <span class="o">/</span> <span class="p">(</span><span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="n">image_ext</span><span class="p">)</span>
+
+    <span class="n">img_files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">image_glob_path</span><span class="p">))</span>
+    <span class="n">n_img_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">img_files</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">n_img_files</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Unable to find any &#39;</span> <span class="o">+</span> <span class="n">image_ext</span> <span class="o">+</span> <span class="s1">&#39; files under &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">image_folder</span><span class="p">)))</span>
+
+    <span class="c1"># Make sure our image files are sorted</span>
+    <span class="n">files_as_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">img_files</span><span class="p">]</span>
+    <span class="n">smp_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">IMG_SMP_NUM_FILE_NAME_REG_EXP</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files_as_paths</span><span class="p">])</span>
+    <span class="n">sort_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">smp_inds</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Found &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_img_files</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; images.&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">files_as_paths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sort_order</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="read_imaging_metadata"><a class="viewcode-back" href="../../../autoapi/janelia_core/fileio/exp_reader/index.html#janelia_core.fileio.exp_reader.read_imaging_metadata">[docs]</a><span class="k">def</span> <span class="nf">read_imaging_metadata</span><span class="p">(</span><span class="n">metadata_file</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Function to read in imaging metadata stored in xml files as dictionaries.</span>
+
+<span class="sd">    This function does some very light processing of the data in the xml files.</span>
+
+<span class="sd">    Note: Imaging metadata is stored as attributes of XML elements.  The attribute names will</span>
+<span class="sd">    be the keys in the created dictionaries. Attribute names will be appended with &#39;_#&#39; when</span>
+<span class="sd">    needed to avoid duplicate keys in the dictionary.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        metadata_file: The xml file with metadata</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A dictionary of metadata.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        RuntimeError: If xml elements produce dictionaries which have more than one key (This function</span>
+<span class="sd">        currently only handles xml tags with single attributes.)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># First replace &#39;&amp;&#39; characters with &#39;and&#39; so xml will parse</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">metadata_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">xml_file</span><span class="p">:</span>
+        <span class="n">metadata_string</span> <span class="o">=</span> <span class="n">xml_file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&amp;&#39;</span><span class="p">,</span> <span class="s1">&#39; and &#39;</span><span class="p">)</span>
+
+    <span class="c1"># Read in xml data</span>
+    <span class="n">metadata_root</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">metadata_string</span><span class="p">)</span>
+
+    <span class="c1"># Now convert DOM tree to dictionary</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="c1"># See all the tags we have and create sub-dictionaries for each tag</span>
+    <span class="n">all_tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">tag</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">metadata_root</span><span class="p">]</span>
+    <span class="n">unique_tags</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">all_tags</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">unique_tags</span><span class="p">:</span>
+        <span class="n">metadata</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">metadata_root</span><span class="p">:</span>
+        <span class="n">element_tag</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">tag</span>
+        <span class="n">element_dict</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">attrib</span>
+        <span class="n">element_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">element_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">element_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Found xml element with multiple attributes.&#39;</span><span class="p">))</span>
+
+        <span class="c1"># If we haven&#39;t added an element to this tag dictionary with the same key</span>
+        <span class="c1"># before, we just use the original element_key (which is the attribute name</span>
+        <span class="c1"># in the xml).  If not, we add a number to the key to make it unique.</span>
+        <span class="n">new_element_key</span> <span class="o">=</span> <span class="n">element_key</span> <span class="o">=</span> <span class="n">element_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">tag_dict</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="n">element_tag</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">new_element_key</span> <span class="ow">in</span> <span class="n">tag_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="n">new_element_key</span> <span class="o">=</span> <span class="n">element_key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">while</span> <span class="n">new_element_key</span> <span class="ow">in</span> <span class="n">tag_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">new_element_key</span> <span class="o">=</span> <span class="n">element_key</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">tag_dict</span><span class="p">[</span><span class="n">new_element_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">element_dict</span><span class="p">[</span><span class="n">element_key</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">metadata</span></div>
+
+
+<div class="viewcode-block" id="read_img_file"><a class="viewcode-back" href="../../../autoapi/janelia_core/fileio/exp_reader/index.html#janelia_core.fileio.exp_reader.read_img_file">[docs]</a><span class="k">def</span> <span class="nf">read_img_file</span><span class="p">(</span><span class="n">f_name</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">img_slice</span><span class="p">:</span> <span class="nb">slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                  <span class="n">h5_data_group</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;default&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Returns a numpy array with data from one image file.</span>
+<span class="sd">    </span>
+<span class="sd">    The following file types are supported:</span>
+<span class="sd">        1) .klb</span>
+<span class="sd">        2) .h5</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        f_name: File name as pathlib.Path object</span>
+
+<span class="sd">        img_slice: The slice of the image that should be returned</span>
+
+<span class="sd">        h5_data_group: The group in a h5 file containing the image data (If reading in h5 files).</span>
+<span class="sd">        </span>
+<span class="sd">    Returns: </span>
+<span class="sd">        An numpy.ndarray object with the image data</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: If f_name is not a pathlib.Path object</span>
+<span class="sd">        ValueError: If f_name does not have a supported extension</span>
+<span class="sd">        NotImplementedError: If passing in a non-default slice object while reading a .klb file</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f_name</span><span class="p">,</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;f_name is not a pathlib.Path object.&#39;</span><span class="p">)</span>
+
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">f_name</span><span class="o">.</span><span class="n">suffix</span>
+    <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.klb&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">img_slice</span> <span class="o">!=</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Slicing while reading in .klb files is not currently supported.&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pyklb</span><span class="o">.</span><span class="n">readfull</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">f_name</span><span class="p">))</span>  <span class="c1"># pyklb requires string input</span>
+    <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.h5&#39;</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">f_name</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="p">[</span><span class="n">h5_data_group</span><span class="p">][</span><span class="n">img_slice</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;File is a &#39;</span> <span class="o">+</span> <span class="n">ext</span> <span class="o">+</span> <span class="s1">&#39; file, which is not currently supported.&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

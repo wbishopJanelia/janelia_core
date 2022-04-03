@@ -1,0 +1,68 @@
+:py:mod:`janelia_core.stats.multiple_comparisons`
+=================================================
+
+.. py:module:: janelia_core.stats.multiple_comparisons
+
+.. autoapi-nested-parse::
+
+   Tools for controlling for multiple comparisons.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.stats.multiple_comparisons.apply_by
+   janelia_core.stats.multiple_comparisons.apply_bonferroni
+
+
+
+.. py:function:: apply_by(p_vls: numpy.ndarray, alpha: float) -> Tuple[numpy.ndarray]
+
+   Applies the Benjamini-Yekutieli procedure to control the false discovery rate.
+
+   See the paper "The Control of the False Discovery Rate in Multiple Testing Under Dependency"
+   by Benjamini and Yekutieli for more details on the Benjamini-Yekutieli procedure.
+
+   See the paper "Resampling-based false discovery rate controlling multiple test procedures for correlated test
+   statistics" by Yekutieli and Benjamini for background on FDR adjusted p values.
+
+   Args:
+
+       p_vls: The p values for the null hypothesis to control.  Can be an array of any size.
+
+       alpha: The level to control the false discovery rate at.
+
+   Return:
+
+       reject_tests: A binary array.  True values correspond to entries in p_vls for null hypothesises that should be
+       rejected.
+
+       adjusted_p_vls: The array of FDR adjusted p-values.
+
+
+
+.. py:function:: apply_bonferroni(p_vls: numpy.ndarray, alpha: float) -> Tuple[numpy.ndarray]
+
+   Applies a Bonferroni correction to p values.
+
+   Args:
+
+       p_vls: An array of p values.  Can be any shape.
+
+       alpha: The level to test for significance at.  Between 0 and 1, inclusive.
+
+   Returns:
+
+       rejected_tests: A boolean array, the same shape as p_vls, indicating which null hypothesises should be rejected
+
+       adjusted_p_vls: Bonferoni adjusted p-values.
+
+
+

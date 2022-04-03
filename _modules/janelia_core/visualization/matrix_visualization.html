@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.visualization.matrix_visualization &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.visualization.matrix_visualization</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.visualization.matrix_visualization</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Tools for visualizing and comparing matrices.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="colorized_tbl"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/matrix_visualization/index.html#janelia_core.visualization.matrix_visualization.colorized_tbl">[docs]</a><span class="k">def</span> <span class="nf">colorized_tbl</span><span class="p">(</span><span class="n">tbl</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">dim_0_lbls</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">dim_1_lbls</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                  <span class="n">tbl_fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">tbl_values_x_offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">tbl_value_format_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{:.1e}</span><span class="s1">&#39;</span><span class="p">,</span>
+                  <span class="n">show_colorbar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">cmap</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">vmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                  <span class="n">vmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">label_fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">xtick_rotation</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+                  <span class="n">ytick_rotation</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Plots a table of values with colors corresponding to values in each table entry.</span>
+
+<span class="sd">    The &quot;tricky&quot; part of using this function is getting the values to have the right font size and be correctly</span>
+<span class="sd">    positioned in each cell of the table.  Values will always be vertically centered in each cell.  The user can</span>
+<span class="sd">    specify the font size to make sure all values fit withing a cell, and adjust the x offset of the values to</span>
+<span class="sd">    make sure the left/right justification looks correct as well.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tbl: The table of values to plot.</span>
+
+<span class="sd">        dim_0_lbls: Labels for dimension 0 of the table</span>
+
+<span class="sd">        dim_1_lbls: Labels for dimension 1 of the table</span>
+
+<span class="sd">        tbl_fontsize: Fontsize in points for the table values</span>
+
+<span class="sd">        tbl_values_x_offset: The offset (between 0 and 1) in the x position of table values we plot in each cell.</span>
+<span class="sd">        A value of 0 corresponds to left justified text.</span>
+
+<span class="sd">        tbl_value_format_str: The string to use to format values in the table</span>
+
+<span class="sd">        show_colorbar: True if a colorbar should be shown.</span>
+
+<span class="sd">        cmap: The colormap to use when mapping colors to values.</span>
+
+<span class="sd">        vmin: The lower value that the colormap should satureate at.  If None, will be set from data.</span>
+
+<span class="sd">        vmax: The upper value that the colormap should saturate at.  If None, will be set from data.</span>
+
+<span class="sd">        ax: Axes to plot the table in.  If None, a new figure and axes will be created.</span>
+
+<span class="sd">        label_fontsize: Fontsize in points for axes labels and the optional colorbar</span>
+
+<span class="sd">        xtick_rotation: The rotation of x labels</span>
+
+<span class="sd">        ytick_rotation: The rotation of y labels</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">tbl</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
+
+    <span class="n">n_rows</span><span class="p">,</span> <span class="n">n_cols</span> <span class="o">=</span> <span class="n">tbl</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="c1"># Show the colorbar if we are suppose to</span>
+    <span class="k">if</span> <span class="n">show_colorbar</span><span class="p">:</span>
+        <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">im</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="n">label_fontsize</span><span class="p">)</span>
+
+    <span class="c1"># Setup the x and y labels</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_cols</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">label_fontsize</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="n">xtick_rotation</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_rows</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">label_fontsize</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="n">ytick_rotation</span><span class="p">)</span>
+
+    <span class="c1"># Provide labels if we are suppose to</span>
+    <span class="k">if</span> <span class="n">dim_0_lbls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_cols</span><span class="p">),</span> <span class="n">dim_0_lbls</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dim_1_lbls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_rows</span><span class="p">),</span> <span class="n">dim_1_lbls</span><span class="p">)</span>
+
+    <span class="c1"># Plot table values - here we center the values vertically in each row</span>
+    <span class="n">y_1</span><span class="p">,</span> <span class="n">y_2</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_window_extent</span><span class="p">()</span><span class="o">.</span><span class="n">get_points</span><span class="p">()[:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">points_per_row</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_2</span> <span class="o">-</span> <span class="n">y_1</span><span class="p">)</span><span class="o">/</span><span class="n">n_rows</span>
+    <span class="n">y_offset_points</span> <span class="o">=</span> <span class="n">tbl_fontsize</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">y_offset_units</span> <span class="o">=</span> <span class="n">y_offset_points</span><span class="o">/</span><span class="n">points_per_row</span>
+
+    <span class="k">for</span> <span class="n">i_0</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tbl</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">i_1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tbl</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">tbl_value_format_str</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tbl</span><span class="p">[</span><span class="n">i_0</span><span class="p">,</span> <span class="n">i_1</span><span class="p">]),</span> <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="n">i_1</span><span class="o">-.</span><span class="mi">5</span> <span class="o">+</span> <span class="n">tbl_values_x_offset</span><span class="p">,</span>
+                        <span class="n">i_0</span> <span class="o">+</span> <span class="n">y_offset_units</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">tbl_fontsize</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="cmp_n_mats"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/matrix_visualization/index.html#janelia_core.visualization.matrix_visualization.cmp_n_mats">[docs]</a><span class="k">def</span> <span class="nf">cmp_n_mats</span><span class="p">(</span><span class="n">mats</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">clim</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">show_colorbars</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">titles</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="n">grid_info</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">subplots</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Produces a figuring comparing matrices.</span>
+
+<span class="sd">    Each matrix will be plotted in a separate axes, and all axes will use the same color scaling.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mats: A list of matrices to compare.</span>
+
+<span class="sd">        clim: An list of length 2 of color limits to apply to all images.  If None is provided, will be set to</span>
+<span class="sd">        [min_v, max_v] where min_v and max_v are the min and max values in all of the matrices</span>
+
+<span class="sd">        show_colorbars: True if colorbars should be shown next to each plot</span>
+
+<span class="sd">        titles: A list of tiles for each matrix in mats.  If None, no titles will be generated</span>
+
+<span class="sd">        grid_info: A dictionary with information about how to layout the matrices in a grid.  It should have the entries:</span>
+
+<span class="sd">           grid_spec: The matplotlib.gridspec.GridSpec to use for the grid</span>
+
+<span class="sd">           cell_info: A list the same length as mats.  cell_info[i] contains:</span>
+
+<span class="sd">               loc: The location for the subplot for the i^th matrix</span>
+
+<span class="sd">               rowspan: The row span for the i^th matrix</span>
+
+<span class="sd">               colspan: The column span for the i^th matrix</span>
+
+<span class="sd">            If grid_info is None, one will be created for showing the matrices next to each other in a row.</span>
+
+<span class="sd">        cmap: The colormap to use.  Can either be a string or Colormap instance.</span>
+
+<span class="sd">        subplots: a list of subplot objects to plot into.  If used, grid_info is ignored</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        subplots: List of subplot objects for each subplot showing the matrices in mats.  Subplots are ordered according</span>
+<span class="sd">        to mats.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">n_mats</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mats</span><span class="p">)</span>
+
+    <span class="n">use_existing_subplots</span> <span class="o">=</span> <span class="n">subplots</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="c1"># Generate color limits if not provided</span>
+    <span class="k">if</span> <span class="n">clim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">min_vl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mats</span><span class="p">])</span>
+        <span class="n">max_vl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mats</span><span class="p">])</span>
+        <span class="n">clim</span> <span class="o">=</span> <span class="p">[</span><span class="n">min_vl</span><span class="p">,</span> <span class="n">max_vl</span><span class="p">]</span>
+
+    <span class="c1"># Generate default grid info if not provided</span>
+    <span class="k">if</span> <span class="n">grid_info</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">grid_spec</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">gridspec</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_mats</span><span class="p">)</span>
+        <span class="n">grid_info</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;grid_spec&#39;</span><span class="p">:</span> <span class="n">grid_spec</span><span class="p">}</span>
+
+        <span class="n">cell_info</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">n_mats</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_mats</span><span class="p">):</span>
+            <span class="n">cell_info</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;loc&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="s1">&#39;rowspan&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;colspan&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="n">grid_info</span><span class="p">[</span><span class="s1">&#39;cell_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_info</span>
+
+    <span class="n">grid_spec</span> <span class="o">=</span> <span class="n">grid_info</span><span class="p">[</span><span class="s1">&#39;grid_spec&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Generate plots</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">use_existing_subplots</span><span class="p">:</span>
+        <span class="n">subplots</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">n_mats</span>
+    <span class="n">img_plots</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">n_mats</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mats</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">use_existing_subplots</span><span class="p">:</span>
+            <span class="n">subplot</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">grid_spec</span><span class="o">.</span><span class="n">new_subplotspec</span><span class="p">(</span><span class="o">**</span><span class="n">grid_info</span><span class="p">[</span><span class="s1">&#39;cell_info&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">subplot</span> <span class="o">=</span> <span class="n">subplots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="n">img_plots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">subplot</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+
+        <span class="n">subplot</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">show_colorbars</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">img_plots</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">ax</span><span class="o">=</span><span class="n">subplot</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">titles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">subplot</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">titles</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="n">subplots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">subplot</span>
+
+    <span class="c1"># Make sure all plots are using the same color scaling</span>
+    <span class="k">for</span> <span class="n">i_p</span> <span class="ow">in</span> <span class="n">img_plots</span><span class="p">:</span>
+        <span class="n">i_p</span><span class="o">.</span><span class="n">set_clim</span><span class="p">(</span><span class="n">clim</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">subplots</span></div>
+
+
+
+
+
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+:py:mod:`janelia_core.utils.memory_management`
+==============================================
+
+.. py:module:: janelia_core.utils.memory_management
+
+.. autoapi-nested-parse::
+
+   Contains tools for working with memory.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.utils.memory_management.get_current_memory_usage
+
+
+
+.. py:function:: get_current_memory_usage() -> float
+
+   Returns the memory used by the process this function is called from.
+
+   Returns:
+       mem: Memory used in gigabytes
+
+

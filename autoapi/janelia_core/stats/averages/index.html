@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.stats.averages &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.stats.averages</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/stats/averages/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.stats.averages">
+<span id="janelia-core-stats-averages"></span><h1><a class="reference internal" href="#module-janelia_core.stats.averages" title="janelia_core.stats.averages"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.stats.averages</span></code></a><a class="headerlink" href="#module-janelia_core.stats.averages" title="Permalink to this headline"></a></h1>
+<p>Tools for taking different types of averages of data.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.stats.averages.aligned_mean" title="janelia_core.stats.averages.aligned_mean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aligned_mean</span></code></a>(vls: Sequence, align_inds: Sequence[int]) → Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, int]</p></td>
+<td><p>Aligns time-series data and computes means and standard-errors across time.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="janelia_core.stats.averages.aligned_mean">
+<code class="sig-prename descclassname">janelia_core.stats.averages.</code><code class="sig-name descname">aligned_mean</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vls</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">align_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>numpy.ndarray<span class="p">, </span>numpy.ndarray<span class="p">, </span>numpy.ndarray<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span><a class="reference internal" href="../../../../_modules/janelia_core/stats/averages.html#aligned_mean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.stats.averages.aligned_mean" title="Permalink to this definition"></a></dt>
+<dd><p>Aligns time-series data and computes means and standard-errors across time.</p>
+<dl>
+<dt>Args:</dt><dd><p>vls: vls[i] is the i^th time series of shape [n_smps, n_dims]</p>
+<p>align_inds: align_inds[i] is the index that the data in vls[i] should be aligned to</p>
+</dd>
+<dt>Returns:</dt><dd><p>mn: The mean values through time of shape [n_tm_pts, n_dims], where n_tm_pts is the number of
+time points covered by all of the aligned data</p>
+<p>std_ers: The standard errors through time of shape [n_tm_pts, n_dims].  If there was only one
+point to calculate the mean at a given point, then the standard error for that point will be nan.</p>
+<p>n_smps: An array of length n_tm_pts. n_smps[t] gives the number of samples that were available
+for computing the mean and standard errors at time point t in mn and std_ers</p>
+<p>ref_aling_ind: The index in the returned mn and std_ers that all time series were aligned to</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If each entry in vls is not a 2-d array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.dataprocessing.baseline &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.dataprocessing.baseline</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.dataprocessing.baseline</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Tools for calculating baseline values for fluorescence data.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.ndimage.filters</span> <span class="kn">import</span> <span class="n">percentile_filter</span>
+
+<span class="kn">from</span> <span class="nn">janelia_core.stats.histogram</span> <span class="kn">import</span> <span class="n">HistogramFilter</span>
+
+
+<div class="viewcode-block" id="percentile_filter_1d"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/baseline/index.html#janelia_core.dataprocessing.baseline.percentile_filter_1d">[docs]</a><span class="k">def</span> <span class="nf">percentile_filter_1d</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">window_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">filter_start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">write_offset</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                         <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">n_hist_bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot; Performs percentile filtering for a single variable.</span>
+
+<span class="sd">    This function uses a moving window to calculate percentiles.  The window is determined by two parameters:</span>
+<span class="sd">    window_length and filter_start. Window_length is the number of data points in the window.</span>
+
+<span class="sd">    The location in the data where filtering is started is determined by filter_start, which gives the</span>
+<span class="sd">    index of the first value of data that should be in the window.  Negative filter_starts are acceptable</span>
+<span class="sd">    to indicate a window which begins only partially overlapping the data.</span>
+
+<span class="sd">    Finally, write_offset is the offset between the first sample in the window and the sample in the</span>
+<span class="sd">    output the filtered value should be assigned to.</span>
+
+<span class="sd">    Note that windows at the beginning and end of the data may only partially overlap the data.  In these</span>
+<span class="sd">    cases, only values in the window will be used for calculating percentiles.</span>
+
+<span class="sd">    Here are some examples.  To perform standard, acausal filtering with a window of size 101 set:</span>
+
+<span class="sd">        window_length = 101</span>
+
+<span class="sd">        filter_start = -50</span>
+
+<span class="sd">        write_offset = 50</span>
+
+<span class="sd">    To perform standard, causal filtering with a window of size 101 set:</span>
+
+<span class="sd">        window_length = 101</span>
+
+<span class="sd">        filter_start: 0</span>
+
+<span class="sd">        write_offset = 100</span>
+
+<span class="sd">    Diagram of window placement and parameters::</span>
+
+<span class="sd">             Location of first window for filtering:</span>
+
+<span class="sd">                        |--------------------|: Window length</span>
+<span class="sd">                     t=0</span>
+<span class="sd">                     |</span>
+<span class="sd">               Data: XXX|XXXXXXXXXXXXXXXXXXXX|XXXX</span>
+<span class="sd">                        ^                    ^</span>
+<span class="sd">                        |                    |</span>
+<span class="sd">                        filter start         window end</span>
+
+<span class="sd">     Filtered Data:    |----------|: Write offset</span>
+<span class="sd">                    YYY|YYYYYYYYYYYYYYYYYYYY|YYYY</span>
+<span class="sd">                                  ^</span>
+<span class="sd">                                  |</span>
+<span class="sd">                      filtered value written here</span>
+
+
+<span class="sd">    Args:</span>
+
+<span class="sd">        data: an array of data.</span>
+
+<span class="sd">        window_length: The length of samples in a window</span>
+
+<span class="sd">        filter_start: The index into the data for the start of the first window.  Negative values indicate</span>
+<span class="sd">        the first window only partially overlaps the data.</span>
+
+<span class="sd">        write_offset: The offset between the first entry in a window and the sample in the output the filtered</span>
+<span class="sd">        value is written to.</span>
+
+<span class="sd">        p: The percentile to use in the baseline calculations.</span>
+
+<span class="sd">        n_hist_bins: Percentiles are calculated using a histogram binning technique to improve computational</span>
+<span class="sd">        efficiency.  This is the number of bins to use in the histogram between the min and max value in the data.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        y: The filtered data.  The same shape as one time point of data. Any points for which a percentile was not</span>
+<span class="sd">        calculated will be nan.</span>
+
+<span class="sd">    Raises:</span>
+
+<span class="sd">        RuntimeError: If data with more than 2 dimensions is given as input data</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">n_data_pts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="n">min_vl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">max_vl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="c1"># Determine which values are in the first window</span>
+    <span class="n">first_window_last_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">filter_start</span><span class="o">+</span><span class="n">window_length</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_data_pts</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">first_window_last_ind</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;First window falls before the data.&#39;</span><span class="p">))</span>
+
+    <span class="n">first_window_inds</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">filter_start</span><span class="p">]),</span> <span class="n">first_window_last_ind</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Determine how many times we need to advance the window</span>
+    <span class="n">write_ind</span> <span class="o">=</span> <span class="n">filter_start</span> <span class="o">+</span> <span class="n">write_offset</span>
+    <span class="k">if</span> <span class="n">write_ind</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;First filtered output falls before the data.&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">write_ind</span> <span class="o">&gt;=</span> <span class="n">n_data_pts</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;First filtered output falls after the data.&#39;</span><span class="p">))</span>
+
+    <span class="n">n_steps</span> <span class="o">=</span> <span class="n">n_data_pts</span> <span class="o">-</span> <span class="n">write_ind</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="c1"># Create the histogram filter and preallocate output</span>
+    <span class="n">buffer</span> <span class="o">=</span> <span class="n">HistogramFilter</span><span class="p">(</span><span class="n">min_vl</span><span class="p">,</span> <span class="n">max_vl</span> <span class="o">+</span> <span class="o">.</span><span class="mi">000001</span><span class="p">,</span> <span class="n">n_hist_bins</span><span class="p">)</span>
+
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n_data_pts</span><span class="p">)</span>
+    <span class="n">y</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="c1"># Load values in the first window into the buffer</span>
+    <span class="n">buffer</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">first_window_inds</span><span class="p">])</span>
+    <span class="n">buffer_bin_edges</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">get_bin_starting_edges</span><span class="p">()</span>
+
+    <span class="c1"># Produce first filtered output</span>
+    <span class="n">y</span><span class="p">[</span><span class="n">write_ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">buffer_bin_edges</span><span class="p">[</span><span class="n">buffer</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span>
+
+    <span class="c1"># Increment window and filter to completion</span>
+    <span class="n">prev_filter_start</span> <span class="o">=</span> <span class="n">filter_start</span>
+    <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_steps</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">prev_filter_start</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">buffer</span><span class="o">.</span><span class="n">remove_value</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">prev_filter_start</span><span class="p">])</span>
+
+        <span class="c1"># Increment start and end indices of the window and the write index</span>
+        <span class="n">write_ind</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">cur_filter_start</span> <span class="o">=</span> <span class="n">prev_filter_start</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">cur_filter_end</span> <span class="o">=</span> <span class="n">cur_filter_start</span> <span class="o">+</span> <span class="n">window_length</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">cur_filter_end</span> <span class="o">&lt;</span> <span class="n">n_data_pts</span><span class="p">:</span>
+            <span class="n">buffer</span><span class="o">.</span><span class="n">add_value</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">cur_filter_end</span><span class="p">])</span>
+
+        <span class="c1"># Filter</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">write_ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">buffer_bin_edges</span><span class="p">[</span><span class="n">buffer</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span>
+
+        <span class="n">prev_filter_start</span> <span class="o">=</span> <span class="n">cur_filter_start</span>
+
+    <span class="k">return</span> <span class="n">y</span></div>
+
+
+<div class="viewcode-block" id="percentile_filter_multi_d"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/baseline/index.html#janelia_core.dataprocessing.baseline.percentile_filter_multi_d">[docs]</a><span class="k">def</span> <span class="nf">percentile_filter_multi_d</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">window_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">filter_start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">write_offset</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                                  <span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_processes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot; Calculates baselines independently for each variable in the data across time.</span>
+
+<span class="sd">    This function is a wrapper around percentile_filter_1d.  It adds the ability to filter in parellel on</span>
+<span class="sd">    machines with multiple cores and to filter a restricted set of variabels in a volume, indicated by a mask.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data: an array of data.  First dimension is time.</span>
+
+<span class="sd">        window_length, filter_start, write_offset, p: See percentile_filter</span>
+
+<span class="sd">        mask: A boolean array the size of one time point of data.  Entries with a value of 1 indicate percentiles for</span>
+<span class="sd">        that variable should be calculated.  If None, percentiles for all variables will be calculated.</span>
+
+<span class="sd">        n_processes: The number of processes to use when calculating baselines.  When calculating baselines for many</span>
+<span class="sd">        variables on machines with multiple cores, setting this greater than 1 can improve computation time.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        y: The filtered data.  The same shape as one time point of data.  If a mask was used so percentiles were not</span>
+<span class="sd">        calculated for some variables, the percentiles for these variables will be nan.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        RuntimeError: If data with more than 2 dimensions is given as input data</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">n_tm_pts</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">one_tm_point_shape</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">n_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">one_tm_point_shape</span><span class="p">)</span>
+
+    <span class="c1"># Reshape array - we will need this when putting filtered data back into array</span>
+    <span class="n">reshape_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_dims</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+    <span class="n">reshape_array</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_tm_pts</span>
+
+    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">one_tm_point_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+
+    <span class="c1"># Get coordinates for each point we need to calculate percentiles for</span>
+    <span class="n">one_tm_point_inds</span> <span class="o">=</span> <span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">one_tm_point_shape</span><span class="p">]</span>
+    <span class="n">all_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mgrid</span><span class="p">[</span><span class="n">one_tm_point_inds</span><span class="p">]</span>
+    <span class="n">all_coords</span> <span class="o">=</span> <span class="p">[</span><span class="n">coords</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="k">for</span> <span class="n">coords</span> <span class="ow">in</span> <span class="n">all_coords</span><span class="p">]</span>
+
+    <span class="n">n_vls</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">all_coords</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">all_coords</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="n">v</span><span class="p">],</span> <span class="n">all_coords</span><span class="p">[</span><span class="n">d</span><span class="p">][</span><span class="n">v</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_dims</span><span class="p">))</span>
+                  <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_vls</span><span class="p">)]</span>
+    <span class="n">all_coords</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),)</span> <span class="o">+</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">all_coords</span><span class="p">]</span>
+
+    <span class="c1"># Break up data for processing</span>
+    <span class="n">p_data</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="s1">&#39;window_length&#39;</span><span class="p">:</span> <span class="n">window_length</span><span class="p">,</span> <span class="s1">&#39;filter_start&#39;</span><span class="p">:</span> <span class="n">filter_start</span><span class="p">,</span>
+               <span class="s1">&#39;write_offset&#39;</span><span class="p">:</span> <span class="n">write_offset</span><span class="p">,</span> <span class="s1">&#39;p&#39;</span><span class="p">:</span> <span class="n">p</span><span class="p">}</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">all_coords</span><span class="p">]</span>
+
+    <span class="c1"># Do processing</span>
+    <span class="k">if</span> <span class="n">n_processes</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">p_rs</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">_percentile_filter_arg_unpack</span><span class="p">,</span> <span class="n">p_data</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">n_processes</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+            <span class="n">p_rs</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_percentile_filter_arg_unpack</span><span class="p">,</span> <span class="n">p_data</span><span class="p">)</span>
+
+    <span class="n">percentiles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">percentiles</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">p_c</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">all_coords</span><span class="p">,</span> <span class="n">p_rs</span><span class="p">):</span>
+        <span class="n">percentiles</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">p_c</span><span class="p">,</span> <span class="n">reshape_array</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">percentiles</span></div>
+
+
+<span class="c1"># Helper function</span>
+<div class="viewcode-block" id="_percentile_filter_arg_unpack"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/baseline/index.html#janelia_core.dataprocessing.baseline._percentile_filter_arg_unpack">[docs]</a><span class="k">def</span> <span class="nf">_percentile_filter_arg_unpack</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">percentile_filter_1d</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="calculate_causal_percentile_baseline"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/baseline/index.html#janelia_core.dataprocessing.baseline.calculate_causal_percentile_baseline">[docs]</a><span class="k">def</span> <span class="nf">calculate_causal_percentile_baseline</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">window_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                                         <span class="n">n_hist_bins</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Calculates percentile based baseline in causal manner for one variable.</span>
+
+<span class="sd">    The value baseline[i] is calculated as the p-th percentile in the window data[i-window_size+1:i+1].</span>
+
+<span class="sd">    Values of baseline[0:window_size] = NAN.</span>
+
+<span class="sd">    If data is all a constant value, the non-NAN values in the returned baseline will be that constant value.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data: a 1-d array of data</span>
+
+<span class="sd">        window_size: The size of the window to use (units are number of samples)</span>
+
+<span class="sd">        p: The percentile to use in the baseline calculations.  Must be in the range [0, 1)</span>
+
+<span class="sd">        n_hist_bins: The number of bins to use when calculating histograms for the baseline calculations.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        baseline - an array the same shape as data giving the calculated baseline value at each point.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">n_data_pts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="n">min_vl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">max_vl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">max_vl</span> <span class="o">&gt;</span> <span class="n">min_vl</span><span class="p">:</span>
+        <span class="n">buffer</span> <span class="o">=</span> <span class="n">HistogramFilter</span><span class="p">(</span><span class="n">min_vl</span><span class="p">,</span> <span class="n">max_vl</span> <span class="o">+</span> <span class="o">.</span><span class="mi">000001</span><span class="p">,</span> <span class="n">n_hist_bins</span><span class="p">)</span>
+        <span class="n">buffer</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">window_size</span><span class="p">])</span>
+        <span class="n">leading_edges</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">get_bin_starting_edges</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">pt_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">window_size</span><span class="p">,</span> <span class="n">n_data_pts</span><span class="p">):</span>
+            <span class="n">add_idx</span> <span class="o">=</span> <span class="n">pt_idx</span>
+            <span class="n">remove_idx</span> <span class="o">=</span> <span class="n">pt_idx</span> <span class="o">-</span> <span class="n">window_size</span>
+            <span class="n">buffer</span><span class="o">.</span><span class="n">add_value</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">add_idx</span><span class="p">])</span>
+            <span class="n">buffer</span><span class="o">.</span><span class="n">remove_value</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">remove_idx</span><span class="p">])</span>
+            <span class="n">baseline</span><span class="p">[</span><span class="n">add_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">leading_edges</span><span class="p">[</span><span class="n">buffer</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">baseline</span><span class="p">[</span><span class="n">window_size</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">min_vl</span>
+
+    <span class="k">return</span> <span class="n">baseline</span></div>
+
+
+<div class="viewcode-block" id="calculate_causal_percentile_baselines"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/baseline/index.html#janelia_core.dataprocessing.baseline.calculate_causal_percentile_baselines">[docs]</a><span class="k">def</span> <span class="nf">calculate_causal_percentile_baselines</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">window_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                                          <span class="n">n_hist_bins</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>  <span class="n">n_processes</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; A wrapper function for calculating baseline values for multiple variables in parallel.</span>
+
+<span class="sd">    This function wraps around calculate_causal_percentile_baseline, allowing a user to use multiple</span>
+<span class="sd">    cores to calculate baselines in parallel.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data: An array or size time * (data_shape) with data to calculate baselines for.  Here data_shape is the shape</span>
+<span class="sd">        of the data at each point in time.</span>
+
+<span class="sd">        window_size: See calculate_causal_percentile_baseline()</span>
+
+<span class="sd">        p: See calculate_causal_percentile_baseline()</span>
+
+<span class="sd">        n_hist_bins: See calculate_causal_percentile_baseline()</span>
+
+<span class="sd">        n_processes: The number of processes to use.  If none, this will be set to the number of processors on the</span>
+<span class="sd">        machine.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        baselines - The baselines for the variables.  Will be the same shape as data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">n_processes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">n_processes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;NUMBER_OF_PROCESSORS&#39;</span><span class="p">])</span>
+
+    <span class="c1"># Reshape if needed</span>
+    <span class="n">orig_shape</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">n_time_pts</span> <span class="o">=</span> <span class="n">orig_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">n_vars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">orig_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="n">reshaped_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">[</span><span class="n">n_time_pts</span><span class="p">,</span> <span class="n">n_vars</span><span class="p">],</span> <span class="s1">&#39;C&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Calculate baselines</span>
+    <span class="n">var_data</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">([</span><span class="n">reshaped_data</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">],</span> <span class="n">window_size</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">n_hist_bins</span><span class="p">])</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">reshaped_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+    <span class="k">with</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">n_processes</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+        <span class="n">baselines</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">calculate_causal_percentile_baseline</span><span class="p">,</span> <span class="n">var_data</span><span class="p">)</span>
+    <span class="n">baselines</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">baselines</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="c1"># Reshape back to original shape</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">baselines</span><span class="p">,</span> <span class="n">orig_shape</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">)</span></div>
+
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

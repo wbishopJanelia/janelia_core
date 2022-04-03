@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.extra_torch_functions &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.ml.extra_torch_functions</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.ml.extra_torch_functions</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Contains custom PyTorch functions. &quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="c1"># Define constants</span>
+<span class="n">LOG_2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">2.0</span><span class="p">))</span>
+<span class="sd">&quot;&quot;&quot; The value log(2) as a torch tensor. &quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="knn_do"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_functions/index.html#janelia_core.ml.extra_torch_functions.knn_do">[docs]</a><span class="k">def</span> <span class="nf">knn_do</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">ctrs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_ctrs_used</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Searches for the k nearest centers to each point in a set of data, applying dropout to centers.</span>
+
+<span class="sd">    This function wraps around knn_mc, applying dropout to the centers.  By this, we mean that the function</span>
+<span class="sd">    will first randomly select n_ctrs_used centers to use, and then it will only look for nearest neighbors</span>
+<span class="sd">    among these centers.  Setting n_ctrs_used to the total number of centers results in no dropout.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x: The set of data.  We return centers closest to each point in x.  Of shape n_smps*d</span>
+
+<span class="sd">        ctrs: The centers to search among.  Of shape n_ctrs*d</span>
+
+<span class="sd">        k: The number of nearest neighbors to search for.</span>
+
+<span class="sd">        m: The number of centers to process at a time in the call to knn_mc.  Larger values of m will enable faster</span>
+<span class="sd">        computation on GPU but use more memory.</span>
+
+<span class="sd">        n_ctrs_used: The number of centers to randomly select.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        indices: The indices of the nearest centers for each data point. indices[:,i] are the indices for x[i,:]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">m</span> <span class="o">&gt;</span> <span class="n">n_ctrs_used</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">n_ctrs_used</span>
+
+    <span class="n">n_ctrs</span> <span class="o">=</span> <span class="n">ctrs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">n_ctrs_used</span> <span class="o">&gt;</span> <span class="n">n_ctrs</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;n_ctrs_used is greater than number of centers provided.&#39;</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">n_ctrs_used</span> <span class="o">==</span> <span class="n">n_ctrs</span><span class="p">:</span>
+        <span class="c1"># If we are not using dropout, call knn_mc directly</span>
+        <span class="k">return</span> <span class="n">knn_mc</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">ctrs</span><span class="o">=</span><span class="n">ctrs</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="n">m</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">select_inds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randperm</span><span class="p">(</span><span class="n">n_ctrs</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">select_inds</span> <span class="o">=</span> <span class="n">select_inds</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">n_ctrs_used</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">select_inds</span><span class="p">[</span><span class="n">knn_mc</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">ctrs</span><span class="o">=</span><span class="n">ctrs</span><span class="p">[</span><span class="n">select_inds</span><span class="p">,</span> <span class="p">:],</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="n">m</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="knn_mc"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_functions/index.html#janelia_core.ml.extra_torch_functions.knn_mc">[docs]</a><span class="k">def</span> <span class="nf">knn_mc</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">ctrs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Memory constrained version of knn function.</span>
+
+<span class="sd">    In this implementation we search for the k nearest centers to each point in a set of data.</span>
+
+<span class="sd">    We say it is memory constrained because we can limit the number of centers we search among at a time.  By</span>
+<span class="sd">    looping through centers in blocks, we can limit the amount of memory used.  Specifically, for any given block, we</span>
+<span class="sd">    use broadcasting to enable fast calculations, which uses O(n_ctrs*n_data_points) amount of memory, so by limiting</span>
+<span class="sd">    the number of centers we search through at once, we can limit memory usage.  A post-processing step at the end</span>
+<span class="sd">    of each loop keeps track of the k-nearest centers seen up until that point in time to each data point.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x: The set of data.  We return centers closest to each point in x.  Of shape n_smps*d</span>
+
+<span class="sd">        ctrs: The centers to search among.  Of shape n_ctrs*d</span>
+
+<span class="sd">        k: The number of nearest neighbors to search for.</span>
+
+<span class="sd">        m: The number of centers to process at a time.  Larger values of m will enable faster computation on GPU but use</span>
+<span class="sd">        more memory.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        indices: The indices of the nearest centers for each data point. indices[:,i] are the indices for x[i,:]</span>
+
+<span class="sd">    Raise:</span>
+<span class="sd">        ValueError: If k is greater than the number of centers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">n_ctrs</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">ctrs</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;</span> <span class="n">n_ctrs</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;k must be less than or equal to the number of centers.&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Determine how many blocks we search for nearest centers over</span>
+    <span class="n">n_blocks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_ctrs</span><span class="o">/</span><span class="n">m</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n_ctrs</span> <span class="o">%</span> <span class="n">m</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">n_blocks</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># Find k-nearest neighbors in a block by block manner</span>
+    <span class="k">for</span> <span class="n">b_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">):</span>
+        <span class="n">start_ind</span> <span class="o">=</span> <span class="n">b_i</span><span class="o">*</span><span class="n">m</span>
+        <span class="n">stop_ind</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">start_ind</span> <span class="o">+</span> <span class="n">m</span><span class="p">,</span> <span class="n">n_ctrs</span><span class="p">)</span>
+        <span class="n">cur_ctrs</span> <span class="o">=</span> <span class="n">ctrs</span><span class="p">[</span><span class="n">start_ind</span><span class="p">:</span><span class="n">stop_ind</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">n_cur_ctrs</span> <span class="o">=</span> <span class="n">cur_ctrs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Find nearest neighbors for this block</span>
+        <span class="n">diffs</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">cur_ctrs</span><span class="p">,</span> <span class="p">[</span><span class="n">n_cur_ctrs</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">d</span><span class="p">])</span>
+        <span class="n">sq_distances</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">diffs</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">cur_k</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">n_cur_ctrs</span><span class="p">)</span>
+        <span class="n">top_k</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">sq_distances</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">cur_k</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">largest</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Compare nearest neighbors for this block to those we find before</span>
+        <span class="k">if</span> <span class="n">b_i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="n">top_k</span><span class="o">.</span><span class="n">indices</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">top_k</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">two_step_indices</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">indices</span><span class="p">,</span> <span class="n">top_k</span><span class="o">.</span><span class="n">indices</span> <span class="o">+</span> <span class="n">start_ind</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">two_step_values</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">values</span><span class="p">,</span> <span class="n">top_k</span><span class="o">.</span><span class="n">values</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="n">cur_two_step_k</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">two_step_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">two_step_top_k</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">two_step_values</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">cur_two_step_k</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">largest</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="n">indices</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">two_step_indices</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">two_step_top_k</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">two_step_values</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">two_step_top_k</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">indices</span></div>
+
+
+<div class="viewcode-block" id="log_cosh"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_functions/index.html#janelia_core.ml.extra_torch_functions.log_cosh">[docs]</a><span class="k">def</span> <span class="nf">log_cosh</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Computes log cosh(x) in a numerically stable way.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x: Input values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        y: Output values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">abs_x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">LOG_2</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">abs_x</span><span class="p">))</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

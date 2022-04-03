@@ -1,0 +1,109 @@
+:py:mod:`janelia_core.fileio.exp_reader`
+========================================
+
+.. py:module:: janelia_core.fileio.exp_reader
+
+.. autoapi-nested-parse::
+
+   Tools for reading in experimental data from labs at Janelia.
+
+   William Bishop
+   bishopw@hhmi.org
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.fileio.exp_reader.find_images
+   janelia_core.fileio.exp_reader.read_imaging_metadata
+   janelia_core.fileio.exp_reader.read_img_file
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.fileio.exp_reader.IMG_SMP_NUM_FILE_NAME_REG_EXP
+
+
+.. py:data:: IMG_SMP_NUM_FILE_NAME_REG_EXP
+   :annotation: = (.*)(TM)([0123456789]*)_
+
+   
+
+.. py:function:: find_images(image_folder: pathlib.Path, image_ext: str, image_folder_depth: int = 0, verbose=True) -> list
+
+   Locates image files, returning paths to files in a sorted list.
+
+   Image files are sorted by sample number.
+
+   Args:
+       image_folder: The folder directly containing images or containing subfolders which contain the images.
+
+       image_ext: String to use when searching for files with the extension for image files.
+
+       image_folder_depth: The number of layers of subfolders under image_folder to look to find the image files. If
+       this is 0, then the images are directly under image_folder.
+
+       verbose: True if progress updates should be printed to screen
+
+   Returns: A list of image files as pathlib.Path objects.
+
+
+
+.. py:function:: read_imaging_metadata(metadata_file: pathlib.Path) -> dict
+
+   Function to read in imaging metadata stored in xml files as dictionaries.
+
+   This function does some very light processing of the data in the xml files.
+
+   Note: Imaging metadata is stored as attributes of XML elements.  The attribute names will
+   be the keys in the created dictionaries. Attribute names will be appended with '_#' when
+   needed to avoid duplicate keys in the dictionary.
+
+   Args:
+       metadata_file: The xml file with metadata
+
+   Returns:
+       A dictionary of metadata.
+
+   Raises:
+       RuntimeError: If xml elements produce dictionaries which have more than one key (This function
+       currently only handles xml tags with single attributes.)
+
+
+.. py:function:: read_img_file(f_name: pathlib.Path, img_slice: slice = slice(None, None, None), h5_data_group: str = 'default') -> numpy.ndarray
+
+   Returns a numpy array with data from one image file.
+
+   The following file types are supported:
+       1) .klb
+       2) .h5
+       3) .tiff
+
+   Args:
+       f_name: File name as pathlib.Path object
+
+       img_slice: The slice of the image that should be returned
+
+       h5_data_group: The group in a h5 file containing the image data (If reading in h5 files).
+
+   Returns:
+       An numpy.ndarray object with the image data
+
+   Raises:
+       TypeError: If f_name is not a pathlib.Path object
+       ValueError: If f_name does not have a supported extension
+       NotImplementedError: If passing in a non-default slice object while reading a .klb file
+
+
+

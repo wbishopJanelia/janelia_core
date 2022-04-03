@@ -1,0 +1,100 @@
+:py:mod:`janelia_core.dataprocessing.ahrens_lab`
+================================================
+
+.. py:module:: janelia_core.dataprocessing.ahrens_lab
+
+.. autoapi-nested-parse::
+
+   Data tools used for working with results from the Ahrens lab.
+
+   While the tools here were originally developed for working with Ahrens lab data, they
+   are written to be generally useful for many datasets.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.dataprocessing.ahrens_lab.down_sample_ephys_vls
+   janelia_core.dataprocessing.ahrens_lab.find_camera_triggers_in_ephys
+
+
+
+.. py:function:: down_sample_ephys_vls(ts: numpy.ndarray, image_acq_starts: numpy.ndarray, n_images: int, vls: numpy.ndarray, ds_type: str = 'mean', acq_start_type: str = 'boolean') -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   A function to take raw ephys data and down-sample it to the imaging rate of an experiment.
+
+   Values are down-sampled between image acquisitions, so that the down-sampled value for image i will be a function
+   of the data that falls between the start of acquisition of image i and the start of acquisition for image i+1.
+
+   Args:
+       ts: Time stamps for the raw ephys data.
+
+       image_acq_starts: An array indicating the time image acquisition starts for each volume.  This can be either a
+       binary array of an array of time stamps (see acq_start_type below for more details).
+
+       n_images: The number of images that were acquired.
+
+       vls: The raw ephys values to down sample
+
+       ds_type: The type of down-sampling to perform. Options are:
+
+           'mean' The down-sampled value is the mean value between the start of image acquisitions.
+
+           'mode' The down-sampled value is the mode between the start of image acquisitions.
+
+           'max' The down-sampled value is the max between the start of image acquisitions.
+
+           'consant' The down-sampled value is the constant value between the start of image acquisitions.  If
+           selected, a check will be performed to ensure values are actually constant, and if this check is failed,
+           an error will be raised.
+
+       acq_start_type: Indicates the way of specifying image acquisition starts.  If 'boolean', then image_acq_starts
+       should be a binary array with a value of 1 indicating each point in time image acquisition starts.  If 'time'
+       then this should be an array with times that image acqusition starts.
+
+   Returns:
+       ds_ts: The time stamps of the down sampled values.  Time stamps correspond to the start of image acquisitions.
+
+       ds_vls: The down sampled values.
+
+   Raises:
+       ValueError: If n_images is greater than the number of image starts in image_acq_starts.  We require n_images to
+       be strictly less than the number of image acquisition starts so a period of image acquisition is well defined
+       for the last requested image.
+
+       ValueError: If the first or last image acquisition times fall outside of the range of time stamps for the values.
+
+       ValueError: If 'constant' down-sampling is selected, but non-constant values are detected in a sampling period.
+
+
+
+.. py:function:: find_camera_triggers_in_ephys(sig: numpy.ndarray, th: float = 3.8, smp_tol: int = 2) -> numpy.ndarray
+
+   Finds indices where the camera was triggered in the raw ephys data.
+
+   Args:
+       sig: 1-d array of camera trigger data
+
+       th: the threshold that indicates a camera threshold
+
+       smp_tol: After extracting camera triggers, we do a check and make sure all camera triggers are the
+       same number of samples apart +/- a tolerance; this is the tolerance
+
+   Returns:
+       inds: The indices of sig where values first pass th
+
+   Raises:
+       ValueError: If the first value of sig is greather than th (since then timing of the onset cannot be
+       determined)
+
+       RuntimeError: If the tolerance check is not passed
+
+
+

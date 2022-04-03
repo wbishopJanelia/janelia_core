@@ -1,0 +1,246 @@
+:py:mod:`janelia_core.visualization.roi_exploration`
+====================================================
+
+.. py:module:: janelia_core.visualization.roi_exploration
+
+.. autoapi-nested-parse::
+
+   GUI tools for viewing predefined ROIs.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.visualization.roi_exploration.StaticROIViewer
+   janelia_core.visualization.roi_exploration.TimeLine
+   janelia_core.visualization.roi_exploration.ROIViewer
+   janelia_core.visualization.roi_exploration.MultiPlaneROIViewer
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.visualization.roi_exploration.roi_clrs
+
+
+.. py:data:: roi_clrs
+   
+
+   
+
+.. py:class:: StaticROIViewer(bg_image: numpy.ndarray, rois: list, dim: int = 0, clrs: numpy.ndarray = None, weight_gain: float = 1.0, levels: list = None, ignore_warnings: bool = False)
+
+   Bases: :py:obj:`PyQt5.QtWidgets.QWidget`
+
+   QT Widget for viewing static 3D roi data.
+
+   This widget allows the user to provide a 3D background image as well as a set of 3D ROIs. The user
+   can then view slices through the 3D volume.
+
+   Creates a new StaticROIViewer object.
+
+   Args:
+       bg_image: The background image to view.
+
+       rois: A list of ROI objects.
+
+       dim: The dimension to slice along.
+
+       clrs: A n_roi*3 array.  Each row gives the color to plot the corresponding ROI in.  If this is none,
+       random colors will be assigned to ROIs.
+
+       weight_gain: The value to multiply weights of rois by before mapping the weights to aplha values in the
+       range of 0 to 255.
+
+       levels: If none, min, max intensity levels for each plane are automatically set.  Otherwise,
+       levels should be a sequence giving the [min, max] levels
+
+       ignore_warning: True if warnings should not be generated
+
+   .. py:attribute:: sigKeyPress
+      
+
+      Signal for key press events.
+
+   .. py:method:: process_key_press(self, ev)
+
+      Responds to key press events.
+
+
+   .. py:method:: init_ui(self)
+
+      Initializes the user interface.
+
+
+
+   .. py:method:: keyPressEvent(self, ev)
+
+      Overrides keyPressEvent of base class, so that we signal to this object that a key has been pressed.
+
+
+   .. py:method:: set_plane(self, p)
+
+      Sets the plane of the viewer shows.
+
+      Args:
+          idx - the index to show.
+
+
+
+.. py:class:: TimeLine(ts: numpy.ndarray, vls: numpy.ndarray, clrs: numpy.ndarray = None)
+
+   Bases: :py:obj:`PyQt5.QtWidgets.QWidget`
+
+   QT Widget for viewing time series data.
+
+   The main point of this widget is to allow a user to select a point in time in data
+   and emit signals as the selected time point is changed.
+
+   Creates a new TimeLine object.
+
+   Args:
+       ts: A numpy array of time stamps.
+
+       vls: A numpy array of values.  Each column is a different signals.  Rows correspond to
+       times in ts.
+
+       clrs: A n_signals*3 array, where n_signals is the number of signals in vls.  Each row
+       gives the color to plot the corresponding signal in vls in.  If this is None, all
+       signals will be white.
+
+
+   .. py:attribute:: time_dragged
+      
+
+      Signal for when time is changed.
+
+   .. py:method:: init_ui(self)
+
+      Initializes the user interface.
+
+
+
+
+.. py:class:: ROIViewer(bg_img, rois, roi_vl_str='vls', clrs=None, title: str = None, roi_scale_f: numpy.float64 = None)
+
+   Bases: :py:obj:`PyQt5.QtWidgets.QWidget`
+
+   An object for viewing ROI information across time within a single plane.
+
+   Rois are displayed on top of a background image. The window will have a slider that allows the user to scroll
+   through time.  The window also responds to left and right arrow input to scroll through time.
+
+   Creates a ROIViewer object.
+
+   Args:
+       bg_img: The background image.  Should be a 2-d numpy array (first dimension y, second dimension x).
+
+       rois: A list of ROI objects. These should have a 'vls' field which stores the values of the ROI
+       across time.  vls should be between 0 and 1.
+
+       roi_vl_str - If the values of the ROI across time are stored in a field with a different name than 'vls',
+       the user can specify that with this argument.
+
+       clrs - If not none, a np.ndarray of shape n_rois * 3, where each row specifies the color of an roi.  The
+       dtype clrs should be int. And all entries should be within 0 and 255.
+
+       title - An optional title to provide for the window
+
+       roi_scale_f: If provided, the weights of all rois are divided by this factor to determine there alpha value
+       (which must be between 0 and 1).  If none, each roi is scaled individually by its max weight.
+
+
+   .. py:attribute:: sigKeyPress
+      
+
+      Signal for when key is pressed.
+
+   .. py:method:: init_ui(self)
+
+      Initializes and shows the interface for the ROIViewer.
+
+
+   .. py:method:: set_value(self, idx)
+
+      Sets the index of the time point the ROI viewer shows.
+
+      Args:
+          idx - the index to show.
+
+
+   .. py:method:: _gen_roi_image(self, roi_ind, clr) -> pyqtgraph.ImageItem
+
+      Generates an ROI image that can be overlayed the base image.
+
+      Args:
+          roi_ind - The index of self.rois of the roi to generate the image for.
+
+          clr - The color the roi should be shown in.  Should be a numpy array of type int and length 3.  All values
+          should be between 0 and 255.
+
+      Returns:
+          roi_image_item - the image item for the roi
+
+
+   .. py:method:: keyPressEvent(self, ev)
+
+      Overrides keyPressEvent of base class, so that we signal to this object that a key has been pressed.
+
+
+
+.. py:class:: MultiPlaneROIViewer(ts: numpy.ndarray, vls: numpy.ndarray, roi_groups: list, bg_imgs: list, planes: list, clrs: list = None, roi_signals: list = None, roi_group_names: list = None, roi_scale_fs: list = None)
+
+   An object for viewing ROIs across multiple planes and roi groups.
+
+   This object allows for the visualization of a set of signals along with roi values across time.  The main window
+   consists of a TimeLine Widget showing the signals. There will be additional windows to show ROIs in each plane and
+   for each group. As the user moves the slider on this widget, roi values for the time the slider
+   corresponds to will be updated in the opacity of rois.
+
+   Create a MultiPlaneROIViewer object.
+
+   Args:
+       ts: A numpy array of time stamps.
+
+       vls: A numpy array of values for the main timeline.  Each row is a different signal.  Columns correspond to
+       times in ts.
+
+       roi_groups: A list of roi_groups (e.g., neurons and glia).  Each list contains roi objects for the group.
+       These roi objects should be supplemented with a 'vls' attribute containing the value of the roi at each
+       point in ts.
+
+       bg_imgs: A list of back ground images.  bg_imgs[i] contains the background image to use for rois[i]
+
+       planes: A list. planes[i] is the indices of planes to show for rois in roi_groups[i]
+
+       clrs: A list.  clrs[i] contains a shape n_rois * 3 np.ndaray, where each row specifies the color of the
+       corresponding roi in rois[i].  The dtype of clrs should be int, and all entries should be within 0 and 255.
+       If clrs is None, then random colors will be assigned to the ROIs.
+
+       roi_signals: A list.  roi_signals[i] contains indices of rois in roi_groups[i] whose values should be plotted
+       along with those in the vls array.  If None, no roi values will be plotted.
+
+       roi_group_names: An optional list providing a name for each roi group.
+
+       roi_scale_fs: If provided, a list.  Each entry contains a factor by which the weights of all rois in
+       the corresponding group are divided by to determine there alpha value (which must be between 0 and 1).
+       If none, each roi is scaled individually by its max weight.
+
+
+
+   .. py:method:: init_ui(self)
+
+      Initializes the UI.
+
+
+

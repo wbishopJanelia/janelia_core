@@ -1,0 +1,626 @@
+:py:mod:`janelia_core.ml.reduced_rank_models`
+=============================================
+
+.. py:module:: janelia_core.ml.reduced_rank_models
+
+.. autoapi-nested-parse::
+
+   Contains classes and functions for performing different forms of nonlinear reduced
+   rank regression.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.ml.reduced_rank_models.RRLinearModel
+   janelia_core.ml.reduced_rank_models.RRSigmoidModel
+   janelia_core.ml.reduced_rank_models.RRExpModel
+   janelia_core.ml.reduced_rank_models.RRReluModel
+
+
+
+
+.. py:class:: RRLinearModel(d_in: int, d_out: int, d_latent: int)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   Object for linear reduced rank linear model objects.
+
+   Base class for non-linear reduced rank linear model objects.
+
+   This object and all objects derived from it are for models of the form:
+
+       y_t = g(w_1*w_0^T * x_t + o_1) + o_2 + n_t,
+
+       n_t ~ N(0, V), for a diagonal V
+
+   where x_t is the input and g() is the element-wise application of a smooth function.  In this base class, we fix
+   o_1 = 0, g = I.
+
+   Often w_0 and w_1 will be tall and skinny matrices (giving the reduced rank).
+
+
+   Create a RRLinearModel object.
+
+   Args:
+       d_in: Input dimensionality
+
+       d_out: Output dimensionality
+
+       d_latent: Latent dimensionality
+
+   .. py:method:: from_state_dict(cls, state_dict: dict)
+      :classmethod:
+
+      Creates a new RRReluModel model from a dictionary.
+
+      Args:
+          state_dict: The state dictionary to create the model from.  This can be obtained
+          by calling .state_dict() on a model.
+
+      Returns:
+          A new model with parameters taking values in the state_dict()
+
+
+
+   .. py:method:: init_weights(self, y: torch.Tensor)
+
+      Randomly initializes all model parameters based on data.
+
+      This function should be called before model fitting.
+
+      Args:
+          y: Output data that the model will be fit to of shape n_smps*d_out
+
+      Raise:
+          NotImplementedError: If a parameter of the model exists for which initialization code
+          does not exist.
+
+
+   .. py:method:: generate_random_model(self, var_range: list = [0.5, 1], o2_std: float = 10.0, w_gain: float = 1.0)
+
+      Generates random values for model parameters.
+
+      This function is useful for when generating models for testing code.
+
+      Args:
+          var_range: A list giving limits of a uniform distribution variance values will be pulled from
+
+          o2_std: Standard deviation of normal distribution values of o2 are pulled from
+
+          w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),
+          and entries of w1 are pulled from a distribution with a standard deviation of w_gain
+
+
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes output means condition on x.
+
+      This is equivalent to running the full generative model but not adding noise from n_t.
+
+      Args:
+          x: Input of shape n_smps*d_in
+
+      Returns:
+          mns: The output.  Of shape n_smps*d_out
+
+
+
+   .. py:method:: infer_latents(self, x: torch.Tensor) -> torch.Tensor
+
+      Infers latents defined as w0.T*x.
+
+      Args:
+          x: Input of shape n_smps*d_in
+
+      Returns:
+          l: Inferred latents of shape n_smps*d_latents.
+
+
+
+   .. py:method:: scale_grads(self, sc: float)
+
+      Scales computed gradients.
+
+      Args:
+          sc: The scale factor to multiply gradients by.
+
+
+
+   .. py:method:: generate(self, x: torch.Tensor) -> torch.Tensor
+
+      Generates data from a model.
+
+      This is equivalent to calling forward() and then adding noise from n_t.
+
+      Note: This function will not effect gradients.
+
+      Args:
+          x: Input of shape n_smps*n_dims
+
+      Returns:
+          y: The output.  Same shape as x.
+
+
+   .. py:method:: neg_log_likelihood(self, y: torch.Tensor, mns: torch.Tensor) -> torch.Tensor
+
+      Calculates the negative log-likelihood of observed data, given conditional means for that data up to a constant.
+
+      Note: This function does not compute the term .5*n_smps*log(2*pi).  Add this term in if you want the exact
+      log likelihood.
+
+      This function can be used as a loss, using the output of forward for mns and setting y to be observed data.
+      Using this function as loss will give (subject to local optima) MLE solutions.
+
+      Args:
+          y: Data to measure the negative log likelihood for of shape n_smps*d_in.
+
+          mns: The conditional means for the data.  These can be obtained with forward().
+
+      Returns:
+          nll: The negative log-likelihood of the observed data.
+
+
+
+   .. py:method:: fit(self, x: torch.Tensor, y: torch.Tensor, batch_size: int = 100, send_size: int = 100, max_its: int = 10, learning_rates=0.01, adam_params: dict = {}, min_var: float = 0.0, update_int: int = 1000, parameters: list = None, w0_l2: float = 0.0, w1_l2: float = 0, w0_l1: float = 0, w1_l1: float = 0, print_penalties: bool = False) -> dict
+
+      Fits a model to data.
+
+      This function performs stochastic optimization with the ADAM algorithm.  The weights of the model
+      should be initialized before calling this function.
+
+      Optimization will be performed on whatever device the model parameters are on.
+
+      Args:
+
+          x: Tensor of input data of shape n_smps*d_in
+
+          y: Tensor of output data of shape n_smps*d_out
+
+          batch_size: The number of samples to train on during each iteration
+
+          send_size: The number of samples to send to the device at a time for calculating batch gradients.  It is
+          most efficient to set send_size = batch_size, but if this results in computations exceeding device memory,
+          send_size can be set lower.  In this case gradients will accumulated until all samples in the batch are
+          sent to the device and then a step will be taken.
+
+          max_its: The maximum number of iterations to run
+
+          learning_rates: If a single number, this is the learning rate to use for all iteration.  Alternatively, this
+          can be a list of tuples.  Each tuple is of the form (iteration, learning_rate), which gives the learning rate
+          to use from that iteration onwards, until another tuple specifies another learning rate to use at a different
+          iteration on.  E.g., learning_rates = [(0, .01), (1000, .001), (10000, .0001)] would specify a learning
+          rate of .01 from iteration 0 to 999, .001 from iteration 1000 to 9999 and .0001 from iteration 10000 onwards.
+
+          adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object.
+          Note that if learning rate is specified here *it will be ignored.* (Use the learning_rates option instead).
+
+          min_var: The minumum value any entry of v can take on.  After a gradient update, values less than this
+          will be clamped to this value.
+
+          update_int: The interval of iterations we update the user on.
+
+          parameters: If provided, only these parameters of the model will be optimized.  If none, all parameters are
+          optimized.
+
+          w0_l2: The penalty on the l-2 norm of the model's w0 weights.
+
+          w1_l2: The penalty on the l-2 norm of the model's w1 weights.
+
+          w0_l1: The penalty on the l-1 norm of the model's w0 weights.
+
+          w1_l1: The penalty on the l-2 norm of the model's w1 weights.
+
+          print_penalties: True if penalty values should be printed to screen.
+
+      Raises:
+          ValueError: If send_size is greater than batch_size.
+
+      Returns:
+          log: A dictionary logging progress.  Will have the enries:
+              'elapsed_time': log['elapsed_time'][i] contains the elapsed time from the beginning of optimization to
+              the end of iteration i
+
+              'obj': log['obj'][i] contains the objective value at the beginning (before parameters are updated) of iteration i.
+
+
+
+
+   .. py:method:: standardize(self)
+
+      Puts the model in a standard form.
+
+      The values of w0 and w1 are not fully determined.  The svd of w0*w1.T = u*s*v.T will be performed,
+      and then w0 will be set to u*s and w1 will be set to v.
+
+
+   .. py:method:: flip_weight_signs(self, m2)
+
+      Flips signs of weights, column-wise of input model to best match weights of this model.
+
+      Even after standardizing the weights of the model, signs of elements in columns of w0 and w1 are not
+      determined.  This creates a problem when comparing two models.  This function can be passed a second model,
+      and it will flip the signs of the columns of that model's weights to best match the weights of the base
+      model.
+
+      Args:
+          m2: The model with weights to flip
+
+
+   .. py:method:: compare_models(m1, m2, x: torch.Tensor = None, plot_vars: int = 2)
+      :staticmethod:
+
+      Visually compares two models.
+
+      This function will flip signs on columns of w0 and w1 to best match weights between models (as signs of
+      corresponding columns of w0 and w1 can be flipped arbitrarily).  Models will be copied before this is done
+      so the m1 and m2 passed in are unchanged.
+
+      Args:
+          m1: The fist model
+
+          m2: The second model
+
+          x: Input to test the models on.  The conditional means for both model will be plotted for this input if
+          provided.
+
+          plot_vars: Indices of variables to plot if plotting conditional means. If this None, the first (up to) two
+          variables will be plotted.
+
+
+
+.. py:class:: RRSigmoidModel(d_in: int, d_out: int, d_latent: int)
+
+   Bases: :py:obj:`RRLinearModel`
+
+   Sigmoidal non-linear reduced rank model.
+
+   For models of the form:
+
+       y_t = sig(w_1*w_0^T * x_t + o_1) + o_2 + n_t,
+
+       n_t ~ N(0, V), for a diagonal V
+
+   where x_t is the input and sig() is the element-wise application of the sigmoid.  We assume w_0 and w_1 are
+   tall and skinny matrices.
+
+
+   Create a RRSigmoidModel object.
+
+   Args:
+       d_in: Input dimensionality
+
+       d_out: Output dimensionality
+
+       d_latent: Latent dimensionality
+
+   .. py:method:: from_state_dict(cls, state_dict: dict)
+      :classmethod:
+
+      Creates a new RRSigmoidModel model from a dictionary.
+
+      Args:
+          state_dict: The state dictionary to create the model from.  This can be obtained
+          by calling .state_dict() on a model.
+
+      Returns:
+          A new model with parameters taking values in the state_dict()
+
+
+
+   .. py:method:: init_weights(self, y: torch.Tensor)
+
+      Randomly initializes all model parameters based on data.
+
+      This function should be called before model fitting.
+
+      Args:
+          y: Output data that the model will be fit to of shape n_smps*d_out
+
+      Raise:
+          NotImplementedError: If a parameter of the model exists for which initialization code
+          does not exist.
+
+
+   .. py:method:: generate_random_model(self, var_range: list = [0.5, 1], g_range: list = [5, 10], o1_range: list = [-0.2, 0.2], o2_range: list = [5, 10], w_gain: float = 1.0)
+
+      Genarates random values for model parameters.
+
+      This function is useful for when generating models for testing code.
+
+      Args:
+          var_range: A list giving limits of a uniform distribution variance values will be pulled from
+
+          g_range: A list giving limits of a uniform distribution g values will be pulled from
+
+          o1_range: A list giving limits of a uniform distribution o1 values will be pulled from
+
+          o2_range: A list giving limits of a uniform distribution o2 values will be pulled from
+
+          w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),
+          and entries of w1 are pulled from a distribution with a standard deviation of w_gain
+
+
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes output means condition on x.
+
+      This is equivalent to running the full generative model but not adding noise from n_t.
+
+      Args:
+          x: Input of shape n_smps*d_in
+
+      Returns:
+          mns: The output.  Of shape n_smps*d_out
+
+
+
+   .. py:method:: standardize(self)
+
+      Puts the model in a standard form.
+
+      The models have multiple degenerecies (non-identifiabilities):
+
+          1) The signs of gains (g) is arbitrary.  A change in sign can be absorbed by a change
+          in w1, o1 and d.  This function will put models in a form where all gains have positive
+          sign.
+
+          2) Even after (1), the values of w0 and w1 are not fully determined.
+          See RRLinearModel.standardize() for how this is done.
+
+
+
+.. py:class:: RRExpModel(d_in: int, d_out: int, d_latent: int)
+
+   Bases: :py:obj:`RRLinearModel`
+
+   Exponential non-linear reduced rank model.
+
+   For models of the form:
+
+       y_t = exp(w_1*w_0^T * x_t) + o_2 + n_t,
+
+       n_t ~ N(0, V), for a diagonal V
+
+   where x_t is the input and exp() is the element-wise application of e^x.  We assume w_0 and w_1 are
+   tall and skinny matrices.
+
+
+   Create a RRExpModel object.
+
+   Args:
+       d_in: Input dimensionality
+
+       d_out: Output dimensionality
+
+       d_latent: Latent dimensionality
+
+   .. py:method:: from_state_dict(cls, state_dict: dict)
+      :classmethod:
+
+      Creates a new RRExpModel model from a dictionary.
+
+      Args:
+          state_dict: The state dictionary to create the model from.  This can be obtained
+          by calling .state_dict() on a model.
+
+      Returns:
+          A new model with parameters taking values in the state_dict()
+
+
+
+   .. py:method:: init_weights(self, y: torch.Tensor)
+
+      Randomly initializes all model parameters based on data.
+
+      This function should be called before model fitting.
+
+      Args:
+          y: Output data that the model will be fit to of shape n_smps*d_out
+
+      Raise:
+          NotImplementedError: If a parameter of the model exists for which initialization code
+          does not exist.
+
+
+   .. py:method:: generate_random_model(self, var_range: list = [0.5, 1], g_range: list = [5, 10], o2_range: list = [0, 1], w_offsets: list = [0, -1], w_gains: list = [1, 1])
+
+      Generates random values for model parameters.
+
+      This function is useful for when generating models for testing code.
+
+      Args:
+          var_range: A list giving limits of a uniform distribution variance values will be pulled from
+
+          g_range: A list giving limits of a uniform distribution g values will be pulled from
+
+          o2_range: A list giving limits of a uniform distribution o2 values will be pulled from
+
+          w_offsets: Means of the normal distributions weights are pulled from w_offsets[i] is the mean for w_i.
+          Setting w_offsets[1] to be negative, helps ensure (assuing input has enough variance) that the generated
+          data uses the full shape of the exponential - which can be important for practical concerns about model
+          identifiability.
+
+          w_gains: Gains of the standard deviations of the normal distributions weights are pulled from. Weights
+          for w_0 will be pulled from a normal distribution with standard deviation w_gains[0]/sqrt(d_in) and weights
+          for w_1 will be pulled from a normal distribution with standard deviation w_gains[1].
+
+
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes output means condition on x.
+
+      This is equivalent to running the full generative model but not adding noise from n_t.
+
+      Args:
+          x: Input of shape n_smps*d_in
+
+      Returns:
+          mns: The output.  Of shape n_smps*d_out
+
+
+
+   .. py:method:: latent_rep(self, x: torch.Tensor) -> List[torch.Tensor]
+
+      Computes unobserved intermediate values in the model.
+
+      Args:
+          x: Input of shape n_smps*d_in
+
+      Returns:
+          mn: The value of g_out + o_2 (see below)
+
+          g_out: The value of g*exp(exp_in) (see below)
+
+          exp_in: The value of w1*l (see l below)
+
+          l: The value of w_0^T*x_t
+
+
+
+.. py:class:: RRReluModel(d_in: int, d_out: int, d_latent: int)
+
+   Bases: :py:obj:`RRLinearModel`
+
+   Rectified linear reduced rank model.
+
+   For models of the form:
+
+       y_t = relu(w_1*w_0^T * x_t + o_1) + o_2 + n_t,
+
+       n_t ~ N(0, V), for a diagonal V
+
+   where x_t is the input and relu() is the element-wise application of the relu.  We assume w_0 and w_1 are
+   tall and skinny matrices.
+
+
+   Create a RRReluModel object.
+
+   Args:
+       d_in: Input dimensionality
+
+       d_out: Output dimensionality
+
+       d_latent: Latent dimensionality
+
+   .. py:method:: from_state_dict(cls, state_dict: dict)
+      :classmethod:
+
+      Creates a new RRReluModel model from a dictionary.
+
+      Args:
+          state_dict: The state dictionary to create the model from.  This can be obtained
+          by calling .state_dict() on a model.
+
+      Returns:
+          A new model with parameters taking values in the state_dict()
+
+
+
+   .. py:method:: init_weights(self, y: torch.Tensor, w_gain: float = 0.5)
+
+      Randomly initializes all model parameters based on data.
+
+      This function should be called before model fitting.
+
+      Args:
+          y: Output data that the model will be fit to of shape n_smps*d_out
+
+          w_gain: Weights will be initialized from a N(0, w_gain/sqrt(d_in)) distribution
+          for w_0 and N(0, w_gain) distribution from w1.
+
+      Raise:
+          NotImplementedError: If a parameter of the model exists for which initialization code
+          does not exist.
+
+
+   .. py:method:: generate_random_model(self, var_range: list = [0.5, 1], o1_range: list = [-0.2, 0.2], o2_range: list = [5, 10], w_gain: float = 1.0)
+
+      Generates random values for model parameters.
+
+      This function is useful for when generating models for testing code.
+
+      Args:
+          var_range: A list giving limits of a uniform distribution variance values will be pulled from
+
+          o1_range: A list giving limits of a uniform distribution o1 values will be pulled from
+
+          o2_range: A list giving limits of a uniform distribution o2 values will be pulled from
+
+          w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),
+          and entries of w1 are pulled from a distribution with a standard deviation of w_gain
+
+
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes output means condition on x.
+
+      This is equivalent to running the full generative model but not adding noise from n_t.
+
+      Args:
+          x: Input of shape n_smps*d_in
+
+      Returns:
+          mns: The output.  Of shape n_smps*d_out
+
+
+
+   .. py:method:: vary_latents(self, p_mat: torch.Tensor, mn_input: torch.Tensor, latent_vls: torch.Tensor) -> list
+
+      Produces output of model as latents take on different values.
+
+      We define the latents for the model as l_t = w_0^T*x_t, for l_t \in R^d_latent.  We want to know
+      what happens to the model as we change values in different dimensions of our latent space.
+
+      Generally, we want to be able to work with arbitrary coordinate systems in our latent space, so we introduce
+      projection matrices to allow us to pick out latent dimensions we want to vary. Let proj_m be a projection matrix
+      such that proj_m = p_mat*p_mat^T, and let proj_c = I - proj_m.  In this was, the columns of p_mat specify latent
+      dimensions in R^d_latent we are going to explore.
+
+      For latent_vls[:,i] this function will compute:
+
+          delta[:, t] = relu(w_1*p_mat*latent_vls[:,i] + mean_c + o_1) + o_2, where mean_c = w_1*proj_c*w_0^T*mn_input.
+
+      Intuitively, we are doing the following.  We are saying (1), let's assume that all of the latent dimensions
+      we are not varying are at their mean value.  Now (2), what happens to the output of my function as I vary the
+      latent dimensions specified by p_mat.  To make this clear, notice that p_mat*latent_vls[:,i] gives the
+      value of the latent dimensions we are interested in.
+
+      This function will also return w_1_proj = w_1*p_mat and w_0_proj = w_0*p_mat, so that activation of the w1 and
+      w0 weights corresponding to latent_vls[:,i] can be computed as w_1_proj*latent_vls[:,i] and
+      w_0_proj*latent_vls[:,i].
+
+      Note: Gradients will not be updated during this function call.
+
+      Args:
+          p_mat: A matrix with orthonormal columns defining the latent space to project into.
+
+          mn_input: The mean input vector to calculate changes of input around.  Note, as specified above, any
+          component of proj_m*w_0^T*x_t will be ignored.  Thus, we can interpret this function as giving changes
+          from the mean activation if the components corresponding to p_mat are 0.
+
+          latent_vls: An array of latent values to generate output for of shape n_smps*d_vary, where d_vary is the
+          number of latent dimensions varied.
+
+      Returns:
+          delta: The model output for each point in latent_vls as a tensor.  Of shape n_smps*d_out
+
+          w_0_proj: A tensor equal o w_0*p_mat of shape d_in*d_latent
+
+          w_1_proj: A tensor equal to w_1*p_mat of shape d_out*d_latent
+
+      Raises:
+          ValueError: If the columns of p_mat are not orthonormal.
+
+
+

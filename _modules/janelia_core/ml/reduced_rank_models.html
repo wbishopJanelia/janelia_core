@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.reduced_rank_models &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.ml.reduced_rank_models</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.ml.reduced_rank_models</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Contains classes and functions for performing different forms of nonlinear reduced</span>
+<span class="sd">rank regression.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sklearn.decomposition</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">janelia_core.visualization.matrix_visualization</span> <span class="kn">import</span> <span class="n">cmp_n_mats</span>
+<span class="kn">from</span> <span class="nn">janelia_core.ml.utils</span> <span class="kn">import</span> <span class="n">format_and_check_learning_rates</span>
+
+
+<div class="viewcode-block" id="RRLinearModel"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRLinearModel">[docs]</a><span class="k">class</span> <span class="nc">RRLinearModel</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Object for linear reduced rank linear model objects.</span>
+
+<span class="sd">    Base class for non-linear reduced rank linear model objects.</span>
+
+<span class="sd">    This object and all objects derived from it are for models of the form:</span>
+
+<span class="sd">        y_t = g(w_1*w_0^T * x_t + o_1) + o_2 + n_t,</span>
+
+<span class="sd">        n_t ~ N(0, V), for a diagonal V</span>
+
+<span class="sd">    where x_t is the input and g() is the element-wise application of a smooth function.  In this base class, we fix</span>
+<span class="sd">    o_1 = 0, g = I.</span>
+
+<span class="sd">    Often w_0 and w_1 will be tall and skinny matrices (giving the reduced rank).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_latent</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create a RRLinearModel object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d_in: Input dimensionality</span>
+
+<span class="sd">            d_out: Output dimensionality</span>
+
+<span class="sd">            d_latent: Latent dimensionality</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="n">w0</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_latent</span><span class="p">]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;w0&#39;</span><span class="p">,</span> <span class="n">w0</span><span class="p">)</span>
+
+        <span class="n">w1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">d_out</span><span class="p">,</span> <span class="n">d_latent</span><span class="p">]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;w1&#39;</span><span class="p">,</span> <span class="n">w1</span><span class="p">)</span>
+
+        <span class="n">o2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">d_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;o2&#39;</span><span class="p">,</span> <span class="n">o2</span><span class="p">)</span>
+
+        <span class="c1"># v is the *variances* of each noise term</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">d_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RRLinearModel.from_state_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRLinearModel.from_state_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_state_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new RRReluModel model from a dictionary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state_dict: The state dictionary to create the model from.  This can be obtained</span>
+<span class="sd">            by calling .state_dict() on a model.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new model with parameters taking values in the state_dict()</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d_in</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;w0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_out</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;w1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_latent</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;w0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">mdl</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">,</span> <span class="n">d_latent</span><span class="p">)</span>
+        <span class="n">mdl</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mdl</span></div>
+
+<div class="viewcode-block" id="RRLinearModel.init_weights"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRLinearModel.init_weights">[docs]</a>    <span class="k">def</span> <span class="nf">init_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Randomly initializes all model parameters based on data.</span>
+
+<span class="sd">        This function should be called before model fitting.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y: Output data that the model will be fit to of shape n_smps*d_out</span>
+
+<span class="sd">        Raise:</span>
+<span class="sd">            NotImplementedError: If a parameter of the model exists for which initialization code</span>
+<span class="sd">            does not exist.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">d_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">var_variance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">[</span><span class="n">d_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">var_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">[</span><span class="n">d_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;v&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">var_variance</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;o2&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">var_mean</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w0&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d_in</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w1&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Initialization for &#39;</span> <span class="o">+</span> <span class="n">param_name</span> <span class="o">+</span> <span class="s1">&#39; is not implemented.&#39;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="RRLinearModel.generate_random_model"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRLinearModel.generate_random_model">[docs]</a>    <span class="k">def</span> <span class="nf">generate_random_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">o2_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">w_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Generates random values for model parameters.</span>
+
+<span class="sd">        This function is useful for when generating models for testing code.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            var_range: A list giving limits of a uniform distribution variance values will be pulled from</span>
+
+<span class="sd">            o2_std: Standard deviation of normal distribution values of o2 are pulled from</span>
+
+<span class="sd">            w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),</span>
+<span class="sd">            and entries of w1 are pulled from a distribution with a standard deviation of w_gain</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">d_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;v&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">*</span><span class="n">var_range</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;o2&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">o2_std</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w0&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w_gain</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d_in</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w1&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w_gain</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Initialization for &#39;</span> <span class="o">+</span> <span class="n">param_name</span> <span class="o">+</span> <span class="s1">&#39; is not implemented.&#39;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="RRLinearModel.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRLinearModel.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output means condition on x.</span>
+
+<span class="sd">        This is equivalent to running the full generative model but not adding noise from n_t.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape n_smps*d_in</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            mns: The output.  Of shape n_smps*d_out</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o2</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RRLinearModel.infer_latents"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRLinearModel.infer_latents">[docs]</a>    <span class="k">def</span> <span class="nf">infer_latents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Infers latents defined as w0.T*x.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape n_smps*d_in</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            l: Inferred latents of shape n_smps*d_latents.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RRLinearModel.scale_grads"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRLinearModel.scale_grads">[docs]</a>    <span class="k">def</span> <span class="nf">scale_grads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sc</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Scales computed gradients.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sc: The scale factor to multiply gradients by.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">sc</span><span class="o">*</span><span class="n">param</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">data</span></div>
+
+<div class="viewcode-block" id="RRLinearModel.generate"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRLinearModel.generate">[docs]</a>    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Generates data from a model.</span>
+
+<span class="sd">        This is equivalent to calling forward() and then adding noise from n_t.</span>
+
+<span class="sd">        Note: This function will not effect gradients.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape n_smps*n_dims</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: The output.  Same shape as x.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">mns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">noise</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">mns</span><span class="p">)</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">mns</span> <span class="o">+</span> <span class="n">noise</span></div>
+
+<div class="viewcode-block" id="RRLinearModel.neg_log_likelihood"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRLinearModel.neg_log_likelihood">[docs]</a>    <span class="k">def</span> <span class="nf">neg_log_likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mns</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+
+        <span class="sd">&quot;&quot;&quot; Calculates the negative log-likelihood of observed data, given conditional means for that data up to a constant.</span>
+
+<span class="sd">        Note: This function does not compute the term .5*n_smps*log(2*pi).  Add this term in if you want the exact</span>
+<span class="sd">        log likelihood.</span>
+
+<span class="sd">        This function can be used as a loss, using the output of forward for mns and setting y to be observed data.</span>
+<span class="sd">        Using this function as loss will give (subject to local optima) MLE solutions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y: Data to measure the negative log likelihood for of shape n_smps*d_in.</span>
+
+<span class="sd">            mns: The conditional means for the data.  These can be obtained with forward().</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            nll: The negative log-likelihood of the observed data.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">n_smps</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="o">.</span><span class="mi">5</span> <span class="o">*</span> <span class="n">n_smps</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">))</span> <span class="o">+</span> <span class="o">.</span><span class="mi">5</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(((</span><span class="n">y</span> <span class="o">-</span> <span class="n">mns</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="RRLinearModel.fit"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRLinearModel.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">send_size</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">max_its</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">learning_rates</span><span class="o">=.</span><span class="mi">01</span><span class="p">,</span> <span class="n">adam_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">min_var</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">update_int</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+            <span class="n">parameters</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">w0_l2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">w1_l2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w0_l1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w1_l1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">print_penalties</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Fits a model to data.</span>
+
+<span class="sd">        This function performs stochastic optimization with the ADAM algorithm.  The weights of the model</span>
+<span class="sd">        should be initialized before calling this function.</span>
+
+<span class="sd">        Optimization will be performed on whatever device the model parameters are on.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            x: Tensor of input data of shape n_smps*d_in</span>
+
+<span class="sd">            y: Tensor of output data of shape n_smps*d_out</span>
+
+<span class="sd">            batch_size: The number of samples to train on during each iteration</span>
+
+<span class="sd">            send_size: The number of samples to send to the device at a time for calculating batch gradients.  It is</span>
+<span class="sd">            most efficient to set send_size = batch_size, but if this results in computations exceeding device memory,</span>
+<span class="sd">            send_size can be set lower.  In this case gradients will accumulated until all samples in the batch are</span>
+<span class="sd">            sent to the device and then a step will be taken.</span>
+
+<span class="sd">            max_its: The maximum number of iterations to run</span>
+
+<span class="sd">            learning_rates: If a single number, this is the learning rate to use for all iteration.  Alternatively, this</span>
+<span class="sd">            can be a list of tuples.  Each tuple is of the form (iteration, learning_rate), which gives the learning rate</span>
+<span class="sd">            to use from that iteration onwards, until another tuple specifies another learning rate to use at a different</span>
+<span class="sd">            iteration on.  E.g., learning_rates = [(0, .01), (1000, .001), (10000, .0001)] would specify a learning</span>
+<span class="sd">            rate of .01 from iteration 0 to 999, .001 from iteration 1000 to 9999 and .0001 from iteration 10000 onwards.</span>
+
+<span class="sd">            adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object.</span>
+<span class="sd">            Note that if learning rate is specified here *it will be ignored.* (Use the learning_rates option instead).</span>
+
+<span class="sd">            min_var: The minumum value any entry of v can take on.  After a gradient update, values less than this</span>
+<span class="sd">            will be clamped to this value.</span>
+
+<span class="sd">            update_int: The interval of iterations we update the user on.</span>
+
+<span class="sd">            parameters: If provided, only these parameters of the model will be optimized.  If none, all parameters are</span>
+<span class="sd">            optimized.</span>
+
+<span class="sd">            w0_l2: The penalty on the l-2 norm of the model&#39;s w0 weights.</span>
+
+<span class="sd">            w1_l2: The penalty on the l-2 norm of the model&#39;s w1 weights.</span>
+
+<span class="sd">            w0_l1: The penalty on the l-1 norm of the model&#39;s w0 weights.</span>
+
+<span class="sd">            w1_l1: The penalty on the l-2 norm of the model&#39;s w1 weights.</span>
+
+<span class="sd">            print_penalties: True if penalty values should be printed to screen.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If send_size is greater than batch_size.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            log: A dictionary logging progress.  Will have the enries:</span>
+<span class="sd">                &#39;elapsed_time&#39;: log[&#39;elapsed_time&#39;][i] contains the elapsed time from the beginning of optimization to</span>
+<span class="sd">                the end of iteration i</span>
+
+<span class="sd">                &#39;obj&#39;: log[&#39;obj&#39;][i] contains the objective value at the beginning (before parameters are updated) of iteration i.</span>
+
+<span class="sd">            &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">send_size</span> <span class="o">&gt;</span> <span class="n">batch_size</span><span class="p">:</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;send_size must be less than or equal to batch_size.&#39;</span><span class="p">))</span>
+
+        <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">device</span>
+
+        <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
+        <span class="c1"># Convert generator to list (since we need to reference parameters multiple times in the code below)</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">learning_rates</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;learning_rates must be of type int, float or list.&#39;</span><span class="p">))</span>
+
+        <span class="c1"># Format and check learning rates - no matter the input format this outputs learning rates in a standard format</span>
+        <span class="c1"># where the learning rate starting at iteration 0 is guaranteed to be listed first</span>
+        <span class="n">learning_rate_its</span><span class="p">,</span> <span class="n">learning_rate_values</span> <span class="o">=</span> <span class="n">format_and_check_learning_rates</span><span class="p">(</span><span class="n">learning_rates</span><span class="p">)</span>
+
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="n">learning_rate_values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="n">adam_params</span><span class="p">)</span>
+
+        <span class="n">n_smps</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cur_it</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="n">elapsed_time_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">max_its</span><span class="p">)</span>
+        <span class="n">obj_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">max_its</span><span class="p">)</span>
+        <span class="n">prev_learning_rate</span> <span class="o">=</span> <span class="n">learning_rate_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">while</span> <span class="n">cur_it</span> <span class="o">&lt;</span> <span class="n">max_its</span><span class="p">:</span>
+
+            <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>  <span class="c1"># Record elapsed time here because we measure it from the start of</span>
+            <span class="c1"># each iteration.  This is because we also record the nll value for each iteration before parameters are</span>
+            <span class="c1"># updated.  In this way, the elapsed time is the elapsed time to get to a set of parameters for which we</span>
+            <span class="c1"># report the nll.</span>
+
+            <span class="c1"># Set the learning rate</span>
+            <span class="n">cur_learing_rate_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">learning_rate_its</span> <span class="o">&lt;=</span> <span class="n">cur_it</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">cur_learing_rate_ind</span> <span class="o">=</span> <span class="n">cur_learing_rate_ind</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">cur_learning_rate</span> <span class="o">=</span> <span class="n">learning_rate_values</span><span class="p">[</span><span class="n">cur_learing_rate_ind</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">cur_learning_rate</span> <span class="o">!=</span> <span class="n">prev_learning_rate</span><span class="p">:</span>
+                <span class="c1"># We reset the whole optimizer because ADAM is an adaptive optimizer</span>
+                <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="n">cur_learning_rate</span><span class="p">,</span> <span class="o">**</span><span class="n">adam_params</span><span class="p">)</span>
+                <span class="n">prev_learning_rate</span> <span class="o">=</span> <span class="n">cur_learning_rate</span>
+
+            <span class="c1"># Chose the samples for this iteration</span>
+            <span class="n">cur_smps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">n_smps</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">batch_x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">cur_smps</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">batch_y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">cur_smps</span><span class="p">,</span> <span class="p">:]</span>
+
+            <span class="c1"># Perform optimization for this step</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+
+            <span class="c1"># Handle sending data to device in small chunks if needed</span>
+            <span class="n">start_ind</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">end_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">send_size</span><span class="p">])</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">sent_x</span> <span class="o">=</span> <span class="n">batch_x</span><span class="p">[</span><span class="n">start_ind</span><span class="p">:</span><span class="n">end_ind</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">sent_y</span> <span class="o">=</span> <span class="n">batch_y</span><span class="p">[</span><span class="n">start_ind</span><span class="p">:</span><span class="n">end_ind</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+                <span class="n">mns</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">sent_x</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                <span class="c1"># Calculate nll - we divide by batch size to get average (over samples) negative log-likelihood</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">batch_size</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">neg_log_likelihood</span><span class="p">(</span><span class="n">sent_y</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mns</span><span class="p">)</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">end_ind</span> <span class="o">==</span> <span class="n">batch_size</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+                <span class="n">start_end</span> <span class="o">=</span> <span class="n">end_ind</span>
+                <span class="n">end_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">start_end</span> <span class="o">+</span> <span class="n">send_size</span><span class="p">])</span>
+
+            <span class="c1"># Add penalties to average negative log-likelihood if needed</span>
+            <span class="k">if</span> <span class="n">w0_l2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">w0_l2_penalty</span> <span class="o">=</span> <span class="n">w0_l2</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="n">w0_l2_penalty</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span> <span class="c1"># Apply backwards just to penalty terms since gradients accumulate and we</span>
+                                         <span class="c1"># we have already done this for the likelihood</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span> <span class="o">+</span> <span class="n">w0_l2_penalty</span>
+
+            <span class="k">if</span> <span class="n">w1_l2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">w1_l2_penalty</span> <span class="o">=</span> <span class="n">w1_l2</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="n">w1_l2_penalty</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span> <span class="o">+</span> <span class="n">w1_l2_penalty</span>
+
+            <span class="k">if</span> <span class="n">w0_l1</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">w0_l1_penalty</span> <span class="o">=</span> <span class="n">w0_l1</span><span class="o">*</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="n">w0_l1_penalty</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span> <span class="o">+</span> <span class="n">w0_l1_penalty</span>
+
+            <span class="k">if</span> <span class="n">w1_l1</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">w1_l1_penalty</span> <span class="o">=</span> <span class="n">w1_l1</span><span class="o">*</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="n">w1_l1_penalty</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span> <span class="o">+</span> <span class="n">w1_l1_penalty</span>
+
+            <span class="c1"># Take a step</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+            <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                <span class="n">small_v_inds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">&lt;</span> <span class="n">min_var</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">small_v_inds</span><span class="p">]</span> <span class="o">=</span> <span class="n">min_var</span>
+
+            <span class="c1"># Log our progress</span>
+            <span class="n">elapsed_time_log</span><span class="p">[</span><span class="n">cur_it</span><span class="p">]</span> <span class="o">=</span> <span class="n">elapsed_time</span>
+            <span class="n">obj_vl</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+            <span class="n">obj_log</span><span class="p">[</span><span class="n">cur_it</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj_vl</span>
+
+            <span class="c1"># Provide user with some feedback</span>
+            <span class="k">if</span> <span class="n">cur_it</span> <span class="o">%</span> <span class="n">update_int</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cur_it</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: Elapsed fitting time &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">elapsed_time</span><span class="p">)</span> <span class="o">+</span>
+                      <span class="s1">&#39;, vl: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj_vl</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;, lr: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">cur_learning_rate</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">print_penalties</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">w0_l2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;w0 l-2 penalty:  &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">w0_l2_penalty</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))</span>
+                <span class="k">if</span> <span class="n">print_penalties</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">w1_l2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;w1 l-2 penalty:  &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">w1_l2_penalty</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))</span>
+                <span class="k">if</span> <span class="n">print_penalties</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">w0_l1</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;w0 l-1 penalty:  &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">w0_l1_penalty</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))</span>
+                <span class="k">if</span> <span class="n">print_penalties</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">w1_l1</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;w1 l-1 penalty:  &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">w1_l1_penalty</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()))</span>
+
+            <span class="n">cur_it</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Give final fitting results (if we have not already)</span>
+        <span class="k">if</span> <span class="n">update_int</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cur_it</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: Elapsed fitting time &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">elapsed_time</span><span class="p">)</span> <span class="o">+</span>
+                  <span class="s1">&#39;, vl: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj_vl</span><span class="p">))</span>
+
+        <span class="n">log</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;elapsed_time&#39;</span><span class="p">:</span> <span class="n">elapsed_time_log</span><span class="p">,</span> <span class="s1">&#39;obj&#39;</span><span class="p">:</span> <span class="n">obj_log</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">log</span></div>
+
+<div class="viewcode-block" id="RRLinearModel.standardize"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRLinearModel.standardize">[docs]</a>    <span class="k">def</span> <span class="nf">standardize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Puts the model in a standard form.</span>
+
+<span class="sd">            The values of w0 and w1 are not fully determined.  The svd of w0*w1.T = u*s*v.T will be performed,</span>
+<span class="sd">            and then w0 will be set to u*s and w1 will be set to v.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">latent_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">output_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">w0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="n">w1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="n">full_w_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">w0</span><span class="p">,</span> <span class="n">w1</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">latent_dim</span> <span class="o">&lt;</span> <span class="n">output_dim</span><span class="p">:</span>
+            <span class="c1"># Truncated svd only works for latent_dim &lt; output_dim</span>
+            <span class="n">svd</span> <span class="o">=</span> <span class="n">sklearn</span><span class="o">.</span><span class="n">decomposition</span><span class="o">.</span><span class="n">TruncatedSVD</span><span class="p">(</span><span class="n">latent_dim</span><span class="p">)</span>
+            <span class="n">svd</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">full_w_t</span><span class="p">)</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">svd</span><span class="o">.</span><span class="n">components_</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">u_s</span> <span class="o">=</span> <span class="n">svd</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">full_w_t</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">u</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">v_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">full_w_t</span><span class="p">)</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">v_t</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">u_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">u_s</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RRLinearModel.flip_weight_signs"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRLinearModel.flip_weight_signs">[docs]</a>    <span class="k">def</span> <span class="nf">flip_weight_signs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Flips signs of weights, column-wise of input model to best match weights of this model.</span>
+
+<span class="sd">        Even after standardizing the weights of the model, signs of elements in columns of w0 and w1 are not</span>
+<span class="sd">        determined.  This creates a problem when comparing two models.  This function can be passed a second model,</span>
+<span class="sd">        and it will flip the signs of the columns of that model&#39;s weights to best match the weights of the base</span>
+<span class="sd">        model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            m2: The model with weights to flip</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">n_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">d_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_dims</span><span class="p">):</span>
+            <span class="n">e1</span> <span class="o">=</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span> <span class="o">-</span> <span class="n">m2</span><span class="o">.</span><span class="n">w0</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">+</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span> <span class="o">-</span> <span class="n">m2</span><span class="o">.</span><span class="n">w1</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">e2</span> <span class="o">=</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span> <span class="o">+</span> <span class="n">m2</span><span class="o">.</span><span class="n">w0</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">+</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span> <span class="o">+</span> <span class="n">m2</span><span class="o">.</span><span class="n">w1</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">])</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">e2</span> <span class="o">&lt;</span> <span class="n">e1</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Flipping signs for dimension &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">d_i</span><span class="p">))</span>
+                <span class="n">m2</span><span class="o">.</span><span class="n">w0</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">m2</span><span class="o">.</span><span class="n">w0</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span>
+                <span class="n">m2</span><span class="o">.</span><span class="n">w1</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">m2</span><span class="o">.</span><span class="n">w1</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="RRLinearModel.compare_models"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRLinearModel.compare_models">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">compare_models</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="n">m2</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">plot_vars</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Visually compares two models.</span>
+
+<span class="sd">        This function will flip signs on columns of w0 and w1 to best match weights between models (as signs of</span>
+<span class="sd">        corresponding columns of w0 and w1 can be flipped arbitrarily).  Models will be copied before this is done</span>
+<span class="sd">        so the m1 and m2 passed in are unchanged.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            m1: The fist model</span>
+
+<span class="sd">            m2: The second model</span>
+
+<span class="sd">            x: Input to test the models on.  The conditional means for both model will be plotted for this input if</span>
+<span class="sd">            provided.</span>
+
+<span class="sd">            plot_vars: Indices of variables to plot if plotting conditional means. If this None, the first (up to) two</span>
+<span class="sd">            variables will be plotted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">ROW_SPAN</span> <span class="o">=</span> <span class="mi">14</span>  <span class="c1"># Number of rows in the gridspec</span>
+        <span class="n">COL_SPAN</span> <span class="o">=</span> <span class="mi">12</span>  <span class="c1"># Number of columns in the gridspec</span>
+
+        <span class="n">m2</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">m2</span><span class="p">)</span> <span class="c1"># Copy m2 to local variable so changes to weights don&#39;t affect the passed object</span>
+
+        <span class="n">grid_spec</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">gridspec</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="n">ROW_SPAN</span><span class="p">,</span> <span class="n">COL_SPAN</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_make_subplot</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">r_span</span><span class="p">,</span> <span class="n">c_span</span><span class="p">,</span> <span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
+            <span class="n">subplot</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">grid_spec</span><span class="o">.</span><span class="n">new_subplotspec</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">r_span</span><span class="p">,</span> <span class="n">c_span</span><span class="p">))</span>
+            <span class="n">subplot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">d1</span><span class="p">,</span> <span class="s1">&#39;b-&#39;</span><span class="p">)</span>
+            <span class="n">subplot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">d2</span><span class="p">,</span> <span class="s1">&#39;r-&#39;</span><span class="p">)</span>
+            <span class="n">subplot</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_flip_signs</span><span class="p">(</span><span class="n">m1_w0</span><span class="p">,</span> <span class="n">m2_w0</span><span class="p">,</span> <span class="n">m1_w1</span><span class="p">,</span> <span class="n">m2_w1</span><span class="p">):</span>
+            <span class="n">n_dims</span> <span class="o">=</span> <span class="n">m1_w1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">d_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_dims</span><span class="p">):</span>
+                <span class="n">e1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">m1_w0</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span> <span class="o">-</span> <span class="n">m2_w0</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">m1_w1</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span> <span class="o">-</span> <span class="n">m2_w1</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">e2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">m1_w0</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span> <span class="o">+</span> <span class="n">m2_w0</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">m1_w1</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span> <span class="o">+</span> <span class="n">m2_w1</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">e2</span> <span class="o">&lt;</span> <span class="n">e1</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Flipping signs for dimension &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">d_i</span><span class="p">))</span>
+                    <span class="n">m2_w0</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">m2_w0</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span>
+                    <span class="n">m2_w1</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">m2_w1</span><span class="p">[:,</span> <span class="n">d_i</span><span class="p">]</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">m1_w0</span><span class="p">,</span> <span class="n">m2_w0</span><span class="p">,</span> <span class="n">m1_w1</span><span class="p">,</span> <span class="n">m2_w1</span><span class="p">]</span>
+
+        <span class="c1"># Make plots of scalar variables</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">):</span>
+            <span class="n">_make_subplot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">m1</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">m2</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="s1">&#39;g&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="s1">&#39;o2&#39;</span><span class="p">):</span>
+            <span class="n">_make_subplot</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">m1</span><span class="o">.</span><span class="n">o2</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">m2</span><span class="o">.</span><span class="n">o2</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="s1">&#39;o2&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="s1">&#39;o1&#39;</span><span class="p">):</span>
+            <span class="n">_make_subplot</span><span class="p">([</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">m1</span><span class="o">.</span><span class="n">o1</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">m2</span><span class="o">.</span><span class="n">o1</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="s1">&#39;o1&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m1</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">):</span>
+            <span class="n">_make_subplot</span><span class="p">([</span><span class="mi">9</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">m1</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">m2</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="s1">&#39;v&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Flip signs of weight matrices if needed</span>
+        <span class="n">m1</span><span class="o">.</span><span class="n">flip_weight_signs</span><span class="p">(</span><span class="n">m2</span><span class="p">)</span>
+        <span class="n">m1_w0</span> <span class="o">=</span> <span class="n">m1</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span> <span class="c1"># Transpose w0 for viewing</span>
+        <span class="n">m2_w0</span> <span class="o">=</span> <span class="n">m2</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">m1_w1</span> <span class="o">=</span> <span class="n">m1</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+        <span class="n">m2_w1</span> <span class="o">=</span> <span class="n">m2</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+        <span class="c1"># Make plots of w1 matrices</span>
+        <span class="n">w1_diff</span> <span class="o">=</span> <span class="n">m1_w1</span> <span class="o">-</span> <span class="n">m2_w1</span>
+        <span class="n">w1_grid_info</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;grid_spec&#39;</span><span class="p">:</span> <span class="n">grid_spec</span><span class="p">}</span>
+        <span class="n">w1_cell_info</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="n">w1_cell_info</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;loc&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;rowspan&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;colspan&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+        <span class="n">w1_cell_info</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;loc&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s1">&#39;rowspan&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;colspan&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+        <span class="n">w1_cell_info</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;loc&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="s1">&#39;rowspan&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;colspan&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+        <span class="n">w1_grid_info</span><span class="p">[</span><span class="s1">&#39;cell_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">w1_cell_info</span>
+        <span class="n">cmp_n_mats</span><span class="p">([</span><span class="n">m1_w1</span><span class="p">,</span> <span class="n">m2_w1</span><span class="p">,</span> <span class="n">w1_diff</span><span class="p">],</span> <span class="n">show_colorbars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">titles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;m1_w1&#39;</span><span class="p">,</span> <span class="s1">&#39;m2_w1&#39;</span><span class="p">,</span> <span class="s1">&#39;m1_w1 - m2_w1&#39;</span><span class="p">],</span>
+                   <span class="n">grid_info</span><span class="o">=</span><span class="n">w1_grid_info</span><span class="p">)</span>
+
+        <span class="c1"># Make plots of w0 matrices</span>
+
+        <span class="n">w0_diff</span> <span class="o">=</span> <span class="n">m1_w0</span> <span class="o">-</span> <span class="n">m2_w0</span>
+        <span class="n">w0_grid_info</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;grid_spec&#39;</span><span class="p">:</span> <span class="n">grid_spec</span><span class="p">}</span>
+        <span class="n">w0_cell_info</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="n">w0_cell_info</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;loc&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="s1">&#39;rowspan&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;colspan&#39;</span><span class="p">:</span> <span class="n">COL_SPAN</span> <span class="o">-</span> <span class="mi">8</span> <span class="o">+</span> <span class="mi">1</span><span class="p">})</span>
+        <span class="n">w0_cell_info</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;loc&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="s1">&#39;rowspan&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;colspan&#39;</span><span class="p">:</span> <span class="n">COL_SPAN</span> <span class="o">-</span> <span class="mi">8</span> <span class="o">+</span> <span class="mi">1</span><span class="p">})</span>
+        <span class="n">w0_cell_info</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;loc&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="s1">&#39;rowspan&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;colspan&#39;</span><span class="p">:</span> <span class="n">COL_SPAN</span> <span class="o">-</span> <span class="mi">8</span> <span class="o">+</span> <span class="mi">1</span><span class="p">})</span>
+        <span class="n">w0_grid_info</span><span class="p">[</span><span class="s1">&#39;cell_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">w0_cell_info</span>
+        <span class="n">cmp_n_mats</span><span class="p">([</span><span class="n">m1_w0</span><span class="p">,</span> <span class="n">m2_w0</span><span class="p">,</span> <span class="n">w0_diff</span><span class="p">],</span> <span class="n">show_colorbars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">titles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;m1_w0&#39;</span><span class="p">,</span> <span class="s1">&#39;m2_w0&#39;</span><span class="p">,</span> <span class="s1">&#39;m1_w0 - m2_w0&#39;</span><span class="p">],</span>
+                   <span class="n">grid_info</span><span class="o">=</span><span class="n">w0_grid_info</span><span class="p">)</span>
+
+        <span class="c1"># Make plot of model output</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">m1_mns</span> <span class="o">=</span> <span class="n">m1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+            <span class="n">m2_mns</span> <span class="o">=</span> <span class="n">m2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+            <span class="n">mns_plot</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="n">grid_spec</span><span class="o">.</span><span class="n">new_subplotspec</span><span class="p">([</span><span class="mi">12</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="n">COL_SPAN</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">plot_vars</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">n_vars</span> <span class="o">=</span> <span class="n">m1_mns</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">plot_vars</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="n">n_vars</span><span class="p">]))</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">plot_vars</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">v_i</span> <span class="ow">in</span> <span class="n">plot_vars</span><span class="p">:</span>
+                    <span class="n">v1_plot</span> <span class="o">=</span> <span class="n">mns_plot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">m1_mns</span><span class="p">[:,</span> <span class="n">v_i</span><span class="p">])</span>
+                    <span class="n">v2_plot</span> <span class="o">=</span> <span class="n">mns_plot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">m2_mns</span><span class="p">[:,</span> <span class="n">v_i</span><span class="p">],</span> <span class="s1">&#39;o&#39;</span><span class="p">)</span>
+                    <span class="n">v2_plot</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">v1_plot</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_color</span><span class="p">())</span></div></div>
+
+
+<div class="viewcode-block" id="RRSigmoidModel"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRSigmoidModel">[docs]</a><span class="k">class</span> <span class="nc">RRSigmoidModel</span><span class="p">(</span><span class="n">RRLinearModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Sigmoidal non-linear reduced rank model.</span>
+
+<span class="sd">    For models of the form:</span>
+
+<span class="sd">        y_t = sig(w_1*w_0^T * x_t + o_1) + o_2 + n_t,</span>
+
+<span class="sd">        n_t ~ N(0, V), for a diagonal V</span>
+
+<span class="sd">    where x_t is the input and sig() is the element-wise application of the sigmoid.  We assume w_0 and w_1 are</span>
+<span class="sd">    tall and skinny matrices.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_latent</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create a RRSigmoidModel object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d_in: Input dimensionality</span>
+
+<span class="sd">            d_out: Output dimensionality</span>
+
+<span class="sd">            d_latent: Latent dimensionality</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">,</span> <span class="n">d_latent</span><span class="p">)</span>
+
+        <span class="n">o1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">d_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;o1&#39;</span><span class="p">,</span> <span class="n">o1</span><span class="p">)</span>
+
+        <span class="n">g</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">d_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RRSigmoidModel.from_state_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRSigmoidModel.from_state_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_state_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new RRSigmoidModel model from a dictionary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state_dict: The state dictionary to create the model from.  This can be obtained</span>
+<span class="sd">            by calling .state_dict() on a model.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new model with parameters taking values in the state_dict()</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d_in</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;w0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_out</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;w1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_latent</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;w0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">mdl</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">,</span> <span class="n">d_latent</span><span class="p">)</span>
+        <span class="n">mdl</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mdl</span></div>
+
+<div class="viewcode-block" id="RRSigmoidModel.init_weights"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRSigmoidModel.init_weights">[docs]</a>    <span class="k">def</span> <span class="nf">init_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Randomly initializes all model parameters based on data.</span>
+
+<span class="sd">        This function should be called before model fitting.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y: Output data that the model will be fit to of shape n_smps*d_out</span>
+
+<span class="sd">        Raise:</span>
+<span class="sd">            NotImplementedError: If a parameter of the model exists for which initialization code</span>
+<span class="sd">            does not exist.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">d_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">var_variance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">[</span><span class="n">d_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">var_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">[</span><span class="n">d_out</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">var_variance</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;o2&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">var_mean</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;o1&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w0&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d_in</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w1&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Initialization for &#39;</span> <span class="o">+</span> <span class="n">param_name</span> <span class="o">+</span> <span class="s1">&#39; is not implemented.&#39;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="RRSigmoidModel.generate_random_model"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRSigmoidModel.generate_random_model">[docs]</a>    <span class="k">def</span> <span class="nf">generate_random_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">g_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
+                              <span class="n">o1_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="o">-.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">],</span> <span class="n">o2_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
+                              <span class="n">w_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Genarates random values for model parameters.</span>
+
+<span class="sd">        This function is useful for when generating models for testing code.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            var_range: A list giving limits of a uniform distribution variance values will be pulled from</span>
+
+<span class="sd">            g_range: A list giving limits of a uniform distribution g values will be pulled from</span>
+
+<span class="sd">            o1_range: A list giving limits of a uniform distribution o1 values will be pulled from</span>
+
+<span class="sd">            o2_range: A list giving limits of a uniform distribution o2 values will be pulled from</span>
+
+<span class="sd">            w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),</span>
+<span class="sd">            and entries of w1 are pulled from a distribution with a standard deviation of w_gain</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">d_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;v&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">*</span><span class="n">var_range</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;g&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">*</span><span class="n">g_range</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;o1&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">*</span><span class="n">o1_range</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;o2&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">*</span><span class="n">o2_range</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w0&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w_gain</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d_in</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w1&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w_gain</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Initialization for &#39;</span> <span class="o">+</span> <span class="n">param_name</span> <span class="o">+</span> <span class="s1">&#39; is not implemented.&#39;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="RRSigmoidModel.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRSigmoidModel.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output means condition on x.</span>
+
+<span class="sd">        This is equivalent to running the full generative model but not adding noise from n_t.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape n_smps*d_in</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            mns: The output.  Of shape n_smps*d_out</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o1</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="o">*</span><span class="n">x</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o2</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RRSigmoidModel.standardize"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRSigmoidModel.standardize">[docs]</a>    <span class="k">def</span> <span class="nf">standardize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Puts the model in a standard form.</span>
+
+<span class="sd">        The models have multiple degenerecies (non-identifiabilities):</span>
+
+<span class="sd">            1) The signs of gains (g) is arbitrary.  A change in sign can be absorbed by a change</span>
+<span class="sd">            in w1, o1 and d.  This function will put models in a form where all gains have positive</span>
+<span class="sd">            sign.</span>
+
+<span class="sd">            2) Even after (1), the values of w0 and w1 are not fully determined.</span>
+<span class="sd">            See RRLinearModel.standardize() for how this is done.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Standardize with respect to gains</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">o1</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">o1</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">o2</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">o2</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="c1"># Standardize with respect to weights</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">standardize</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="RRExpModel"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRExpModel">[docs]</a><span class="k">class</span> <span class="nc">RRExpModel</span><span class="p">(</span><span class="n">RRLinearModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Exponential non-linear reduced rank model.</span>
+
+<span class="sd">    For models of the form:</span>
+
+<span class="sd">        y_t = exp(w_1*w_0^T * x_t) + o_2 + n_t,</span>
+
+<span class="sd">        n_t ~ N(0, V), for a diagonal V</span>
+
+<span class="sd">    where x_t is the input and exp() is the element-wise application of e^x.  We assume w_0 and w_1 are</span>
+<span class="sd">    tall and skinny matrices.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_latent</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create a RRExpModel object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d_in: Input dimensionality</span>
+
+<span class="sd">            d_out: Output dimensionality</span>
+
+<span class="sd">            d_latent: Latent dimensionality</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">,</span> <span class="n">d_latent</span><span class="p">)</span>
+
+        <span class="n">g</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">d_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RRExpModel.from_state_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRExpModel.from_state_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_state_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new RRExpModel model from a dictionary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state_dict: The state dictionary to create the model from.  This can be obtained</span>
+<span class="sd">            by calling .state_dict() on a model.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new model with parameters taking values in the state_dict()</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d_in</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;w0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_out</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;w1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_latent</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;w0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">mdl</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">,</span> <span class="n">d_latent</span><span class="p">)</span>
+        <span class="n">mdl</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mdl</span></div>
+
+<div class="viewcode-block" id="RRExpModel.init_weights"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRExpModel.init_weights">[docs]</a>    <span class="k">def</span> <span class="nf">init_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Randomly initializes all model parameters based on data.</span>
+
+<span class="sd">        This function should be called before model fitting.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y: Output data that the model will be fit to of shape n_smps*d_out</span>
+
+<span class="sd">        Raise:</span>
+<span class="sd">            NotImplementedError: If a parameter of the model exists for which initialization code</span>
+<span class="sd">            does not exist.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">d_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">var_variance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">[</span><span class="n">d_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;g&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="mi">10</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;v&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;o2&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w0&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d_in</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w1&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Initialization for &#39;</span> <span class="o">+</span> <span class="n">param_name</span> <span class="o">+</span> <span class="s1">&#39; is not implemented.&#39;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="RRExpModel.generate_random_model"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRExpModel.generate_random_model">[docs]</a>    <span class="k">def</span> <span class="nf">generate_random_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">g_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
+                              <span class="n">o2_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">w_offsets</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">w_gains</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot; Generates random values for model parameters.</span>
+
+<span class="sd">        This function is useful for when generating models for testing code.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            var_range: A list giving limits of a uniform distribution variance values will be pulled from</span>
+
+<span class="sd">            g_range: A list giving limits of a uniform distribution g values will be pulled from</span>
+
+<span class="sd">            o2_range: A list giving limits of a uniform distribution o2 values will be pulled from</span>
+
+<span class="sd">            w_offsets: Means of the normal distributions weights are pulled from w_offsets[i] is the mean for w_i.</span>
+<span class="sd">            Setting w_offsets[1] to be negative, helps ensure (assuing input has enough variance) that the generated</span>
+<span class="sd">            data uses the full shape of the exponential - which can be important for practical concerns about model</span>
+<span class="sd">            identifiability.</span>
+
+<span class="sd">            w_gains: Gains of the standard deviations of the normal distributions weights are pulled from. Weights</span>
+<span class="sd">            for w_0 will be pulled from a normal distribution with standard deviation w_gains[0]/sqrt(d_in) and weights</span>
+<span class="sd">            for w_1 will be pulled from a normal distribution with standard deviation w_gains[1].</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">d_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;v&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">*</span><span class="n">var_range</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;g&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">*</span><span class="n">g_range</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;o2&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">*</span><span class="n">o2_range</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w0&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">w_offsets</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">w_gains</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d_in</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w1&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">w_offsets</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">w_gains</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Initialization for &#39;</span> <span class="o">+</span> <span class="n">param_name</span> <span class="o">+</span> <span class="s1">&#39; is not implemented.&#39;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="RRExpModel.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRExpModel.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output means condition on x.</span>
+
+<span class="sd">        This is equivalent to running the full generative model but not adding noise from n_t.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape n_smps*d_in</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            mns: The output.  Of shape n_smps*d_out</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="o">*</span><span class="n">x</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o2</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RRExpModel.latent_rep"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRExpModel.latent_rep">[docs]</a>    <span class="k">def</span> <span class="nf">latent_rep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; Computes unobserved intermediate values in the model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape n_smps*d_in</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            mn: The value of g_out + o_2 (see below)</span>
+
+<span class="sd">            g_out: The value of g*exp(exp_in) (see below)</span>
+
+<span class="sd">            exp_in: The value of w1*l (see l below)</span>
+
+<span class="sd">            l: The value of w_0^T*x_t</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+            <span class="n">exp_in</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span>
+            <span class="n">exp_out</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">exp_in</span><span class="p">)</span>
+            <span class="n">g_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">g</span> <span class="o">*</span> <span class="n">exp_out</span>
+            <span class="n">mn</span> <span class="o">=</span> <span class="n">g_out</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o2</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">mn</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">g_out</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">exp_in</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">l</span><span class="p">)]</span></div></div>
+
+
+<div class="viewcode-block" id="RRReluModel"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRReluModel">[docs]</a><span class="k">class</span> <span class="nc">RRReluModel</span><span class="p">(</span><span class="n">RRLinearModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Rectified linear reduced rank model.</span>
+
+<span class="sd">    For models of the form:</span>
+
+<span class="sd">        y_t = relu(w_1*w_0^T * x_t + o_1) + o_2 + n_t,</span>
+
+<span class="sd">        n_t ~ N(0, V), for a diagonal V</span>
+
+<span class="sd">    where x_t is the input and relu() is the element-wise application of the relu.  We assume w_0 and w_1 are</span>
+<span class="sd">    tall and skinny matrices.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_latent</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create a RRReluModel object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d_in: Input dimensionality</span>
+
+<span class="sd">            d_out: Output dimensionality</span>
+
+<span class="sd">            d_latent: Latent dimensionality</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">,</span> <span class="n">d_latent</span><span class="p">)</span>
+
+        <span class="n">o1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">d_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;o1&#39;</span><span class="p">,</span> <span class="n">o1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RRReluModel.from_state_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRReluModel.from_state_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_state_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new RRReluModel model from a dictionary.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state_dict: The state dictionary to create the model from.  This can be obtained</span>
+<span class="sd">            by calling .state_dict() on a model.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A new model with parameters taking values in the state_dict()</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d_in</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;w0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_out</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;w1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_latent</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;w0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">mdl</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">,</span> <span class="n">d_latent</span><span class="p">)</span>
+        <span class="n">mdl</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mdl</span></div>
+
+<div class="viewcode-block" id="RRReluModel.init_weights"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRReluModel.init_weights">[docs]</a>    <span class="k">def</span> <span class="nf">init_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">w_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Randomly initializes all model parameters based on data.</span>
+
+<span class="sd">        This function should be called before model fitting.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y: Output data that the model will be fit to of shape n_smps*d_out</span>
+
+<span class="sd">            w_gain: Weights will be initialized from a N(0, w_gain/sqrt(d_in)) distribution</span>
+<span class="sd">            for w_0 and N(0, w_gain) distribution from w1.</span>
+
+<span class="sd">        Raise:</span>
+<span class="sd">            NotImplementedError: If a parameter of the model exists for which initialization code</span>
+<span class="sd">            does not exist.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">d_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">var_variance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">[</span><span class="n">d_out</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">var_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="mi">0</span><span class="p">),</span> <span class="p">[</span><span class="n">d_out</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;v&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">var_variance</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;o2&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">var_min</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;o1&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w0&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w_gain</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d_in</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w1&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w_gain</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span><span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Initialization for &#39;</span> <span class="o">+</span> <span class="n">param_name</span> <span class="o">+</span> <span class="s1">&#39; is not implemented.&#39;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="RRReluModel.generate_random_model"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRReluModel.generate_random_model">[docs]</a>    <span class="k">def</span> <span class="nf">generate_random_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">o1_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="o">-.</span><span class="mi">2</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">],</span>
+                              <span class="n">o2_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="n">w_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Generates random values for model parameters.</span>
+
+<span class="sd">        This function is useful for when generating models for testing code.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            var_range: A list giving limits of a uniform distribution variance values will be pulled from</span>
+
+<span class="sd">            o1_range: A list giving limits of a uniform distribution o1 values will be pulled from</span>
+
+<span class="sd">            o2_range: A list giving limits of a uniform distribution o2 values will be pulled from</span>
+
+<span class="sd">            w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),</span>
+<span class="sd">            and entries of w1 are pulled from a distribution with a standard deviation of w_gain</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">d_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;v&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">*</span><span class="n">var_range</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;o1&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">*</span><span class="n">o1_range</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;o2&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">*</span><span class="n">o2_range</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w0&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w_gain</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">d_in</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;w1&#39;</span><span class="p">}:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w_gain</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Initialization for &#39;</span> <span class="o">+</span> <span class="n">param_name</span> <span class="o">+</span> <span class="s1">&#39; is not implemented.&#39;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="RRReluModel.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRReluModel.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output means condition on x.</span>
+
+<span class="sd">        This is equivalent to running the full generative model but not adding noise from n_t.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape n_smps*d_in</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            mns: The output.  Of shape n_smps*d_out</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o1</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o2</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RRReluModel.vary_latents"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/reduced_rank_models/index.html#janelia_core.ml.reduced_rank_models.RRReluModel.vary_latents">[docs]</a>    <span class="k">def</span> <span class="nf">vary_latents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_mat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">mn_input</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">latent_vls</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Produces output of model as latents take on different values.</span>
+
+<span class="sd">        We define the latents for the model as l_t = w_0^T*x_t, for l_t \in R^d_latent.  We want to know</span>
+<span class="sd">        what happens to the model as we change values in different dimensions of our latent space.</span>
+
+<span class="sd">        Generally, we want to be able to work with arbitrary coordinate systems in our latent space, so we introduce</span>
+<span class="sd">        projection matrices to allow us to pick out latent dimensions we want to vary. Let proj_m be a projection matrix</span>
+<span class="sd">        such that proj_m = p_mat*p_mat^T, and let proj_c = I - proj_m.  In this was, the columns of p_mat specify latent</span>
+<span class="sd">        dimensions in R^d_latent we are going to explore.</span>
+
+<span class="sd">        For latent_vls[:,i] this function will compute:</span>
+
+<span class="sd">            delta[:, t] = relu(w_1*p_mat*latent_vls[:,i] + mean_c + o_1) + o_2, where mean_c = w_1*proj_c*w_0^T*mn_input.</span>
+
+<span class="sd">        Intuitively, we are doing the following.  We are saying (1), let&#39;s assume that all of the latent dimensions</span>
+<span class="sd">        we are not varying are at their mean value.  Now (2), what happens to the output of my function as I vary the</span>
+<span class="sd">        latent dimensions specified by p_mat.  To make this clear, notice that p_mat*latent_vls[:,i] gives the</span>
+<span class="sd">        value of the latent dimensions we are interested in.</span>
+
+<span class="sd">        This function will also return w_1_proj = w_1*p_mat and w_0_proj = w_0*p_mat, so that activation of the w1 and</span>
+<span class="sd">        w0 weights corresponding to latent_vls[:,i] can be computed as w_1_proj*latent_vls[:,i] and</span>
+<span class="sd">        w_0_proj*latent_vls[:,i].</span>
+
+<span class="sd">        Note: Gradients will not be updated during this function call.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            p_mat: A matrix with orthonormal columns defining the latent space to project into.</span>
+
+<span class="sd">            mn_input: The mean input vector to calculate changes of input around.  Note, as specified above, any</span>
+<span class="sd">            component of proj_m*w_0^T*x_t will be ignored.  Thus, we can interpret this function as giving changes</span>
+<span class="sd">            from the mean activation if the components corresponding to p_mat are 0.</span>
+
+<span class="sd">            latent_vls: An array of latent values to generate output for of shape n_smps*d_vary, where d_vary is the</span>
+<span class="sd">            number of latent dimensions varied.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            delta: The model output for each point in latent_vls as a tensor.  Of shape n_smps*d_out</span>
+
+<span class="sd">            w_0_proj: A tensor equal o w_0*p_mat of shape d_in*d_latent</span>
+
+<span class="sd">            w_1_proj: A tensor equal to w_1*p_mat of shape d_out*d_latent</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the columns of p_mat are not orthonormal.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">n_proj_dims</span> <span class="o">=</span> <span class="n">p_mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">d_latent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mn_input</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">mn_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="n">mn_input</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="c1"># First, make sure that p_mat is a matrix with orthonormal columns</span>
+            <span class="n">check</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">p_mat</span><span class="p">),</span> <span class="n">p_mat</span><span class="p">)</span>
+            <span class="n">check_diff</span> <span class="o">=</span> <span class="n">check</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n_proj_dims</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">check</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">check_diff</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">check_diff</span><span class="o">.</span><span class="n">shape</span><span class="p">))):</span>
+                <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;p_mat must have orthonormal columns.&#39;</span><span class="p">))</span>
+
+            <span class="c1"># Now compute projected weights</span>
+            <span class="n">w_0_proj</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="p">,</span> <span class="n">p_mat</span><span class="p">)</span>
+            <span class="n">w_1_proj</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="p">,</span> <span class="n">p_mat</span><span class="p">)</span>
+
+            <span class="n">proj_c</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">d_latent</span><span class="p">)</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">p_mat</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">p_mat</span><span class="p">))</span>
+            <span class="n">mean_c</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">proj_c</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w0</span><span class="p">),</span> <span class="n">mn_input</span><span class="p">)))</span>
+
+            <span class="c1"># Now compute delta</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">w_1_proj</span><span class="p">,</span> <span class="n">latent_vls</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">mean_c</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o1</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o2</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="p">[</span><span class="n">delta</span><span class="p">,</span> <span class="n">w_0_proj</span><span class="p">,</span> <span class="n">w_1_proj</span><span class="p">]</span></div></div>
+
+
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

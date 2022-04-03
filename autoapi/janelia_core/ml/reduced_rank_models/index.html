@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.reduced_rank_models &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.reduced_rank_models</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/ml/reduced_rank_models/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.reduced_rank_models">
+<span id="janelia-core-ml-reduced-rank-models"></span><h1><a class="reference internal" href="#module-janelia_core.ml.reduced_rank_models" title="janelia_core.ml.reduced_rank_models"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.reduced_rank_models</span></code></a><a class="headerlink" href="#module-janelia_core.ml.reduced_rank_models" title="Permalink to this headline"></a></h1>
+<p>Contains classes and functions for performing different forms of nonlinear reduced
+rank regression.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.reduced_rank_models.RRLinearModel" title="janelia_core.ml.reduced_rank_models.RRLinearModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RRLinearModel</span></code></a></p></td>
+<td><p>Object for linear reduced rank linear model objects.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.reduced_rank_models.RRSigmoidModel" title="janelia_core.ml.reduced_rank_models.RRSigmoidModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RRSigmoidModel</span></code></a></p></td>
+<td><p>Sigmoidal non-linear reduced rank model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.reduced_rank_models.RRExpModel" title="janelia_core.ml.reduced_rank_models.RRExpModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RRExpModel</span></code></a></p></td>
+<td><p>Exponential non-linear reduced rank model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.reduced_rank_models.RRReluModel" title="janelia_core.ml.reduced_rank_models.RRReluModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RRReluModel</span></code></a></p></td>
+<td><p>Rectified linear reduced rank model.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="janelia_core.ml.reduced_rank_models.RRLinearModel">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.reduced_rank_models.</code><code class="sig-name descname">RRLinearModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_in</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">d_out</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">d_latent</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRLinearModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRLinearModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Object for linear reduced rank linear model objects.</p>
+<p>Base class for non-linear reduced rank linear model objects.</p>
+<p>This object and all objects derived from it are for models of the form:</p>
+<blockquote>
+<div><p>y_t = g(w_1*w_0^T * x_t + o_1) + o_2 + n_t,</p>
+<p>n_t ~ N(0, V), for a diagonal V</p>
+</div></blockquote>
+<p>where x_t is the input and g() is the element-wise application of a smooth function.  In this base class, we fix
+o_1 = 0, g = I.</p>
+<p>Often w_0 and w_1 will be tall and skinny matrices (giving the reduced rank).</p>
+<p>Create a RRLinearModel object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d_in: Input dimensionality</p>
+<p>d_out: Output dimensionality</p>
+<p>d_latent: Latent dimensionality</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRLinearModel.from_state_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_state_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cls</span></em>, <em class="sig-param"><span class="n">state_dict</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRLinearModel.from_state_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRLinearModel.from_state_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a new RRReluModel model from a dictionary.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>state_dict: The state dictionary to create the model from.  This can be obtained
+by calling .state_dict() on a model.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A new model with parameters taking values in the state_dict()</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRLinearModel.init_weights">
+<code class="sig-name descname">init_weights</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRLinearModel.init_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRLinearModel.init_weights" title="Permalink to this definition"></a></dt>
+<dd><p>Randomly initializes all model parameters based on data.</p>
+<p>This function should be called before model fitting.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>y: Output data that the model will be fit to of shape n_smps*d_out</p>
+</dd>
+<dt>Raise:</dt><dd><p>NotImplementedError: If a parameter of the model exists for which initialization code
+does not exist.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRLinearModel.generate_random_model">
+<code class="sig-name descname">generate_random_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">var_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[0.5, 1]</span></em>, <em class="sig-param"><span class="n">o2_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">10.0</span></em>, <em class="sig-param"><span class="n">w_gain</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRLinearModel.generate_random_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRLinearModel.generate_random_model" title="Permalink to this definition"></a></dt>
+<dd><p>Generates random values for model parameters.</p>
+<p>This function is useful for when generating models for testing code.</p>
+<dl>
+<dt>Args:</dt><dd><p>var_range: A list giving limits of a uniform distribution variance values will be pulled from</p>
+<p>o2_std: Standard deviation of normal distribution values of o2 are pulled from</p>
+<p>w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),
+and entries of w1 are pulled from a distribution with a standard deviation of w_gain</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRLinearModel.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRLinearModel.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRLinearModel.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output means condition on x.</p>
+<p>This is equivalent to running the full generative model but not adding noise from n_t.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*d_in</p>
+</dd>
+<dt>Returns:</dt><dd><p>mns: The output.  Of shape n_smps*d_out</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRLinearModel.infer_latents">
+<code class="sig-name descname">infer_latents</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRLinearModel.infer_latents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRLinearModel.infer_latents" title="Permalink to this definition"></a></dt>
+<dd><p>Infers latents defined as w0.T*x.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*d_in</p>
+</dd>
+<dt>Returns:</dt><dd><p>l: Inferred latents of shape n_smps*d_latents.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRLinearModel.scale_grads">
+<code class="sig-name descname">scale_grads</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">sc</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRLinearModel.scale_grads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRLinearModel.scale_grads" title="Permalink to this definition"></a></dt>
+<dd><p>Scales computed gradients.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>sc: The scale factor to multiply gradients by.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRLinearModel.generate">
+<code class="sig-name descname">generate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRLinearModel.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRLinearModel.generate" title="Permalink to this definition"></a></dt>
+<dd><p>Generates data from a model.</p>
+<p>This is equivalent to calling forward() and then adding noise from n_t.</p>
+<p>Note: This function will not effect gradients.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*n_dims</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: The output.  Same shape as x.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRLinearModel.neg_log_likelihood">
+<code class="sig-name descname">neg_log_likelihood</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">mns</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRLinearModel.neg_log_likelihood"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRLinearModel.neg_log_likelihood" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the negative log-likelihood of observed data, given conditional means for that data up to a constant.</p>
+<p>Note: This function does not compute the term .5*n_smps*log(2*pi).  Add this term in if you want the exact
+log likelihood.</p>
+<p>This function can be used as a loss, using the output of forward for mns and setting y to be observed data.
+Using this function as loss will give (subject to local optima) MLE solutions.</p>
+<dl>
+<dt>Args:</dt><dd><p>y: Data to measure the negative log likelihood for of shape n_smps*d_in.</p>
+<p>mns: The conditional means for the data.  These can be obtained with forward().</p>
+</dd>
+<dt>Returns:</dt><dd><p>nll: The negative log-likelihood of the observed data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRLinearModel.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="n">send_size</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="n">max_its</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">learning_rates</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">adam_params</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">min_var</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">update_int</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">parameters</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">w0_l2</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">w1_l2</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">w0_l1</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">w1_l1</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">print_penalties</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRLinearModel.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRLinearModel.fit" title="Permalink to this definition"></a></dt>
+<dd><p>Fits a model to data.</p>
+<p>This function performs stochastic optimization with the ADAM algorithm.  The weights of the model
+should be initialized before calling this function.</p>
+<p>Optimization will be performed on whatever device the model parameters are on.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>x: Tensor of input data of shape n_smps*d_in</p>
+<p>y: Tensor of output data of shape n_smps*d_out</p>
+<p>batch_size: The number of samples to train on during each iteration</p>
+<p>send_size: The number of samples to send to the device at a time for calculating batch gradients.  It is
+most efficient to set send_size = batch_size, but if this results in computations exceeding device memory,
+send_size can be set lower.  In this case gradients will accumulated until all samples in the batch are
+sent to the device and then a step will be taken.</p>
+<p>max_its: The maximum number of iterations to run</p>
+<p>learning_rates: If a single number, this is the learning rate to use for all iteration.  Alternatively, this
+can be a list of tuples.  Each tuple is of the form (iteration, learning_rate), which gives the learning rate
+to use from that iteration onwards, until another tuple specifies another learning rate to use at a different
+iteration on.  E.g., learning_rates = [(0, .01), (1000, .001), (10000, .0001)] would specify a learning
+rate of .01 from iteration 0 to 999, .001 from iteration 1000 to 9999 and .0001 from iteration 10000 onwards.</p>
+<p>adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object.
+Note that if learning rate is specified here <em>it will be ignored.</em> (Use the learning_rates option instead).</p>
+<p>min_var: The minumum value any entry of v can take on.  After a gradient update, values less than this
+will be clamped to this value.</p>
+<p>update_int: The interval of iterations we update the user on.</p>
+<p>parameters: If provided, only these parameters of the model will be optimized.  If none, all parameters are
+optimized.</p>
+<p>w0_l2: The penalty on the l-2 norm of the model’s w0 weights.</p>
+<p>w1_l2: The penalty on the l-2 norm of the model’s w1 weights.</p>
+<p>w0_l1: The penalty on the l-1 norm of the model’s w0 weights.</p>
+<p>w1_l1: The penalty on the l-2 norm of the model’s w1 weights.</p>
+<p>print_penalties: True if penalty values should be printed to screen.</p>
+</div></blockquote>
+<dl>
+<dt>Raises:</dt><dd><p>ValueError: If send_size is greater than batch_size.</p>
+</dd>
+<dt>Returns:</dt><dd><dl>
+<dt>log: A dictionary logging progress.  Will have the enries:</dt><dd><p>‘elapsed_time’: log[‘elapsed_time’][i] contains the elapsed time from the beginning of optimization to
+the end of iteration i</p>
+<p>‘obj’: log[‘obj’][i] contains the objective value at the beginning (before parameters are updated) of iteration i.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRLinearModel.standardize">
+<code class="sig-name descname">standardize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRLinearModel.standardize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRLinearModel.standardize" title="Permalink to this definition"></a></dt>
+<dd><p>Puts the model in a standard form.</p>
+<p>The values of w0 and w1 are not fully determined.  The svd of w0*w1.T = u*s*v.T will be performed,
+and then w0 will be set to u*s and w1 will be set to v.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRLinearModel.flip_weight_signs">
+<code class="sig-name descname">flip_weight_signs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">m2</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRLinearModel.flip_weight_signs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRLinearModel.flip_weight_signs" title="Permalink to this definition"></a></dt>
+<dd><p>Flips signs of weights, column-wise of input model to best match weights of this model.</p>
+<p>Even after standardizing the weights of the model, signs of elements in columns of w0 and w1 are not
+determined.  This creates a problem when comparing two models.  This function can be passed a second model,
+and it will flip the signs of the columns of that model’s weights to best match the weights of the base
+model.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>m2: The model with weights to flip</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRLinearModel.compare_models">
+<em class="property">static </em><code class="sig-name descname">compare_models</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">m1</span></em>, <em class="sig-param"><span class="n">m2</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plot_vars</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">2</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRLinearModel.compare_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRLinearModel.compare_models" title="Permalink to this definition"></a></dt>
+<dd><p>Visually compares two models.</p>
+<p>This function will flip signs on columns of w0 and w1 to best match weights between models (as signs of
+corresponding columns of w0 and w1 can be flipped arbitrarily).  Models will be copied before this is done
+so the m1 and m2 passed in are unchanged.</p>
+<dl>
+<dt>Args:</dt><dd><p>m1: The fist model</p>
+<p>m2: The second model</p>
+<p>x: Input to test the models on.  The conditional means for both model will be plotted for this input if
+provided.</p>
+<p>plot_vars: Indices of variables to plot if plotting conditional means. If this None, the first (up to) two
+variables will be plotted.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.reduced_rank_models.RRSigmoidModel">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.reduced_rank_models.</code><code class="sig-name descname">RRSigmoidModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_in</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">d_out</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">d_latent</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRSigmoidModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRSigmoidModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.reduced_rank_models.RRLinearModel" title="janelia_core.ml.reduced_rank_models.RRLinearModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RRLinearModel</span></code></a></p>
+<p>Sigmoidal non-linear reduced rank model.</p>
+<p>For models of the form:</p>
+<blockquote>
+<div><p>y_t = sig(w_1*w_0^T * x_t + o_1) + o_2 + n_t,</p>
+<p>n_t ~ N(0, V), for a diagonal V</p>
+</div></blockquote>
+<p>where x_t is the input and sig() is the element-wise application of the sigmoid.  We assume w_0 and w_1 are
+tall and skinny matrices.</p>
+<p>Create a RRSigmoidModel object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d_in: Input dimensionality</p>
+<p>d_out: Output dimensionality</p>
+<p>d_latent: Latent dimensionality</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRSigmoidModel.from_state_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_state_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cls</span></em>, <em class="sig-param"><span class="n">state_dict</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRSigmoidModel.from_state_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRSigmoidModel.from_state_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a new RRSigmoidModel model from a dictionary.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>state_dict: The state dictionary to create the model from.  This can be obtained
+by calling .state_dict() on a model.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A new model with parameters taking values in the state_dict()</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRSigmoidModel.init_weights">
+<code class="sig-name descname">init_weights</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRSigmoidModel.init_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRSigmoidModel.init_weights" title="Permalink to this definition"></a></dt>
+<dd><p>Randomly initializes all model parameters based on data.</p>
+<p>This function should be called before model fitting.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>y: Output data that the model will be fit to of shape n_smps*d_out</p>
+</dd>
+<dt>Raise:</dt><dd><p>NotImplementedError: If a parameter of the model exists for which initialization code
+does not exist.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRSigmoidModel.generate_random_model">
+<code class="sig-name descname">generate_random_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">var_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[0.5, 1]</span></em>, <em class="sig-param"><span class="n">g_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[5, 10]</span></em>, <em class="sig-param"><span class="n">o1_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[- 0.2, 0.2]</span></em>, <em class="sig-param"><span class="n">o2_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[5, 10]</span></em>, <em class="sig-param"><span class="n">w_gain</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRSigmoidModel.generate_random_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRSigmoidModel.generate_random_model" title="Permalink to this definition"></a></dt>
+<dd><p>Genarates random values for model parameters.</p>
+<p>This function is useful for when generating models for testing code.</p>
+<dl>
+<dt>Args:</dt><dd><p>var_range: A list giving limits of a uniform distribution variance values will be pulled from</p>
+<p>g_range: A list giving limits of a uniform distribution g values will be pulled from</p>
+<p>o1_range: A list giving limits of a uniform distribution o1 values will be pulled from</p>
+<p>o2_range: A list giving limits of a uniform distribution o2 values will be pulled from</p>
+<p>w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),
+and entries of w1 are pulled from a distribution with a standard deviation of w_gain</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRSigmoidModel.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRSigmoidModel.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRSigmoidModel.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output means condition on x.</p>
+<p>This is equivalent to running the full generative model but not adding noise from n_t.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*d_in</p>
+</dd>
+<dt>Returns:</dt><dd><p>mns: The output.  Of shape n_smps*d_out</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRSigmoidModel.standardize">
+<code class="sig-name descname">standardize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRSigmoidModel.standardize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRSigmoidModel.standardize" title="Permalink to this definition"></a></dt>
+<dd><p>Puts the model in a standard form.</p>
+<p>The models have multiple degenerecies (non-identifiabilities):</p>
+<blockquote>
+<div><p>1) The signs of gains (g) is arbitrary.  A change in sign can be absorbed by a change
+in w1, o1 and d.  This function will put models in a form where all gains have positive
+sign.</p>
+<p>2) Even after (1), the values of w0 and w1 are not fully determined.
+See RRLinearModel.standardize() for how this is done.</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.reduced_rank_models.RRExpModel">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.reduced_rank_models.</code><code class="sig-name descname">RRExpModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_in</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">d_out</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">d_latent</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRExpModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRExpModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.reduced_rank_models.RRLinearModel" title="janelia_core.ml.reduced_rank_models.RRLinearModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RRLinearModel</span></code></a></p>
+<p>Exponential non-linear reduced rank model.</p>
+<p>For models of the form:</p>
+<blockquote>
+<div><p>y_t = exp(w_1*w_0^T * x_t) + o_2 + n_t,</p>
+<p>n_t ~ N(0, V), for a diagonal V</p>
+</div></blockquote>
+<p>where x_t is the input and exp() is the element-wise application of e^x.  We assume w_0 and w_1 are
+tall and skinny matrices.</p>
+<p>Create a RRExpModel object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d_in: Input dimensionality</p>
+<p>d_out: Output dimensionality</p>
+<p>d_latent: Latent dimensionality</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRExpModel.from_state_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_state_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cls</span></em>, <em class="sig-param"><span class="n">state_dict</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRExpModel.from_state_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRExpModel.from_state_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a new RRExpModel model from a dictionary.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>state_dict: The state dictionary to create the model from.  This can be obtained
+by calling .state_dict() on a model.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A new model with parameters taking values in the state_dict()</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRExpModel.init_weights">
+<code class="sig-name descname">init_weights</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRExpModel.init_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRExpModel.init_weights" title="Permalink to this definition"></a></dt>
+<dd><p>Randomly initializes all model parameters based on data.</p>
+<p>This function should be called before model fitting.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>y: Output data that the model will be fit to of shape n_smps*d_out</p>
+</dd>
+<dt>Raise:</dt><dd><p>NotImplementedError: If a parameter of the model exists for which initialization code
+does not exist.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRExpModel.generate_random_model">
+<code class="sig-name descname">generate_random_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">var_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[0.5, 1]</span></em>, <em class="sig-param"><span class="n">g_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[5, 10]</span></em>, <em class="sig-param"><span class="n">o2_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[0, 1]</span></em>, <em class="sig-param"><span class="n">w_offsets</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[0, - 1]</span></em>, <em class="sig-param"><span class="n">w_gains</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[1, 1]</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRExpModel.generate_random_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRExpModel.generate_random_model" title="Permalink to this definition"></a></dt>
+<dd><p>Generates random values for model parameters.</p>
+<p>This function is useful for when generating models for testing code.</p>
+<dl>
+<dt>Args:</dt><dd><p>var_range: A list giving limits of a uniform distribution variance values will be pulled from</p>
+<p>g_range: A list giving limits of a uniform distribution g values will be pulled from</p>
+<p>o2_range: A list giving limits of a uniform distribution o2 values will be pulled from</p>
+<p>w_offsets: Means of the normal distributions weights are pulled from w_offsets[i] is the mean for w_i.
+Setting w_offsets[1] to be negative, helps ensure (assuing input has enough variance) that the generated
+data uses the full shape of the exponential - which can be important for practical concerns about model
+identifiability.</p>
+<p>w_gains: Gains of the standard deviations of the normal distributions weights are pulled from. Weights
+for w_0 will be pulled from a normal distribution with standard deviation w_gains[0]/sqrt(d_in) and weights
+for w_1 will be pulled from a normal distribution with standard deviation w_gains[1].</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRExpModel.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRExpModel.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRExpModel.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output means condition on x.</p>
+<p>This is equivalent to running the full generative model but not adding noise from n_t.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*d_in</p>
+</dd>
+<dt>Returns:</dt><dd><p>mns: The output.  Of shape n_smps*d_out</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRExpModel.latent_rep">
+<code class="sig-name descname">latent_rep</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>torch.Tensor<span class="p">]</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRExpModel.latent_rep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRExpModel.latent_rep" title="Permalink to this definition"></a></dt>
+<dd><p>Computes unobserved intermediate values in the model.</p>
+<dl>
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*d_in</p>
+</dd>
+<dt>Returns:</dt><dd><p>mn: The value of g_out + o_2 (see below)</p>
+<p>g_out: The value of g*exp(exp_in) (see below)</p>
+<p>exp_in: The value of w1*l (see l below)</p>
+<p>l: The value of w_0^T*x_t</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.reduced_rank_models.RRReluModel">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.reduced_rank_models.</code><code class="sig-name descname">RRReluModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_in</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">d_out</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">d_latent</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRReluModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRReluModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.reduced_rank_models.RRLinearModel" title="janelia_core.ml.reduced_rank_models.RRLinearModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RRLinearModel</span></code></a></p>
+<p>Rectified linear reduced rank model.</p>
+<p>For models of the form:</p>
+<blockquote>
+<div><p>y_t = relu(w_1*w_0^T * x_t + o_1) + o_2 + n_t,</p>
+<p>n_t ~ N(0, V), for a diagonal V</p>
+</div></blockquote>
+<p>where x_t is the input and relu() is the element-wise application of the relu.  We assume w_0 and w_1 are
+tall and skinny matrices.</p>
+<p>Create a RRReluModel object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d_in: Input dimensionality</p>
+<p>d_out: Output dimensionality</p>
+<p>d_latent: Latent dimensionality</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRReluModel.from_state_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_state_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cls</span></em>, <em class="sig-param"><span class="n">state_dict</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRReluModel.from_state_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRReluModel.from_state_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a new RRReluModel model from a dictionary.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>state_dict: The state dictionary to create the model from.  This can be obtained
+by calling .state_dict() on a model.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A new model with parameters taking values in the state_dict()</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRReluModel.init_weights">
+<code class="sig-name descname">init_weights</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">w_gain</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRReluModel.init_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRReluModel.init_weights" title="Permalink to this definition"></a></dt>
+<dd><p>Randomly initializes all model parameters based on data.</p>
+<p>This function should be called before model fitting.</p>
+<dl>
+<dt>Args:</dt><dd><p>y: Output data that the model will be fit to of shape n_smps*d_out</p>
+<p>w_gain: Weights will be initialized from a N(0, w_gain/sqrt(d_in)) distribution
+for w_0 and N(0, w_gain) distribution from w1.</p>
+</dd>
+<dt>Raise:</dt><dd><p>NotImplementedError: If a parameter of the model exists for which initialization code
+does not exist.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRReluModel.generate_random_model">
+<code class="sig-name descname">generate_random_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">var_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[0.5, 1]</span></em>, <em class="sig-param"><span class="n">o1_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[- 0.2, 0.2]</span></em>, <em class="sig-param"><span class="n">o2_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[5, 10]</span></em>, <em class="sig-param"><span class="n">w_gain</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRReluModel.generate_random_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRReluModel.generate_random_model" title="Permalink to this definition"></a></dt>
+<dd><p>Generates random values for model parameters.</p>
+<p>This function is useful for when generating models for testing code.</p>
+<dl>
+<dt>Args:</dt><dd><p>var_range: A list giving limits of a uniform distribution variance values will be pulled from</p>
+<p>o1_range: A list giving limits of a uniform distribution o1 values will be pulled from</p>
+<p>o2_range: A list giving limits of a uniform distribution o2 values will be pulled from</p>
+<p>w_gain: Entries of w0 and w1 are pulled from a distribution with a standard deviation of w_gain/sqrt(d_in),
+and entries of w1 are pulled from a distribution with a standard deviation of w_gain</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRReluModel.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRReluModel.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRReluModel.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output means condition on x.</p>
+<p>This is equivalent to running the full generative model but not adding noise from n_t.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*d_in</p>
+</dd>
+<dt>Returns:</dt><dd><p>mns: The output.  Of shape n_smps*d_out</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.reduced_rank_models.RRReluModel.vary_latents">
+<code class="sig-name descname">vary_latents</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">p_mat</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">mn_input</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">latent_vls</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/reduced_rank_models.html#RRReluModel.vary_latents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.reduced_rank_models.RRReluModel.vary_latents" title="Permalink to this definition"></a></dt>
+<dd><p>Produces output of model as latents take on different values.</p>
+<p>We define the latents for the model as l_t = w_0^T*x_t, for l_t in R^d_latent.  We want to know
+what happens to the model as we change values in different dimensions of our latent space.</p>
+<p>Generally, we want to be able to work with arbitrary coordinate systems in our latent space, so we introduce
+projection matrices to allow us to pick out latent dimensions we want to vary. Let proj_m be a projection matrix
+such that proj_m = p_mat*p_mat^T, and let proj_c = I - proj_m.  In this was, the columns of p_mat specify latent
+dimensions in R^d_latent we are going to explore.</p>
+<p>For latent_vls[:,i] this function will compute:</p>
+<blockquote>
+<div><p>delta[:, t] = relu(w_1*p_mat*latent_vls[:,i] + mean_c + o_1) + o_2, where mean_c = w_1*proj_c*w_0^T*mn_input.</p>
+</div></blockquote>
+<p>Intuitively, we are doing the following.  We are saying (1), let’s assume that all of the latent dimensions
+we are not varying are at their mean value.  Now (2), what happens to the output of my function as I vary the
+latent dimensions specified by p_mat.  To make this clear, notice that p_mat*latent_vls[:,i] gives the
+value of the latent dimensions we are interested in.</p>
+<p>This function will also return w_1_proj = w_1*p_mat and w_0_proj = w_0*p_mat, so that activation of the w1 and
+w0 weights corresponding to latent_vls[:,i] can be computed as w_1_proj*latent_vls[:,i] and
+w_0_proj*latent_vls[:,i].</p>
+<p>Note: Gradients will not be updated during this function call.</p>
+<dl>
+<dt>Args:</dt><dd><p>p_mat: A matrix with orthonormal columns defining the latent space to project into.</p>
+<p>mn_input: The mean input vector to calculate changes of input around.  Note, as specified above, any
+component of proj_m*w_0^T*x_t will be ignored.  Thus, we can interpret this function as giving changes
+from the mean activation if the components corresponding to p_mat are 0.</p>
+<p>latent_vls: An array of latent values to generate output for of shape n_smps*d_vary, where d_vary is the
+number of latent dimensions varied.</p>
+</dd>
+<dt>Returns:</dt><dd><p>delta: The model output for each point in latent_vls as a tensor.  Of shape n_smps*d_out</p>
+<p>w_0_proj: A tensor equal o w_0*p_mat of shape d_in*d_latent</p>
+<p>w_1_proj: A tensor equal to w_1*p_mat of shape d_out*d_latent</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If the columns of p_mat are not orthonormal.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

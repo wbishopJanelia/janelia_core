@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.torch_distributions &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.torch_distributions</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/ml/torch_distributions/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.torch_distributions">
+<span id="janelia-core-ml-torch-distributions"></span><h1><a class="reference internal" href="#module-janelia_core.ml.torch_distributions" title="janelia_core.ml.torch_distributions"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.torch_distributions</span></code></a><a class="headerlink" href="#module-janelia_core.ml.torch_distributions" title="Permalink to this headline"></a></h1>
+<p>Torch modules and tools for working with distributions.</p>
+<p>The distribution objects defined here are <em>not</em> subclasses of torch.distributions.  There are a couple of
+innovations over standard Pytorch distributions:</p>
+<blockquote>
+<div><p>1) Samples are returned in compact notation.  This is convenient when sampling structured data and enables
+efficient representation of sparse samples.  Each distribution also has its own methods for converting between
+compact and standard data representations.</p>
+<p>2) The distributions here naturally accomodate conditioning data.  See the base class CondVAEDistribution for
+more details.</p>
+</div></blockquote>
+<p>In addition to holding distribution objects, this module also holds distribution penalizers.  See the base class
+DistributionPenalizer for more information.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondVAEDistribution</span></code></a></p></td>
+<td><p>CondVAEDistribution is a base class for conditional distributions used by VAEs.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondFoldedNormalDistribution" title="janelia_core.ml.torch_distributions.CondFoldedNormalDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondFoldedNormalDistribution</span></code></a></p></td>
+<td><p>A multivariate conditional folded normal distribution.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondBernoulliDistribution" title="janelia_core.ml.torch_distributions.CondBernoulliDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondBernoulliDistribution</span></code></a></p></td>
+<td><p>A module for working with conditional Bernoulli distributions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondGammaDistribution" title="janelia_core.ml.torch_distributions.CondGammaDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondGammaDistribution</span></code></a></p></td>
+<td><p>A distribution over a set of conditionally independent Gamma random variables.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondGaussianDistribution" title="janelia_core.ml.torch_distributions.CondGaussianDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondGaussianDistribution</span></code></a></p></td>
+<td><p>Represents a multivariate distribution over a set of conditionally independent Gaussian random variables.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondSpikeSlabDistribution" title="janelia_core.ml.torch_distributions.CondSpikeSlabDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondSpikeSlabDistribution</span></code></a></p></td>
+<td><p>Represents a conditional spike and slab distribution.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution" title="janelia_core.ml.torch_distributions.CondMatrixProductDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondMatrixProductDistribution</span></code></a></p></td>
+<td><p>Represents conditional distributions over matrices.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondGaussianMatrixProductDistribution" title="janelia_core.ml.torch_distributions.CondGaussianMatrixProductDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondGaussianMatrixProductDistribution</span></code></a></p></td>
+<td><p>Represents conditional Gaussian distributions over matrices.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.MatrixGammaProductDistribution" title="janelia_core.ml.torch_distributions.MatrixGammaProductDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MatrixGammaProductDistribution</span></code></a></p></td>
+<td><p>Represents a distribution over matrices where each entry is pulled iid from a separate Gamma distribution.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.MatrixFoldedNormalProductDistribution" title="janelia_core.ml.torch_distributions.MatrixFoldedNormalProductDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MatrixFoldedNormalProductDistribution</span></code></a></p></td>
+<td><p>Represents a distribution over matrices where each entry is pulled iid from a Folded Normal distribution.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.MatrixGaussianProductDistribution" title="janelia_core.ml.torch_distributions.MatrixGaussianProductDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MatrixGaussianProductDistribution</span></code></a></p></td>
+<td><p>Represents a distribution over matrices where each entry is pulled iid from a separate Gaussian distribution.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondMatrixHypercubePrior" title="janelia_core.ml.torch_distributions.CondMatrixHypercubePrior"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondMatrixHypercubePrior</span></code></a></p></td>
+<td><p>Extends CondGaussianMatrixProductDistribution so the distribution for each column is a Gaussian with mean and standard</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.GroupCondMatrixHypercubePrior" title="janelia_core.ml.torch_distributions.GroupCondMatrixHypercubePrior"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GroupCondMatrixHypercubePrior</span></code></a></p></td>
+<td><p>Extends CondGaussianMatrixProductDistribution so the distribution for each column is a Gaussian with</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.DistributionPenalizer" title="janelia_core.ml.torch_distributions.DistributionPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DistributionPenalizer</span></code></a></p></td>
+<td><p>A base class for creating distribution penalizer objects.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer" title="janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ColumnMeanClusterPenalizer</span></code></a></p></td>
+<td><p>Penalizes the mean of a conditional distribution over matrices to encouraging clustering of column values.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.torch_distributions.gen_columns_mean_cluster_penalizer" title="janelia_core.ml.torch_distributions.gen_columns_mean_cluster_penalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gen_columns_mean_cluster_penalizer</span></code></a>(n_cols: int, dim_ranges: numpy.ndarray, n_pts_per_dim: Sequence[int], n_ctrs_per_dim: Sequence[int], init_scale: float = 100.0, scale_weight: float = 10.0, penalizer_pts: torch.Tensor = None) → ColumnMeanClusterPenalizer</p></td>
+<td><p>Generates a columns mean cluster penalizer for a conditional distribution over matrices.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.CondVAEDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">CondVAEDistribution</code><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondVAEDistribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondVAEDistribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>CondVAEDistribution is a base class for conditional distributions used by VAEs.</p>
+<p>Creates a CondVAEDistribution object.</p>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondVAEDistribution.forward">
+<em class="property">abstract </em><code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondVAEDistribution.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondVAEDistribution.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the conditional mean of the distribution at different samples.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: A tensor of shape n_smps*d_x.</p>
+</dd>
+<dt>Returns:</dt><dd><p>mn: mn[i, :] is the mean conditioned on x[i, :]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondVAEDistribution.sample">
+<em class="property">abstract </em><code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.tensor</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)">object</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondVAEDistribution.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondVAEDistribution.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Samples from a conditional distribution.</p>
+<p>When possible, samples should be generated from a reparameterized distribution.</p>
+<p>Returned samples may be represented by a set of compact parameters.  See form_standard_sample() on how to
+transform this compact representation into a standard representation.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.</p>
+</dd>
+<dt>Returns:</dt><dd><p>smp: The sample. The returned value of samples can be quite flexible.  It could be a tensor of shape n_smps,
+with each entry representing a sample or it could be another object with attributes which specify the values
+of the sample.  For example, if sampling from a spike and slab parameter, the returned value could be a list
+with one entry specifying the number of sample, another containing a tensor specifying non-zero samples and
+another tensor specifying the values of the non-zero samples.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondVAEDistribution.form_standard_sample">
+<em class="property">abstract </em><code class="sig-name descname">form_standard_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)">object</a></span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondVAEDistribution.form_standard_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondVAEDistribution.form_standard_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Forms a standard representation of a sample from the output of sample.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>smp: Compact representation of a sample.</p>
+</dd>
+<dt>Returns:</dt><dd><p>formed_smp: A tensor of shape n_smps*d_y.  formed_smp[i,:] is the i^th sample.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondVAEDistribution.form_compact_sample">
+<em class="property">abstract </em><code class="sig-name descname">form_compact_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n">torch.tensor</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)">object</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondVAEDistribution.form_compact_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondVAEDistribution.form_compact_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Forms a compact representation of a sample given a standard representation.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>smp: The standard representation of the sample of shape n_smps</p>
+</dd>
+<dt>Returns:</dt><dd><p>formed_smp: The compact representation of the sample.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondVAEDistribution.sample_to">
+<em class="property">abstract </em><code class="sig-name descname">sample_to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)">object</a></span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">torch.device</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)">object</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondVAEDistribution.sample_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondVAEDistribution.sample_to" title="Permalink to this definition"></a></dt>
+<dd><p>Moves a sample in compact form to a given device.</p>
+<p>This function is provided because different distributions may return samples in arbitrary objects,
+so a custom function may be needed to move a sample to a device.</p>
+<dl>
+<dt>Args:</dt><dd><p>smp: The sample to move.</p>
+<p>device: The device to move the sample to.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondVAEDistribution.log_prob">
+<em class="property">abstract </em><code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.tensor</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)">object</a></span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondVAEDistribution.log_prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondVAEDistribution.log_prob" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the conditional log probability of individual samples.</p>
+<dl>
+<dt>Args:</dt><dd><p>x: Data we condition on.  Of shape n_smps*d_x</p>
+<p>y: Compact representation of the samples we desire the probability for.  Compact representation means the
+form of a sample as output by the sample() function.</p>
+</dd>
+<dt>Returns:</dt><dd><p>ll: Conditional log probability of each sample. Of shape n_smps.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondVAEDistribution.kl">
+<code class="sig-name descname">kl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">d_2</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.tensor</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)">object</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">return_device</span><span class="p">:</span> <span class="n">torch.device</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondVAEDistribution.kl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondVAEDistribution.kl" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the KL divergence between this object and another of the same type conditioned on input.</p>
+<p>Specifically computes:</p>
+<blockquote>
+<div><p>KL(p_1(y_i|x_i), p_2(y_i|x_i)),</p>
+</div></blockquote>
+<p>where p_1(y_i | x_i) represents the conditional distributions for each sample.  Here, p_1 is the conditional
+distribution represented by this object and p_2 is the distribution represented by another object of the same
+type.</p>
+<p>Note: This function will move the conditioning data (x) and the sample (smp) to the appropriate device(s)
+so calculations can be carried out without needing to move this object or the other conditional
+distribution between devices.</p>
+<dl>
+<dt>Args:</dt><dd><p>d_2: The other conditional distribution in the KL divergence.</p>
+<p>x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.</p>
+<p>smp: A set of samples in compact form. Sample i should be drawn from p(y_i|x[i,:]). This is an optional
+input that is provided because sometimes it may not be possible to compute the KL divergence
+between two distributions analytically.  In these cases, an object may still implement the kl method
+by computing an empirical estimate of the kl divergence as log p_1(y_i’<a href="#id1"><span class="problematic" id="id2">|x_i) - log p_2(y_i'|</span></a> x_i),
+where y_i’ is drawn from p_1(y_i|x_i). This is the base behavior of this method.  Objects for which kl
+can be computed analytically should override this method.</p>
+<p>return_device: The device the calculated kl tensor should be returned to.  If None, this will
+be the device the first parameter of this object is on.</p>
+</dd>
+<dt>Returns:</dt><dd><p>kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioning
+input.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondVAEDistribution.r_params">
+<em class="property">abstract </em><code class="sig-name descname">r_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondVAEDistribution.r_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondVAEDistribution.r_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of parameters for which gradients can be estimated with the reparameterization trick.</p>
+<p>In particular this returns the list of parameters for which gradients can be estimated with the
+reparaterization trick when the distribution serves as q when optimizing KL(q, p).</p>
+<p>If no parameters can be estimated in this way, it should return an empty list.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>l: the list of parameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondVAEDistribution.s_params">
+<em class="property">abstract </em><code class="sig-name descname">s_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondVAEDistribution.s_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondVAEDistribution.s_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of parameters which should be estimated with a score method based gradient.</p>
+<p>In particular this returns the list of parameters for which gradients can be estimated with the
+score function based gradient when the distribution serves as q when optimizing KL(q, p).</p>
+<p>If no parameters can be estimated in this way, should return an empty list.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>l: the list of parameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.CondFoldedNormalDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">CondFoldedNormalDistribution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mu_f</span></em>, <em class="sig-param"><span class="n">sigma_f</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondFoldedNormalDistribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondFoldedNormalDistribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondVAEDistribution</span></code></a></p>
+<p>A multivariate conditional folded normal distribution.</p>
+<p>A folder normal distribution is the distribution on the random variable, Y = abs(Z), when Z is
+distributed N(mu, sigma^2). This object represents a conditional distribution over a set of random
+variables, each of which is independent and distributed according to a Folded Normal, conditioned on X.</p>
+<p>Creates a new CondFoldedNormalDistribution object.</p>
+<dl>
+<dt>Args:</dt><dd><p>mu_f: A module whose forward function accepts input of size n_smps*d_x and outputs a vector of mu
+parameters for size n_smps*d_y</p>
+<p>sigma_f: A module whose forward function accepts input of size n_smps*d_x and outputs a vector of
+standard deviations for each sample of size n_smps*d_y</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.form_standard_sample">
+<code class="sig-name descname">form_standard_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondFoldedNormalDistribution.form_standard_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.form_standard_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a sample in standard form.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.form_compact_sample">
+<code class="sig-name descname">form_compact_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondFoldedNormalDistribution.form_compact_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.form_compact_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Converts sample in standard form to compact form.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondFoldedNormalDistribution.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes conditional mean given samples.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: data samples are conditioned on. Of shape n_smps*d_x.</p>
+</dd>
+<dt>Returns:</dt><dd><p>mn: mn[i,:] is the mean conditioned on x[i,:]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.log_prob">
+<code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondFoldedNormalDistribution.log_prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.log_prob" title="Permalink to this definition"></a></dt>
+<dd><p>Computes log P(y|x).</p>
+<dl>
+<dt>Args:</dt><dd><p>x: Data we condition on.  Of shape n_smps*d_x</p>
+<p>y: Values we desire the log probability for.  Of shape n_smps*d_y.</p>
+</dd>
+<dt>Returns:</dt><dd><p>ll: Log-likelihood of each sample. Of shape n_smps.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.sample">
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondFoldedNormalDistribution.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Samples from the reparameterized form of P(y|x).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Data we condition on.  Of shape n_mps*d_x.</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: sampled data of shape n_smps*d_y.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.sample_to">
+<code class="sig-name descname">sample_to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)">object</a></span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">torch.device</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondFoldedNormalDistribution.sample_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.sample_to" title="Permalink to this definition"></a></dt>
+<dd><p>Moves a sample to a specified device.</p>
+<p>See function of parent object for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.r_params">
+<code class="sig-name descname">r_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondFoldedNormalDistribution.r_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.r_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of parameters for which gradients can be estimated with the reparameterization trick.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.s_params">
+<code class="sig-name descname">s_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondFoldedNormalDistribution.s_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondFoldedNormalDistribution.s_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an empty list as there are no parameters for optimization with a score method based gradient.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.CondBernoulliDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">CondBernoulliDistribution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">log_prob_fcn</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondBernoulliDistribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondBernoulliDistribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondVAEDistribution</span></code></a></p>
+<p>A module for working with conditional Bernoulli distributions.</p>
+<p>Creates a BernoulliCondDistribution object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>log_prob_fcn: A function which accepts input of shape n_smps*d_x and outputs a tensor of shape n_smps with
+the log probability that each sample is 1.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondBernoulliDistribution.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondBernoulliDistribution.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondBernoulliDistribution.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes conditional mean given samples.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: data samples are conditioned on. Of shape n_smps*d_x.</p>
+</dd>
+<dt>Returns:</dt><dd><p>mn: mn[i] is the mean conditioned on x[i,:]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondBernoulliDistribution.log_prob">
+<code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondBernoulliDistribution.log_prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondBernoulliDistribution.log_prob" title="Permalink to this definition"></a></dt>
+<dd><p>Computes log P(y|x).</p>
+<dl>
+<dt>Args:</dt><dd><p>x: Data we condition on.  Of shape nSmps*d_x.</p>
+<p>y: Compact representation (a tensor of type byte) of the sample.</p>
+</dd>
+<dt>Returns:</dt><dd><p>log_prob: the log probability of each sample</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If y is not a 1-d tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondBernoulliDistribution.sample">
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondBernoulliDistribution.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondBernoulliDistribution.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Samples from P(y|x)</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Data we condition on.  Of shape nSmps*d_x.</p>
+</dd>
+<dt>Returns:</dt><dd><p>smp: smp[i] is the value of the i^th sample.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondBernoulliDistribution.form_standard_sample">
+<code class="sig-name descname">form_standard_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondBernoulliDistribution.form_standard_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondBernoulliDistribution.form_standard_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Converts between compact and standard sample form.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondBernoulliDistribution.form_compact_sample">
+<code class="sig-name descname">form_compact_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondBernoulliDistribution.form_compact_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondBernoulliDistribution.form_compact_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Converts sample in standard form to compact form.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondBernoulliDistribution.r_params">
+<code class="sig-name descname">r_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondBernoulliDistribution.r_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondBernoulliDistribution.r_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an empty list as there are no parameters for optimization with the reparamaterization trick.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondBernoulliDistribution.s_params">
+<code class="sig-name descname">s_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondBernoulliDistribution.s_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondBernoulliDistribution.s_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of parameters that can be optimized with a score method based gradient.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.CondGammaDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">CondGammaDistribution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conc_f</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em>, <em class="sig-param"><span class="n">rate_f</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGammaDistribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGammaDistribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondVAEDistribution</span></code></a></p>
+<p>A distribution over a set of conditionally independent Gamma random variables.</p>
+<p>We use the convention of parameterizing a Gamma distribution with concentration and rate parameters.</p>
+<p>Much of the implementation here has been taken from torch’s own Gamma distribution.</p>
+<p>Creates a CondGammaDistribution object.</p>
+<p>conc_f: A module whose forward function accepts input of size n_smps*d_x and outputs concentration values in
+a tensor of size n_smps*d_y</p>
+<p>rate_f: A module whose forward function accepts input of size n_smps*d_x and outputs rate values in
+a tensor of size n_smps*d_y</p>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGammaDistribution.form_compact_sample">
+<code class="sig-name descname">form_compact_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGammaDistribution.form_compact_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGammaDistribution.form_compact_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Converts between compact and standard sample form.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGammaDistribution.form_standard_sample">
+<code class="sig-name descname">form_standard_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGammaDistribution.form_standard_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGammaDistribution.form_standard_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a sample in standard form.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGammaDistribution.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGammaDistribution.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGammaDistribution.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes conditional mean given samples.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: data samples are conditioned on. Of shape n_smps*d_x.</p>
+</dd>
+<dt>Returns:</dt><dd><p>mn: mn[i,:] is the mean conditioned on x[i,:]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGammaDistribution.kl">
+<code class="sig-name descname">kl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">d_2</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.tensor</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n">torch.tensor</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">return_device</span><span class="p">:</span> <span class="n">torch.device</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGammaDistribution.kl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGammaDistribution.kl" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the KL divergence between the conditional distribution represented by this object and another.</p>
+<p>KL divergence is computed based on the closed form formula for KL divergence between two Gamma distributions.</p>
+<dl>
+<dt>Note: This function will move the conditioning data (x) to the appropriate device(s)</dt><dd><p>so calculations can be carried out without needing to move this object or the other conditional
+distribution between devices.</p>
+</dd>
+<dt>Args:</dt><dd><p>d_2: The other conditional distribution in the KL divergence.</p>
+<p>x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.</p>
+<p>smp: This input is ignored, as KL divergence is based on a closed form formula.</p>
+<p>return_device: The device the calculated kl tensor should be returned to.  If None, this will
+be the device the first parameter of this object is on.</p>
+</dd>
+<dt>Returns:</dt><dd><p>kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioing
+input.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGammaDistribution.log_prob">
+<code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.tensor</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGammaDistribution.log_prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGammaDistribution.log_prob" title="Permalink to this definition"></a></dt>
+<dd><p>Computes log P(y|x).</p>
+<dl>
+<dt>Args:</dt><dd><p>x: Data we condition on.  Of shape n_smps*d_x</p>
+<p>y: Values we desire the log probability for.  Of shape n_smps*d_y.</p>
+</dd>
+<dt>Returns:</dt><dd><p>ll: Log-likelihood of each sample. Of shape n_smps.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGammaDistribution.sample">
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGammaDistribution.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGammaDistribution.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Samples from the reparameterized form of P(y|x).</p>
+<p>If a sample without gradients is desired, wrap the call to sample in torch.no_grad().</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Data we condition on.  Of shape n_smps*d_x.</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: sampled data of shape n_smps*d_y.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGammaDistribution.std">
+<code class="sig-name descname">std</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGammaDistribution.std"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGammaDistribution.std" title="Permalink to this definition"></a></dt>
+<dd><p>Computes conditional standard deviation.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Conditioning data.  Of shape n_smps*d_x.</p>
+</dd>
+<dt>Returns:</dt><dd><p>std: Standard deviation.  Of shape n_smps*d_y.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGammaDistribution.mode">
+<code class="sig-name descname">mode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGammaDistribution.mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGammaDistribution.mode" title="Permalink to this definition"></a></dt>
+<dd><p>Computes conditional mode.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Conditioning data.  Of shape n_smps*d_x</p>
+</dd>
+<dt>Returns:</dt><dd><p>mode: Mode: Of shape n_smps*d_y.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGammaDistribution.r_params">
+<code class="sig-name descname">r_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGammaDistribution.r_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGammaDistribution.r_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of parameters for which gradients can be estimated with the reparameterization trick.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGammaDistribution.sample_to">
+<code class="sig-name descname">sample_to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">torch.device</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGammaDistribution.sample_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGammaDistribution.sample_to" title="Permalink to this definition"></a></dt>
+<dd><p>Moves a sample in compact form to a given device.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGammaDistribution.s_params">
+<code class="sig-name descname">s_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGammaDistribution.s_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGammaDistribution.s_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an empty list as there are no parameters for optimization with a score method based gradient.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.CondGaussianDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">CondGaussianDistribution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mn_f</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em>, <em class="sig-param"><span class="n">std_f</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGaussianDistribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGaussianDistribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondVAEDistribution</span></code></a></p>
+<p>Represents a multivariate distribution over a set of conditionally independent Gaussian random variables.</p>
+<p>Creates a CondGaussianDistribution object.</p>
+<dl>
+<dt>Args:</dt><dd><p>mn_f: A module whose forward function accepts input of size n_smps*d_x and outputs a mean for each sample in
+a tensor of size n_smps*d_y</p>
+<p>std_f: A module whose forward function accepts input of sixe n_smps*d and outputs a standard deviation for
+each sample of size n_smps*d_y</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGaussianDistribution.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGaussianDistribution.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGaussianDistribution.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes conditional mean.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: data samples are conditioned on. Of shape n_smps*d_x.</p>
+</dd>
+<dt>Returns:</dt><dd><p>mn: mn[i,:] is the mean conditioned on x[i,:]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGaussianDistribution.log_prob">
+<code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGaussianDistribution.log_prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGaussianDistribution.log_prob" title="Permalink to this definition"></a></dt>
+<dd><p>Computes log P(y|x).</p>
+<dl>
+<dt>Args:</dt><dd><p>x: Data we condition on.  Of shape n_smps*d_x</p>
+<p>y: Values we desire the log probability for.  Of shape n_smps*d_y.</p>
+</dd>
+<dt>Returns:</dt><dd><p>ll: Log-likelihood of each sample. Of shape n_smps.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGaussianDistribution.sample">
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGaussianDistribution.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGaussianDistribution.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Samples from the reparameterized form of P(y|x).</p>
+<p>If a sample without gradients is desired, wrap the call to sample in torch.no_grad().</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Data we condition on.  Of shape nSmps*d_x.</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: sampled data of shape nSmps*d_y.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGaussianDistribution.kl">
+<code class="sig-name descname">kl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">d_2</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.tensor</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n">torch.tensor</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">return_device</span><span class="p">:</span> <span class="n">torch.device</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGaussianDistribution.kl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGaussianDistribution.kl" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the KL divergence between the conditional distribution represented by this object and another.</p>
+<p>KL divergence is computed based on the closed form formula for KL divergence between two Gaussians.</p>
+<dl>
+<dt>Note: This function will move the conditioning data (x) to the appropriate device(s)</dt><dd><p>so calculations can be carried out without needing to move this object or the other conditional
+distribution between devices.</p>
+</dd>
+<dt>Args:</dt><dd><p>d_2: The other conditional distribution in the KL divergence.</p>
+<p>x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.</p>
+<p>smp: This input is ignored, as KL divergence is based on a closed form formula.</p>
+<p>return_device: The device the calculated kl tensor should be returned to.  If None, this will
+be the device the first parameter of this object is on.</p>
+</dd>
+<dt>Returns:</dt><dd><p>kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioing
+input.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGaussianDistribution.form_standard_sample">
+<code class="sig-name descname">form_standard_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGaussianDistribution.form_standard_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGaussianDistribution.form_standard_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a sample in standard form.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGaussianDistribution.form_compact_sample">
+<code class="sig-name descname">form_compact_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGaussianDistribution.form_compact_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGaussianDistribution.form_compact_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Converts between compact and standard sample form.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGaussianDistribution.sample_to">
+<code class="sig-name descname">sample_to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)">object</a></span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">torch.device</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGaussianDistribution.sample_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGaussianDistribution.sample_to" title="Permalink to this definition"></a></dt>
+<dd><p>Moves a sample in compact form to a given device.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGaussianDistribution.r_params">
+<code class="sig-name descname">r_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGaussianDistribution.r_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGaussianDistribution.r_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of parameters for which gradients can be estimated with the reparameterization trick.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGaussianDistribution.s_params">
+<code class="sig-name descname">s_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGaussianDistribution.s_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGaussianDistribution.s_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an empty list as there are no parameters for optimization with a score method based gradient.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.CondSpikeSlabDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">CondSpikeSlabDistribution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">spike_d</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">CondVAEDistribution</a></span></em>, <em class="sig-param"><span class="n">slab_d</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">CondVAEDistribution</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondSpikeSlabDistribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondSpikeSlabDistribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondVAEDistribution</span></code></a></p>
+<p>Represents a conditional spike and slab distribution.</p>
+<p>Creates a CondSpikeSlabDistribution object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d: The number of variables the spike and slab distribution is over</p>
+<p>spike_d: The spike distribution</p>
+<p>slab_d: The slab distribution</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondSpikeSlabDistribution.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes  E(y|x).</p>
+<dl>
+<dt>Args:</dt><dd><p>x: Data we condition on.  Of shape n_smps*d_x</p>
+<p>y: Values we desire the log probability for.  Of shape nSmps*d_y.</p>
+</dd>
+<dt>Returns:</dt><dd><p>mn: Conditional expectation. Of shape n_smps*d_y</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.sample">
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondSpikeSlabDistribution.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Samples a conditional spike and slab distribution.</p>
+<p>This function will return samples in compact form.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: The data to condition on.  Of shape n_smps*d_x.</p>
+</dd>
+</dl>
+<p>Returns: A compact representation of the sample:</p>
+<blockquote>
+<div><p>n_smps: the number of samples</p>
+<p>support: A binary tensor. support[i] is 1 if smp i is non-zero</p>
+<dl class="simple">
+<dt>nz_vls: A tensor with the non-zero values.  nz_vls[j,:] contains the value for the j^th non-zero entry in</dt><dd><p>support. In other words, nz_vls gives the non-zero values corresponding to the samples in
+x[support, :].  If there are no non-zero values this will be None.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.log_prob">
+<code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondSpikeSlabDistribution.log_prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.log_prob" title="Permalink to this definition"></a></dt>
+<dd><p>Computes log P(y|x).</p>
+<dl>
+<dt>Args:</dt><dd><p>x: Data we condition on.  Of shape n_smps*d_x.</p>
+<p>y: Compact representation of a sample.  See sample().</p>
+</dd>
+<dt>Returns:</dt><dd><p>ll: Log-likelihood of each sample.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.form_standard_sample">
+<code class="sig-name descname">form_standard_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondSpikeSlabDistribution.form_standard_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.form_standard_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Forms a standard sample representation from a compact representation.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>smp: The compact representation of a sample (the compact representation of a sample is the form returned by
+sample)</p>
+</dd>
+<dt>Returns:</dt><dd><p>formed_smp: The standard form of a sample.  formed_smp[i] gives the value of the i^th sample.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.form_compact_sample">
+<code class="sig-name descname">form_compact_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondSpikeSlabDistribution.form_compact_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.form_compact_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Forms a compact sample from a full sample.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>smp: The standard representation of the sample of shape n_smps*d</p>
+</dd>
+<dt>Returns:</dt><dd><p>n_smps, support, nz_vls: Compact representation of the sample.  See sample().</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.r_params">
+<code class="sig-name descname">r_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondSpikeSlabDistribution.r_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.r_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of parameters for which gradients can be estimated with the reparameterization trick.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.s_params">
+<code class="sig-name descname">s_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondSpikeSlabDistribution.s_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondSpikeSlabDistribution.s_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an empty list as there are no parameters for optimization with a score method based gradient.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixProductDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">CondMatrixProductDistribution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dists</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">CondVAEDistribution</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixProductDistribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondVAEDistribution</span></code></a></p>
+<p>Represents conditional distributions over matrices.</p>
+<p>Consider a matrix, W, with N rows and M columns.  Given a tensor X with N rows and P columns of conditioning data,
+this object represents:</p>
+<blockquote>
+<div><blockquote>
+<div><p>P(W|X) = prod_i=1^N P_i(W[i,:]| X[i, :]),</p>
+</div></blockquote>
+<p>where:</p>
+<blockquote>
+<div><p>P_i(W[i,:] | X[i, :]) = prod_j=1^M P_j(W[i,j] | X[i,:]),</p>
+</div></blockquote>
+<p>where the P_j distributions are specified by the user.</p>
+</div></blockquote>
+<p>In other words, we model all entries of W as conditionally independent given X, where entries of W are modeled as
+distributed according to a different conditional distribution depending on what column they are in.</p>
+<p>Creates a new CondMatrixProductDistribution object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dists: dists[j] is P_j, that is the conditional distribution to use for column j.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixProductDistribution.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixProductDistribution.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the conditional mean of the distribtion at different samples.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: A tensor of shape n_rows*d_x.</p>
+</dd>
+<dt>Returns:</dt><dd><p>mn: mn[i, :] is the mean conditioned on x[i, :]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixProductDistribution.sample">
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixProductDistribution.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Samples from a conditional distribution.</p>
+<p>Note: Sample is represented in compact form.  Use form_standard_sample to form
+the sample into it’s matrix representation.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: A tensor of shape n_rows*d_x.  x[i,:] is what row i is conditioned on.</p>
+</dd>
+<dt>Returns:</dt><dd><p>smp: smp[j] is the compact representation of the sample for column j.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixProductDistribution.form_standard_sample">
+<code class="sig-name descname">form_standard_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)">object</a></span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixProductDistribution.form_standard_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution.form_standard_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Forms a standard representation of a sample from the output of sample.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>smp: Compact representation of a sample.</p>
+</dd>
+<dt>Returns:</dt><dd><p>formed_smp: The sample represented as a matrix</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixProductDistribution.form_compact_sample">
+<code class="sig-name descname">form_compact_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n">torch.tensor</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)">object</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixProductDistribution.form_compact_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution.form_compact_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Forms a compact representation of a sample given a standard representation.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>smp: The standard representation of the sample as a matrix.</p>
+</dd>
+<dt>Returns:</dt><dd><p>formed_smp: The compact representation of the sample.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixProductDistribution.sample_to">
+<code class="sig-name descname">sample_to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)">object</a></span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">torch.device</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixProductDistribution.sample_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution.sample_to" title="Permalink to this definition"></a></dt>
+<dd><p>Moves a sample in compact form to a given device.</p>
+<dl>
+<dt>Args:</dt><dd><p>smp: The sample to move.</p>
+<p>device: The device to move the sample to.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixProductDistribution.log_prob">
+<code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.tensor</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">Sequence</span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixProductDistribution.log_prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution.log_prob" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the conditional log probability of individual rows.</p>
+<dl>
+<dt>Args:</dt><dd><p>x: Data we condition on.  Of shape n_rows*d_x</p>
+<p>y: Compact representation of the samples we desire the probability for.  Compact representation means the
+form of a sample as output by the sample() function.</p>
+</dd>
+<dt>Returns:</dt><dd><p>ll: Conditional log probability of each row. Of shape n_rows.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixProductDistribution.kl">
+<code class="sig-name descname">kl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">d_2</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.tensor</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">return_device</span><span class="p">:</span> <span class="n">torch.device</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixProductDistribution.kl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution.kl" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the KL divergence between this object and another CondMatrixProductDistribution conditioned on input.</p>
+<p>This function overrides the default kl function of CondVAEDistribution so that the KL divergence is
+computed between distributions for the same column and then summed up. This is still mathematically
+correct, but if the distributions for the columns also override kl, then distribution specific kl
+calculations (perhaps analytical calculations) can be carried out.</p>
+<dl>
+<dt>Args:</dt><dd><p>d_2: The other conditional distribution in the KL divergence.</p>
+<p>x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.</p>
+<p>smp: An set samples of shape n_smps*d_y. smp[i,:] should be drawn this objects distribution.  This input is
+provided because some distributions for the columns may not analytically compute KL divergence.</p>
+<p>return_device: The device the calculated kl tensor should be returned to.  If None, this will
+be the device the first parameter of this object is on.</p>
+</dd>
+<dt>Returns:</dt><dd><p>kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th sample.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixProductDistribution.r_params">
+<code class="sig-name descname">r_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixProductDistribution.r_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution.r_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of parameters for which gradients can be estimated with the reparameterization trick.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixProductDistribution.s_params">
+<code class="sig-name descname">s_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixProductDistribution.s_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution.s_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an empty list as there are no parameters for optimization with a score method based gradient.</p>
+<p>See method of parent for more information.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.CondGaussianMatrixProductDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">CondGaussianMatrixProductDistribution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dists</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondGaussianDistribution" title="janelia_core.ml.torch_distributions.CondGaussianDistribution">CondGaussianDistribution</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGaussianMatrixProductDistribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGaussianMatrixProductDistribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution" title="janelia_core.ml.torch_distributions.CondMatrixProductDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondMatrixProductDistribution</span></code></a></p>
+<p>Represents conditional Gaussian distributions over matrices.</p>
+<p>Consider a matrix, W, with N rows and M columns.  Given a tensor X with N rows and P columns of conditioning data,
+this object represents:</p>
+<blockquote>
+<div><blockquote>
+<div><p>P(W|X) = prod_i=1^N P_i(W[i,:]| X[i, :]),</p>
+</div></blockquote>
+<p>where:</p>
+<blockquote>
+<div><p>P_i(W[i,:] | X[i, :]) = prod_j=1^M P_j(W[i,j] | X[i,:]),</p>
+</div></blockquote>
+<p>where the P_j distributions are conditional Gaussian distributions specified by the user.</p>
+</div></blockquote>
+<p>In other words, we model all entries of W as conditionally independent given X, where entries of W are modeled as
+distributed according to a different conditional Gaussian distribution depending on what column they are in.</p>
+<p>This objects extends CondMatrixProductDistribution, and it’s main purpose is to allow KL divergences to be
+computed not only between itself and another CondMatrixProductDistribution but also a CondGaussianDistribtion when
+both distributions are over matrices of the same shape.</p>
+<p>Creates a new CondGaussianMatrixProductDistribution object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dists: Conditional gaussian distributions for each column of the matrix.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondGaussianMatrixProductDistribution.kl">
+<code class="sig-name descname">kl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">d_2</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.tensor</span></em>, <em class="sig-param"><span class="n">smp</span><span class="p">:</span> <span class="n">torch.tensor</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">return_device</span><span class="p">:</span> <span class="n">torch.device</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondGaussianMatrixProductDistribution.kl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondGaussianMatrixProductDistribution.kl" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the KL divergence between the conditional distribution represented by this object and another.</p>
+<p>The second distribtion can be either another CondMatrixProductDistribution or a CondGaussianDistribution over
+matrices of the same size this distribution is over.</p>
+<p>KL divergence is computed based on the closed form formula for KL divergence between two Gaussians.</p>
+<dl>
+<dt>Note: This function will move the conditioning data (x) to the appropriate device(s)</dt><dd><p>so calculations can be carried out without needing to move this object or the other conditional
+distribution between devices.</p>
+</dd>
+<dt>Args:</dt><dd><p>d_2: The other conditional distribution in the KL divergence.</p>
+<p>x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.</p>
+<p>smp: This input is ignored, as KL divergence is based on a closed form formula.</p>
+<p>return_device: The device the calculated kl tensor should be returned to.  If None, this will
+be the device the first parameter of this object is on.</p>
+</dd>
+<dt>Returns:</dt><dd><p>kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioning
+input.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.MatrixGammaProductDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">MatrixGammaProductDistribution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">conc_lb</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">conc_ub</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1000.0</span></em>, <em class="sig-param"><span class="n">conc_iv</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">10.0</span></em>, <em class="sig-param"><span class="n">rate_lb</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">rate_ub</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1000.0</span></em>, <em class="sig-param"><span class="n">rate_iv</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">10.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#MatrixGammaProductDistribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.MatrixGammaProductDistribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution" title="janelia_core.ml.torch_distributions.CondMatrixProductDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondMatrixProductDistribution</span></code></a></p>
+<p>Represents a distribution over matrices where each entry is pulled iid from a separate Gamma distribution.</p>
+<p>For a matrix, W, with N rows and M columns, we model:</p>
+<blockquote>
+<div><p>P(W) = prod_i=1^N prod_j=1^M P_ij(W[i,j]),</p>
+</div></blockquote>
+<p>where P_ij is a Gamma distribution with concentration parameter lpha_ij and rate parameter eta_ij.</p>
+<p>Note: This function extends CondMatrixProductDistribution, allowing this distribution to be used in
+code where conditional distributions are required, so that the resulting “conditional distributions”
+are the same irrespective of conditioning input.</p>
+<p>Creates a new MatrixGammaProductDistribution object.</p>
+<dl>
+<dt>Args:</dt><dd><p>shape: The shape of matrices this represents distributions over.</p>
+<p>conc_lb: The lower bound that concentration parameters can take on</p>
+<p>conc_ub: The upper bound that concentration parameters can take on</p>
+<p>conc_iv: The initial value for concentration parameters.  All distributions will be initialized to have the
+same initial values.</p>
+<p>rate_lb: The lower bound that rate parameters can take on</p>
+<p>rate_ub: The upper bound that rate parameters can take on</p>
+<p>rate_iv: The initial value for rate parameters.  All distributions will be initialized to have the
+same initial values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.MatrixFoldedNormalProductDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">MatrixFoldedNormalProductDistribution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">mu_lb</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">mu_ub</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">10.0</span></em>, <em class="sig-param"><span class="n">mu_iv</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">sigma_lb</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">sigma_ub</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">10.0</span></em>, <em class="sig-param"><span class="n">sigma_iv</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#MatrixFoldedNormalProductDistribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.MatrixFoldedNormalProductDistribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_distributions.CondMatrixProductDistribution" title="janelia_core.ml.torch_distributions.CondMatrixProductDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondMatrixProductDistribution</span></code></a></p>
+<p>Represents a distribution over matrices where each entry is pulled iid from a Folded Normal distribution.</p>
+<p>For a matrix, W, with N rows and M columns, we model:</p>
+<blockquote>
+<div><p>P(W) = prod_i=1^N prod_j=1^M P_ij(W[i,j]),</p>
+</div></blockquote>
+<p>where P_ij is a Folded Normal distribution with parameters mu_ij and sigma_ij.</p>
+<p>Note: This function extends CondMatrixProductDistribution, allowing this distribution to be used in
+code where conditional distributions are required, so that the resulting “conditional distributions”
+are the same irrespective of conditioning input.</p>
+<p>Creates a new MatrixGammaProductDistribution object.</p>
+<dl>
+<dt>Args:</dt><dd><p>shape: The shape of matrices this represents distributions over.</p>
+<p>mu_lb: The lower bound that mu parameters can take on</p>
+<p>mu_ub: The upper bound that mu parameters can take on</p>
+<p>mu_iv: The initial value for mu parameters.  All distributions will be initialized to have the
+same initial values.</p>
+<p>sigma_lb: The lower bound that sigma parameters can take on</p>
+<p>sigma_ub: The upper bound that sigma parameters can take on</p>
+<p>sigma_iv: The initial value for sigma parameters.  All distributions will be initialized to have the
+same initial values.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.MatrixFoldedNormalProductDistribution.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#MatrixFoldedNormalProductDistribution.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.MatrixFoldedNormalProductDistribution.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Overwrites parent forward so x does not have to be provided.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.MatrixFoldedNormalProductDistribution.sample">
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#MatrixFoldedNormalProductDistribution.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.MatrixFoldedNormalProductDistribution.sample" title="Permalink to this definition"></a></dt>
+<dd><p>Overwrites parent sample so x does not have to be provided.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.MatrixFoldedNormalProductDistribution.log_prob">
+<code class="sig-name descname">log_prob</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#MatrixFoldedNormalProductDistribution.log_prob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.MatrixFoldedNormalProductDistribution.log_prob" title="Permalink to this definition"></a></dt>
+<dd><p>Overwrites parent log_prob so x does not have to be provided.</p>
+<dl class="simple">
+<dt>Raises:</dt><dd><p>ValueError: If y is None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.MatrixGaussianProductDistribution">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">MatrixGaussianProductDistribution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">mn_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">mn_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">std_lb</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1e-06</span></em>, <em class="sig-param"><span class="n">std_ub</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">10.0</span></em>, <em class="sig-param"><span class="n">std_iv</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#MatrixGaussianProductDistribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.MatrixGaussianProductDistribution" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_distributions.CondGaussianMatrixProductDistribution" title="janelia_core.ml.torch_distributions.CondGaussianMatrixProductDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondGaussianMatrixProductDistribution</span></code></a></p>
+<p>Represents a distribution over matrices where each entry is pulled iid from a separate Gaussian distribution.</p>
+<p>For a matrix, W, with N rows and M columns, we model:</p>
+<blockquote>
+<div><p>P(W) = prod_i=1^N prod_j=1^M P_ij(W[i,j]),</p>
+</div></blockquote>
+<p>where P_ij is a Gaussian distribution with mean mu_ij and standard deviation std_ij.</p>
+<p>Note: This function extends CondMatrixProductDistribution, allowing this distribution to be used in
+code where conditional distributions are required, so that the resulting “conditional distributions”
+are the same irrespective of conditioning input.</p>
+<p>Creates a new MatrixGaussianProductDistribution.</p>
+<dl>
+<dt>Args:</dt><dd><p>shape: The shape of matrices this represents distributions over.</p>
+<p>mn_mn, std_mn: The mean and standard deviation to use when generating random initial values for the
+mean distribution for each entry.</p>
+<p>std_lb, std_ub, std_iv: lower &amp; upper bounds for standard deviation values and the initial value
+for the standard deviation for the distribution for each entry.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.MatrixGaussianProductDistribution.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">mn_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">mn_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">std_v</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#MatrixGaussianProductDistribution.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.MatrixGaussianProductDistribution.initialize" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes parameters of the distribution.</p>
+<dl>
+<dt>Args:</dt><dd><p>mn_mn, mn_std: The mean and standard deviation for the distribution values for the mean are drawn from</p>
+<p>std_v: The value to set the standard deviation to everywhere</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixHypercubePrior">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">CondMatrixHypercubePrior</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_cols</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">mn_hc_params</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em>, <em class="sig-param"><span class="n">std_hc_params</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em>, <em class="sig-param"><span class="n">min_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">mn_init</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">std_init</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixHypercubePrior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixHypercubePrior" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_distributions.CondGaussianMatrixProductDistribution" title="janelia_core.ml.torch_distributions.CondGaussianMatrixProductDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondGaussianMatrixProductDistribution</span></code></a></p>
+<p>Extends CondGaussianMatrixProductDistribution so the distribution for each column is a Gaussian with mean and standard
+deviation functions which are sums of tiled hypercube basis functions.</p>
+<p>Specifically, For a matrix, W, under a CondMatrixProductDistribution, we model:</p>
+<blockquote>
+<div><p>W[i,j] ~ P_j(W[i,j] | X[i,:]).</p>
+</div></blockquote>
+<p>Here, we specify that P_j is a conditional Gaussian distribution with mean given by m(X[i,:]) and standard
+deviation by s(X[i,:]). Specifically, m() is a SumOfTiledHyperCubeBasisFcns function and s() is an exponentiated
+SumOfTiledHyperCubeBasisFcns function plus an offset.</p>
+<p>Creates a CondMatrixHypercubePrior object</p>
+<dl>
+<dt>Args:</dt><dd><p>n_cols: The number of columns in the matrices we represent distributions over.</p>
+<p>mn_hc_params: A dictionary with parameters for passing into the init() function of
+SumOfTiledHyperCubeBasisFcns when creating the hypercube function for the mean function for each P_j.</p>
+<p>std_hc_params: A dictionary with parameters for passing into the init() function of
+SumOfTiledHyperCubeBasisFcns when creating the hypercube function which will be exponentiated and offset
+to form the final standard deviation function for each P_j.</p>
+<p>min_std: The min standard deviation any P_j can take on.</p>
+<p>mn_init: The initial value for the mean function. The mean will take on this value everywhere.</p>
+<p>std_init: The initial value for the standard deviation function.  The standard deviation will take
+on this value everywhere. Must be greater than min_std</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If std_init is not greater than min_std.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixHypercubePrior.increase_std">
+<code class="sig-name descname">increase_std</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixHypercubePrior.increase_std"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixHypercubePrior.increase_std" title="Permalink to this definition"></a></dt>
+<dd><p>Increases the standard deviation by a factor which is approximately log(f).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>f: The factor to increase standard deviation by.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixHypercubePrior.set_mn">
+<code class="sig-name descname">set_mn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">v</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixHypercubePrior.set_mn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixHypercubePrior.set_mn" title="Permalink to this definition"></a></dt>
+<dd><p>Set the mean to a single value everyhwere.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>v: The value to set the mean to</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.CondMatrixHypercubePrior.set_std">
+<code class="sig-name descname">set_std</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">v</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#CondMatrixHypercubePrior.set_std"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.CondMatrixHypercubePrior.set_std" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the standard deviation to a single value everywhere.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>v: The value to set the standard deviation to</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.GroupCondMatrixHypercubePrior">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">GroupCondMatrixHypercubePrior</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_cols</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">group_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">mn_hc_params</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">std_hc_params</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">min_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">mn_init</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">std_init</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">tanh_init_opts</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#GroupCondMatrixHypercubePrior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.GroupCondMatrixHypercubePrior" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_distributions.CondGaussianMatrixProductDistribution" title="janelia_core.ml.torch_distributions.CondGaussianMatrixProductDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CondGaussianMatrixProductDistribution</span></code></a></p>
+<p>Extends CondGaussianMatrixProductDistribution so the distribution for each column is a Gaussian with
+mean and standard deviation functions that depend on groups of properties.</p>
+<p>Specifically, For a matrix, W, under a CondMatrixProductDistribution, we model:</p>
+<blockquote>
+<div><p>W[i,j] ~ P_j(W[i,j] | X[i,:]).</p>
+</div></blockquote>
+<p>Here, we specify that P_j is a conditional Gaussian distribution with mean given by m(X[i,:]) and standard
+deviation by s(X[i,:]). For m(), we specify</p>
+<blockquote>
+<div><p>m(X[i,:]) = s_mn*tanh( sum_{ind_j in inds} f^mn_j(X[i, ind_j]) ) + o_mn,</p>
+</div></blockquote>
+<p>where each f_j() is a SumOfTiledHyperCubeBasisFcns function.</p>
+<p>For s(), we specify</p>
+<blockquote>
+<div><p>s(X[i,:]) = exp( sum_{ind_j in inds} f^std_j(X[i, ind_j]) ) + min_std,</p>
+</div></blockquote>
+<p>where min_std is a fixed, small offset ensuring s() stays strictly positive.</p>
+<p>Creates a new GroupCondMatrixHypercubePrior object.</p>
+<dl>
+<dt>Args:</dt><dd><p>n_cols: The number of columns in the matrices we represent distributions over.</p>
+<p>group_inds: group_inds[j] are the indices into the dimensions of X for properties for group j</p>
+<p>mn_hc_params: mn_hc_params[j] is a dictionary with parameters for passing into the init() function of
+SumOfTiledHyperCubeBasisFcns when creating the hypercube function for f^mn_j.</p>
+<p>std_hc_params: std_hc_params[j] is a dictionary with parameters for passing into the init() function
+of SumOfTiledHyperCubeBasisFcns when creating the hypercube function for f^std_j.</p>
+<p>min_std: The min standard deviation any P_j can take on.</p>
+<p>mn_init: The initial value for the mean function. The mean will take on this value everywhere.</p>
+<p>std_init: The initial value for the standard deviation function.  The standard deviation will take
+on this value everywhere. Must be greater than min_std</p>
+<p>tanh_init_opts: Dictionary of additional options when initializing the Tanh module for
+the mean function for each mode. If None, no options will be passed</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If std_init is not greater than min_std.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.DistributionPenalizer">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">DistributionPenalizer</code><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#DistributionPenalizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.DistributionPenalizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A base class for creating distribution penalizer objects.</p>
+<p>The main idea behind a penalizer object (vs. just applying a penalizer function) is that the ways we may
+want to penalize a distribution may require keeping track of some penalty parameters (e.g., a set of locations
+where we want to sample a distribution at).  Some of these parameters could even be optimizable.  Because of this,
+we introduce this concept of penalizer objects which are torch modules, so we can keep track of these parameters,
+easily move them between devices, etc…</p>
+<p>Creates a DistributionPenalizer object.</p>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.DistributionPenalizer.check_point">
+<em class="property">abstract </em><code class="sig-name descname">check_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#DistributionPenalizer.check_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.DistributionPenalizer.check_point" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dictionary of parameters for the penalizer that should be saved in a check point.</p>
+<p>For the purposes of creating a check point, we can save memory by only logging the important parameters of a
+penalizer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.DistributionPenalizer.get_marked_params">
+<em class="property">abstract </em><code class="sig-name descname">get_marked_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#DistributionPenalizer.get_marked_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.DistributionPenalizer.get_marked_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns all parameters marked with the key string.</p>
+<p>Penalizers must associate each parameter with a unique key (e.g., fast_learning_rate_params). Each
+parameter should be associated with only one key (though multiple parameters can use the same key).  This
+function will return a list of parameters associated with the requested key.  If no parameters match the
+key an empty list should be returned.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.DistributionPenalizer.list_param_keys">
+<em class="property">abstract </em><code class="sig-name descname">list_param_keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#DistributionPenalizer.list_param_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.DistributionPenalizer.list_param_keys" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of keys associated with parameters.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>keys: The list of keys.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.DistributionPenalizer.penalize">
+<em class="property">abstract </em><code class="sig-name descname">penalize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">CondVAEDistribution</a></span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#DistributionPenalizer.penalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.DistributionPenalizer.penalize" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates a penalty over a distribution.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>d: The distribution to penalize</p>
+</dd>
+<dt>Returns:</dt><dd><p>penalty: The scalar penalty</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">ColumnMeanClusterPenalizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">init_ctrs</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">init_scales</span><span class="p">:</span> <span class="n">torch.Tensor</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">scale_weight</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#ColumnMeanClusterPenalizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.torch_distributions.DistributionPenalizer" title="janelia_core.ml.torch_distributions.DistributionPenalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DistributionPenalizer</span></code></a></p>
+<p>Penalizes the mean of a conditional distribution over matrices to encouraging clustering of column values.</p>
+<p>Clustering here means clustering of values given what they are conditioned on.</p>
+<p>In particular, we work with conditional distributions over matrices M in R^{n      imes p} conditioned on
+input X in R^{n    imes q}, where each row of M is associated with the corresponding row of X.  Our goal is
+to encourage large values in each column of M to be assoicated with values in X that are close in space.</p>
+<p>We achieve this by:</p>
+<blockquote>
+<div><p>1) Keeping track of a “center” parameter for each column c_j in R^{1   imes q} and “scale”
+parameter s_j in R^{1  imes q} for each column j in [1, p].  These parameters are learnable (but the
+user can chose to fix the scales).</p>
+<p>2) Let E_j be the expected value of column j conditioned on X.  We compute the cluster penalty for
+column j as: k_j = sum_i w_i*d_i, where w_i is the absolute value of E_j[j] after E_j has been normalized
+to have a length of 1 and d_i is the square of scaled distance from c_j defined as
+d_i = sum_k=1^q ((X[i, k] - c_j[k])/s_j[k])**2.  To guard against division by zero, small offsets are
+added as needed in the calculations.</p>
+<p>3) The penalty can be made arbitrarily small by driving the scales to infinity.  To prevent this,
+we calculate a term p = sum_j sum_q s_j[q]**2</p>
+<ol class="arabic simple" start="4">
+<li><p>The final penalty is scale_penalty*p + sum_j k_j</p></li>
+</ol>
+</div></blockquote>
+<p>Creates a new ColumnMeanClusterPenalizer object.</p>
+<dl>
+<dt>Args:</dt><dd><p>init_ctrs: Initial centers for each column.  Of shape [n_cols, x_dim]</p>
+<p>x: The points at which we evaluate the mean of the distribution. Of shape [n_pts, x_dim].</p>
+<p>init_scales: Initial scales for each column. Of shape [n_cols, x_dim]. If None, initial scales will be set
+to 1 for all dimensions and modes.</p>
+<p>scale_weight: The weight to apply to the scale penalty if learning scales.  If None, the scales will be be
+fixed at their init values and not learned.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer.check_point">
+<code class="sig-name descname">check_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#ColumnMeanClusterPenalizer.check_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer.check_point" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dictionary with a copy of key parameters of the penalizer.</p>
+<dl>
+<dt>Returns:</dt><dd><p>params: A dictionary with the following keys:</p>
+<blockquote>
+<div><p>col_ctrs: The value of column centers</p>
+<p>scales: The value of the scales</p>
+<p>last_weight_pen: The value of the last weight penalty computed with the penalizer</p>
+<p>last_scale_pen: The value of the last scale penalty computed with the penalizer</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer.get_marked_params">
+<code class="sig-name descname">get_marked_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#ColumnMeanClusterPenalizer.get_marked_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer.get_marked_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns parameters that should be assigned fast and slow learning rates.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>key: The type of parameters that should be returned.  ‘fast’ will return parameters that should be trained
+with fast learning rates; ‘slow’ will return parameters that should be trained with slow training weights.</p>
+</dd>
+<dt>Returns:</dt><dd><p>params: The list of parameters matching the key</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer.list_param_keys">
+<code class="sig-name descname">list_param_keys</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#ColumnMeanClusterPenalizer.list_param_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer.list_param_keys" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the list of keys associated with parameters.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>keys: The keys</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer.penalize">
+<code class="sig-name descname">penalize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">CondVAEDistribution</a></span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#ColumnMeanClusterPenalizer.penalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer.penalize" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the penalty for a distribution.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer.__str__">
+<code class="sig-name descname">__str__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#ColumnMeanClusterPenalizer.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer.__str__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a string of the current state of the penalizer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.torch_distributions.gen_columns_mean_cluster_penalizer">
+<code class="sig-prename descclassname">janelia_core.ml.torch_distributions.</code><code class="sig-name descname">gen_columns_mean_cluster_penalizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_cols</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">dim_ranges</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">n_pts_per_dim</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">n_ctrs_per_dim</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">init_scale</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">100.0</span></em>, <em class="sig-param"><span class="n">scale_weight</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">10.0</span></em>, <em class="sig-param"><span class="n">penalizer_pts</span><span class="p">:</span> <span class="n">torch.Tensor</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer" title="janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer">ColumnMeanClusterPenalizer</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/torch_distributions.html#gen_columns_mean_cluster_penalizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.torch_distributions.gen_columns_mean_cluster_penalizer" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a columns mean cluster penalizer for a conditional distribution over matrices.</p>
+<dl>
+<dt>Args:</dt><dd><p>n_cols: The number of columns in the matrices the conditional distribution is over.</p>
+<p>dim_ranges: dim_ranges[:,0] are the starting values for each dimension of the data the distribtion is
+conditioned on and dim_ranges[:,1] are the ending values</p>
+<p>n_ctrs_per_dim: When generating the initial center points, we will lay them out evenly on a grid.  This is
+the number of points on the grid in each dimension.</p>
+<p>n_pts_per_dim: The number of sample points to generate per dimension.  The final sample points will
+be a grid sampled at this many points per dimension within the range of dimensions specified by dim_ranges.</p>
+<p>init_scale: The value that for the initial scales of the penalizer for all modes and dimensions.</p>
+<p>scale_weight: The scale weight for the penalizer.</p>
+<p>penalizer_pts: A tensor of points to penalize at.  If None, one will be created based on dim_ranges and
+n_pts_per_dim.  Using this input is useful if creating multiple penalizers that all use the same penalizer
+points, so that they can all reference the same list of points and duplicate lists of poitns do not have to be
+created to save memory.</p>
+</dd>
+<dt>Returns:</dt><dd><p>p: The generated penalizer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

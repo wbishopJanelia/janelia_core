@@ -1,0 +1,1012 @@
+:py:mod:`janelia_core.ml.extra_torch_modules`
+=============================================
+
+.. py:module:: janelia_core.ml.extra_torch_modules
+
+.. autoapi-nested-parse::
+
+   Contains basic torch modules, supplementing those native to PyTorch.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.ml.extra_torch_modules.Bias
+   janelia_core.ml.extra_torch_modules.BiasAndPositiveScale
+   janelia_core.ml.extra_torch_modules.BiasAndScale
+   janelia_core.ml.extra_torch_modules.ConstantBoundedFcn
+   janelia_core.ml.extra_torch_modules.ConstantRealFcn
+   janelia_core.ml.extra_torch_modules.DenseLayer
+   janelia_core.ml.extra_torch_modules.DenseLNLNet
+   janelia_core.ml.extra_torch_modules.BasicExp
+   janelia_core.ml.extra_torch_modules.Exp
+   janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn
+   janelia_core.ml.extra_torch_modules.FixedOffsetExp
+   janelia_core.ml.extra_torch_modules.FixedOffsetAbs
+   janelia_core.ml.extra_torch_modules.FixedOffsetTanh
+   janelia_core.ml.extra_torch_modules.FormMatrixByCols
+   janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn
+   janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn
+   janelia_core.ml.extra_torch_modules.LogGaussianBumpFcn
+   janelia_core.ml.extra_torch_modules.PWLNNFcn
+   janelia_core.ml.extra_torch_modules.QuadSurf
+   janelia_core.ml.extra_torch_modules.Relu
+   janelia_core.ml.extra_torch_modules.SCC
+   janelia_core.ml.extra_torch_modules.SumAlongDim
+   janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns
+   janelia_core.ml.extra_torch_modules.SumOfRelus
+   janelia_core.ml.extra_torch_modules.SwissRole
+   janelia_core.ml.extra_torch_modules.Tanh
+   janelia_core.ml.extra_torch_modules.Unsqueeze
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.ml.extra_torch_modules.OptionalTensor
+
+
+.. py:data:: OptionalTensor
+   
+
+   An optional tensor type.
+
+.. py:class:: Bias(d: int, init_std: float = 0.1)
+
+   Bases: :py:obj:`torch.nn.ModuleList`
+
+   Applies a bias transformation to the data y = x + o, where o is a 1-d vector.
+
+   Creates a Bias object.
+
+   Args:
+       d: The dimensionality of the input and output
+
+       init_std: The standard deviation of the normal distribution initial biases are pulled from.
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.tensor
+
+      Computes output given input.
+
+      Args:
+          x: Input tensor, of shape n_smps*n_dims
+
+      Returns:
+          y: Output tensor, same shape as input
+
+
+
+.. py:class:: BiasAndPositiveScale(d: int, o_init_mn: float = 0.0, w_init_mn: float = 0.0, o_init_std: float = 0.1, w_init_std: float = 0.1)
+
+   Bases: :py:obj:`torch.nn.ModuleList`
+
+   Applies a bias and non-negative scale transformation to the data y = abs(w)*x + o.
+
+   Here w is the same length of x so abs(w)*x indicates element-wise product and likewise ... + o is element-wise addition.
+
+   Creates a Bias object.
+
+   Args:
+       d: The dimensionality of the input and output
+
+       o_init_mn: The mean of the normal distribution initial biases are pulled from.
+
+       w_init_mn: The mean of the normal distribution initial weights are pulled from.
+
+       o_init_std: The standard deviation of the normal distribution initial biases are pulled from.
+
+       w_init_std: The standard deviation of the normal distribution initial weights are pulled from.
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.tensor
+
+      Computes output given input.
+
+      Args:
+          x: Input tensor, of shape n_smps*n_dims
+
+      Returns:
+          y: Output tensor, same shape as input
+
+
+
+.. py:class:: BiasAndScale(d: int, o_init_mn: float = 0.0, w_init_mn: float = 0.0, o_init_std: float = 0.1, w_init_std: float = 0.1)
+
+   Bases: :py:obj:`torch.nn.ModuleList`
+
+   Applies a bias and scale transformation to the data y = w*x + o.
+
+   Here w is the same length of x so w*x indicates element-wise product and likewise ... + o is element-wise addition.
+
+   Creates a Bias object.
+
+   Args:
+       d: The dimensionality of the input and output
+
+       o_init_mn: The mean of the normal distribution initial biases are pulled from.
+
+       w_init_mn: The mean of the normal distribution initial weights are pulled from.
+
+       o_init_std: The standard deviation of the normal distribution initial biases are pulled from.
+
+       w_init_std: The standard deviation of the normal distribution initial weights are pulled from.
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.tensor
+
+      Computes output given input.
+
+      Args:
+          x: Input tensor, of shape n_smps*n_dims
+
+      Returns:
+          y: Output tensor, same shape as input
+
+
+
+.. py:class:: ConstantBoundedFcn(lower_bound: numpy.ndarray, upper_bound: numpy.ndarray, init_value: numpy.ndarray = None)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   Object for representing a constant function which can produce output in a bounded range.
+
+   This is useful when working with modules which need a submodule which is a function with trainable parameters and
+   you desire to use a constant in place of the function.  For example, when working with conditional distributions
+   instead of predicting the conditional mean with a neural network, you might want a constant conditional mean.
+
+   Output values can be multi-dimensional.
+
+   Creates a ConstantBoundedFcn object.
+
+   Args:
+       lower_bound, upper_bound: the lower and upper bounds the output of the function can take on.  These
+       should be arrays providing the bounds for each dimension of output.
+
+       init_value: If provided, this is the constant output the function is initialized to.  Should be an
+       array providing initial values for each dimension. If not provided, the constant value will be initialized
+       to be halfway between the lower and upper bound.
+
+   .. py:method:: set_value(self, vl: numpy.ndarray)
+
+      Sets the value of the function.
+
+      Note: Value will be cast to a float before setting.
+
+      Args:
+          vl: The value to set the function to.
+
+
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Produces constant output given input.
+
+      Args:
+          x: Input data of shape n_smps*d_in.
+
+      Returns:
+          y: output of shape nSmps*d_out
+
+
+
+
+.. py:class:: ConstantRealFcn(init_vl: numpy.ndarray, learnable_values: bool = True)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   Object for representing function which is constant w.r.t to input and take values anywhere in the reals.
+
+   This is useful when working with modules which need a submodule which is a function with trainable parameters and
+   you desire to use a constant in place of the function.  For example, when working with conditional distributions
+   instead of predicting the conditional mean with a neural network, you might want a constant conditional mean.
+
+   Output values can be multidimensional.
+
+   Creates a ConstantRealFcn object.
+
+   Args:
+       init_vl: The initial value to initialize the function with.  The length of init_vl determines the number
+       of dimensions of the output of the function.
+
+   .. py:method:: set_vl(self, vl: numpy.ndarray)
+
+      Sets the value of the function.
+
+      Note: Values will be cast to float before setting.
+
+      Args:
+          vl: The value to set the function to.
+
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Produces constant output given input.
+
+      Args:
+          x: Input data of shape nSmps*d_in.
+
+      Returns:
+          y: output of shape nSmps*d_out
+
+
+
+.. py:class:: DenseLayer(m: torch.nn.Module)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   A layer which concatenates its input to it's output.
+
+   Creates a DenseLayer object.
+
+   Args:
+       m: The module which input is passed through.  The output of this module is concatenated to
+       the input to form the final output of the module.
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes input from output.
+
+      Args:
+          x: Input, of shape n_smps*d_in
+
+      Returns:
+          y: Output, of shape n_smps*(d_in + m_out), where m_out is the output dimensionality of the m module.
+
+
+
+.. py:class:: DenseLNLNet(nl_class: type, d_in: int, n_layers: int, growth_rate: int, bias: bool = False)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   A network of densely connected linear, non-linear units.
+
+   Creates a DenseLNLNet object.
+
+   Args:
+         nl_class: The class to construct the non-linear activation functions from, e.g., torch.nn.ReLU
+
+         d_in: Input dimensionality to the network
+
+         n_layers: The number of layers in the network.
+
+         growth_rate: The number of unique features computed by each layer.  The output dimensionality of
+         the network will be: d_in + n_layers*growth_rate.
+
+         bias: True if linear layers should have a bias.
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes input given output.
+
+      Args:
+          x: Input, of shape n_smps*d_in
+
+      Returns:
+          y: Output, of shape n_smps*(d_in + n_layers*growth_rate)
+
+
+
+.. py:class:: BasicExp
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   Applies the transformation y = exp(x) to the data.
+
+   Creates a new BasicExp object.
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes output from input.
+
+      Args:
+          x: Input, of any shape
+
+      Returns:
+
+          y: Output, same shape as input
+
+
+
+.. py:class:: Exp(d: int, o_mn: float = 0.0, o_std: float = 0.1, g_mn: float = 0.0, g_std: float = 0.1, s_mn: float = 0.0, s_std: float = 0.1)
+
+   Bases: :py:obj:`torch.nn.ModuleList`
+
+   Applies a transformation to the data y = o + exp(g*x + s)
+
+   Creates a Exp object.
+
+   Args:
+       d: The dimensionality of the input and output
+
+       o_mn, o_std: The mean and standard deviation for initializing o
+
+       g_mn, g_std: The mean and standard deviation for initializing g
+
+       s_mn, s_std: The mean and standard deviation for initializing s
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.tensor
+
+      Computes output given input.
+
+      Args:
+          x: Input tensor, of shape n_smps*d_in
+
+      Returns:
+          y: Output tensor, same shape as input
+
+
+
+.. py:class:: FirstAndSecondOrderFcn(d_in: int, d_out: int, o_init_mn: float = 0, o_init_std: float = 0.01, a_init_mn: float = 0, a_init_std: float = 0.01, b_init_mn: float = 0, b_init_std: float = 0.01)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   A function f(x[i]) = o[i] + sum_j a[i, j]*x[j] + sum_{j,k} b_[i, j,k]*x[j]*x[k], where o, a and b are parameters.
+
+
+   Creates a new FirstAndSecondOrderFcn object.
+
+   Args:
+        d_in: The input dimensionality
+
+        d_out: The output dimensionality
+
+        o_init_mn, o_init_std: The mean and standard deviation of the normal distribution to
+        pull initial values of o from
+
+        a_init_mn, a_init_std: The mean and standard deviation of the normal distribution to
+        pull initial values of a from
+
+        b_init_mn, b_init_std: The mean and standard deviation of the normal distribution to
+        pull initial values of b from
+
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes input from output.
+
+      Args:
+          x: Input tensor, of shape n_smps*d_in
+
+      Returns:
+          y: Output tensor, of shape n_smps*d_out
+
+
+
+.. py:class:: FixedOffsetExp(o: float)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   Computes y = exp(x) + o, where o is a fixed, non-learnable offset.
+
+   Creates a new FixedOffsetExp object.
+
+   Args:
+       o: The offset to apply
+
+   .. py:method:: forward(self, x: torch.Tensor)
+
+      Computes input from output.
+
+      Args:
+          x: Input tensor, of any shape
+
+      Returns:
+          y: Computed output, same shape as input
+
+
+
+.. py:class:: FixedOffsetAbs(o: float)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   Computes y = abs(x) + o, for a fixed o.
+
+   Creates a new FixedOffsetAbs module.
+
+   Args:
+       o: The fixed offsest
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes output from input.
+
+      Args:
+
+          x: Input, of any shape
+
+      Returns:
+          y: Output, the same shape as input
+
+
+
+.. py:class:: FixedOffsetTanh(d: int, m: float, init_s_vls: OptionalTensor = None)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   Computes y = abs(s)*(tanh(x) + 1) + m, where s is learnable and m is fixed.
+
+   This function can learn a different scale for each dimension of data.
+
+   The minimum of the above function is m.  This function can be used when wanting to apply a scaled Tanh
+   to values while making sure function values never go below a threshold.
+
+   Creates a new FixedOffsetTanh object.
+
+   Args:
+       d: The dimension of the input.
+
+       m: The minimum value of the function
+
+       init_s_vls: The initial s values.  Should be of length d.
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes output from input.
+
+      Arg:
+          x: Input, of shape n_smps*d
+
+      Returns:
+          y: Output, same shape as input
+
+
+
+.. py:class:: FormMatrixByCols(col_modules: Sequence[torch.nn.Module])
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   Forms a matrix output column by column, where each column is calculated from a separate function.
+
+   Specifically, each column is formed by applying a module unique to that column to the same input x.
+
+   Creates a new FormMatrixByCols object.
+
+   Args:
+       col_modules: col_modules[i] is the module that should be applied to form column i
+
+   .. py:method:: forward(self, x: torch.Tensor)
+
+      Computes input from output.
+
+      Args:
+          x: Input, of any shape
+
+      Returns:
+          y: Output.  Each column is the result of applying the appropriate function to the input data
+
+
+
+.. py:class:: IndSmpConstantBoundedFcn(n: int, lower_bound: float = -1.0, upper_bound: float = 1.0, init_value: float = 0.05, check_sizes: bool = True)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   For representing a function which assigns different bounded constant scalar values to given samples.
+
+   This is useful, for example, when wanting to have a function which provides a different standard deviation for
+   each sample in a conditional Gaussian distribution.
+
+   Creates an IndSmpConstantBoundedFcn object.
+
+   Args:
+
+       n: The number of samples this function will assign values to.
+
+       lower_bound, upper_bound: lower and upper bounds the function can represent.  All samples will have the same
+       bounds.
+
+       init_value: The initial value to assign to each sample.  All samples will have the same initial value.
+
+       check_sizes: If true, checks that the number of rows of input matches n (the number of samples) when
+       calling forward.  If false, this check is omitted.
+
+
+   .. py:method:: forward(self, x)
+
+      Assigns a value to each sample in x.
+
+      Args:
+          x: input of shape n_smps*d_x
+
+      Returns:
+          y: output of shape n_smps*1
+
+      Raises:
+          ValueError: If the number of samples in x does not match the the number of samples the function represents.
+
+
+   .. py:method:: set_value(self, vl: numpy.ndarray)
+
+      Sets the value of the function.
+
+      Args:
+          vl: The value to set.  Must be a 1-d array of length self.n
+
+
+
+
+.. py:class:: IndSmpConstantRealFcn(n: int, init_mn: float = 0.0, init_std: float = 0.1, check_sizes: bool = True)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   For representing a function which assigns different real-valued constant scalar values to given samples.
+
+   This is useful, for example, when wanting to have a function which provides a different mean for each sample in a
+   conditional Gaussian distribution.
+
+   Creates a IndSmpConstantBoundedFcn object.
+
+   Args:
+       n: The number of samples this function will assign values to.
+
+       init_mn: The mean of the normal distribution to pull initial function values from.
+
+       init_std: The standard deviation of the normal distribution to pull initial function values from.
+
+       check_sizes: If true, checks that the number of rows of input matches n (the number of samples) when
+       calling forward.  If false, this check is omitted.
+
+   .. py:method:: forward(self, x) -> torch.Tensor
+
+      Assigns a value to each sample in x.
+
+      Args:
+          x: Input of shape n_smps*d_x
+
+      Returns:
+          y: Output of shape n_smps*1
+
+      Raises:
+          ValueError: If the number of samples in x does not match the the number of samples the function represents.
+
+
+   .. py:method:: set_value(self, vl: numpy.ndarray)
+
+      Sets the value of the function.
+
+      Args:
+          vl: The value to set. Should be a 1-d array of length self.n
+
+
+
+.. py:class:: LogGaussianBumpFcn(d_x: int, ctr_std_lb: float = 0.02, ctr_std_ub: float = 100.0, ctr_std_init: float = 1.0, log_gain_lb: float = -3.0, log_gain_ub: float = 0.0, log_gain_init: float = -0.05, ctr_range: list = [0, 1])
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   A module representing a log Gaussian "bump" function with trainable parameters of the form:
+
+       y = log(g*exp(-d(x,c)),
+
+   where d(x,c) is the distance of x from the center c defined as sqrt( (x - c)'S^-2(x-c) ), where
+   S is a diagonal matrix of standard deviations.
+
+
+   Creates a LogGaussianBumpFcn object.
+
+   Args:
+       d_x: The dimensionality of the domain of the function.
+
+       ctr_std_lb: Lower bound center standard deviations can take on
+
+       ctr_std_ub: Upper bound center standard deviations can take on
+
+       ctr_std_init: Initial value for center standard deviations.  All dimensions are initialized to the same
+       value.
+
+       log_gain_lb: Lower bound the log gain value can take on
+
+       log_gain_ub: Upper bound the log gain value can take on
+
+       log_gain_init: Initial value for the log gain value
+
+       ctr_range: The range of the uniform distribution when randomly initializing the center.  All dimensions are
+       selected from the same Uniform distribution.
+
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes output of function given input.
+
+      Args:
+          x: Input of shape nSmps*d
+
+      Returns:
+          y: Output of shape nSmps
+
+
+
+.. py:class:: PWLNNFcn(init_centers: torch.Tensor, init_weights: torch.Tensor, init_offsets: torch.Tensor, k: int = 1, m=100, n_used_fcns: int = None)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   Piecewise-linear nearest neighbor network function.
+
+   For any input point, this function finds the k nearest-neighboring functions to it. The value of the function
+   for that point is then the sum of the point evaluated at each of its nearest-neighbor functions.
+
+   Creates a new PWLNNFcn.
+
+   Args:
+
+       init_centers: Initial centers for each function. Of shape n_ctrs*input_dim
+
+       init_weights: Initial weights for each function. Of shape n_ctrs*input_dim*output_dim
+
+       init_offsets: Initial offsets for each function. Of shape n_ctrs*output_dim
+
+       k: Number of nearest neighbors to use.
+
+       m: The number of centers to compare at once when searching for nearest neighbors.  Larger
+       values use more memory but can result in significantly faster computation on GPU.
+
+       n_used_fcns: The number of functions to use at any point in time.  Setting this equal to n_ctrs,
+       results in using all centers all the time.  Setting this less than n_ctrs, will result in
+       randomly dropping out some functions during each call to forward.  Setting this to None, will
+       result in using all centers.
+
+   .. py:method:: forward(self, x: torch.Tensor)
+
+      Computes output from input.
+
+      Args:
+          x: Input of shape n_smps*input_dim
+
+      Returns:
+          y: Output of shape n_smps*output_dim
+
+
+   .. py:method:: bound(self, ctr_bounds: Sequence = [0, 1], bound_fcns: bool = True)
+
+      Applies bounds to the centers.
+
+      Bounds are applied element-wise.
+
+      Args:
+          ctr_bounds: The bounds to force centers to be between. If None, no bounds are enforced. The
+          same bound is applied to all dimensions.
+
+          bound_fcns: True if bound should be called on functiions.
+
+
+
+
+.. py:class:: QuadSurf(ctr: torch.Tensor, coefs: torch.Tensor)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   A surface defined by: z = a*(x - x_0)^2 + b*(y - y_0)^2
+
+   Creates a new QuadSurf Module.
+
+   Args:
+       ctr: the vector [x_0, x_1]
+
+       coefs: the vector [a, b]
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes output from input.
+
+      Args:
+          x: Input of shape n_smps*2
+
+      Returns:
+          output: Of shape n_smps*3, where each row is of the form [z, x, y], where x & y are the original x & y
+          from the input, and z is the function output.
+
+
+
+.. py:class:: Relu(d: int, o_mn: float = 0.0, o_std: float = 0.1, s_mn: float = 0.0, s_std: float = 0.1)
+
+   Bases: :py:obj:`torch.nn.ModuleList`
+
+   Applies a rectified linear transformation to the data y = o + relu(x + s)
+
+   Creates a Relu object.
+
+   Args:
+       d: The dimensionality of the input and output
+
+       o_mn: Mean of normal distribution for initializing offsets
+
+       o_std: Standard deviation of normal distribution for initializing offsets
+
+       s_mn: Mean of normal distribution for initializing shifts
+
+       s_std: Standard deviation of normal distribution for initializing shifts
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes output given input.
+
+      Args:
+          x: Input tensor
+
+      Returns:
+          y: Output tensor
+
+
+
+.. py:class:: SCC(group_inds: Sequence[torch.Tensor], group_modules: Sequence[torch.nn.Module])
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   A module which splits inputs, applies a function to that input (computes) and concatenates the results.
+
+   The acronym SCC is for Split, Compute, Concatenate.  This module will:
+
+       1) Split the input into different groups
+
+       2) Apply a different function to each of the groups
+
+       3) Concatenate the result
+
+
+   Creates a new SCC object.
+
+   Args:
+       group_inds: group_inds[i] is tensor of dtype long indicating which input dimensions are used to
+       form the data for group i.  Variables in the group will be ordered according their order in
+       group_inds[i]
+
+       group_modules: group_fcns[i] is the function to apply to data for group i.
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes input from output.
+
+      Args:
+          x: input of shape n_smps*d_x
+
+      Returns:
+          y: output of shane n_smps*d_y, where d_y is the sum of the output dimensionalities of all
+          group functions.  Outputs from each group are concatenated (according to the order of the
+          groups) to form y.
+
+
+
+.. py:class:: SumAlongDim(dim: int)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   Performs a sum along a given dimension of input.
+
+   Create a SumAlongDim object.
+
+   Args:
+       dim: The dimension to sum along
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes input from output.
+
+      Args:
+          x: Input, of any shape
+
+      Returns:
+          y: Output.  The dimension summed along will be retrained.
+
+
+
+.. py:class:: SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim: Sequence[int], dim_ranges: numpy.ndarray, n_div_per_hc_side_per_dim: Sequence[int])
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   A module to represent a function which is a sum of tiled hypercube basis functions.
+
+   The hypercubes tile, in an overlapping fashion, a volume.  To specify a layout of hypercubes the user:
+
+       1. Specifies the range of each dimension that should be covered
+
+       2. Specifies a number of divisions to break the range of each dimension into (see illustration below). These
+       divisions *do not* directly correspond to hypercubes.  (See 3)
+
+       3. Specifies how many divisions make up the side of a hypercube in each dimension.  For non-overlapping
+       hypercubes 1 division makes up the side of 1 hypercube.  Increasing the number of divisions per side of each
+       hypercube results in overlapping hypercubes (see illustration below).
+
+       4. Final hypercubes are constructed to respect the hypercube sides set for each dimension.  Each hypercube
+       has it's own learnable magnitude.
+
+       Example of breaking up a dimension into divsions and overlapping hypercube sides with 2 divisions per
+       hypercube side::
+
+           |-|-|-|-|-|-|-|-| : Each block a division (e.g., 8 divisions)
+           ^               ^
+           |               |
+           start_range     end_range
+           |               |
+           |               |
+           |               |
+           |               |
+         |- -|             |   : (Notice padding so that first and last hypercubes run over the valid range)
+           |- -|           |
+             |- -|         |
+                  ...      |
+                         |- -|
+
+
+    Note: This object has been optimized for speed.  Specifically, by having hypercubes defined with respect to
+    a base set of divisions, it is possible to take an input point and use an efficient hashing function to
+    determine all hypercubes that it falls in.  Moreover, by including padding of the hypercubes, we ensure
+    that each input point to the function anywhere in the user specified range falls within the *same* number of
+    hypercubes.  These two things make forward evaluation of the function efficient.
+
+   Creates a SumOfTiledHyperCubeBasisFcns object.
+
+   Args:
+       n_divisions_per_dim: n_divisions_per_dim[i] gives the number of divisions for dimension i.
+
+       dim_ranges: The range for dimension i is dim_ranges[i,0] <= x[i] < dim_ranges[i,1]
+
+       n_div_per_hc_side_per_dim: The number of divisions per hypercube side for each dimension
+
+   .. py:method:: _x_to_idx(self, x: torch.Tensor, run_checks: bool = True) -> torch.Tensor
+
+      Given x data computes the indices of active basis functions for each point.
+
+      Args:
+          x: Input data of shape n_smps*d_x
+
+          run_checks: True if input should be checked for expected properties
+
+      Returns:
+          idx: Indices of active bump functions for each point.  Of shape n_smps*n_active,
+          where n_active is the number of active bump functions for each point.
+
+      Raises:
+          ValueError: If check_range is true and one or more x values are not in the valid range for the function.
+
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes input given output.
+
+      Args:
+          x: Input of shape n_smps*d_x.  Each x point should be within the region specified when creating the
+          SumOfTiledHyperCubeBasisFcns object.
+
+      Returns:
+          y: Output of shape n_smps*1.
+
+
+
+.. py:class:: SumOfRelus(init_ctrs: torch.Tensor, init_w: torch.Tensor, init_s: torch.Tensor)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   A sum of Relu functions.
+
+   The idea behind this function is we tile an input space by a collection of scaled ReLU functions, where the
+   centers for each function determine the location of these functions and the weights and scales determine how they
+   are oriented and the slope in the non-zero part of the relu. We then sum the results of passing a data
+   point through all these functions tiling the landscape to get a final output.
+
+   Specifically, this ia function from x \in R^d_in to y \in R^d_out, where the i^th dimensoun of output is
+
+       y[i] = \sum_i s_ij*relu(w_ij'*(x - c_j)),
+
+   where w_ij is a weight vector for output dimension i and relu function j, c_j is the center for relu function
+   c_j and s_ij is the scale for output dimension i of relu function j.
+
+
+   Creates a new PWLManifold object.
+
+   Args:
+       init_ctrs: initial centers of shape n_ctrs*input_dim
+
+       init_w: initial weights of shape n_ctrs*output_dim*input_dim
+
+       init_s: initial scales of shape n_ctrs*output_dim
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes output from input.
+
+      Args:
+          x: Input of shape n_smps*input_dim
+
+      Returns:
+          y: Output of shape n_smps*output_dim
+
+
+
+.. py:class:: SwissRole(a: torch.Tensor, b: torch.Tensor, c: torch.Tensor)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   Represents a swiss role function.
+
+
+   This is function that maps from (x,y) to (x,y,z) according to:
+
+       x = x
+       y = a*(y+b)*sin(c*y)
+       z = a*(y+b)*cos(c*y),
+
+   where a, b and c are learnable parameters.
+
+
+   Creates a new SwissRole object.
+
+   Args:
+       a: The a parameter.  Shuold be a 1-d vector with a single entry
+
+       b: The b parameter.  Shuold be a 1-d vector with a single entry
+
+       c: The c parameter.  Shuold be a 1-d vector with a single entry
+
+   Raises:
+       ValueError: If any of the parameters have the wrong shape
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes output from input.
+
+      Args:
+          x: Input of shape n_smps*2
+
+      Returns:
+          y: Output of shape n_smps*3
+
+
+
+.. py:class:: Tanh(d: int, o_mn: float = 0.0, o_std: float = 0.1, s_mn: float = 1.0, s_std: float = 0.1)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   A module implementing y = s*tanh(x) + o
+
+   Creates a Tanh module.
+
+   Args:
+       d: The dimensionality of the input and output
+
+       o_mn, o_std: The mean and standard deviation for initializing o
+
+       s_mn, s_std: The mean and standard deviation for initializing s
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.tensor
+
+      Computes output given input.
+
+      Args:
+          x: Input tensor, of any shape
+
+      Returns:
+          y: Output tensor, same shape as input
+
+
+
+.. py:class:: Unsqueeze(dim: int)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   Wraps the torch.unsqueeze function in a module.
+
+   Having unsqueeze in a module can be useful for when working with torch.nn.Sequential.
+
+   Creates a new Unsqueeze module.
+
+   Args:
+       dim: The index to insert the empty dimension at.
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes input from output.
+
+      Arg:
+          x: Input, of any shape
+
+      Returns:
+          y: Output, with the appropriate dimension added.
+
+
+

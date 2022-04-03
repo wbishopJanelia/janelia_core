@@ -1,0 +1,150 @@
+:py:mod:`janelia_core.dataprocessing.image_stats`
+=================================================
+
+.. py:module:: janelia_core.dataprocessing.image_stats
+
+.. autoapi-nested-parse::
+
+   Tools for efficiently calculating statistics over images.
+
+   This module is geared specifically towards working with time series of volumetric data.
+
+   William Bishop
+   bishopw@hhmi.org
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.dataprocessing.image_stats.std_through_time
+   janelia_core.dataprocessing.image_stats.create_morphsnakes_brain_mask
+   janelia_core.dataprocessing.image_stats.create_threshold_brain_mask
+   janelia_core.dataprocessing.image_stats.identify_rois_in_brain_mask
+   janelia_core.dataprocessing.image_stats.identify_small_rois
+
+
+
+.. py:function:: std_through_time(images: list, image_slice: slice = slice(None, None, None), t_dict: dict = None, sc: pyspark.SparkContext = None, preprocess_func: Callable[[numpy.ndarray], numpy.ndarray] = None, verbose=True, correct_denom=True, h5_data_group: str = 'default') -> dict
+
+   Calculates standard deviation of individual voxels through time.
+
+   This function will also return the uncentered first (i.e, the mean) and second moments for each individual
+   voxel through time as well, since these are calculated in the intermediate computations.
+
+   Args:
+       images: A list of either (1) numpy arrays containing the images or (2) file paths to the image files
+
+       image_slice: The slice of each image to extract.  If registration is being performed, (see t_dict),
+       coordinates of image_slice should be for the images after registration.
+
+       t_dict: If this is not None, images will be registered before any statistics are calculated.  This dictionary
+       has two entries:
+           transforms: A list of registration transforms to apply to the images as they are being read in.  If None,
+           no registration will be applied.
+
+           image_shape: This is the shape of the original images being read in.
+
+       sc: If provided, spark will be used to distribute computation.
+
+       preprocess_func: A function to apply to the data of each image before calculating means.  If none,
+       a function which returns image data unchanged will be used.
+
+       verbose: True if progress updates should be printed to screen.
+
+       correct_denom: If true, standard deviation is calculated by dividing by sqrt(n - 1) where n is the
+       number of images.  If false, division by sqrt(n) is used.
+
+       h5_data_group: The hdfs data group holding image data in hdf5 files
+
+   Returns:
+       A dict with the standard deviation, mean and uncentered second moments for each voxel as numpy arrays. The keys
+       will be 'std', 'mean' and 'sec_mom', where 'sec_mom' is the uncentered second moment.
+
+
+.. py:function:: create_morphsnakes_brain_mask(img: numpy.ndarray, p: numpy.ndarray, morph_params: dict = {}, verbose=True) -> numpy.ndarray
+
+   Creates a brain mask using the morphsnakes package.
+
+   This function operates independently on each plane.
+
+   Args:
+       img: The image to find the brain mask of.
+
+       p: The percentile threshold value to use when forming the initial brain mask for each plane.  Specifically,
+       for each plane in the image, the p-th percentile is calculated.  The initial mask is then formed by masking out
+       any value less than this. p[i] contains the percentile for plane i.
+
+       morph_params: A dictionary of parameters to pass into morphological_chan_vese.  See that function
+       for more information. Reasonable initial values are:
+           morph_params = {'iterations': 50, 'smoothing': 4, 'lambda1': 1, 'lambda2': 1}
+
+       verbose: True if progress updates should be printed.
+
+   Returns:
+       mask: A binary array the same shape as an image.  Each entry indicates if the corresponding voxel in the images
+       belongs to the brain or not.
+
+
+
+.. py:function:: create_threshold_brain_mask(stats: dict, std_p: int = 70, mean_p: int = 70, verbose=True) -> numpy.ndarray
+
+   Creates a brain mask by thresholding statistics.
+
+   Given a structure of statistics produced by std_through_time, this function returns a binary array estimating which
+   voxels belong to the brain.
+
+   The array is estimated by looking for voxels with both a mean and standard deviation which surpass a user defined
+   threshold.
+
+   Args:
+       stats: The dictionary of statistics produced by std_through_time.
+
+       std_p: The threshold percentile for standard deviation values
+
+       mean_p: The threshold percentile for mean values
+
+       verbose: True if status updates should be printed.
+
+   Returns:
+        mask: A binary array the same shape as an image.  Each entry indicates if the corresponding voxel in the images
+        belongs to the brain or not.
+
+
+
+.. py:function:: identify_rois_in_brain_mask(brain_mask: numpy.ndarray, rois: List[janelia_core.dataprocessing.roi.ROI], p_in=0.9) -> numpy.ndarray
+
+   Identifies ROIs that significantly overlap with a brain mask.
+
+   Args:
+       brain_mask: A binary np.ndarray the same shape as the shape of images rois were extracted from, indicating
+       which voxels belong to the brain.
+
+       rois: A list of rois objects.
+
+       p_in: The percentage of voxels of an roi that must overlap with the brain mask to be considered in the mask.
+
+   Returns:
+       rois_in_brain: A np.ndarray of indices of ROIs that are in the brain mask
+
+
+.. py:function:: identify_small_rois(roi_extents: numpy.ndarray, rois: List[janelia_core.dataprocessing.roi.ROI]) -> numpy.ndarray
+
+   Identifies ROIS that fit within a rectangular box of a set size.
+
+   Args:
+       roi_extents: A 3d array of the lengths of the sides of a rectangle (in pixels)
+       rois must fit into.
+
+       rois: A list of roi objects.
+
+   Returns:
+       small_rois: A np.ndarray of indices of rois that fit within the rectangle
+
+

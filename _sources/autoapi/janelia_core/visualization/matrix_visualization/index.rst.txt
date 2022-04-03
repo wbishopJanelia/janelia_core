@@ -1,0 +1,104 @@
+:py:mod:`janelia_core.visualization.matrix_visualization`
+=========================================================
+
+.. py:module:: janelia_core.visualization.matrix_visualization
+
+.. autoapi-nested-parse::
+
+   Tools for visualizing and comparing matrices.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.visualization.matrix_visualization.colorized_tbl
+   janelia_core.visualization.matrix_visualization.cmp_n_mats
+
+
+
+.. py:function:: colorized_tbl(tbl: numpy.ndarray, dim_0_lbls: list = None, dim_1_lbls: list = None, tbl_fontsize=12, tbl_values_x_offset: float = 0.1, tbl_value_format_str: str = '{:.1e}', show_colorbar=True, cmap: Union[str, matplotlib.colors.Colormap] = None, vmin: float = None, vmax: float = None, ax: matplotlib.pyplot.Axes = None, label_fontsize=12, xtick_rotation: float = 0.0, ytick_rotation: float = 0.0)
+
+   Plots a table of values with colors corresponding to values in each table entry.
+
+   The "tricky" part of using this function is getting the values to have the right font size and be correctly
+   positioned in each cell of the table.  Values will always be vertically centered in each cell.  The user can
+   specify the font size to make sure all values fit withing a cell, and adjust the x offset of the values to
+   make sure the left/right justification looks correct as well.
+
+   Args:
+       tbl: The table of values to plot.
+
+       dim_0_lbls: Labels for dimension 0 of the table
+
+       dim_1_lbls: Labels for dimension 1 of the table
+
+       tbl_fontsize: Fontsize in points for the table values
+
+       tbl_values_x_offset: The offset (between 0 and 1) in the x position of table values we plot in each cell.
+       A value of 0 corresponds to left justified text.
+
+       tbl_value_format_str: The string to use to format values in the table
+
+       show_colorbar: True if a colorbar should be shown.
+
+       cmap: The colormap to use when mapping colors to values.
+
+       vmin: The lower value that the colormap should satureate at.  If None, will be set from data.
+
+       vmax: The upper value that the colormap should saturate at.  If None, will be set from data.
+
+       ax: Axes to plot the table in.  If None, a new figure and axes will be created.
+
+       label_fontsize: Fontsize in points for axes labels and the optional colorbar
+
+       xtick_rotation: The rotation of x labels
+
+       ytick_rotation: The rotation of y labels
+
+
+.. py:function:: cmp_n_mats(mats: list, clim: list = None, show_colorbars: bool = False, titles: list = None, grid_info: dict = None, cmap: matplotlib.colors.Colormap = None, subplots: list = None) -> list
+
+   Produces a figuring comparing matrices.
+
+   Each matrix will be plotted in a separate axes, and all axes will use the same color scaling.
+
+   Args:
+       mats: A list of matrices to compare.
+
+       clim: An list of length 2 of color limits to apply to all images.  If None is provided, will be set to
+       [min_v, max_v] where min_v and max_v are the min and max values in all of the matrices
+
+       show_colorbars: True if colorbars should be shown next to each plot
+
+       titles: A list of tiles for each matrix in mats.  If None, no titles will be generated
+
+       grid_info: A dictionary with information about how to layout the matrices in a grid.  It should have the entries:
+
+          grid_spec: The matplotlib.gridspec.GridSpec to use for the grid
+
+          cell_info: A list the same length as mats.  cell_info[i] contains:
+
+              loc: The location for the subplot for the i^th matrix
+
+              rowspan: The row span for the i^th matrix
+
+              colspan: The column span for the i^th matrix
+
+           If grid_info is None, one will be created for showing the matrices next to each other in a row.
+
+       cmap: The colormap to use.  Can either be a string or Colormap instance.
+
+       subplots: a list of subplot objects to plot into.  If used, grid_info is ignored
+
+   Returns:
+       subplots: List of subplot objects for each subplot showing the matrices in mats.  Subplots are ordered according
+       to mats.
+
+

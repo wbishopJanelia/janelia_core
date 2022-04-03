@@ -1,0 +1,175 @@
+:py:mod:`janelia_core.ml.datasets`
+==================================
+
+.. py:module:: janelia_core.ml.datasets
+
+.. autoapi-nested-parse::
+
+   Tools for representing and working with Pytorch datasets.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.ml.datasets.TimeSeriesBatch
+   janelia_core.ml.datasets.TimeSeriesDataset
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.ml.datasets.cat_time_series_batches
+
+
+
+.. py:class:: TimeSeriesBatch(data: Sequence[torch.Tensor], i_x: torch.Tensor, i_y: torch.Tensor, i_orig: torch.Tensor)
+
+   Bases: :py:obj:`torch.utils.data.Dataset`
+
+   An object to represent a batch of samples from time series data.
+
+   Each sample in the batch is a pair consisting of data at time t-1 and data at time t.
+
+   Args:
+       data: data[i] contains data for the i^th group of variables.  Dimension 0 indexes individual points.
+
+       i_x: Indicates which points in data correspond to the t-1 data points in each sample.
+
+       i_y: Indicates which points in data correspond to the t data points in each sample.
+
+       i_orig: Indicates the original indices in the larger TimeSeriesData object the data points came from.
+       (Keeping track of this is helpful when needing to merge and concatenate batches later.)
+
+
+   .. py:method:: pin_memory(self)
+
+      Puts this object's data into pinned memory.
+
+
+   .. py:method:: to(self, device: torch.device, move_i_orig: bool = False, non_blocking: bool = False)
+
+      Moves data to the specified device.
+
+      Args:
+          device: The device to move the data to.
+
+          move_i_orig: If true, i_orig will be moved to the device.  If false, only data, i_x and i_y will be
+          moved to the device.
+
+          non_blocking: If the .to() command should be passed the non_blocking option.
+
+
+   .. py:method:: __len__(self) -> int
+
+      Returns the number of samples in the dataset.
+
+
+   .. py:method:: __getitem__(self, index)
+
+      Returns requested samples from the dataset.
+
+      Args:
+          index: Integer index, slice or numpy array indicating requested samples.
+          The index is specifically into the i_x and i_y attributes.
+
+      Returns:
+          smps: The requested samples.
+
+
+   .. py:method:: efficient_get_item(self, index)
+
+      A computational (but not memory) efficient way of indexing a TimeSeriesBatch object.
+
+      A new TimeSeriesBatch object will be returned with unmodified data and i_orig attributes.  The i_x
+      and i_y attributes will be updated to index the data and i_orig attributes.  By not discarding
+      any unused points in the data attribute, indexing can be done very quickly.
+
+      This function can be useful when seeking to index an existing TimeSeriesBatch object when we will not
+      need to copy the result to another place in memory (e.g., sending to a GPU when the indexed TimeSeriesBatch
+      object is on CPU).
+
+      Args:
+          index: Integer index, slice or numpy array indicating requested samples.
+          The index is specifically into the i_x and i_y attributes.
+
+      Returns:
+          smps: The requested samples in a TimeSeriesBatch object as described above.
+
+
+
+.. py:class:: TimeSeriesDataset(ts_data: Sequence[torch.Tensor])
+
+   Bases: :py:obj:`torch.utils.data.Dataset`
+
+   Extends torch's Dataset object specifically for time series data.
+
+   This object is specifically designed for scenarios when we want to predict points at time t + 1 from points at
+   time t.
+
+   The user supplies the time series data for different groups of variables.  He or she can then request samples, which
+   will return the time series data for the samples. Each sampled data point is a pair corresponding to data at
+   time t and the data a time t + 1.  Therefore, a dataset with T time points will contain T-1 samples.
+
+   The requested samples will be returned in a memory efficient manner to avoid representing duplicate points
+   twice.
+
+
+   Creates a TimeSeriesDataset object.
+
+   Args:
+       ts_data: Time series data. ts_data[i] is time series data for the i^th group of variables.  Time is
+       represented along dimension 0.  All ts_data tensors must have the same number of time points.
+
+   Raises:
+       ValueError: If not all ts_data tensors have the same number of time points.
+
+   .. py:method:: __len__(self) -> int
+
+      Returns the number of samples in the dataset.
+
+      Note that number of samples in the dataset is 1 less than the number of time points, as samples
+      consist of pairs of data points at time t-1 and time t.
+
+      Returns:
+          The number of samples in the dataset.
+
+
+   .. py:method:: __getitem__(self, index) -> TimeSeriesBatch
+
+      Returns requested samples from the dataset.
+
+      A single sample consists of a pair of data points at time t-1 and at time t.
+
+      Args:
+          index: Integer index or slice indicating requested samples.
+
+      Returns:
+          smps: The requested samples.
+
+
+
+
+.. py:function:: cat_time_series_batches(batches: Sequence[TimeSeriesBatch]) -> TimeSeriesBatch
+
+   Concatenates multiple TimeSeriesBatches into one object in a memory efficient manner.
+
+   The i_x and i_y fields of the new TimeSeriesBatch object will effectively be concatenations of the
+   i_x and i_y fields from the original, individual TimeSeriesBatch objects, though the values of i_x and
+   i_y may be changed to appropriately index into the data tensors of the returned TimeSeriesBatch object.
+
+   Args:
+       batch: A list of TimeSeriesBatch objects to concatenate.
+
+   Returns:
+       conc_batch: The TimeSeriesBatch object representing the concatenated result.
+
+

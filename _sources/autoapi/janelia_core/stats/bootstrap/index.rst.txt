@@ -1,0 +1,72 @@
+:py:mod:`janelia_core.stats.bootstrap`
+======================================
+
+.. py:module:: janelia_core.stats.bootstrap
+
+.. autoapi-nested-parse::
+
+   Tools for working with bootstrap analyses.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.stats.bootstrap.OnlineNonZeroPVlCalculator
+
+
+
+
+.. py:class:: OnlineNonZeroPVlCalculator(n_vars: int)
+
+   An object for calculating p-values for non-zero values from streaming bootstrap results.
+
+   This object is designed for use when you want to invert a bootstrap distribution to calculate the p-value
+   that a quantity is significantly different from 0, but you don't have the memory available to first perform all the
+   bootstrap samples, keeping track of results and then calculating p-values.  In these cases, this object can be
+   used to calculate the p-values, by providing it with the results of each bootstrap sample sequentially.
+
+   This object can calculate p-values for multiple variables at once.  The way it should be used is:
+
+       1) Create a new OnlineNonZeroPVlCalculator object, telling it how many variables you will be calculating
+       p-values for
+
+       2) Call injest on one or more samples of data; this can be done sequentially
+
+       3) Call p_vls to get p-values calculating after injesting all the samples to date
+
+   Note: This code calculate p-values for a two-sided hypothesis test.
+
+
+   Creates a new OnlineNonZeroPVlCalculator object.
+
+   Args:
+       n_vars: The number of variables we will be calculating p-values for.
+
+   .. py:method:: injest(self, smp: numpy.ndarray)
+
+      Takes in a new sample of data, which will update calculated p-values.
+
+      Args:
+
+          smp: The samples to injest.  More than one sample can be injested at a time.
+          This should be of shape [n_smps, n_vars].
+
+      Raises:
+          ValueError: If smp is not a 2-d array
+
+
+   .. py:method:: p_vls(self)
+
+      Calculates p-values given data injested to date.
+
+      Returns:
+          p_vls: The calculated p-values for each variable, will be an array of length n_vars.
+
+
+

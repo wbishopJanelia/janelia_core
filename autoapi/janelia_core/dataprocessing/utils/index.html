@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.dataprocessing.utils &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing.utils</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/dataprocessing/utils/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.dataprocessing.utils">
+<span id="janelia-core-dataprocessing-utils"></span><h1><a class="reference internal" href="#module-janelia_core.dataprocessing.utils" title="janelia_core.dataprocessing.utils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing.utils</span></code></a><a class="headerlink" href="#module-janelia_core.dataprocessing.utils" title="Permalink to this headline"></a></h1>
+<p>Utilities for working with time series data.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.utils.get_image_data" title="janelia_core.dataprocessing.utils.get_image_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_image_data</span></code></a>(image, img_slice: slice = slice(None, None, None), h5_data_group: str = 'default') → numpy.ndarray</p></td>
+<td><p>Gets image data for a single image.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.utils.get_reg_image_data" title="janelia_core.dataprocessing.utils.get_reg_image_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reg_image_data</span></code></a>(image, image_slice: slice, image_shape: numpy.ndarray = None, t: dipy.align.imaffine.AffineMap = None, h5_data_group: str = 'default')</p></td>
+<td><p>Gets registered image data for a single image.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.utils.get_processed_image_data" title="janelia_core.dataprocessing.utils.get_processed_image_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_processed_image_data</span></code></a>(images: list, func: types.FunctionType = None, img_slice=slice(None, None, None), t_dict: dict = None, func_args: list = None, h5_data_group='default', sc: pyspark.SparkContext = None) → list</p></td>
+<td><p>Gets processed image data for multiple images.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.utils.write_planes_to_files" title="janelia_core.dataprocessing.utils.write_planes_to_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_planes_to_files</span></code></a>(planes: numpy.ndarray, files: list, base_planes_dir: pathlib.Path, plane_suffix: str = 'plane', skip_existing_files=False, sc: pyspark.SparkContext = None, h5_data_group='data') → list</p></td>
+<td><p>Extracts one or more planes from image files, writing planes to separate files.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.utils.write_planes_for_one_file" title="janelia_core.dataprocessing.utils.write_planes_for_one_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_planes_for_one_file</span></code></a>(file: pathlib.Path, planes: numpy.ndarray, plane_dirs: list, plane_suffix: str = 'plane', skip_existing_files=False, h5_data_group='default')</p></td>
+<td><p>Writes specified planes from a 3d image file to separate .h5 files.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="janelia_core.dataprocessing.utils.get_image_data">
+<code class="sig-prename descclassname">janelia_core.dataprocessing.utils.</code><code class="sig-name descname">get_image_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">img_slice</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#slice" title="(in Python v3.10)">slice</a></span> <span class="o">=</span> <span class="default_value">slice(None, None, None)</span></em>, <em class="sig-param"><span class="n">h5_data_group</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'default'</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/utils.html#get_image_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.utils.get_image_data" title="Permalink to this definition"></a></dt>
+<dd><p>Gets image data for a single image.</p>
+<p>This is a wrapper that allows us to get image data for a single image from a file or from a numpy array
+seamlessly in our code.  If image is already a numpy array, image is simply returned
+as is.  Otherwise, image is assumed to be a path to a image which is opened and the data
+is loaded and returned as a numpy array.</p>
+<dl>
+<dt>Args:</dt><dd><p>image: Either a numpy array or path to the image.</p>
+<p>img_slice: The slice of the image that should be returned</p>
+<p>h5_data_group: The hdfs group holding image data in h5 files.</p>
+</dd>
+<dt>Returns:</dt><dd><p>The image data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.dataprocessing.utils.get_reg_image_data">
+<code class="sig-prename descclassname">janelia_core.dataprocessing.utils.</code><code class="sig-name descname">get_reg_image_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em>, <em class="sig-param"><span class="n">image_slice</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#slice" title="(in Python v3.10)">slice</a></span></em>, <em class="sig-param"><span class="n">image_shape</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">t</span><span class="p">:</span> <span class="n">dipy.align.imaffine.AffineMap</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">h5_data_group</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'default'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/utils.html#get_reg_image_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.utils.get_reg_image_data" title="Permalink to this definition"></a></dt>
+<dd><p>Gets registered image data for a single image.</p>
+<p>This is a wrapper around get_image_data that allows the user to register an image before getting data from it.</p>
+<dl>
+<dt>Args:</dt><dd><p>image: Either a numpy array or path to the image.</p>
+<p>image_shape: The shape of the original image.  This is used to check that the requested window contains
+valid data after registration.  If t is none, this argument does not need to be supplied.</p>
+<p>t: The registration transform.  If this is none, no registration will be performed.</p>
+<p>image_slice: The slice of the image that should be returned.  Coordinates are <em>after</em> image registration.</p>
+<p>h5_data_group: The hdfs group holding image data in h5 files.</p>
+</dd>
+<dt>Returns:</dt><dd><p>The image data</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If the requested slice for the registered image includes voxels for which there was no data in the
+original image to calculate the registered image for.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.dataprocessing.utils.get_processed_image_data">
+<code class="sig-prename descclassname">janelia_core.dataprocessing.utils.</code><code class="sig-name descname">get_processed_image_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">images</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">func</span><span class="p">:</span> <span class="n">types.FunctionType</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">img_slice</span><span class="o">=</span><span class="default_value">slice(None, None, None)</span></em>, <em class="sig-param"><span class="n">t_dict</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">func_args</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">h5_data_group</span><span class="o">=</span><span class="default_value">'default'</span></em>, <em class="sig-param"><span class="n">sc</span><span class="p">:</span> <span class="n">pyspark.SparkContext</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/utils.html#get_processed_image_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.utils.get_processed_image_data" title="Permalink to this definition"></a></dt>
+<dd><p>Gets processed image data for multiple images.</p>
+<p>This is a wrapper that allows retrieving images from files or from numpy arrays,
+applying light processing independently to each image and returning the result.</p>
+<p>Images can be optionally registered before apply preprocessing.</p>
+<dl>
+<dt>Args:</dt><dd><p>images: A list of images.  Each entry is either a numpy array or a path to an image file.</p>
+<p>func: A function to apply to each image.  If none, images will be returned unaltered.  Should accept input
+of the form func(image: np.ndarray, <a href="#id1"><span class="problematic" id="id2">**</span></a>keyword_args)</p>
+<p>img_slice: The slice of each image that should be returned before any processing is applied.  If registration is
+applied (see t_dict parameter), then the slice coordinates are for images after registration.</p>
+<p>t_dict: A dictionary with information for performing image registration as images are loaded.  If set to None,
+no image registration will be performed.  t_dict should have two fields:</p>
+<blockquote>
+<div><p>transforms: A list of registration transforms to apply to the images as they are being read in.  If none,
+no registration will be applied.</p>
+<p>image_shape: This is the shape of the original images being read in.</p>
+</div></blockquote>
+<p>func_args: A list of extra keyword arguments to pass to the function for each image.  If None, no arguments
+will be passed.</p>
+<p>h5_data_group: The hdfs group holding image data in h5 files.</p>
+<p>sc: An optional pySpark.SparkContext object to use in speeding up reading of images.</p>
+</dd>
+<dt>Returns:</dt><dd><p>The processed image data as a list.  Each processed image is an entry in the list.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.dataprocessing.utils.write_planes_to_files">
+<code class="sig-prename descclassname">janelia_core.dataprocessing.utils.</code><code class="sig-name descname">write_planes_to_files</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">planes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">files</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">base_planes_dir</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.10)">pathlib.Path</a></span></em>, <em class="sig-param"><span class="n">plane_suffix</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'plane'</span></em>, <em class="sig-param"><span class="n">skip_existing_files</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sc</span><span class="p">:</span> <span class="n">pyspark.SparkContext</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">h5_data_group</span><span class="o">=</span><span class="default_value">'data'</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/utils.html#write_planes_to_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.utils.write_planes_to_files" title="Permalink to this definition"></a></dt>
+<dd><p>Extracts one or more planes from image files, writing planes to separate files.</p>
+<dl>
+<dt>Args:</dt><dd><p>planes: An array of indices of planes to extract.</p>
+<p>files: A list of original image files to pull planes from.</p>
+<p>base_planes_dir: The base directory to save plane files into.  Under this folder, separate subfolders
+will be saved for each plane.</p>
+<p>plane_suffix: The suffix to append to the file name to indicate the file contains just one plane.</p>
+<p>skip_existing_files: If true, if a file for an extracted plane is found, it will not be overwritten.
+If false, then errors will be thrown if files for extracted planes are found to already exist. Setting
+this to true can be helpful if there is a need to run this function a second time to recover from an
+error.</p>
+<p>sc: An optional spark context to use to write files in parallel.</p>
+<p>h5_data_group: The h5_data_group that original images are stored under if reading in .h5 files.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A list of the directories that images for each plane are saved into.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.dataprocessing.utils.write_planes_for_one_file">
+<code class="sig-prename descclassname">janelia_core.dataprocessing.utils.</code><code class="sig-name descname">write_planes_for_one_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.10)">pathlib.Path</a></span></em>, <em class="sig-param"><span class="n">planes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">plane_dirs</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">plane_suffix</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'plane'</span></em>, <em class="sig-param"><span class="n">skip_existing_files</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">h5_data_group</span><span class="o">=</span><span class="default_value">'default'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/utils.html#write_planes_for_one_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.utils.write_planes_for_one_file" title="Permalink to this definition"></a></dt>
+<dd><p>Writes specified planes from a 3d image file to separate .h5 files.</p>
+<p>The new files will have the same name as the original with an added suffix to indicate they contain
+just one plane.</p>
+<dl>
+<dt>Args:</dt><dd><p>planes: An array of indices of planes to extract.</p>
+<p>file: The original image file to pull planes from.</p>
+<p>plane_dirs: List of directories to save the file for each file into.</p>
+<p>plane_suffix: The suffix to append to the file name to indicate the file contains just one plane.</p>
+<p>skip_existing_files: If true, if a file for an extracted plane is found, it will not be overwritten.
+If false, then errors will be thrown if files for extracted planes are found to already exist. Setting
+this to true can be helpful if there is a need to run this function a second time to recover from an
+error.</p>
+<p>h5_data_group: The h5_data_group that original images are stored under if reading in .h5 files.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

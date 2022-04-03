@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.extra_torch_functions &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.extra_torch_functions</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/ml/extra_torch_functions/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.extra_torch_functions">
+<span id="janelia-core-ml-extra-torch-functions"></span><h1><a class="reference internal" href="#module-janelia_core.ml.extra_torch_functions" title="janelia_core.ml.extra_torch_functions"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.extra_torch_functions</span></code></a><a class="headerlink" href="#module-janelia_core.ml.extra_torch_functions" title="Permalink to this headline"></a></h1>
+<p>Contains custom PyTorch functions.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_functions.knn_do" title="janelia_core.ml.extra_torch_functions.knn_do"><code class="xref py py-obj docutils literal notranslate"><span class="pre">knn_do</span></code></a>(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int, n_ctrs_used: int) → torch.Tensor</p></td>
+<td><p>Searches for the k nearest centers to each point in a set of data, applying dropout to centers.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_functions.knn_mc" title="janelia_core.ml.extra_torch_functions.knn_mc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">knn_mc</span></code></a>(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int) → torch.Tensor</p></td>
+<td><p>Memory constrained version of knn function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_functions.log_cosh" title="janelia_core.ml.extra_torch_functions.log_cosh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_cosh</span></code></a>(x: torch.Tensor) → torch.Tensor</p></td>
+<td><p>Computes log cosh(x) in a numerically stable way.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_functions.LOG_2" title="janelia_core.ml.extra_torch_functions.LOG_2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOG_2</span></code></a></p></td>
+<td><p>The value log(2) as a torch tensor.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt id="janelia_core.ml.extra_torch_functions.LOG_2">
+<code class="sig-prename descclassname">janelia_core.ml.extra_torch_functions.</code><code class="sig-name descname">LOG_2</code><a class="headerlink" href="#janelia_core.ml.extra_torch_functions.LOG_2" title="Permalink to this definition"></a></dt>
+<dd><p>The value log(2) as a torch tensor.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.extra_torch_functions.knn_do">
+<code class="sig-prename descclassname">janelia_core.ml.extra_torch_functions.</code><code class="sig-name descname">knn_do</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">ctrs</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">k</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">m</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">n_ctrs_used</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_functions.html#knn_do"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_functions.knn_do" title="Permalink to this definition"></a></dt>
+<dd><p>Searches for the k nearest centers to each point in a set of data, applying dropout to centers.</p>
+<p>This function wraps around knn_mc, applying dropout to the centers.  By this, we mean that the function
+will first randomly select n_ctrs_used centers to use, and then it will only look for nearest neighbors
+among these centers.  Setting n_ctrs_used to the total number of centers results in no dropout.</p>
+<dl>
+<dt>Args:</dt><dd><p>x: The set of data.  We return centers closest to each point in x.  Of shape n_smps*d</p>
+<p>ctrs: The centers to search among.  Of shape n_ctrs*d</p>
+<p>k: The number of nearest neighbors to search for.</p>
+<p>m: The number of centers to process at a time in the call to knn_mc.  Larger values of m will enable faster
+computation on GPU but use more memory.</p>
+<p>n_ctrs_used: The number of centers to randomly select.</p>
+</dd>
+<dt>Returns:</dt><dd><p>indices: The indices of the nearest centers for each data point. indices[:,i] are the indices for x[i,:]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.extra_torch_functions.knn_mc">
+<code class="sig-prename descclassname">janelia_core.ml.extra_torch_functions.</code><code class="sig-name descname">knn_mc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">ctrs</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">k</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">m</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_functions.html#knn_mc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_functions.knn_mc" title="Permalink to this definition"></a></dt>
+<dd><p>Memory constrained version of knn function.</p>
+<p>In this implementation we search for the k nearest centers to each point in a set of data.</p>
+<p>We say it is memory constrained because we can limit the number of centers we search among at a time.  By
+looping through centers in blocks, we can limit the amount of memory used.  Specifically, for any given block, we
+use broadcasting to enable fast calculations, which uses O(n_ctrs*n_data_points) amount of memory, so by limiting
+the number of centers we search through at once, we can limit memory usage.  A post-processing step at the end
+of each loop keeps track of the k-nearest centers seen up until that point in time to each data point.</p>
+<dl>
+<dt>Args:</dt><dd><p>x: The set of data.  We return centers closest to each point in x.  Of shape n_smps*d</p>
+<p>ctrs: The centers to search among.  Of shape n_ctrs*d</p>
+<p>k: The number of nearest neighbors to search for.</p>
+<p>m: The number of centers to process at a time.  Larger values of m will enable faster computation on GPU but use
+more memory.</p>
+</dd>
+<dt>Returns:</dt><dd><p>indices: The indices of the nearest centers for each data point. indices[:,i] are the indices for x[i,:]</p>
+</dd>
+<dt>Raise:</dt><dd><p>ValueError: If k is greater than the number of centers.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.extra_torch_functions.log_cosh">
+<code class="sig-prename descclassname">janelia_core.ml.extra_torch_functions.</code><code class="sig-name descname">log_cosh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_functions.html#log_cosh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_functions.log_cosh" title="Permalink to this definition"></a></dt>
+<dd><p>Computes log cosh(x) in a numerically stable way.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input values</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output values</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,329 @@
+:py:mod:`janelia_core.visualization.image_generation`
+=====================================================
+
+.. py:module:: janelia_core.visualization.image_generation
+
+.. autoapi-nested-parse::
+
+   Tools for generating images.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.visualization.image_generation.alpha_composite
+   janelia_core.visualization.image_generation.generate_2d_fcn_image
+   janelia_core.visualization.image_generation.standard_rgba_to_premultiplied
+   janelia_core.visualization.image_generation.premultiplied_rgba_to_standard
+   janelia_core.visualization.image_generation.generate_mean_dot_image
+   janelia_core.visualization.image_generation.generate_dot_image
+   janelia_core.visualization.image_generation.generate_dot_image_3d
+   janelia_core.visualization.image_generation.generate_image_from_fcn
+   janelia_core.visualization.image_generation.generate_binary_color_rgba_image
+   janelia_core.visualization.image_generation.max_project_pts
+   janelia_core.visualization.image_generation.rgb_3d_max_project
+   janelia_core.visualization.image_generation.scalar_3d_max_project
+   janelia_core.visualization.image_generation.signed_max_project
+
+
+
+.. py:function:: alpha_composite(dest: numpy.ndarray, src: numpy.ndarray) -> numpy.ndarray
+
+   Performs alpha compositing with two RGBA images with alpha-premultiplicaiton applied.
+
+   All values should be floating point in the range 0 - 1.
+
+   Standard RGBA values of the form [R_s, G_s, B_s, A_s] can be converted to a
+   pre-multiplied RGBA value as [R_s*A_s, G_s*A_s, B_s*A_s, A_s].
+
+   Good notes can be found at: https://ipfs.io/ipfs/QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco/wiki/Alpha_compositing.html
+
+   Args:
+       dest: The bottom image of shape d_x*d_y*4
+
+       src: The top image.  Must be of the same shape as dest_img.
+
+   Returns:
+       Nothing.  The dest array will be modified.
+
+
+.. py:function:: generate_2d_fcn_image(f: Callable, dim_0_range: Sequence[float] = None, dim_1_range: Sequence[float] = None, n_pts_per_dim: Sequence[int] = None, vis_dim: int = None) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]
+
+   Generates an image of a 2d function.
+
+   Args:
+       f: The function to visualize. Should accept input of shape [n by 2], where n is an arbitrary number
+       of values and output values of length n.
+
+       dim_0_range: The range of dim 0 values to visualize the function over.  If None, [0.0, 1.0] will be used.
+
+       dim_1_range: The range of dim 1 values to visualize the function over.  If None, [0.0, 1.0] will be used.
+
+       n_pts_per_dim: The number of points to sample per dimension.
+
+       vis_dim: If f produces multiple dimension output, this is the dimension to visualize
+
+   Returns:
+       im: The image of the function as a 2-d numpy array
+
+       dim_0_pts: The sampled points along dim 0
+
+       dim_1_pts: The sampled points along dim 1
+
+
+.. py:function:: standard_rgba_to_premultiplied(img: numpy.ndarray) -> numpy.ndarray
+
+   Converts between standard and pre-multiplied RGBA representations.
+
+   Args:
+       img: Input image in standard RGBA format of shape d_x*d_y*4
+
+   Returns:
+       Nothing.  The image is modified in place.
+
+
+.. py:function:: premultiplied_rgba_to_standard(img: numpy.ndarray) -> numpy.ndarray
+
+   Converts between pre-multiplied and standard RGBA representations.
+
+   Args:
+       img: Input image in pre-multiplied RGBA format of shape d_x*d_y*4
+
+   Returns:
+       img: Nothing.  The image is modified in place.
+
+
+.. py:function:: generate_mean_dot_image(image_shape: Sequence[int], dot_ctrs: numpy.ndarray, dot_vls: numpy.ndarray, sa_lengths: Sequence[int]) -> numpy.ndarray
+
+   Generates a 2-d or 3-d image of the mean of values in ellipsoids.
+
+   Generates an image by associating an ellipsoid with a set of 2 or 3-d locations. Each of these locations
+   has an associated value.  A pixel value in the final image is simply the average of all the values associated
+   with ellipsoids that contain that pixel.
+
+   Args:
+       image_shape: The shape of the image to generate. Must be of length 2 or 3.
+
+       dot_ctrs: The location of each ellipsoid center.  dot_ctrs[i, :] is the location
+       for dot i.
+
+       dot_vls: The value to associate with the locations.  dot_vls[i] is associated with the location
+       dot_ctrs[i, :]
+
+       sa_lengths: The lengths of the semi-axes of the ellipsoids to generate. The value of sa_lengths[j] is the
+       length for dimension j.  All values in sa_lengths must be odd.
+
+   Returns:
+       img: The generated image.  Any pixel outside of an ellipsoid will have a value of nan.
+
+   Raises:
+       ValueError: If image_shape is not of length 2 or 3.
+       ValueError: If all values in sa_lengths are not odd
+       ValueError: If any dot centers are outside of the dimensions of the image to be generated
+
+
+.. py:function:: generate_dot_image(image_shape: Sequence, dot_ctrs: numpy.ndarray, dot_clrs: numpy.ndarray, dot_diameter: int) -> numpy.ndarray
+
+   Generates an image of dots over a transparent background.
+
+   All position/size units are in pixels.
+
+   Dots are layered according to their order in dot_ctrs with dot_ctrs[0,:] on the bottom.
+
+   Args:
+       image_shape: The [width, height] of the image in pixels
+
+       dot_ctrs: dot_ctrs[i,:] gives the position of the center of the i^th dot
+
+       dot_clrs: dot_clrs[i,:] gives the RGBA color of the i^th dot
+
+       dot_diameter: The diameter of the dot to generate in pixel.  Must be an odd number.
+
+   Returns:
+       img: The generated image of shape [image_shape[0], image_shape[1], 4] where the last dimension is the RGBA
+       value of each pixel.
+
+
+.. py:function:: generate_dot_image_3d(image_shape: Sequence[int], dot_ctrs: numpy.ndarray, dot_vls: numpy.ndarray, ellipse_shape: Sequence[int]) -> numpy.ndarray
+
+   Generates a 3-d scalar image of ellipses, given the center location of each ellipse.
+
+   All position/size units are in pixels.
+
+   If two ellipses or more ellipses overlap, the value of the overlapping region is the average of the ellipse values.
+
+   Any pixels in the generated image without an ellipse in them will have the value nan.
+
+   Args:
+       image_shape: The shape of the image to generate.
+
+       dot_ctrs: dot_ctrs[i,:] is the center position of the i^th dot in pixels.  Dot centers will be rounded to the
+       nearest whole pixel values before generating images of ellipses.
+
+       dot_vls: dot_vls[i] is the value for the i^th ellipse
+
+       ellipse_shape: ellipse_shape[d] gives the width of the generated ellipses in the d^th dimension.  All
+       values in ellipse_shape must be odd.
+
+   Returns:
+       img: The generated image.
+
+   Raises:
+       ValueError: If any of the dot centers are outside of the image.
+       ValueError: If any value in ellipse_shape is not odd.
+
+
+.. py:function:: generate_image_from_fcn(f, dim_sampling: Sequence[Sequence]) -> numpy.ndarray
+
+   Generates a multi-d image from a function.
+
+   The main use for this function is generating images for visualization.
+
+   Args:
+       f: The function to plot.
+
+       dim_sampling: Each entry of dim_sampling specifies how to sample a dimension in the
+       domain of the fuction.  Each entry is of the form [start, stop, int] where start and
+       and stop are the start and stop of the range of values to sample from and int
+       is the interval values are sampled from.
+
+   Returns:
+       im: The image
+
+       coords: A list of coordinates along each dimension the function was sampled at.
+
+
+.. py:function:: generate_binary_color_rgba_image(a: numpy.ndarray, neg_clr: Sequence[float] = None, pos_clr: Sequence[float] = None) -> numpy.ndarray
+
+   Generates an RGBA image of two colors from a 2-d numpy array.
+
+   Negative values will be one color while positive values will be another.
+
+   The alpha channel will be equal to the absolute value of entries of a, so all values of a must be in [-1, 1].
+
+   The negative color will be assigned to entries strictly less than 0, while the positive channel will be assigned
+   to entries greater than or equal to 0.
+
+   Args:
+       a: The array to binarize.
+
+       neg_clr: A sequence of floats specifying the RGB values for the negative color.  All value should in [0, 1].
+       If None, the negative color will be red.
+
+       pos_clr: A sequence of floats specifying the RGB values for the positive color.  All value should in [0, 1].
+       If None, the positive color will be green.
+
+   Returns:
+       im: The image of shape [a.shape[0], a.shape[1], 4]
+
+   Raises:
+        ValueError: If any entry in a is outside of [-1, 1]
+        ValueError: If a is not a 2-d array.
+
+
+.. py:function:: max_project_pts(dot_positions: numpy.ndarray, dot_vls: numpy.ndarray, box_position: numpy.ndarray, n_divisions: numpy.ndarray, dot_dim_width: numpy.ndarray) -> numpy.ndarray
+
+   Assigns a radius to points in 2-d space to make dots.  Then generates an image of max dot values in a grid.
+
+   The motivation for this function is that there are times when physical objects in space (such as neurons) have
+   been represented as finite points.  In these cases, we might desire to visualize how physical properties associated
+   with each object are distributed in space.  There are three challenges we face when doing this:
+
+   1) How to visualize a point.  We solve this by adding a radius to the points to make dots.
+
+   2) How to make sense of over-lapping dots.  We do this by taking a "max projection" of the dots - that is
+   at each point in space, we keep the value associated with the largest magnitude (so sign doesn't matter).
+
+   3) How to go from continuous space to discrete space, so we can make images.  We solve this by allowing the
+   user to specify a grid, defining discrete points in space we want to calculate a value for.
+
+   The final question we need to consider is what to do with points in space that have no dot in them?  In this
+   case, we will return an nan value.
+
+   Args:
+       dot_positions: The positions of dots, each column is a dimension.  Values must be floating point.
+
+       dot_vls: The values associated with each point.  A 1-d array.
+
+       box_position: The position of a box we define the grid in.  box_position[0,0] is the start of the side for
+       dimension 0 and box_position[1,0] is the end of the side for dimension 0.  box_position[:,1] contains the
+       start and end of the side for dimension 1.
+
+       n_divisions: The number of divisions to use for the grid.  n_divisions[i] is the number of divisions for
+       dimension i.
+
+       dot_dim_width: We allow dots to be ellipses.  dot_dim_width[i] is the width of a dot in dimension i.
+
+   Returns:
+       im: The final image, of shape n_divisions.
+
+       inds: Same shape as im.  inds[i,j] is the index of the dot in dot_vls that the value of im[i,j] came from.
+       Entries in im with nan values will also have nan values in inds.
+
+   Raises:
+       ValueError: If dot positions are not floating point.
+       ValueError: If any dot position is outside of the boundaries of the box.
+
+
+.. py:function:: rgb_3d_max_project(vol: numpy.ndarray, axis: int = 2) -> numpy.ndarray
+
+   Computes 3d-max projection of RGB data.
+
+   The computation is done by converting the image to gray scale, finding max values of the gray scale image,
+   and the retaining the rgb information at these max values.
+
+   Args:
+       vol: The volume to max project.  Should be of shape [dx, dy, dz, 3], with the last dimension holding RGB values.
+
+       axis: The axis to project along
+
+   Returns:
+       proj: The projected image.  The first two dimensions will be the retained dimensions from the projection and
+       the last dimension will be of length 3, holding RGB values.
+
+   Raises:
+       ValueError: If the last dimension of vol is not of length 3.
+
+
+.. py:function:: scalar_3d_max_project(vol: numpy.ndarray, axis: int = 2, abs_vl: bool = False) -> numpy.ndarray
+
+   Computes 3d max projection of scalar data.
+
+   Args:
+       vol: The volume to project.  Should be of shape [dx, dy, dz]
+
+       axis: The dimension to project along
+
+       abs_vl: True if values with the largest absolute value should be returned; if false, then values with the
+       largest positive value will be returned.
+
+   Returns:
+       proj:  The projected image. Will be 2-d with a shape corresponding to the retained dimensions of vol.
+
+   Raises:
+       ValueError: If vol is not a 3d array
+
+
+.. py:function:: signed_max_project(volume: numpy.ndarray, axis: int) -> numpy.ndarray
+
+   Performs a signed max projection on 3-d data.
+
+   Args:
+       volume: The volume to do the max projection on
+
+       axis: The axis to do the max projection along.
+
+   Returns:
+       im: The max projection image.  A 2-d array with dimensions inherited from volume.
+
+   Raises:
+       ValueError: If volume is not a 3d array
+
+

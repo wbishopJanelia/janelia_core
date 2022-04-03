@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.stats.permutation_tests &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.stats.permutation_tests</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.stats.permutation_tests</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Contains tools for performing permutation tests. &quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="basic_perm_test"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/permutation_tests/index.html#janelia_core.stats.permutation_tests.basic_perm_test">[docs]</a><span class="k">def</span> <span class="nf">basic_perm_test</span><span class="p">(</span><span class="n">x_0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_perms</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot; Performs a basic permutation test.</span>
+
+<span class="sd">    This function calculates the p value for a statistic of the form:</span>
+
+<span class="sd">        t = abs(f(x_0) - f(x_1)),</span>
+
+<span class="sd">    where f() is by default median().  In this case, the p-value is for the difference of medians of two</span>
+<span class="sd">    samples.  However, the user can specify custom f functions (e.g., mean) to calculate the p-value</span>
+<span class="sd">    for other statistics.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x_0: Data from condition 0.  Should be either 1 or 2-d array.  Each row is a sample.</span>
+
+<span class="sd">        x_1: Data from condition 1.  Should be either 1 or 2-d array.  Each row is a sample.</span>
+<span class="sd">        Note: x_1 can have a different number of samples than x_0.</span>
+
+<span class="sd">        n_perms: The number of permutations to perform.</span>
+
+<span class="sd">        f: The f function to use (see above).  If None, median will be used.  If samples have a dimensionality greater</span>
+<span class="sd">        than 1, a custom f function must be used.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        p: The p value for the calculated statistic</span>
+
+<span class="sd">        t: The calculated statistic</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: If x_0 or x_1 are not of type np.ndarray</span>
+<span class="sd">        ValueError: If x_0 and x_1 do not have at least one sample each</span>
+<span class="sd">        ValueError: If samples have a dimensionality greater than 1 but the default f is used.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;x_0 and x_1 must be of type np.ndarray.&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Form x_0 and x_1 into 2-d arrays if they are 1-d</span>
+    <span class="k">if</span> <span class="n">x_0</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">x_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">x_0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">x_1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">x_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">x_1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">n_x_0</span> <span class="o">=</span> <span class="n">x_0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">n_x_1</span> <span class="o">=</span> <span class="n">x_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">n_x_0</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">n_x_1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;There must be at least one sample in x0 and x1.&#39;</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">x_0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Using the default function (median) is only valid for 1-d input.&#39;</span><span class="p">))</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span>
+
+    <span class="c1"># Calculate the test statistic</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">x_0</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span><span class="p">(</span><span class="n">x_1</span><span class="p">))</span>
+
+    <span class="c1"># Perform the permutation tests</span>
+    <span class="n">n_total</span> <span class="o">=</span> <span class="n">n_x_0</span> <span class="o">+</span> <span class="n">n_x_1</span>
+    <span class="n">c_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">x_0</span><span class="p">,</span> <span class="n">x_1</span><span class="p">])</span>
+    <span class="n">perm_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_perms</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">p_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_perms</span><span class="p">):</span>
+        <span class="n">perm_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="n">n_total</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n_total</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">x_0_perm_inds</span> <span class="o">=</span> <span class="n">perm_inds</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">n_x_0</span><span class="p">]</span>
+        <span class="n">x_1_perm_inds</span> <span class="o">=</span> <span class="n">perm_inds</span><span class="p">[</span><span class="n">n_x_0</span><span class="p">:]</span>
+        <span class="n">perm_t</span><span class="p">[</span><span class="n">p_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">c_data</span><span class="p">[</span><span class="n">x_0_perm_inds</span><span class="p">,:])</span> <span class="o">-</span> <span class="n">f</span><span class="p">(</span><span class="n">c_data</span><span class="p">[</span><span class="n">x_1_perm_inds</span><span class="p">,</span> <span class="p">:]))</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">perm_t</span> <span class="o">&gt;=</span> <span class="n">t</span><span class="p">)</span><span class="o">/</span><span class="n">n_perms</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">p</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="paired_grouped_perm_test"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/permutation_tests/index.html#janelia_core.stats.permutation_tests.paired_grouped_perm_test">[docs]</a><span class="k">def</span> <span class="nf">paired_grouped_perm_test</span><span class="p">(</span><span class="n">x0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">grp_ids</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pair_f</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                             <span class="n">reduce_f</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_perms</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot; Performs a paired, grouped permutation test.</span>
+
+<span class="sd">    This calculates paired statistics.  In otherwords, we assume each sample from condition 0 is paired with a sample</span>
+<span class="sd">    from condition 1.   The user can specify the function (e.g., abs(x1 - x0)) which is used to compare the samples. We</span>
+<span class="sd">    then test against the null hypothesis that x1 and x0 come from the same distribution.</span>
+
+<span class="sd">    This is also for performing permutation tests when samples are grouped.  A good example of this is when we obtain</span>
+<span class="sd">    multiple samples from one subject. In this case all the samples from one subject will form one group. Because we</span>
+<span class="sd">    expect that samples in the same group may not be truly independent, we need to take this into account when</span>
+<span class="sd">    performing permutations and permute all the samples from a group together.  This is what this test does.  It is</span>
+<span class="sd">    essentially a standard permutation test, except samples in groups are shuffled together.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x0: Array of samples from condition 0.  Each row is a sample.  Samples from all groups are concatenated together.</span>
+
+<span class="sd">        x1: Array of samples from condition 1.  Rows of x1 are paired with rows of x0.</span>
+
+<span class="sd">        grp_ids: a 1-d array indicating groups of samples.  Samples from the same group should</span>
+<span class="sd">        have the same value in g.</span>
+
+<span class="sd">        pair_f: The function used to compare x0 and x1.  If None, the function x1 - x0 will be used.</span>
+
+<span class="sd">        reduce_f: The function used to calculate a single statistic from the results of pair_f.  If None, the function</span>
+<span class="sd">        mean() will be used.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        t: The value of the test statistic</span>
+
+<span class="sd">        p: The p-value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">pair_f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pair_f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">-</span> <span class="n">x</span>
+
+    <span class="k">if</span> <span class="n">reduce_f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">reduce_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span>
+
+    <span class="c1"># Determine where the groups are</span>
+    <span class="n">grps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">grp_ids</span><span class="p">)</span>
+    <span class="n">n_grps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">grps</span><span class="p">)</span>
+    <span class="n">grp_inds</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">n_grps</span>
+    <span class="k">for</span> <span class="n">g_i</span><span class="p">,</span> <span class="n">grp_i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grps</span><span class="p">):</span>
+        <span class="n">grp_inds</span><span class="p">[</span><span class="n">g_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">grp_ids</span> <span class="o">==</span> <span class="n">grp_i</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Calculate the test statistic</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">reduce_f</span><span class="p">(</span><span class="n">pair_f</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">))</span>
+
+    <span class="c1"># Calculate the test statistic for permutations</span>
+    <span class="n">perm_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_perms</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">p_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_perms</span><span class="p">):</span>
+        <span class="n">perm_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">binomial</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n_grps</span><span class="p">)</span>
+        <span class="n">perm_x0</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
+        <span class="n">perm_x1</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">g_i</span><span class="p">,</span> <span class="n">grp_ind</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grp_inds</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">perm_inds</span><span class="p">[</span><span class="n">g_i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">perm_x0</span><span class="p">[</span><span class="n">grp_ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">x1</span><span class="p">[</span><span class="n">grp_ind</span><span class="p">]</span>
+                <span class="n">perm_x1</span><span class="p">[</span><span class="n">grp_ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">x0</span><span class="p">[</span><span class="n">grp_ind</span><span class="p">]</span>
+
+        <span class="n">perm_t</span><span class="p">[</span><span class="n">p_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">reduce_f</span><span class="p">(</span><span class="n">pair_f</span><span class="p">(</span><span class="n">perm_x0</span><span class="p">,</span> <span class="n">perm_x1</span><span class="p">))</span>
+
+    <span class="c1"># Calculate p-value</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">perm_t</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">t</span><span class="p">))</span><span class="o">/</span><span class="n">n_perms</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="all_pairs_perm_tests"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/permutation_tests/index.html#janelia_core.stats.permutation_tests.all_pairs_perm_tests">[docs]</a><span class="k">def</span> <span class="nf">all_pairs_perm_tests</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">test_opts</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">update_int</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Performs a set of permutation tests between all pairs of conditions.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x: x[i] is a numpy array of samples for condition i.  x[i] should either be a 1-d or 2-d numpy array, where</span>
+<span class="sd">        each row is a sample.  Different entries of x can have different number of samples.</span>
+
+<span class="sd">        test_opts: A dictionary of keyword arguments to pass into the call to basic_perm_test for each test.</span>
+
+<span class="sd">        update_int: Progress is printed to screen every update_int number of tests.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        p_vls: p_vls[i,j] is the p value when testing the difference between x[i] and x[j].  To save computation, we</span>
+<span class="sd">        set p_vls[j,i] = p_vls[i,j].  The diagonal of p_vls will be nan.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">test_opts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">test_opts</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="n">n_x</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="n">n_total_tests</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="o">*</span><span class="p">(</span><span class="n">n_x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">n_x</span> <span class="o">-</span> <span class="n">n_x</span><span class="p">)</span>
+
+    <span class="n">p_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_x</span><span class="p">,</span> <span class="n">n_x</span><span class="p">])</span>
+    <span class="n">p_vls</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">test_cnt</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_x</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_x</span><span class="p">):</span>
+            <span class="n">p</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">basic_perm_test</span><span class="p">(</span><span class="n">x_0</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">x_1</span><span class="o">=</span><span class="n">x</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="o">**</span><span class="n">test_opts</span><span class="p">)</span>
+            <span class="n">p_vls</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+            <span class="n">p_vls</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+
+            <span class="n">test_cnt</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">test_cnt</span> <span class="o">%</span> <span class="n">update_int</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Done with test &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">test_cnt</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; of &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_total_tests</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">update_int</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Done with all tests.&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">p_vls</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

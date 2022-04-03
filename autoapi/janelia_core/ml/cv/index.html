@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.cv &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.cv</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/ml/cv/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.cv">
+<span id="janelia-core-ml-cv"></span><h1><a class="reference internal" href="#module-janelia_core.ml.cv" title="janelia_core.ml.cv"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.cv</span></code></a><a class="headerlink" href="#module-janelia_core.ml.cv" title="Permalink to this headline"></a></h1>
+<p>Contains tools for performing cross validation with data.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.cv.generate_balanced_folds" title="janelia_core.ml.cv.generate_balanced_folds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_balanced_folds</span></code></a>(labels: numpy.ndarray, n_folds: int, balance_across_folds: bool = False, balance_within_folds: bool = False, test_train_closure: bool = False, randomize: bool = True) → list</p></td>
+<td><p>Given an array of labels, generate test and train folds with balanced labels.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.cv.parameter_combinations" title="janelia_core.ml.cv.parameter_combinations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parameter_combinations</span></code></a>(param_values: dict) → list</p></td>
+<td><p>Generates all possible combination of parameter values from sets of possible values for individual parameters.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="janelia_core.ml.cv.generate_balanced_folds">
+<code class="sig-prename descclassname">janelia_core.ml.cv.</code><code class="sig-name descname">generate_balanced_folds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">labels</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">n_folds</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">balance_across_folds</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">balance_within_folds</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">test_train_closure</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">randomize</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/cv.html#generate_balanced_folds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.cv.generate_balanced_folds" title="Permalink to this definition"></a></dt>
+<dd><p>Given an array of labels, generate test and train folds with balanced labels.</p>
+<p>This function first breaks the data into disjoint testing sets.  By default, this function will
+assign points into disjoint test folds so that all points are used for testing once.  In this case,
+the number of data points of a class in any test fold will be within 1 of eachother. However, see
+the options to balance_within_folds and balance_across_folds for alternative behavior.</p>
+<p>After assigning test points for each fold, the training points for each fold are assigned. By default,
+all points not used for testing and used for training in a fold. However, see test_train_closure option
+for the different ways training points can be assigned to sets.</p>
+<dl>
+<dt>Args:</dt><dd><p>labels: labels[i] contains the label for data point i</p>
+<p>n_folds: The number of folds to break the data into</p>
+<p>balance_across_folds: If true, this ensures the number of test points of each class is the
+same across folds. (Though within folds, the number of test points of each class may differ).</p>
+<p>balance_within_folds: If true, this ensures the number of test points of each class is the
+same in each fold.   (Though across folds, the number of test points of each class may differ.)</p>
+<p>test_train_closure: If this is a true, the union across folds of test points must
+equal the union across folds of train points.  This ensures that if a point is used
+for training in one fold, it will also be used for testing in the other folds.</p>
+<p>randomize: True if assignment to folds should be randomized.</p>
+</dd>
+<dt>Returns:</dt><dd><p>folds: A list of length n_folds.  folds[i] contains a dictionary with the fields:</p>
+<blockquote>
+<div><p>test_inds: Containing indices of test points for the fold</p>
+<p>train_inds: Containing indices of train points for the fold</p>
+</div></blockquote>
+</dd>
+<dt>Raises:</dt><dd><p>RuntimeError: If there are not enough points of each class to have at least one point of each class
+in each test fold.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.cv.parameter_combinations">
+<code class="sig-prename descclassname">janelia_core.ml.cv.</code><code class="sig-name descname">parameter_combinations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">param_values</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/cv.html#parameter_combinations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.cv.parameter_combinations" title="Permalink to this definition"></a></dt>
+<dd><p>Generates all possible combination of parameter values from sets of possible values for individual parameters.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>param_values: Each key in the dictionary is a parameter name.  Each value is a sequence of possible parameter
+values.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A list of parameter dictionaries.  Each dictionary will have the same keys as param_values but the value associated
+with each key will be only one parameter value.  The list will contain dictionaries of all possible parameter
+values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

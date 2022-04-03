@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.visualization.exp_viewing &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.visualization.exp_viewing</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.visualization.exp_viewing</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; GUI tools for visualizing data from imaging experiments.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pyspark</span>
+<span class="kn">import</span> <span class="nn">pyqtgraph</span> <span class="k">as</span> <span class="nn">pg</span>
+<span class="kn">from</span> <span class="nn">pyqtgraph.Qt</span> <span class="kn">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+<span class="kn">import</span> <span class="nn">types</span>
+
+<span class="kn">import</span> <span class="nn">janelia_core.dataprocessing.dataset</span>
+<span class="kn">from</span> <span class="nn">janelia_core.dataprocessing.utils</span> <span class="kn">import</span> <span class="n">get_processed_image_data</span>
+
+
+<div class="viewcode-block" id="visualize_exp"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/exp_viewing/index.html#janelia_core.visualization.exp_viewing.visualize_exp">[docs]</a><span class="k">def</span> <span class="nf">visualize_exp</span><span class="p">(</span><span class="n">dataset</span><span class="p">:</span> <span class="n">janelia_core</span><span class="o">.</span><span class="n">dataprocessing</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">DataSet</span><span class="p">,</span>
+                  <span class="n">cont_var_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">image_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">cont_var_inds</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cont_var_labels</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                  <span class="n">func</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sc</span><span class="p">:</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">SparkContext</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Function for visually exploring the data in a Dataset object.</span>
+
+<span class="sd">    This function will create a GUI that plots continuous variables through time, allowing</span>
+<span class="sd">    the user to zoom in on the continuous variables.  After zooming in on a region of the</span>
+<span class="sd">    continuous variables, the user can load the images for that region.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dataset: The dataset to explore.</span>
+
+<span class="sd">        cont_var_key: The key of the dictionary containing continuous variables to examine.</span>
+
+<span class="sd">        image_keys: A list of keys to dictionaries containing image series to examine.</span>
+
+<span class="sd">        cont_var_inds: A list of indices of continuous variables to plot. If None, all variables will be plotted.</span>
+
+<span class="sd">        cont_var_labels: A list of labels for each continuous variable. If None, no labels will be generated.</span>
+
+<span class="sd">        func: A function to apply when processing each image.  If none, max projection in z will be used.</span>
+
+<span class="sd">        sc: A spark context, which can be optionally provided to speed up loading images.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The created window.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ephys_time_stamps</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">cont_var_key</span><span class="p">][</span><span class="s1">&#39;ts&#39;</span><span class="p">]</span>
+    <span class="n">ephys_data</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">cont_var_key</span><span class="p">][</span><span class="s1">&#39;vls&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">cont_var_inds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cont_var_inds</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ephys_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+
+    <span class="n">app</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">mkQApp</span><span class="p">()</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">()</span>
+
+    <span class="c1"># Prepare the plots</span>
+    <span class="n">p1</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">PlotWidget</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">cont_var_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">leg</span> <span class="o">=</span> <span class="n">p1</span><span class="o">.</span><span class="n">addLegend</span><span class="p">()</span>
+    <span class="n">p2</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">PlotWidget</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">var_ind</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cont_var_inds</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cont_var_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">p1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ephys_time_stamps</span><span class="p">,</span> <span class="n">ephys_data</span><span class="p">[:,</span> <span class="n">var_ind</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">cont_var_labels</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">p1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ephys_time_stamps</span><span class="p">,</span> <span class="n">ephys_data</span><span class="p">[:,</span> <span class="n">var_ind</span><span class="p">])</span>
+        <span class="n">p2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ephys_time_stamps</span><span class="p">,</span> <span class="n">ephys_data</span><span class="p">[:,</span> <span class="n">var_ind</span><span class="p">])</span>
+
+    <span class="c1"># Setup things to allow zooming</span>
+    <span class="n">lr</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">LinearRegionItem</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">lr</span><span class="o">.</span><span class="n">setZValue</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">p1</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">lr</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update_plot</span><span class="p">():</span>
+        <span class="n">p2</span><span class="o">.</span><span class="n">setXRange</span><span class="p">(</span><span class="o">*</span><span class="n">lr</span><span class="o">.</span><span class="n">getRegion</span><span class="p">(),</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update_region</span><span class="p">():</span>
+        <span class="n">lr</span><span class="o">.</span><span class="n">setRegion</span><span class="p">(</span><span class="n">p2</span><span class="o">.</span><span class="n">getViewBox</span><span class="p">()</span><span class="o">.</span><span class="n">viewRange</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">lr</span><span class="o">.</span><span class="n">sigRegionChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">update_plot</span><span class="p">)</span>
+    <span class="n">p2</span><span class="o">.</span><span class="n">sigXRangeChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">update_region</span><span class="p">)</span>
+
+    <span class="n">windows</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">load_images</span><span class="p">():</span>
+        <span class="n">selected_region</span> <span class="o">=</span> <span class="n">lr</span><span class="o">.</span><span class="n">getRegion</span><span class="p">()</span>
+        <span class="n">selected_dataset</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+        <span class="n">selected_dataset</span><span class="o">.</span><span class="n">select_time_range</span><span class="p">(</span><span class="n">selected_region</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">selected_region</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">selected_cont_series</span> <span class="o">=</span> <span class="n">selected_dataset</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">cont_var_key</span><span class="p">]</span>
+        <span class="n">selected_image_series</span> <span class="o">=</span> <span class="p">[</span><span class="n">selected_dataset</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">image_keys</span><span class="p">]</span>
+        <span class="n">windows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">view_images_with_continuous_values</span><span class="p">(</span><span class="n">selected_cont_series</span><span class="p">,</span> <span class="n">selected_image_series</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span>
+                                           <span class="n">cont_var_inds</span><span class="p">,</span> <span class="n">cont_var_labels</span><span class="p">,</span> <span class="n">image_keys</span><span class="p">,</span> <span class="n">sc</span><span class="p">))</span>
+
+    <span class="c1"># Add button so we can load selected data</span>
+    <span class="n">btn</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;Load Images.&quot;</span><span class="p">)</span>
+    <span class="n">btn</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">load_images</span><span class="p">)</span>
+
+    <span class="c1"># Create a grid layout to manage the widgets size and position</span>
+    <span class="n">layout</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QGridLayout</span><span class="p">()</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+
+    <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">p2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">btn</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">w</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">w</span></div>
+
+
+<div class="viewcode-block" id="view_images_with_continuous_values"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/exp_viewing/index.html#janelia_core.visualization.exp_viewing.view_images_with_continuous_values">[docs]</a><span class="k">def</span> <span class="nf">view_images_with_continuous_values</span><span class="p">(</span><span class="n">cont_var_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">image_dicts</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">func</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                       <span class="n">cont_var_inds</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cont_var_labels</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                       <span class="n">image_labels</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">sc</span><span class="p">:</span> <span class="n">pyspark</span><span class="o">.</span><span class="n">SparkContext</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Function to explore continuous variables and series of images together.</span>
+
+<span class="sd">    There will be a slider on the bottom of the GUI for the continuous variable data which the user can move to scroll</span>
+<span class="sd">    through time.  This slider will scroll through time for all image series.  Additionally, there are sliders for each</span>
+<span class="sd">    individual time series.</span>
+
+<span class="sd">    Note: Continuous variables and image series must have the same time stamps.</span>
+<span class="sd">    </span>
+<span class="sd">    Args: </span>
+<span class="sd">        cont_var_dict: A dictionary containing data for a time series of continuous values.  Must have two keys.  </span>
+<span class="sd">        The first, &#39;ts&#39;,is a 1-d numpy.ndarray with timestamps.  The second &#39;vls&#39; is a list of or numpy array of data</span>
+<span class="sd">        for each point in ts, where each row of data is a vector of continuous values for a time point.</span>
+<span class="sd">        </span>
+<span class="sd">        image_dicts: A list of dictionaries. Each dictionary contains data for one time series of images. These</span>
+<span class="sd">        dictionaries must have a &#39;ts&#39; key, with timestamps (as cont_var_dict) and a &#39;vls&#39; key, which will contain</span>
+<span class="sd">        either (1) a 3-d numpy.ndarray of dimensions n_ts*n_pixels_n_pixels or (2) a list of paths to image files of</span>
+<span class="sd">        length n_ts.</span>
+
+<span class="sd">        func: A function to apply when processing each image.  If none, max projection in z will be used.</span>
+
+<span class="sd">        cont_var_inds: A list of indices of continuous variables to plot.</span>
+
+<span class="sd">        cont_var_labels: A list of strings with the labels for each continuous variable (each column in &#39;vls&#39; of the</span>
+<span class="sd">        cont_var_dict).</span>
+
+<span class="sd">        image_labels: A list of strings with labels for each series of images in image_dicts.</span>
+
+<span class="sd">        sc: A spark context, which can be optionally provided to speed up loading images.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The created window.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">time_stamps</span> <span class="o">=</span> <span class="n">cont_var_dict</span><span class="p">[</span><span class="s1">&#39;ts&#39;</span><span class="p">]</span>
+    <span class="n">n_time_stamps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">time_stamps</span><span class="p">)</span>
+    <span class="n">time_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">time_stamps</span><span class="p">)</span>
+    <span class="n">time_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">time_stamps</span><span class="p">)</span>
+    <span class="n">current_index</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Read in image data</span>
+    <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">img_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">get_processed_image_data</span><span class="p">(</span><span class="n">img_dict</span><span class="p">[</span><span class="s1">&#39;vls&#39;</span><span class="p">],</span> <span class="n">func</span><span class="p">,</span> <span class="n">sc</span><span class="o">=</span><span class="n">sc</span><span class="p">))</span> <span class="k">for</span> <span class="n">img_dict</span> <span class="ow">in</span> <span class="n">image_dicts</span><span class="p">]</span>
+
+    <span class="n">app</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">mkQApp</span><span class="p">()</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QWidget</span><span class="p">()</span>
+
+    <span class="c1"># Prepare plot of continuous variables</span>
+    <span class="n">cont_var_win</span> <span class="o">=</span> <span class="n">KeyPressWindow</span><span class="p">()</span>
+    <span class="n">cont_var_plot</span> <span class="o">=</span> <span class="n">cont_var_win</span><span class="o">.</span><span class="n">addPlot</span><span class="p">()</span>
+    <span class="n">cont_var_plot</span><span class="o">.</span><span class="n">setLimits</span><span class="p">(</span><span class="n">xMin</span><span class="o">=</span><span class="n">time_min</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">xMax</span><span class="o">=</span><span class="n">time_max</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cont_var_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cont_var_plot</span><span class="o">.</span><span class="n">addLegend</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">var_ind</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cont_var_inds</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cont_var_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cont_var_plot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">cont_var_dict</span><span class="p">[</span><span class="s1">&#39;ts&#39;</span><span class="p">],</span> <span class="n">cont_var_dict</span><span class="p">[</span><span class="s1">&#39;vls&#39;</span><span class="p">][:,</span> <span class="n">var_ind</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">cont_var_labels</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cont_var_plot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">cont_var_dict</span><span class="p">[</span><span class="s1">&#39;ts&#39;</span><span class="p">],</span> <span class="n">cont_var_dict</span><span class="p">[</span><span class="s1">&#39;vls&#39;</span><span class="p">][:,</span> <span class="n">var_ind</span><span class="p">])</span>
+
+    <span class="n">cont_line</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">InfiniteLine</span><span class="p">(</span><span class="n">movable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cont_line</span><span class="o">.</span><span class="n">setBounds</span><span class="p">([</span><span class="n">time_min</span><span class="p">,</span> <span class="n">time_max</span><span class="p">])</span>
+    <span class="n">cont_var_plot</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">cont_line</span><span class="p">)</span>
+
+    <span class="c1"># Prepare the image plots</span>
+    <span class="n">im_views</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">img_data</span><span class="p">):</span>
+        <span class="n">imv</span> <span class="o">=</span> <span class="n">pg</span><span class="o">.</span><span class="n">ImageView</span><span class="p">()</span>
+        <span class="n">imv</span><span class="o">.</span><span class="n">setImage</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">im_views</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imv</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">image_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">imv</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">pg</span><span class="o">.</span><span class="n">TextItem</span><span class="p">(</span><span class="n">image_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+    <span class="c1"># Set things up so when position of the continuous time line is changed,</span>
+    <span class="c1"># the image plots are also updated</span>
+    <span class="k">def</span> <span class="nf">process_cont_line_change</span><span class="p">():</span>
+        <span class="n">smaller_time_stamps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">time_stamps</span> <span class="o">-</span> <span class="n">cont_line</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">smaller_time_stamps</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">img_ind</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">img_ind</span> <span class="o">=</span> <span class="n">smaller_time_stamps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">current_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">img_ind</span>
+        <span class="k">for</span> <span class="n">imv</span> <span class="ow">in</span> <span class="n">im_views</span><span class="p">:</span>
+            <span class="n">imv</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">img_ind</span><span class="p">)</span>
+
+    <span class="n">cont_line</span><span class="o">.</span><span class="n">sigPositionChangeFinished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">process_cont_line_change</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">process_cont_var_keypress</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_Right</span><span class="p">:</span>
+            <span class="n">current_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">current_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_time_stamps</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span><span class="p">()</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">Key_Left</span><span class="p">:</span>
+            <span class="n">current_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">current_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">cont_line</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">time_stamps</span><span class="p">[</span><span class="n">current_index</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="k">for</span> <span class="n">imv</span> <span class="ow">in</span> <span class="n">im_views</span><span class="p">:</span>
+            <span class="n">imv</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">current_index</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">cont_var_win</span><span class="o">.</span><span class="n">sigKeyPress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">process_cont_var_keypress</span><span class="p">)</span>
+
+    <span class="c1"># Create a grid layout to manage the widgets size and position</span>
+    <span class="n">layout</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QGridLayout</span><span class="p">()</span>
+    <span class="n">w</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">iv</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">im_views</span><span class="p">):</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">iv</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+    <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">cont_var_win</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">layout</span><span class="o">.</span><span class="n">setRowStretch</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">layout</span><span class="o">.</span><span class="n">setRowStretch</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">w</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">w</span></div>
+
+
+<div class="viewcode-block" id="KeyPressWindow"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/exp_viewing/index.html#janelia_core.visualization.exp_viewing.KeyPressWindow">[docs]</a><span class="k">class</span> <span class="nc">KeyPressWindow</span><span class="p">(</span><span class="n">pg</span><span class="o">.</span><span class="n">GraphicsWindow</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class to create windows that respond to key press events.</span>
+
+<span class="sd">    This code is from: https://stackoverflow.com/questions/40423999/pyqtgraph-where-to-find-signal-for-key-preses</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sigKeyPress</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">pyqtSignal</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new KeyPressWidget object. &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="KeyPressWindow.keyPressEvent"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/exp_viewing/index.html#janelia_core.visualization.exp_viewing.KeyPressWindow.keyPressEvent">[docs]</a>    <span class="k">def</span> <span class="nf">keyPressEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ev</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Responds to a key press event&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="p">()</span><span class="o">.</span><span class="n">keyPressEvent</span><span class="p">(</span><span class="n">ev</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigKeyPress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">ev</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

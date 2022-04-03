@@ -1,0 +1,404 @@
+:py:mod:`janelia_core.math.basic_functions`
+===========================================
+
+.. py:module:: janelia_core.math.basic_functions
+
+.. autoapi-nested-parse::
+
+   Basic math functions.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.math.basic_functions.bound
+   janelia_core.math.basic_functions.combine_slices
+   janelia_core.math.basic_functions.copy_and_delay
+   janelia_core.math.basic_functions.divide_into_nearly_equal_parts
+   janelia_core.math.basic_functions.find_binary_runs
+   janelia_core.math.basic_functions.find_first_after
+   janelia_core.math.basic_functions.find_first_before
+   janelia_core.math.basic_functions.find_disjoint_intervals
+   janelia_core.math.basic_functions.generate_hypergrid_pts
+   janelia_core.math.basic_functions.int_to_arb_base
+   janelia_core.math.basic_functions.is_fully_specified_slice
+   janelia_core.math.basic_functions.is_simple_slice
+   janelia_core.math.basic_functions.is_standard_slice
+   janelia_core.math.basic_functions.list_grid_pts
+   janelia_core.math.basic_functions.l_th
+   janelia_core.math.basic_functions.nan_matrix
+   janelia_core.math.basic_functions.optimal_orthonormal_transform
+   janelia_core.math.basic_functions.pts_in_arc
+   janelia_core.math.basic_functions.select_subslice
+   janelia_core.math.basic_functions.slice_contains
+   janelia_core.math.basic_functions.u_th
+
+
+
+.. py:function:: bound(a: numpy.ndarray, lb: float, ub: float) -> numpy.ndarray
+
+   Thresholds values in array between lower and upper bounds.
+
+   Args:
+       a: The array with values to threshold
+
+       lb: The lower bound to apply
+
+       ub: The upper bound to apply
+
+
+.. py:function:: combine_slices(slices: Sequence[slice]) -> Sequence[slice]
+
+   Combines multiple simple slices into a potentially smaller number of simple slices.
+
+   This function identifies overlap in slices and then combines overlapping slices into a single slice. This function
+   will also get rid of slices which index nothing (have the same start and stop).
+
+   Args:
+       slices: A sequence of slice objects.  All slice objects must be simple (see is_simple_slice).
+
+   Returns:
+       c_slices: A sequence of combined slices.
+
+   Raises:
+       ValueError: If all slices are not simple.
+
+
+.. py:function:: copy_and_delay(sig: numpy.ndarray, delay_inds: List[int] = None)
+
+   Forms delayed copies of data.
+
+   Delays can be positive or negative.
+
+   Args:
+       sig: The data to delay of shape [n_pts, n_vars]
+
+       delay_inds: The amount to delay signals by.  Each entry is an amount to delay by.   If None,
+       a value of [0, 1] will be used.
+
+   Returns:
+       delayed_sig: The copied and delayed data.  The first n_vars columns are the copy for delay[0], the
+       second n_vars rows correspond to delay[1] and so on...
+
+
+
+.. py:function:: divide_into_nearly_equal_parts(n, k) -> numpy.ndarray
+
+   Produces k nearly equal integer values which sum to n.
+
+   All values will differ by no more than 1.
+
+   Args:
+       n: The number to divide
+
+       k: The number to divide n by.
+
+   Returns:
+       An array of length k of values that sum to n.  Larger values will be in lower indices.
+
+
+.. py:function:: find_binary_runs(seq: numpy.ndarray)
+
+   Finds runs of contiguous True values in a 1-d numpy array.
+
+   Args:
+       seq: Array of binary values.
+
+   Returns:
+       slices: slices[i] contains a slice object for a contiguous portion of seq with all True values.
+
+   Raises:
+       ValueError: If seq is not a 1-d array.
+
+
+.. py:function:: find_first_after(a: numpy.ndarray, ind: int) -> int
+
+   Given a logical array, finds first true value after or at a given index.
+
+   Args:
+       a: The logical array to search
+
+       ind: The index to start the search at.
+
+   Returns:
+       first_ind: The index the first true value occurs at. If no match is found, returns None.
+
+   Raises:
+       ValueError: If ind is negative or out of the range of the array.
+
+
+
+.. py:function:: find_first_before(a: numpy.ndarray, ind: int) -> int
+
+   Given a logical array, finds first true value before or at a given index.
+
+   Args:
+       a: The logical array to search
+
+       ind: The index to start the search at.
+
+   Returns:
+       first_ind: The index the first true value occurs at. If no match is found, returns None.
+
+   Raises:
+       ValueError: If ind is negative or out of the range of the array.
+
+
+
+.. py:function:: find_disjoint_intervals(ints: numpy.ndarray) -> numpy.ndarray
+
+   Given a list of intervals, finds those which are disjoint from the rest.
+
+   Args:
+       ints: The intervals. Each row is an interval.  The first column gives the starting index
+       and the second column gives the end index + 1 (so the convention for representing intervals
+       is the same used in slices.  For example, in interval that covered indices 0, 1 & 2, would have
+       a start index of 0 and an end index of 3.)
+
+   Returns:
+       disjoint_ints: Boolean array indicating indices of ints which correspond to disjoint intervals
+
+
+
+.. py:function:: generate_hypergrid_pts(d: int = 2, n_smps_per_dim=100)
+
+   Generates points on a hypergrid over the unit cube.
+
+   This function will place all points in an array for easy function evaluation.
+
+   Args:
+       d: The dimensionality of the grid.
+
+       n_smps_per_dim: The number of samples per dimension to generate.
+
+   Returns:
+       pts: The generated points of shape n_pts*d
+
+
+
+.. py:function:: int_to_arb_base(base_10_vl: numpy.ndarray, max_digit_vls: Sequence[int]) -> numpy.ndarray
+
+   This is a function to convert non-zero integers to an arbitrary base.
+
+   The base can be arbitrary in that each digit can take on a different number of values.
+
+   Args:
+       base_10_vl: The values to convert
+
+       max_digit_vls: The length of max_digit_vls gives the length of the output representation.  max_digit_vls[i]
+       gives the max value that digit i can take on.  All digit values start at 0.
+
+   Returns:
+       rep: The values in the converted format.  The least significant digit is at location 0. rep[i,:] is the
+       converted value for base_10_vl[i].
+
+   Raises:
+       ValueError: If the dtype of base_10_vl is not int
+
+       ValueError: If base_10_vl contains negative values
+
+       ValueError: If any value in base_10_vl is too larger to represent in the base given
+
+
+.. py:function:: is_fully_specified_slice(s: Union[slice, Sequence[slice]]) -> bool
+
+   Returns true if slice has non non-negative, non-None start and stop values.
+
+   Accepts either a single slice object or a sequence of slice objects.
+
+   Args:
+       s: A single slice object or sequence of slice objects.  If a sequence, this
+       function will return true only if all slice objects have non-negative, non-None start and stop values.
+
+   Returns:
+       is_fully_specified: True if all slice objects are fully specified
+
+
+.. py:function:: is_simple_slice(s: Union[slice, Sequence[slice]]) -> bool
+
+   Returns true if a slice is fully specified and has a step size of 1 or None; otherwise returns false.
+
+   Args:
+      s: A single slice object or sequence of slice objects.  If a sequence, this
+      function will return true only if all slice objects have non-negative, non-None start and stop values.
+
+   Returns:
+      is_simple: True if all slice objects are simple
+
+
+.. py:function:: is_standard_slice(s: Union[slice, Sequence[slice]]) -> bool
+
+   Returns true if a slice has non-negative start and stop values.
+
+   Accepts either a single slice object or a sequence of slice objects.
+
+   Args:
+       s: A single slice object or sequence of slice objects.  If a sequence, this
+       function will return true only if all slice objects are standard.
+
+   Returns:
+       is_standard: True if all slice objects are standard.
+
+
+.. py:function:: list_grid_pts(grid_limits: numpy.ndarray, n_pts_per_dim: Sequence) -> Tuple[numpy.ndarray, Sequence[numpy.ndarray]]
+
+   Generates a list of points filling a multi-dimensional grid.
+
+   This function will generate a specified number of points in a range for a set of N-dimensions.
+   It will then return a set of N-dimensional points formed from the cartesian product of all the
+   points along each dimension.
+
+   This function serves as a wrapper around numpy.meshgrid, essentially just repackaging
+   the generated points into a single list.
+
+   Args:
+       grid_limits: grid_limits[i, :] are the limits of the grid for dimension i. Points for
+       this dimension will *include* the end points of the grid.
+
+       n_pts_per_dim: n_pts_per_dim[i] are the number of points to generate along dimension i. Must be greater than 1.
+
+   Returns:
+       The list of returned points of shape n_pts*N
+
+       dim_pts: The points along each dimension sampled. dim_pts[i] are the sample points for dimension i.
+
+   Raises:
+       ValueError: If n_pts_per_dim is less than 1 for any dimension.
+
+
+
+.. py:function:: l_th(a: numpy.ndarray, t: numpy.ndarray) -> numpy.ndarray
+
+   Thresholds an array with a lower bound.
+
+   Values less than the threshold value are set to the threshold value.
+
+   Args:
+       a: the array to threshold
+
+       t: the threshold to use
+
+   Returns:
+       The thresholded array
+
+
+.. py:function:: nan_matrix(shape: Sequence[int], dtype=np.float)
+
+   Generates a matrix of a given shape and data type initialized to nan values.
+
+   Args:
+       shape: Shape of the matrix to generate.
+
+       dtype: Data type of the matrix to generate.
+
+   Returns:
+       The generated matrix.
+
+
+
+.. py:function:: optimal_orthonormal_transform(m_0: numpy.ndarray, m_1: numpy.ndarray) -> numpy.ndarray
+
+   Learns an optimal orthonormal transformation to transform one matrix to another.
+
+   We learn a matrix o^* = argmin_{o: oo^T = I} ||m_0 - m_1 o||_2.
+
+   Args:
+       m_0: The matrix to transform to
+
+       m_1: The matrix to transform from
+
+   Returns:
+       o: The optimal orthonormal matrix.
+
+
+
+.. py:function:: pts_in_arc(pts, ctr, arc_angle)
+
+   Checks if points are withing a given arc.
+
+   Args:
+       pts: The coordinates of the points, of shape n_pts*2
+
+       ctr: The origin for defining the arc.
+
+       arc_angle: The angle the arc covers.  Can be in the range (-inf, inf).
+
+   Returns:
+       pts_in: A boolean array of length n_pts, indicating which points are in the arc
+
+
+
+.. py:function:: select_subslice(s1: slice, s2: slice) -> slice
+
+   Selects a smaller portion of a slice.
+
+   Accepts either a single slice or a sequence of slices.
+
+   This function expects slices to have start and stop values which are not None and non-negative.
+
+   A subslice of a larger slice, s1, is specified by a second slice, s2.  Specifically, s2.start and s2.stop
+   give the start and stop of the subslice.  s2.start and s2.stop specify the start and stop relative to s1.start.
+   For example, if s1.start=5, s2.start=0, s2.stop = 2 then the returned subslice would have a start of 5 and a stop
+   of 7. For simplicity, this function currently assumes s2.step = 1 but makes no assumption s1.step.  The step of
+   the returned subslice will be equal to s1.step.
+
+   When s1 and s2 are sequences of slices, s2[i] specifies the subslice for s1[i]
+
+   Args:
+       s1: The slice to select from.  Can also be a tuple of slices.
+
+       s2: The portion of the slice to select.  Can also be a tuple of slices. The step size of this slice must be 1.
+
+   Returns:
+       subslice: The returned subslice.
+
+   Raises:
+       ValueError: If any slice in s1 or s2 is not a fully specified slice
+       ValueError: If the step size for any s2 slice is not 1.
+       ValueError: If the subslice specified by any s2 slice is not contained within the corresponding s1 slice.
+
+
+
+.. py:function:: slice_contains(s1: slice, s2: slice)
+
+   Checks if the range of slice s1 is contained in the range of slice s2.
+
+   This function accepts either single slices or a sequence of slices for s1 and s2. If a
+   sequence of slices is provided, s1[i] is interpreted as the slice for dimension i. If s1
+   and s2 are sequences but of different lengths, this function will immediately return false.
+
+   This function currently does not accept slices with negative start or stop values.
+
+   Args:
+       s1: The slice we are checking to see if it is contained by s2. Can also be
+       a sequence of slices.
+
+       s2: The slice we are checking to see if it contains s1.  Can also be a sequence
+       of slices
+
+   Raises:
+       NotImplementedError: If slice objects contain negative start or stop values.
+
+
+.. py:function:: u_th(a: numpy.ndarray, t: numpy.ndarray) -> numpy.ndarray
+
+   Thresholds an array with an upper bound.
+
+   Values greater than the threshold value are set to the threshold value.
+
+   Args:
+       a: the array to threshold
+
+       t: the threshold to use
+
+   Returns:
+       The thresholded array
+
+

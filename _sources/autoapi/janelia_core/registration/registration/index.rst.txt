@@ -1,0 +1,167 @@
+:py:mod:`janelia_core.registration.registration`
+================================================
+
+.. py:module:: janelia_core.registration.registration
+
+.. autoapi-nested-parse::
+
+   Tools for registering imaging data.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.registration.registration.calc_dataset_ref_image
+   janelia_core.registration.registration.register_dataset_images
+   janelia_core.registration.registration.estimate_translation
+   janelia_core.registration.registration.apply_2d_dipy_affine_transform
+   janelia_core.registration.registration.median_filter_2d_dipy_affine_transforms
+   janelia_core.registration.registration.get_valid_translated_image_window
+
+
+
+.. py:function:: calc_dataset_ref_image(dataset: janelia_core.dataprocessing.dataset.DataSet, img_field: str, ref_inds: numpy.ndarray, median_filter_shape: Sequence[int] = [1, 5, 5], sc: pyspark.SparkContext = None) -> numpy.ndarray
+
+   Calculates a reference image.
+
+   This function will:
+
+       1) Median filter each plane in all images.
+       2) Calculate a reference image by taking the mean of the mediate filtered images.
+
+   Args:
+       dataset: The dataset containing the images to register.
+
+       img_field: The entry in dataset.ts_data containing the images.
+
+       ref_inds: The indices of images to use for calculating the reference image.
+
+       median_filter_shape: The shape of the median filter to use.
+
+       sc: A spark context to use to distribute computations.  If None, no spark context will be used.
+
+   Returns:
+       ref_image: The reference image.
+
+
+
+.. py:function:: register_dataset_images(dataset: janelia_core.dataprocessing.dataset.DataSet, img_field: str, ref_image: numpy.ndarray, median_filter_shape: Sequence[int] = [1, 5, 5], reg_params: dict() = None, t_field_name: str = 'shift_transform', reg_inds: numpy.ndarray = None, over_write: bool = True, sc: pyspark.SparkContext = None)
+
+   Calculates transforms to register images through time.
+
+   Currently this function calculates translations in x-y.  This function will:
+
+       1) Median filter each plane in all images.
+       2) Calculate the optimal translation to align the max projection of each median filtered image to the
+          the reference image.
+
+   Args:
+       dataset: The dataset containing the images to register.
+
+       img_field: The entry in dataset.ts_data containing the images.
+
+       ref_image: The reference image to align to.
+
+       median_filter_shape: The shape of the median filter to use.
+
+       reg_params: A dictionary of optional parameters to provide to the call to estimate_translation
+
+       t_field_name: Tha name to save the transform under with each image entry in the dataset.
+
+       reg_inds: Indices of images to register.  If None, all images will be registered (unless over_write is set
+       to False, in which case only unregistered images will be registered.)
+
+       over_write: If true, all images are registered.  If false, only those that do not yet have a
+       transform entry in their dictionary are registered.
+
+       sc: A spark context to use to distribute computations.  If none, no spark context will be used.
+
+   Returns:
+       None. Each entry in the images list (which is a dictionary) will have an the transform
+       for that image added as a 'transform' entry of the dictionary.
+
+
+
+.. py:function:: estimate_translation(fixed: numpy.ndarray, moving: numpy.ndarray, metric_sampling: float = 1.0, factors: Iterable = (4, 2, 1), level_iters: Iterable = (1000, 1000, 1000), sigmas: Iterable = (8, 4, 1))
+
+   Estimate translation between 2D or 3D images using dipy.align.
+
+   This is code provided by Davis Bennett with minor reformatting by Will Bishop.
+
+   Args:
+       fixed : numpy array, 2D or 3D.  The reference image.
+
+       moving : numpy array, 2D or 3D.  The image to be transformed.
+
+       metric_sampling : float, within the interval (0,  1]. Fraction of the metric sampling to use for optimization
+
+       factors : iterable.  The image pyramid factors to use
+
+       level_iters : iterable. Number of iterations per pyramid level
+
+       sigmas : iterable. Standard deviation of gaussian blurring for each pyramid level
+
+   Returns:
+       tx: The learned transform
+
+
+.. py:function:: apply_2d_dipy_affine_transform(moving_imgs: numpy.ndarray, t: dipy.align.imaffine.AffineMap) -> numpy.ndarray
+
+   Applies a 2d affine translation to a stack of images.
+
+   This function works for a 2d image and a 3d stack of images.
+
+   Args:
+       moving_imgs: The image to shift. If a stack it should be of shape n_imgs*img_dim_1*img_dim_2.  It is recommended
+       that this by a floating point datatype (vs. integer).
+
+       t: The transform to apply.
+
+   Returns:
+       The shifted image.  Will be of dtype float32.
+
+
+.. py:function:: median_filter_2d_dipy_affine_transforms(transforms: Sequence, filter_len: int = 50) -> Sequence
+
+   Median filters a sequence of affine transforms.
+
+   Args:
+       transforms: The sequence of transforms to filter
+
+       filter_len: The length of the window to use for median filtering
+
+   Returns:
+       m_transforms: The median filtered transforms
+
+
+
+.. py:function:: get_valid_translated_image_window(shifts: numpy.ndarray, image_shape: numpy.ndarray) -> tuple
+
+   Gets a window of an image which is still valid after a shift.
+
+   Returns an window of a shifted image for which pixels in that window were shifted versions of pixels in an
+   unshifted image.  This allows us to remove pixels from consideration in a shifted which were not based on
+   pixels in the original image.
+
+   Multiple shifts can be supplied.  In that case, the window will be valid for all shifts.  (Useful when finding valid
+   windows for time series of shifted images).
+
+   Args:
+       shifts: The shifts to calculate the window for.  Each row is a shift.
+
+       image_shape: The shape of the image.  Dimensions should be listed here in the
+       same order they are listed in shifts.
+
+   Returns:
+       A tuple.  Each entry contains valid indices for a dimension, so that the valid window for an image
+       can be recovered as image[t], if t is the returned tuple.
+
+
+

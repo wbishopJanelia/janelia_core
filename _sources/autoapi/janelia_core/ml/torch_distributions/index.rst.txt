@@ -1,0 +1,1367 @@
+:py:mod:`janelia_core.ml.torch_distributions`
+=============================================
+
+.. py:module:: janelia_core.ml.torch_distributions
+
+.. autoapi-nested-parse::
+
+   Torch modules and tools for working with distributions.
+
+   The distribution objects defined here are *not* subclasses of torch.distributions.  There are a couple of
+   innovations over standard Pytorch distributions:
+
+       1) Samples are returned in compact notation.  This is convenient when sampling structured data and enables
+       efficient representation of sparse samples.  Each distribution also has its own methods for converting between
+       compact and standard data representations.
+
+       2) The distributions here naturally accomodate conditioning data.  See the base class CondVAEDistribution for
+       more details.
+
+   In addition to holding distribution objects, this module also holds distribution penalizers.  See the base class
+   DistributionPenalizer for more information.
+
+
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.ml.torch_distributions.CondVAEDistribution
+   janelia_core.ml.torch_distributions.CondFoldedNormalDistribution
+   janelia_core.ml.torch_distributions.CondBernoulliDistribution
+   janelia_core.ml.torch_distributions.CondGammaDistribution
+   janelia_core.ml.torch_distributions.CondGaussianDistribution
+   janelia_core.ml.torch_distributions.CondSpikeSlabDistribution
+   janelia_core.ml.torch_distributions.CondMatrixProductDistribution
+   janelia_core.ml.torch_distributions.CondGaussianMatrixProductDistribution
+   janelia_core.ml.torch_distributions.MatrixGammaProductDistribution
+   janelia_core.ml.torch_distributions.MatrixFoldedNormalProductDistribution
+   janelia_core.ml.torch_distributions.MatrixGaussianProductDistribution
+   janelia_core.ml.torch_distributions.CondMatrixHypercubePrior
+   janelia_core.ml.torch_distributions.GroupCondMatrixHypercubePrior
+   janelia_core.ml.torch_distributions.DistributionPenalizer
+   janelia_core.ml.torch_distributions.ColumnMeanClusterPenalizer
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.ml.torch_distributions.gen_columns_mean_cluster_penalizer
+
+
+
+.. py:class:: CondVAEDistribution
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   CondVAEDistribution is a base class for conditional distributions used by VAEs.
+
+   Creates a CondVAEDistribution object.
+
+   .. py:method:: forward(self, x: torch.tensor) -> torch.tensor
+      :abstractmethod:
+
+      Computes the conditional mean of the distribution at different samples.
+
+      Args:
+          x: A tensor of shape n_smps*d_x.
+
+      Returns:
+          mn: mn[i, :] is the mean conditioned on x[i, :]
+
+
+   .. py:method:: sample(self, x: torch.tensor) -> object
+      :abstractmethod:
+
+      Samples from a conditional distribution.
+
+      When possible, samples should be generated from a reparameterized distribution.
+
+      Returned samples may be represented by a set of compact parameters.  See form_standard_sample() on how to
+      transform this compact representation into a standard representation.
+
+      Args:
+          x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
+
+      Returns:
+          smp: The sample. The returned value of samples can be quite flexible.  It could be a tensor of shape n_smps,
+          with each entry representing a sample or it could be another object with attributes which specify the values
+          of the sample.  For example, if sampling from a spike and slab parameter, the returned value could be a list
+          with one entry specifying the number of sample, another containing a tensor specifying non-zero samples and
+          another tensor specifying the values of the non-zero samples.
+
+
+   .. py:method:: form_standard_sample(self, smp: object) -> torch.tensor
+      :abstractmethod:
+
+      Forms a standard representation of a sample from the output of sample.
+
+      Args:
+          smp: Compact representation of a sample.
+
+      Returns:
+          formed_smp: A tensor of shape n_smps*d_y.  formed_smp[i,:] is the i^th sample.
+
+
+   .. py:method:: form_compact_sample(self, smp: torch.tensor) -> object
+      :abstractmethod:
+
+      Forms a compact representation of a sample given a standard representation.
+
+      Args:
+          smp: The standard representation of the sample of shape n_smps
+
+      Returns:
+          formed_smp: The compact representation of the sample.
+
+
+   .. py:method:: sample_to(self, smp: object, device: torch.device) -> object
+      :abstractmethod:
+
+      Moves a sample in compact form to a given device.
+
+      This function is provided because different distributions may return samples in arbitrary objects,
+      so a custom function may be needed to move a sample to a device.
+
+      Args:
+          smp: The sample to move.
+
+          device: The device to move the sample to.
+
+
+   .. py:method:: log_prob(self, x: torch.tensor, y: object) -> torch.tensor
+      :abstractmethod:
+
+      Computes the conditional log probability of individual samples.
+
+      Args:
+          x: Data we condition on.  Of shape n_smps*d_x
+
+          y: Compact representation of the samples we desire the probability for.  Compact representation means the
+          form of a sample as output by the sample() function.
+
+      Returns:
+          ll: Conditional log probability of each sample. Of shape n_smps.
+
+
+   .. py:method:: kl(self, d_2, x: torch.tensor, smp: object = None, return_device: torch.device = None)
+
+      Computes the KL divergence between this object and another of the same type conditioned on input.
+
+      Specifically computes:
+
+          KL(p_1(y_i|x_i), p_2(y_i|x_i)),
+
+      where p_1(y_i | x_i) represents the conditional distributions for each sample.  Here, p_1 is the conditional
+      distribution represented by this object and p_2 is the distribution represented by another object of the same
+      type.
+
+      Note: This function will move the conditioning data (x) and the sample (smp) to the appropriate device(s)
+      so calculations can be carried out without needing to move this object or the other conditional
+      distribution between devices.
+
+      Args:
+          d_2: The other conditional distribution in the KL divergence.
+
+          x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
+
+          smp: A set of samples in compact form. Sample i should be drawn from p(y_i|x[i,:]). This is an optional
+          input that is provided because sometimes it may not be possible to compute the KL divergence
+          between two distributions analytically.  In these cases, an object may still implement the kl method
+          by computing an empirical estimate of the kl divergence as log p_1(y_i'|x_i) - log p_2(y_i'| x_i),
+          where y_i' is drawn from p_1(y_i|x_i). This is the base behavior of this method.  Objects for which kl
+          can be computed analytically should override this method.
+
+          return_device: The device the calculated kl tensor should be returned to.  If None, this will
+          be the device the first parameter of this object is on.
+
+      Returns:
+          kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioning
+          input.
+
+
+   .. py:method:: r_params(self) -> list
+      :abstractmethod:
+
+      Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
+
+      In particular this returns the list of parameters for which gradients can be estimated with the
+      reparaterization trick when the distribution serves as q when optimizing KL(q, p).
+
+      If no parameters can be estimated in this way, it should return an empty list.
+
+      Returns:
+          l: the list of parameters
+
+
+   .. py:method:: s_params(self) -> list
+      :abstractmethod:
+
+      Returns a list of parameters which should be estimated with a score method based gradient.
+
+      In particular this returns the list of parameters for which gradients can be estimated with the
+      score function based gradient when the distribution serves as q when optimizing KL(q, p).
+
+      If no parameters can be estimated in this way, should return an empty list.
+
+      Returns:
+          l: the list of parameters
+
+
+
+.. py:class:: CondFoldedNormalDistribution(mu_f, sigma_f)
+
+   Bases: :py:obj:`CondVAEDistribution`
+
+   A multivariate conditional folded normal distribution.
+
+   A folder normal distribution is the distribution on the random variable, Y = abs(Z), when Z is
+   distributed N(\mu, \sigma^2). This object represents a conditional distribution over a set of random
+   variables, each of which is independent and distributed according to a Folded Normal, conditioned on X.
+
+
+   Creates a new CondFoldedNormalDistribution object.
+
+   Args:
+       mu_f: A module whose forward function accepts input of size n_smps*d_x and outputs a vector of mu
+       parameters for size n_smps*d_y
+
+       sigma_f: A module whose forward function accepts input of size n_smps*d_x and outputs a vector of
+       standard deviations for each sample of size n_smps*d_y
+
+   .. py:method:: form_standard_sample(self, smp)
+
+      Returns a sample in standard form.
+
+      See method of parent for more information.
+
+
+   .. py:method:: form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor
+
+      Converts sample in standard form to compact form.
+
+      See method of parent for more information.
+
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes conditional mean given samples.
+
+      Args:
+          x: data samples are conditioned on. Of shape n_smps*d_x.
+
+      Returns:
+          mn: mn[i,:] is the mean conditioned on x[i,:]
+
+
+   .. py:method:: log_prob(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor
+
+      Computes log P(y|x).
+
+      Args:
+          x: Data we condition on.  Of shape n_smps*d_x
+
+          y: Values we desire the log probability for.  Of shape n_smps*d_y.
+
+      Returns:
+          ll: Log-likelihood of each sample. Of shape n_smps.
+
+
+
+   .. py:method:: sample(self, x: torch.Tensor) -> torch.Tensor
+
+      Samples from the reparameterized form of P(y|x).
+
+      Args:
+          x: Data we condition on.  Of shape n_mps*d_x.
+
+      Returns:
+          y: sampled data of shape n_smps*d_y.
+
+
+   .. py:method:: sample_to(self, smp: object, device: torch.device)
+
+      Moves a sample to a specified device.
+
+      See function of parent object for more information.
+
+
+   .. py:method:: r_params(self)
+
+      Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
+
+      See method of parent for more information.
+
+
+   .. py:method:: s_params(self) -> list
+
+      Returns an empty list as there are no parameters for optimization with a score method based gradient.
+
+      See method of parent for more information.
+
+
+
+.. py:class:: CondBernoulliDistribution(log_prob_fcn: torch.nn.Module)
+
+   Bases: :py:obj:`CondVAEDistribution`
+
+   A module for working with conditional Bernoulli distributions.
+
+   Creates a BernoulliCondDistribution object.
+
+   Args:
+       log_prob_fcn: A function which accepts input of shape n_smps*d_x and outputs a tensor of shape n_smps with
+       the log probability that each sample is 1.
+
+   .. py:method:: forward(self, x: torch.Tensor)
+
+      Computes conditional mean given samples.
+
+      Args:
+          x: data samples are conditioned on. Of shape n_smps*d_x.
+
+      Returns:
+          mn: mn[i] is the mean conditioned on x[i,:]
+
+
+   .. py:method:: log_prob(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor
+
+      Computes log P(y|x).
+
+      Args:
+          x: Data we condition on.  Of shape nSmps*d_x.
+
+          y: Compact representation (a tensor of type byte) of the sample.
+
+      Returns:
+          log_prob: the log probability of each sample
+
+      Raises:
+          ValueError: If y is not a 1-d tensor.
+
+
+
+   .. py:method:: sample(self, x: torch.Tensor) -> torch.Tensor
+
+      Samples from P(y|x)
+
+      Args:
+          x: Data we condition on.  Of shape nSmps*d_x.
+
+      Returns:
+          smp: smp[i] is the value of the i^th sample.
+
+
+   .. py:method:: form_standard_sample(self, smp: torch.Tensor) -> torch.Tensor
+
+      Converts between compact and standard sample form.
+
+      See method of parent for more information.
+
+
+   .. py:method:: form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor
+
+      Converts sample in standard form to compact form.
+
+      See method of parent for more information.
+
+
+   .. py:method:: r_params(self) -> list
+
+      Returns an empty list as there are no parameters for optimization with the reparamaterization trick.
+
+      See method of parent for more information.
+
+
+   .. py:method:: s_params(self) -> list
+
+      Returns a list of parameters that can be optimized with a score method based gradient.
+
+      See method of parent for more information.
+
+
+
+.. py:class:: CondGammaDistribution(conc_f: torch.nn.Module, rate_f: torch.nn.Module)
+
+   Bases: :py:obj:`CondVAEDistribution`
+
+   A distribution over a set of conditionally independent Gamma random variables.
+
+   We use the convention of parameterizing a Gamma distribution with concentration and rate parameters.
+
+   Much of the implementation here has been taken from torch's own Gamma distribution.
+
+
+   Creates a CondGammaDistribution object.
+
+   conc_f: A module whose forward function accepts input of size n_smps*d_x and outputs concentration values in
+   a tensor of size n_smps*d_y
+
+   rate_f: A module whose forward function accepts input of size n_smps*d_x and outputs rate values in
+   a tensor of size n_smps*d_y
+
+   .. py:method:: form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor
+
+      Converts between compact and standard sample form.
+
+      See method of parent for more information.
+
+
+   .. py:method:: form_standard_sample(self, smp)
+
+      Returns a sample in standard form.
+
+      See method of parent for more information.
+
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes conditional mean given samples.
+
+      Args:
+          x: data samples are conditioned on. Of shape n_smps*d_x.
+
+      Returns:
+          mn: mn[i,:] is the mean conditioned on x[i,:]
+
+
+   .. py:method:: kl(self, d_2, x: torch.tensor, smp: torch.tensor = None, return_device: torch.device = None)
+
+      Computes the KL divergence between the conditional distribution represented by this object and another.
+
+      KL divergence is computed based on the closed form formula for KL divergence between two Gamma distributions.
+
+      Note: This function will move the conditioning data (x) to the appropriate device(s)
+          so calculations can be carried out without needing to move this object or the other conditional
+          distribution between devices.
+
+      Args:
+          d_2: The other conditional distribution in the KL divergence.
+
+          x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
+
+          smp: This input is ignored, as KL divergence is based on a closed form formula.
+
+          return_device: The device the calculated kl tensor should be returned to.  If None, this will
+          be the device the first parameter of this object is on.
+
+      Returns:
+          kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioing
+          input.
+
+
+   .. py:method:: log_prob(self, x: torch.tensor, y: torch.Tensor) -> torch.tensor
+
+      Computes log P(y|x).
+
+      Args:
+          x: Data we condition on.  Of shape n_smps*d_x
+
+          y: Values we desire the log probability for.  Of shape n_smps*d_y.
+
+      Returns:
+          ll: Log-likelihood of each sample. Of shape n_smps.
+
+
+   .. py:method:: sample(self, x: torch.Tensor) -> torch.Tensor
+
+      Samples from the reparameterized form of P(y|x).
+
+      If a sample without gradients is desired, wrap the call to sample in torch.no_grad().
+
+      Args:
+          x: Data we condition on.  Of shape n_smps*d_x.
+
+      Returns:
+          y: sampled data of shape n_smps*d_y.
+
+
+   .. py:method:: std(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes conditional standard deviation.
+
+      Args:
+          x: Conditioning data.  Of shape n_smps*d_x.
+
+      Returns:
+           std: Standard deviation.  Of shape n_smps*d_y.
+
+
+   .. py:method:: mode(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes conditional mode.
+
+      Args:
+          x: Conditioning data.  Of shape n_smps*d_x
+
+      Returns:
+          mode: Mode: Of shape n_smps*d_y.
+
+
+   .. py:method:: r_params(self)
+
+      Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
+
+      See method of parent for more information.
+
+
+   .. py:method:: sample_to(self, smp: torch.Tensor, device: torch.device) -> torch.Tensor
+
+      Moves a sample in compact form to a given device.
+
+      See method of parent for more information.
+
+
+   .. py:method:: s_params(self) -> list
+
+      Returns an empty list as there are no parameters for optimization with a score method based gradient.
+
+      See method of parent for more information.
+
+
+
+.. py:class:: CondGaussianDistribution(mn_f: torch.nn.Module, std_f: torch.nn.Module)
+
+   Bases: :py:obj:`CondVAEDistribution`
+
+   Represents a multivariate distribution over a set of conditionally independent Gaussian random variables.
+
+
+   Creates a CondGaussianDistribution object.
+
+   Args:
+       mn_f: A module whose forward function accepts input of size n_smps*d_x and outputs a mean for each sample in
+       a tensor of size n_smps*d_y
+
+       std_f: A module whose forward function accepts input of sixe n_smps*d and outputs a standard deviation for
+       each sample of size n_smps*d_y
+
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes conditional mean.
+
+      Args:
+          x: data samples are conditioned on. Of shape n_smps*d_x.
+
+      Returns:
+          mn: mn[i,:] is the mean conditioned on x[i,:]
+
+
+   .. py:method:: log_prob(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor
+
+      Computes log P(y|x).
+
+      Args:
+          x: Data we condition on.  Of shape n_smps*d_x
+
+          y: Values we desire the log probability for.  Of shape n_smps*d_y.
+
+      Returns:
+          ll: Log-likelihood of each sample. Of shape n_smps.
+
+
+
+   .. py:method:: sample(self, x: torch.Tensor) -> torch.Tensor
+
+      Samples from the reparameterized form of P(y|x).
+
+      If a sample without gradients is desired, wrap the call to sample in torch.no_grad().
+
+      Args:
+          x: Data we condition on.  Of shape nSmps*d_x.
+
+      Returns:
+          y: sampled data of shape nSmps*d_y.
+
+
+   .. py:method:: kl(self, d_2, x: torch.tensor, smp: torch.tensor = None, return_device: torch.device = None)
+
+      Computes the KL divergence between the conditional distribution represented by this object and another.
+
+      KL divergence is computed based on the closed form formula for KL divergence between two Gaussians.
+
+      Note: This function will move the conditioning data (x) to the appropriate device(s)
+          so calculations can be carried out without needing to move this object or the other conditional
+          distribution between devices.
+
+      Args:
+          d_2: The other conditional distribution in the KL divergence.
+
+          x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
+
+          smp: This input is ignored, as KL divergence is based on a closed form formula.
+
+          return_device: The device the calculated kl tensor should be returned to.  If None, this will
+          be the device the first parameter of this object is on.
+
+      Returns:
+          kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioing
+          input.
+
+
+   .. py:method:: form_standard_sample(self, smp)
+
+      Returns a sample in standard form.
+
+      See method of parent for more information.
+
+
+   .. py:method:: form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor
+
+      Converts between compact and standard sample form.
+
+      See method of parent for more information.
+
+
+   .. py:method:: sample_to(self, smp: object, device: torch.device)
+
+      Moves a sample in compact form to a given device.
+
+      See method of parent for more information.
+
+
+   .. py:method:: r_params(self)
+
+      Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
+
+      See method of parent for more information.
+
+
+   .. py:method:: s_params(self) -> list
+
+      Returns an empty list as there are no parameters for optimization with a score method based gradient.
+
+      See method of parent for more information.
+
+
+
+.. py:class:: CondSpikeSlabDistribution(d: int, spike_d: CondVAEDistribution, slab_d: CondVAEDistribution)
+
+   Bases: :py:obj:`CondVAEDistribution`
+
+   Represents a conditional spike and slab distribution.
+
+   Creates a CondSpikeSlabDistribution object.
+
+   Args:
+       d: The number of variables the spike and slab distribution is over
+
+       spike_d: The spike distribution
+
+       slab_d: The slab distribution
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes  E(y|x).
+
+      Args:
+          x: Data we condition on.  Of shape n_smps*d_x
+
+          y: Values we desire the log probability for.  Of shape nSmps*d_y.
+
+      Returns:
+          mn: Conditional expectation. Of shape n_smps*d_y
+
+
+   .. py:method:: sample(self, x: torch.Tensor) -> list
+
+      Samples a conditional spike and slab distribution.
+
+      This function will return samples in compact form.
+
+      Args:
+          x: The data to condition on.  Of shape n_smps*d_x.
+
+      Returns: A compact representation of the sample:
+
+          n_smps: the number of samples
+
+          support: A binary tensor. support[i] is 1 if smp i is non-zero
+
+          nz_vls: A tensor with the non-zero values.  nz_vls[j,:] contains the value for the j^th non-zero entry in
+                  support. In other words, nz_vls gives the non-zero values corresponding to the samples in
+                  x[support, :].  If there are no non-zero values this will be None.
+
+
+   .. py:method:: log_prob(self, x: torch.Tensor, y: list) -> torch.Tensor
+
+      Computes log P(y|x).
+
+      Args:
+          x: Data we condition on.  Of shape n_smps*d_x.
+
+          y: Compact representation of a sample.  See sample().
+
+      Returns:
+          ll: Log-likelihood of each sample.
+
+
+   .. py:method:: form_standard_sample(self, smp) -> torch.Tensor
+
+      Forms a standard sample representation from a compact representation.
+
+      Args:
+         smp: The compact representation of a sample (the compact representation of a sample is the form returned by
+         sample)
+
+      Returns:
+           formed_smp: The standard form of a sample.  formed_smp[i] gives the value of the i^th sample.
+
+
+   .. py:method:: form_compact_sample(self, smp: torch.Tensor) -> list
+
+      Forms a compact sample from a full sample.
+
+      Args:
+          smp: The standard representation of the sample of shape n_smps*d
+
+      Returns:
+          n_smps, support, nz_vls: Compact representation of the sample.  See sample().
+
+
+   .. py:method:: r_params(self) -> list
+
+      Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
+
+      See method of parent for more information.
+
+
+   .. py:method:: s_params(self) -> list
+
+      Returns an empty list as there are no parameters for optimization with a score method based gradient.
+
+      See method of parent for more information.
+
+
+
+.. py:class:: CondMatrixProductDistribution(dists: Sequence[CondVAEDistribution])
+
+   Bases: :py:obj:`CondVAEDistribution`
+
+   Represents conditional distributions over matrices.
+
+   Consider a matrix, W, with N rows and M columns.  Given a tensor X with N rows and P columns of conditioning data,
+   this object represents:
+
+           P(W|X) = \prod_i=1^N P_i(W[i,:]| X[i, :]),
+
+       where:
+
+           P_i(W[i,:] | X[i, :]) = \prod_j=1^M P_j(W[i,j] | X[i,:]),
+
+       where the P_j distributions are specified by the user.
+
+   In other words, we model all entries of W as conditionally independent given X, where entries of W are modeled as
+   distributed according to a different conditional distribution depending on what column they are in.
+
+
+
+   Creates a new CondMatrixProductDistribution object.
+
+   Args:
+       dists: dists[j] is P_j, that is the conditional distribution to use for column j.
+
+   .. py:method:: forward(self, x: torch.tensor) -> torch.tensor
+
+      Computes the conditional mean of the distribtion at different samples.
+
+      Args:
+          x: A tensor of shape n_rows*d_x.
+
+      Returns:
+          mn: mn[i, :] is the mean conditioned on x[i, :]
+
+
+   .. py:method:: sample(self, x: torch.tensor) -> torch.tensor
+
+      Samples from a conditional distribution.
+
+      Note: Sample is represented in compact form.  Use form_standard_sample to form
+      the sample into it's matrix representation.
+
+      Args:
+          x: A tensor of shape n_rows*d_x.  x[i,:] is what row i is conditioned on.
+
+      Returns:
+          smp: smp[j] is the compact representation of the sample for column j.
+
+
+   .. py:method:: form_standard_sample(self, smp: object) -> torch.tensor
+
+      Forms a standard representation of a sample from the output of sample.
+
+      Args:
+          smp: Compact representation of a sample.
+
+      Returns:
+          formed_smp: The sample represented as a matrix
+
+
+   .. py:method:: form_compact_sample(self, smp: torch.tensor) -> object
+
+      Forms a compact representation of a sample given a standard representation.
+
+      Args:
+          smp: The standard representation of the sample as a matrix.
+
+      Returns:
+          formed_smp: The compact representation of the sample.
+
+
+   .. py:method:: sample_to(self, smp: object, device: torch.device)
+
+      Moves a sample in compact form to a given device.
+
+      Args:
+          smp: The sample to move.
+
+          device: The device to move the sample to.
+
+
+   .. py:method:: log_prob(self, x: torch.tensor, y: Sequence) -> torch.tensor
+
+      Computes the conditional log probability of individual rows.
+
+      Args:
+          x: Data we condition on.  Of shape n_rows*d_x
+
+          y: Compact representation of the samples we desire the probability for.  Compact representation means the
+          form of a sample as output by the sample() function.
+
+      Returns:
+          ll: Conditional log probability of each row. Of shape n_rows.
+
+
+   .. py:method:: kl(self, d_2, x: torch.tensor, smp: Sequence = None, return_device: torch.device = None)
+
+      Computes the KL divergence between this object and another CondMatrixProductDistribution conditioned on input.
+
+      This function overrides the default kl function of CondVAEDistribution so that the KL divergence is
+      computed between distributions for the same column and then summed up. This is still mathematically
+      correct, but if the distributions for the columns also override kl, then distribution specific kl
+      calculations (perhaps analytical calculations) can be carried out.
+
+      Args:
+          d_2: The other conditional distribution in the KL divergence.
+
+          x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
+
+          smp: An set samples of shape n_smps*d_y. smp[i,:] should be drawn this objects distribution.  This input is
+          provided because some distributions for the columns may not analytically compute KL divergence.
+
+          return_device: The device the calculated kl tensor should be returned to.  If None, this will
+          be the device the first parameter of this object is on.
+
+      Returns:
+          kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th sample.
+
+
+   .. py:method:: r_params(self)
+
+      Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
+
+      See method of parent for more information.
+
+
+   .. py:method:: s_params(self) -> list
+
+      Returns an empty list as there are no parameters for optimization with a score method based gradient.
+
+      See method of parent for more information.
+
+
+
+.. py:class:: CondGaussianMatrixProductDistribution(dists: Sequence[CondGaussianDistribution])
+
+   Bases: :py:obj:`CondMatrixProductDistribution`
+
+   Represents conditional Gaussian distributions over matrices.
+
+   Consider a matrix, W, with N rows and M columns.  Given a tensor X with N rows and P columns of conditioning data,
+   this object represents:
+
+           P(W|X) = \prod_i=1^N P_i(W[i,:]| X[i, :]),
+
+       where:
+
+           P_i(W[i,:] | X[i, :]) = \prod_j=1^M P_j(W[i,j] | X[i,:]),
+
+       where the P_j distributions are conditional Gaussian distributions specified by the user.
+
+   In other words, we model all entries of W as conditionally independent given X, where entries of W are modeled as
+   distributed according to a different conditional Gaussian distribution depending on what column they are in.
+
+   This objects extends CondMatrixProductDistribution, and it's main purpose is to allow KL divergences to be
+   computed not only between itself and another CondMatrixProductDistribution but also a CondGaussianDistribtion when
+   both distributions are over matrices of the same shape.
+
+
+   Creates a new CondGaussianMatrixProductDistribution object.
+
+   Args:
+       dists: Conditional gaussian distributions for each column of the matrix.
+
+   .. py:method:: kl(self, d_2, x: torch.tensor, smp: torch.tensor = None, return_device: torch.device = None)
+
+      Computes the KL divergence between the conditional distribution represented by this object and another.
+
+      The second distribtion can be either another CondMatrixProductDistribution or a CondGaussianDistribution over
+      matrices of the same size this distribution is over.
+
+      KL divergence is computed based on the closed form formula for KL divergence between two Gaussians.
+
+      Note: This function will move the conditioning data (x) to the appropriate device(s)
+          so calculations can be carried out without needing to move this object or the other conditional
+          distribution between devices.
+
+      Args:
+          d_2: The other conditional distribution in the KL divergence.
+
+          x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
+
+          smp: This input is ignored, as KL divergence is based on a closed form formula.
+
+          return_device: The device the calculated kl tensor should be returned to.  If None, this will
+          be the device the first parameter of this object is on.
+
+      Returns:
+          kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioning
+          input.
+
+
+
+.. py:class:: MatrixGammaProductDistribution(shape: Sequence[int], conc_lb: float = 1.0, conc_ub: float = 1000.0, conc_iv: float = 10.0, rate_lb: float = 0.001, rate_ub: float = 1000.0, rate_iv: float = 10.0)
+
+   Bases: :py:obj:`CondMatrixProductDistribution`
+
+   Represents a distribution over matrices where each entry is pulled iid from a separate Gamma distribution.
+
+   For a matrix, W, with N rows and M columns, we model:
+
+       P(W) = \prod_i=1^N \prod_j=1^M P_ij(W[i,j]),
+
+   where P_ij is a Gamma distribution with concentration parameter lpha_ij and rate parameter eta_ij.
+
+   Note: This function extends CondMatrixProductDistribution, allowing this distribution to be used in
+   code where conditional distributions are required, so that the resulting "conditional distributions"
+   are the same irrespective of conditioning input.
+
+
+   Creates a new MatrixGammaProductDistribution object.
+
+   Args:
+       shape: The shape of matrices this represents distributions over.
+
+       conc_lb: The lower bound that concentration parameters can take on
+
+       conc_ub: The upper bound that concentration parameters can take on
+
+       conc_iv: The initial value for concentration parameters.  All distributions will be initialized to have the
+       same initial values.
+
+       rate_lb: The lower bound that rate parameters can take on
+
+       rate_ub: The upper bound that rate parameters can take on
+
+       rate_iv: The initial value for rate parameters.  All distributions will be initialized to have the
+       same initial values.
+
+
+.. py:class:: MatrixFoldedNormalProductDistribution(shape: Sequence[int], mu_lb: float = 0.0, mu_ub: float = 10.0, mu_iv: float = 1.0, sigma_lb: float = 0.001, sigma_ub: float = 10.0, sigma_iv: float = 1.0)
+
+   Bases: :py:obj:`CondMatrixProductDistribution`
+
+   Represents a distribution over matrices where each entry is pulled iid from a Folded Normal distribution.
+
+   For a matrix, W, with N rows and M columns, we model:
+
+       P(W) = \prod_i=1^N \prod_j=1^M P_ij(W[i,j]),
+
+   where P_ij is a Folded Normal distribution with parameters \mu_ij and \sigma_ij.
+
+   Note: This function extends CondMatrixProductDistribution, allowing this distribution to be used in
+   code where conditional distributions are required, so that the resulting "conditional distributions"
+   are the same irrespective of conditioning input.
+
+
+   Creates a new MatrixGammaProductDistribution object.
+
+   Args:
+       shape: The shape of matrices this represents distributions over.
+
+       mu_lb: The lower bound that mu parameters can take on
+
+       mu_ub: The upper bound that mu parameters can take on
+
+       mu_iv: The initial value for mu parameters.  All distributions will be initialized to have the
+       same initial values.
+
+       sigma_lb: The lower bound that sigma parameters can take on
+
+       sigma_ub: The upper bound that sigma parameters can take on
+
+       sigma_iv: The initial value for sigma parameters.  All distributions will be initialized to have the
+       same initial values.
+
+   .. py:method:: forward(self, x: torch.Tensor = None)
+
+      Overwrites parent forward so x does not have to be provided.
+
+
+   .. py:method:: sample(self, x: torch.Tensor = None) -> list
+
+      Overwrites parent sample so x does not have to be provided.
+
+
+   .. py:method:: log_prob(self, x: torch.Tensor = None, y: Sequence = None) -> torch.Tensor
+
+      Overwrites parent log_prob so x does not have to be provided.
+
+      Raises:
+          ValueError: If y is None.
+
+
+
+.. py:class:: MatrixGaussianProductDistribution(shape: Sequence[int], mn_mn: float = 0.0, mn_std: float = 0.01, std_lb: float = 1e-06, std_ub: float = 10.0, std_iv: float = 0.01)
+
+   Bases: :py:obj:`CondGaussianMatrixProductDistribution`
+
+   Represents a distribution over matrices where each entry is pulled iid from a separate Gaussian distribution.
+
+   For a matrix, W, with N rows and M columns, we model:
+
+       P(W) = \prod_i=1^N \prod_j=1^M P_ij(W[i,j]),
+
+   where P_ij is a Gaussian distribution with mean mu_ij and standard deviation std_ij.
+
+   Note: This function extends CondMatrixProductDistribution, allowing this distribution to be used in
+   code where conditional distributions are required, so that the resulting "conditional distributions"
+   are the same irrespective of conditioning input.
+
+
+   Creates a new MatrixGaussianProductDistribution.
+
+   Args:
+       shape: The shape of matrices this represents distributions over.
+
+       mn_mn, std_mn: The mean and standard deviation to use when generating random initial values for the
+       mean distribution for each entry.
+
+       std_lb, std_ub, std_iv: lower & upper bounds for standard deviation values and the initial value
+       for the standard deviation for the distribution for each entry.
+
+   .. py:method:: initialize(self, mn_mn: float = 0.0, mn_std: float = 0.01, std_v: float = 0.01)
+
+      Initializes parameters of the distribution.
+
+      Args:
+          mn_mn, mn_std: The mean and standard deviation for the distribution values for the mean are drawn from
+
+          std_v: The value to set the standard deviation to everywhere
+
+
+
+.. py:class:: CondMatrixHypercubePrior(n_cols: int, mn_hc_params: dict, std_hc_params: dict, min_std: float, mn_init: float = 0.0, std_init: float = 0.01)
+
+   Bases: :py:obj:`CondGaussianMatrixProductDistribution`
+
+   Extends CondGaussianMatrixProductDistribution so the distribution for each column is a Gaussian with mean and standard
+   deviation functions which are sums of tiled hypercube basis functions.
+
+   Specifically, For a matrix, W, under a CondMatrixProductDistribution, we model:
+
+       W[i,j] ~ P_j(W[i,j] | X[i,:]).
+
+   Here, we specify that P_j is a conditional Gaussian distribution with mean given by m(X[i,:]) and standard
+   deviation by s(X[i,:]). Specifically, m() is a SumOfTiledHyperCubeBasisFcns function and s() is an exponentiated
+   SumOfTiledHyperCubeBasisFcns function plus an offset.
+
+
+   Creates a CondMatrixHypercubePrior object
+
+   Args:
+       n_cols: The number of columns in the matrices we represent distributions over.
+
+       mn_hc_params: A dictionary with parameters for passing into the init() function of
+       SumOfTiledHyperCubeBasisFcns when creating the hypercube function for the mean function for each P_j.
+
+       std_hc_params: A dictionary with parameters for passing into the init() function of
+       SumOfTiledHyperCubeBasisFcns when creating the hypercube function which will be exponentiated and offset
+       to form the final standard deviation function for each P_j.
+
+       min_std: The min standard deviation any P_j can take on.
+
+       mn_init: The initial value for the mean function. The mean will take on this value everywhere.
+
+       std_init: The initial value for the standard deviation function.  The standard deviation will take
+       on this value everywhere. Must be greater than min_std
+
+   Raises:
+       ValueError: If std_init is not greater than min_std.
+
+
+   .. py:method:: increase_std(self, f: float)
+
+      Increases the standard deviation by a factor which is approximately log(f).
+
+      Args:
+          f: The factor to increase standard deviation by.
+
+
+   .. py:method:: set_mn(self, v: float)
+
+      Set the mean to a single value everyhwere.
+
+      Args:
+          v: The value to set the mean to
+
+
+   .. py:method:: set_std(self, v: float)
+
+      Sets the standard deviation to a single value everywhere.
+
+      Args:
+          v: The value to set the standard deviation to
+
+
+
+
+.. py:class:: GroupCondMatrixHypercubePrior(n_cols: int, group_inds: Sequence[Sequence[int]], mn_hc_params: Sequence[dict], std_hc_params: Sequence[dict], min_std: float, mn_init: float, std_init: float, tanh_init_opts: dict = None)
+
+   Bases: :py:obj:`CondGaussianMatrixProductDistribution`
+
+   Extends CondGaussianMatrixProductDistribution so the distribution for each column is a Gaussian with
+   mean and standard deviation functions that depend on groups of properties.
+
+   Specifically, For a matrix, W, under a CondMatrixProductDistribution, we model:
+
+       W[i,j] ~ P_j(W[i,j] | X[i,:]).
+
+   Here, we specify that P_j is a conditional Gaussian distribution with mean given by m(X[i,:]) and standard
+   deviation by s(X[i,:]). For m(), we specify
+
+       m(X[i,:]) = s_mn*tanh( \sum_{ind_j \in inds} f^mn_j(X[i, ind_j]) ) + o_mn,
+
+   where each f_j() is a SumOfTiledHyperCubeBasisFcns function.
+
+   For s(), we specify
+
+       s(X[i,:]) = exp( \sum_{ind_j \in inds} f^std_j(X[i, ind_j]) ) + min_std,
+
+   where min_std is a fixed, small offset ensuring s() stays strictly positive.
+
+
+   Creates a new GroupCondMatrixHypercubePrior object.
+
+   Args:
+       n_cols: The number of columns in the matrices we represent distributions over.
+
+       group_inds: group_inds[j] are the indices into the dimensions of X for properties for group j
+
+       mn_hc_params: mn_hc_params[j] is a dictionary with parameters for passing into the init() function of
+       SumOfTiledHyperCubeBasisFcns when creating the hypercube function for f^mn_j.
+
+       std_hc_params: std_hc_params[j] is a dictionary with parameters for passing into the init() function
+       of SumOfTiledHyperCubeBasisFcns when creating the hypercube function for f^std_j.
+
+       min_std: The min standard deviation any P_j can take on.
+
+       mn_init: The initial value for the mean function. The mean will take on this value everywhere.
+
+       std_init: The initial value for the standard deviation function.  The standard deviation will take
+       on this value everywhere. Must be greater than min_std
+
+       tanh_init_opts: Dictionary of additional options when initializing the Tanh module for
+       the mean function for each mode. If None, no options will be passed
+
+   Raises:
+       ValueError: If std_init is not greater than min_std.
+
+
+.. py:class:: DistributionPenalizer
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   A base class for creating distribution penalizer objects.
+
+   The main idea behind a penalizer object (vs. just applying a penalizer function) is that the ways we may
+   want to penalize a distribution may require keeping track of some penalty parameters (e.g., a set of locations
+   where we want to sample a distribution at).  Some of these parameters could even be optimizable.  Because of this,
+   we introduce this concept of penalizer objects which are torch modules, so we can keep track of these parameters,
+   easily move them between devices, etc...
+
+
+   Creates a DistributionPenalizer object.
+
+   .. py:method:: check_point(self) -> dict
+      :abstractmethod:
+
+      Returns a dictionary of parameters for the penalizer that should be saved in a check point.
+
+      For the purposes of creating a check point, we can save memory by only logging the important parameters of a
+      penalizer.
+
+
+   .. py:method:: get_marked_params(self, key: str)
+      :abstractmethod:
+
+      Returns all parameters marked with the key string.
+
+      Penalizers must associate each parameter with a unique key (e.g., fast_learning_rate_params). Each
+      parameter should be associated with only one key (though multiple parameters can use the same key).  This
+      function will return a list of parameters associated with the requested key.  If no parameters match the
+      key an empty list should be returned.
+
+
+   .. py:method:: list_param_keys(self)
+      :abstractmethod:
+
+      Returns a list of keys associated with parameters.
+
+      Returns:
+          keys: The list of keys.
+
+
+   .. py:method:: penalize(self, d: CondVAEDistribution) -> torch.Tensor
+      :abstractmethod:
+
+      Calculates a penalty over a distribution.
+
+      Args:
+          d: The distribution to penalize
+
+      Returns:
+          penalty: The scalar penalty
+
+
+
+.. py:class:: ColumnMeanClusterPenalizer(init_ctrs: torch.Tensor, x: torch.Tensor, init_scales: torch.Tensor = None, scale_weight: float = None)
+
+   Bases: :py:obj:`DistributionPenalizer`
+
+   Penalizes the mean of a conditional distribution over matrices to encouraging clustering of column values.
+
+   Clustering here means clustering of values given what they are conditioned on.
+
+   In particular, we work with conditional distributions over matrices M \in R^{n      imes p} conditioned on
+   input X \in R^{n    imes q}, where each row of M is associated with the corresponding row of X.  Our goal is
+   to encourage large values in each column of M to be assoicated with values in X that are close in space.
+
+   We achieve this by:
+
+       1) Keeping track of a "center" parameter for each column c_j \in R^{1   imes q} and "scale"
+       parameter s_j \in R^{1  imes q} for each column j \in [1, p].  These parameters are learnable (but the
+       user can chose to fix the scales).
+
+       2) Let E_j be the expected value of column j conditioned on X.  We compute the cluster penalty for
+       column j as: k_j = \sum_i w_i*d_i, where w_i is the absolute value of E_j[j] after E_j has been normalized
+       to have a length of 1 and d_i is the square of scaled distance from c_j defined as
+       d_i = \sum_k=1^q ((X[i, k] - c_j[k])/s_j[k])**2.  To guard against division by zero, small offsets are
+       added as needed in the calculations.
+
+       3) The penalty can be made arbitrarily small by driving the scales to infinity.  To prevent this,
+       we calculate a term p = \sum_j \sum_q s_j[q]**2
+
+       4) The final penalty is scale_penalty*p + \sum_j k_j
+
+
+   Creates a new ColumnMeanClusterPenalizer object.
+
+   Args:
+       init_ctrs: Initial centers for each column.  Of shape [n_cols, x_dim]
+
+       x: The points at which we evaluate the mean of the distribution. Of shape [n_pts, x_dim].
+
+       init_scales: Initial scales for each column. Of shape [n_cols, x_dim]. If None, initial scales will be set
+       to 1 for all dimensions and modes.
+
+       scale_weight: The weight to apply to the scale penalty if learning scales.  If None, the scales will be be
+       fixed at their init values and not learned.
+
+
+   .. py:method:: check_point(self)
+
+      Returns a dictionary with a copy of key parameters of the penalizer.
+
+      Returns:
+          params: A dictionary with the following keys:
+
+             col_ctrs: The value of column centers
+
+             scales: The value of the scales
+
+             last_weight_pen: The value of the last weight penalty computed with the penalizer
+
+             last_scale_pen: The value of the last scale penalty computed with the penalizer
+
+
+   .. py:method:: get_marked_params(self, key: str)
+
+      Returns parameters that should be assigned fast and slow learning rates.
+
+      Args:
+          key: The type of parameters that should be returned.  'fast' will return parameters that should be trained
+          with fast learning rates; 'slow' will return parameters that should be trained with slow training weights.
+
+      Returns:
+          params: The list of parameters matching the key
+
+
+   .. py:method:: list_param_keys(self)
+
+      Returns the list of keys associated with parameters.
+
+      Returns:
+          keys: The keys
+
+
+   .. py:method:: penalize(self, d: CondVAEDistribution) -> torch.Tensor
+
+      Calculates the penalty for a distribution.
+
+
+   .. py:method:: __str__(self)
+
+      Returns a string of the current state of the penalizer.
+
+
+
+.. py:function:: gen_columns_mean_cluster_penalizer(n_cols: int, dim_ranges: numpy.ndarray, n_pts_per_dim: Sequence[int], n_ctrs_per_dim: Sequence[int], init_scale: float = 100.0, scale_weight: float = 10.0, penalizer_pts: torch.Tensor = None) -> ColumnMeanClusterPenalizer
+
+   Generates a columns mean cluster penalizer for a conditional distribution over matrices.
+
+   Args:
+       n_cols: The number of columns in the matrices the conditional distribution is over.
+
+       dim_ranges: dim_ranges[:,0] are the starting values for each dimension of the data the distribtion is
+       conditioned on and dim_ranges[:,1] are the ending values
+
+       n_ctrs_per_dim: When generating the initial center points, we will lay them out evenly on a grid.  This is
+       the number of points on the grid in each dimension.
+
+       n_pts_per_dim: The number of sample points to generate per dimension.  The final sample points will
+       be a grid sampled at this many points per dimension within the range of dimensions specified by dim_ranges.
+
+       init_scale: The value that for the initial scales of the penalizer for all modes and dimensions.
+
+       scale_weight: The scale weight for the penalizer.
+
+       penalizer_pts: A tensor of points to penalize at.  If None, one will be created based on dim_ranges and
+       n_pts_per_dim.  Using this input is useful if creating multiple penalizers that all use the same penalizer
+       points, so that they can all reference the same list of points and duplicate lists of poitns do not have to be
+       created to save memory.
+
+   Returns:
+       p: The generated penalizer.
+
+

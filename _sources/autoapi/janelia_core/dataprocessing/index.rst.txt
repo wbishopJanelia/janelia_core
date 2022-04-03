@@ -1,0 +1,27 @@
+:py:mod:`janelia_core.dataprocessing`
+=====================================
+
+.. py:module:: janelia_core.dataprocessing
+
+.. autoapi-nested-parse::
+
+   Basic classes and functions for processing large datasets.
+
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   ahrens_lab/index.rst
+   baseline/index.rst
+   data_handling/index.rst
+   dataset/index.rst
+   image_stats/index.rst
+   point/index.rst
+   roi/index.rst
+   utils/index.rst
+
+

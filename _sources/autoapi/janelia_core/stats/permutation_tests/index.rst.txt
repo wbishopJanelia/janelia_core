@@ -1,0 +1,110 @@
+:py:mod:`janelia_core.stats.permutation_tests`
+==============================================
+
+.. py:module:: janelia_core.stats.permutation_tests
+
+.. autoapi-nested-parse::
+
+   Contains tools for performing permutation tests.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.stats.permutation_tests.basic_perm_test
+   janelia_core.stats.permutation_tests.paired_grouped_perm_test
+   janelia_core.stats.permutation_tests.all_pairs_perm_tests
+
+
+
+.. py:function:: basic_perm_test(x_0: numpy.ndarray, x_1: numpy.ndarray, n_perms: int = 1000, f: Callable = None) -> Tuple[float, float]
+
+   Performs a basic permutation test.
+
+   This function calculates the p value for a statistic of the form:
+
+       t = abs(f(x_0) - f(x_1)),
+
+   where f() is by default median().  In this case, the p-value is for the difference of medians of two
+   samples.  However, the user can specify custom f functions (e.g., mean) to calculate the p-value
+   for other statistics.
+
+   Args:
+       x_0: Data from condition 0.  Should be either 1 or 2-d array.  Each row is a sample.
+
+       x_1: Data from condition 1.  Should be either 1 or 2-d array.  Each row is a sample.
+       Note: x_1 can have a different number of samples than x_0.
+
+       n_perms: The number of permutations to perform.
+
+       f: The f function to use (see above).  If None, median will be used.  If samples have a dimensionality greater
+       than 1, a custom f function must be used.
+
+   Returns:
+       p: The p value for the calculated statistic
+
+       t: The calculated statistic
+
+   Raises:
+       TypeError: If x_0 or x_1 are not of type np.ndarray
+       ValueError: If x_0 and x_1 do not have at least one sample each
+       ValueError: If samples have a dimensionality greater than 1 but the default f is used.
+
+
+.. py:function:: paired_grouped_perm_test(x0: numpy.ndarray, x1: numpy.ndarray, grp_ids: numpy.ndarray, pair_f: Callable = None, reduce_f: Callable = None, n_perms: int = 1000) -> Tuple[float, float]
+
+   Performs a paired, grouped permutation test.
+
+   This calculates paired statistics.  In otherwords, we assume each sample from condition 0 is paired with a sample
+   from condition 1.   The user can specify the function (e.g., abs(x1 - x0)) which is used to compare the samples. We
+   then test against the null hypothesis that x1 and x0 come from the same distribution.
+
+   This is also for performing permutation tests when samples are grouped.  A good example of this is when we obtain
+   multiple samples from one subject. In this case all the samples from one subject will form one group. Because we
+   expect that samples in the same group may not be truly independent, we need to take this into account when
+   performing permutations and permute all the samples from a group together.  This is what this test does.  It is
+   essentially a standard permutation test, except samples in groups are shuffled together.
+
+   Args:
+       x0: Array of samples from condition 0.  Each row is a sample.  Samples from all groups are concatenated together.
+
+       x1: Array of samples from condition 1.  Rows of x1 are paired with rows of x0.
+
+       grp_ids: a 1-d array indicating groups of samples.  Samples from the same group should
+       have the same value in g.
+
+       pair_f: The function used to compare x0 and x1.  If None, the function x1 - x0 will be used.
+
+       reduce_f: The function used to calculate a single statistic from the results of pair_f.  If None, the function
+       mean() will be used.
+
+   Returns:
+       t: The value of the test statistic
+
+       p: The p-value
+
+
+.. py:function:: all_pairs_perm_tests(x: Sequence[numpy.ndarray], test_opts: dict = None, update_int=10) -> numpy.ndarray
+
+   Performs a set of permutation tests between all pairs of conditions.
+
+   Args:
+       x: x[i] is a numpy array of samples for condition i.  x[i] should either be a 1-d or 2-d numpy array, where
+       each row is a sample.  Different entries of x can have different number of samples.
+
+       test_opts: A dictionary of keyword arguments to pass into the call to basic_perm_test for each test.
+
+       update_int: Progress is printed to screen every update_int number of tests.
+
+   Returns:
+       p_vls: p_vls[i,j] is the p value when testing the difference between x[i] and x[j].  To save computation, we
+       set p_vls[j,i] = p_vls[i,j].  The diagonal of p_vls will be nan.
+
+

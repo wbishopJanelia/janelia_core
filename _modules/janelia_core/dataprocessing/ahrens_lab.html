@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.dataprocessing.ahrens_lab &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.dataprocessing.ahrens_lab</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.dataprocessing.ahrens_lab</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Data tools used for working with results from the Ahrens lab.</span>
+
+<span class="sd">    While the tools here were originally developed for working with Ahrens lab data, they</span>
+<span class="sd">    are written to be generally useful for many datasets.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.stats</span> <span class="k">as</span> <span class="nn">stats</span>
+
+
+<span class="kn">from</span> <span class="nn">janelia_core.math.basic_functions</span> <span class="kn">import</span> <span class="n">find_binary_runs</span>
+
+<div class="viewcode-block" id="down_sample_ephys_vls"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/ahrens_lab/index.html#janelia_core.dataprocessing.ahrens_lab.down_sample_ephys_vls">[docs]</a><span class="k">def</span> <span class="nf">down_sample_ephys_vls</span><span class="p">(</span><span class="n">ts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">image_acq_starts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_images</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">vls</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                          <span class="n">ds_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">acq_start_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;boolean&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A function to take raw ephys data and down-sample it to the imaging rate of an experiment.</span>
+
+<span class="sd">    Values are down-sampled between image acquisitions, so that the down-sampled value for image i will be a function</span>
+<span class="sd">    of the data that falls between the start of acquisition of image i and the start of acquisition for image i+1.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ts: Time stamps for the raw ephys data.</span>
+
+<span class="sd">        image_acq_starts: An array indicating the time image acquisition starts for each volume.  This can be either a</span>
+<span class="sd">        binary array of an array of time stamps (see acq_start_type below for more details).</span>
+
+<span class="sd">        n_images: The number of images that were acquired.</span>
+
+<span class="sd">        vls: The raw ephys values to down sample</span>
+
+<span class="sd">        ds_type: The type of down-sampling to perform. Options are:</span>
+
+<span class="sd">            &#39;mean&#39; The down-sampled value is the mean value between the start of image acquisitions.</span>
+
+<span class="sd">            &#39;mode&#39; The down-sampled value is the mode between the start of image acquisitions.</span>
+
+<span class="sd">            &#39;max&#39; The down-sampled value is the max between the start of image acquisitions.</span>
+
+<span class="sd">            &#39;consant&#39; The down-sampled value is the constant value between the start of image acquisitions.  If</span>
+<span class="sd">            selected, a check will be performed to ensure values are actually constant, and if this check is failed,</span>
+<span class="sd">            an error will be raised.</span>
+
+<span class="sd">        acq_start_type: Indicates the way of specifying image acquisition starts.  If &#39;boolean&#39;, then image_acq_starts</span>
+<span class="sd">        should be a binary array with a value of 1 indicating each point in time image acquisition starts.  If &#39;time&#39;</span>
+<span class="sd">        then this should be an array with times that image acqusition starts.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ds_ts: The time stamps of the down sampled values.  Time stamps correspond to the start of image acquisitions.</span>
+
+<span class="sd">        ds_vls: The down sampled values.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If n_images is greater than the number of image starts in image_acq_starts.  We require n_images to</span>
+<span class="sd">        be strictly less than the number of image acquisition starts so a period of image acquisition is well defined</span>
+<span class="sd">        for the last requested image.</span>
+
+<span class="sd">        ValueError: If the first or last image acquisition times fall outside of the range of time stamps for the values.</span>
+
+<span class="sd">        ValueError: If &#39;constant&#39; down-sampling is selected, but non-constant values are detected in a sampling period.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># If image starts are given with time stamps we handle that here</span>
+    <span class="k">if</span> <span class="n">acq_start_type</span> <span class="o">==</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span>
+        <span class="n">n_image_starts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_acq_starts</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">n_images</span> <span class="o">&gt;</span> <span class="n">n_image_starts</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;n_images is greater than number of image starts found in image_acq_starts&#39;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">image_acq_starts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">ts</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;First image acquisition start falls before time stamps for values.&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">image_acq_starts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">ts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Last image acquisition start falls after time stamps for values.&#39;</span><span class="p">))</span>
+
+        <span class="n">bool_image_acq_starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">img_start</span> <span class="ow">in</span> <span class="n">image_acq_starts</span><span class="p">:</span>
+            <span class="n">start_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">ts</span> <span class="o">-</span> <span class="n">img_start</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">bool_image_acq_starts</span><span class="p">[</span><span class="n">start_ind</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">image_acq_starts</span> <span class="o">=</span> <span class="n">bool_image_acq_starts</span>
+
+    <span class="c1"># Now we process everything assuming image starts are given in a boolean array</span>
+    <span class="n">n_image_starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">image_acq_starts</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Get slices of ephys values we consider for each slice</span>
+    <span class="n">image_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">image_acq_starts</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">start_inds</span> <span class="o">=</span> <span class="n">image_inds</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">n_images</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">n_images</span> <span class="o">&lt;</span> <span class="n">n_image_starts</span><span class="p">:</span>
+        <span class="n">stop_inds</span> <span class="o">=</span> <span class="n">image_inds</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">n_images</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">n_images</span> <span class="o">==</span> <span class="n">n_image_starts</span><span class="p">:</span>
+        <span class="n">stop_inds</span> <span class="o">=</span> <span class="n">start_inds</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">image_inds_diff</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">image_inds</span><span class="p">))</span><span class="o">.</span><span class="n">mode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">stop_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stop_inds</span><span class="p">,</span> <span class="n">stop_inds</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">image_inds_diff</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;n_images == number of images start, estimating end time of last image acquisition.&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;n_images is greater than number of image starts found in image_acq_starts&#39;</span><span class="p">))</span>
+
+    <span class="n">ind_slices</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span> <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">start_inds</span><span class="p">,</span> <span class="n">stop_inds</span><span class="p">)]</span>
+
+    <span class="c1"># Perform down-sampling here</span>
+    <span class="n">ds_ts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_images</span><span class="p">)</span>
+    <span class="n">ds_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_images</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ind_slices</span><span class="p">):</span>
+        <span class="n">ds_ts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="n">sl</span><span class="o">.</span><span class="n">start</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ds_type</span> <span class="o">==</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span>
+            <span class="n">ds_vls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">vls</span><span class="p">[</span><span class="n">sl</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">ds_type</span> <span class="o">==</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
+            <span class="n">c_vl</span> <span class="o">=</span> <span class="p">(</span><span class="n">vls</span><span class="p">[</span><span class="n">sl</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">vls</span><span class="p">[</span><span class="n">sl</span><span class="p">]</span> <span class="o">!=</span> <span class="n">c_vl</span><span class="p">):</span>
+                <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Caught non-constant value in slice &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">sl</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ds_vls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c_vl</span>
+        <span class="k">elif</span> <span class="n">ds_type</span> <span class="o">==</span> <span class="s1">&#39;mode&#39;</span><span class="p">:</span>
+            <span class="n">ds_vls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="n">vls</span><span class="p">[</span><span class="n">sl</span><span class="p">])</span><span class="o">.</span><span class="n">mode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">ds_type</span> <span class="o">==</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span>
+            <span class="n">ds_vls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">vls</span><span class="p">[</span><span class="n">sl</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The ds_type &#39;</span> <span class="o">+</span> <span class="n">ds_type</span> <span class="o">+</span> <span class="s1">&#39; is not recogonized.&#39;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">ds_ts</span><span class="p">,</span> <span class="n">ds_vls</span></div>
+
+
+<div class="viewcode-block" id="find_camera_triggers_in_ephys"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/ahrens_lab/index.html#janelia_core.dataprocessing.ahrens_lab.find_camera_triggers_in_ephys">[docs]</a><span class="k">def</span> <span class="nf">find_camera_triggers_in_ephys</span><span class="p">(</span><span class="n">sig</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">th</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.8</span><span class="p">,</span> <span class="n">smp_tol</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Finds indices where the camera was triggered in the raw ephys data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        sig: 1-d array of camera trigger data</span>
+
+<span class="sd">        th: the threshold that indicates a camera threshold</span>
+
+<span class="sd">        smp_tol: After extracting camera triggers, we do a check and make sure all camera triggers are the</span>
+<span class="sd">        same number of samples apart +/- a tolerance; this is the tolerance</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        inds: The indices of sig where values first pass th</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the first value of sig is greather than th (since then timing of the onset cannot be</span>
+<span class="sd">        determined)</span>
+
+<span class="sd">        RuntimeError: If the tolerance check is not passed</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">sig</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">th</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;First value of signal greater than signal.&#39;</span><span class="p">))</span>
+
+    <span class="n">runs</span> <span class="o">=</span> <span class="n">find_binary_runs</span><span class="p">(</span><span class="n">sig</span> <span class="o">&gt;</span> <span class="n">th</span><span class="p">)</span>
+    <span class="n">inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">])</span>
+
+    <span class="c1"># Check to make sure we pass a data integrity check</span>
+    <span class="n">inds_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">inds</span><span class="p">)</span>
+    <span class="n">diff_mode</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="n">inds_diff</span><span class="p">)</span><span class="o">.</span><span class="n">mode</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">inds_diff</span> <span class="o">-</span> <span class="n">diff_mode</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">smp_tol</span><span class="p">):</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Extracted camera triggers failed timig tolerance check.&#39;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">inds</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

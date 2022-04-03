@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.fileio.ahrens_lab &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.fileio.ahrens_lab</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.fileio.ahrens_lab</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Tools for reading in Ahrens lab experimental data.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">pathlib</span>
+
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">janelia_core.dataprocessing.dataset</span>
+<span class="kn">import</span> <span class="nn">janelia_core.dataprocessing.dataset</span> <span class="k">as</span> <span class="nn">dataset</span>
+<span class="kn">from</span> <span class="nn">janelia_core.fileio.exp_reader</span> <span class="kn">import</span> <span class="n">read_imaging_metadata</span>
+<span class="kn">from</span> <span class="nn">janelia_core.fileio.exp_reader</span> <span class="kn">import</span> <span class="n">find_images</span>
+
+
+<span class="c1"># Constants for reading a stack frequency file</span>
+<span class="n">STACK_FREQ_STACK_FREQ_LINE</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">STACK_FREQ_EXP_DURATION_LINE</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">STACK_FREQ_N_IMAGES_LINE</span> <span class="o">=</span> <span class="mi">2</span>
+
+
+<div class="viewcode-block" id="read_exp"><a class="viewcode-back" href="../../../autoapi/janelia_core/fileio/ahrens_lab/index.html#janelia_core.fileio.ahrens_lab.read_exp">[docs]</a><span class="k">def</span> <span class="nf">read_exp</span><span class="p">(</span><span class="n">image_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ephys_folder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ephys_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;frame_swim.mat&#39;</span><span class="p">,</span>
+             <span class="n">ephys_var_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;frame_swim&#39;</span><span class="p">,</span> <span class="n">image_ext</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;.h5&#39;</span><span class="p">,</span> <span class="n">metadata_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;ch0.xml&#39;</span><span class="p">,</span>
+             <span class="n">stack_freq_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Stack_frequency.txt&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">janelia_core</span><span class="o">.</span><span class="n">dataprocessing</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">DataSet</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Reads in Ahrens lab experimental data to a Dataset object.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_folder: The folder holding the images, metadata file and stack frequency file.</span>
+
+<span class="sd">        ephys_folder: The folder holding the ephys data.</span>
+
+<span class="sd">        ephys_file: The name of the file holding ephys data.  If this is None, no ephys data will be loaded.</span>
+
+<span class="sd">        ephys_var_name: The variable name holding ephys data in ephys_file.</span>
+
+<span class="sd">        image_ext: The extension to use when looking for image files.</span>
+
+<span class="sd">        metadata_file: The name of the .xml file holding metadata.</span>
+
+<span class="sd">        stack_freq_file: The name of the file holding stack frequency information.</span>
+
+<span class="sd">        verbose: True if progress updates should be printed to screen.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A Dataset object.  A DataSet object representing the experiment.  The data dictionary will have an</span>
+<span class="sd">        entry &#39;imgs&#39;. This entry will contain a list of dictionaries.  Each dictionary will have a field &#39;file&#39;</span>
+<span class="sd">        giving the file name of the image as a string. If ephys data was available, an entry &#39;ephys&#39; will also</span>
+<span class="sd">        contain the ephys data.  The metadata for the experiment will have one entry &#39;imaging_metadata&#39; with the</span>
+<span class="sd">        imaging metadata stored there.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Read in all of the raw data</span>
+    <span class="n">imaging_metadata</span> <span class="o">=</span> <span class="n">read_imaging_metadata</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">image_folder</span><span class="p">)</span> <span class="o">/</span> <span class="n">metadata_file</span><span class="p">)</span>
+
+    <span class="n">stack_freq_info</span> <span class="o">=</span> <span class="n">read_stack_freq</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">image_folder</span><span class="p">)</span> <span class="o">/</span> <span class="n">stack_freq_file</span><span class="p">)</span>
+
+    <span class="n">image_names_sorted</span> <span class="o">=</span> <span class="n">find_images</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">image_folder</span><span class="p">),</span> <span class="n">image_ext</span><span class="p">,</span> <span class="n">image_folder_depth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="c1"># Convert from paths to strings - this is to ensure compatability across operating systems. Also put</span>
+    <span class="c1"># images paths in dictionaries - this will allow us to add additional fields to store with each</span>
+    <span class="c1"># image name later</span>
+    <span class="n">image_names_sorted</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">i_name</span><span class="p">)}</span> <span class="k">for</span> <span class="n">i_name</span> <span class="ow">in</span> <span class="n">image_names_sorted</span><span class="p">]</span>
+
+    <span class="n">n_images</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_names_sorted</span><span class="p">)</span>
+    <span class="n">time_stamps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="n">stack_freq_info</span><span class="p">[</span><span class="s1">&#39;smp_freq&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_images</span><span class="p">)])</span>
+
+    <span class="k">if</span> <span class="n">ephys_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ephys_data</span> <span class="o">=</span> <span class="n">read_ephys_data</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">ephys_folder</span> <span class="o">/</span> <span class="n">ephys_file</span><span class="p">),</span> <span class="n">ephys_var_name</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">n_ephys_smps</span> <span class="o">=</span> <span class="n">ephys_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">n_ephys_smps</span> <span class="o">!=</span> <span class="n">n_images</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Found &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_images</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; image files but &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_ephys_smps</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; ephys data points.&#39;</span><span class="p">))</span>
+        <span class="n">ephys_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ts&#39;</span><span class="p">:</span> <span class="n">time_stamps</span><span class="p">,</span> <span class="s1">&#39;vls&#39;</span><span class="p">:</span> <span class="n">ephys_data</span><span class="p">}</span>
+
+    <span class="c1"># Check to make we found the right number of images</span>
+    <span class="k">if</span> <span class="n">n_images</span> <span class="o">!=</span> <span class="n">stack_freq_info</span><span class="p">[</span><span class="s1">&#39;n_images&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Found &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_images</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; image files but stack frequency file specified &#39;</span> <span class="o">+</span>
+                            <span class="nb">str</span><span class="p">(</span><span class="n">stack_freq_info</span><span class="p">[</span><span class="s1">&#39;n_images&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39; time stamps.&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Create an instance of Dataset</span>
+    <span class="n">im_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ts&#39;</span><span class="p">:</span> <span class="n">time_stamps</span><span class="p">,</span> <span class="s1">&#39;vls&#39;</span><span class="p">:</span> <span class="n">image_names_sorted</span><span class="p">}</span>
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;imgs&#39;</span><span class="p">:</span> <span class="n">im_dict</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">ephys_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;ephys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ephys_dict</span>
+
+    <span class="n">imaging_metadata</span><span class="p">[</span><span class="s1">&#39;stack_freq_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stack_freq_info</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;imaging_metadata&#39;</span><span class="p">:</span> <span class="n">imaging_metadata</span><span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">dataset</span><span class="o">.</span><span class="n">DataSet</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="read_ephys_data"><a class="viewcode-back" href="../../../autoapi/janelia_core/fileio/ahrens_lab/index.html#janelia_core.fileio.ahrens_lab.read_ephys_data">[docs]</a><span class="k">def</span> <span class="nf">read_ephys_data</span><span class="p">(</span><span class="n">ephys_file</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">var_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;frame_swim&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Reads in electophysiological data for an Ahrens lab experiment.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ephys_file: The path to the .mat file holding the data</span>
+
+<span class="sd">        var_name: The name of the variable in the .mat file holding the</span>
+<span class="sd">        ephys_data</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A numpy.ndarray with the data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Reading ephys data.&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">ephys_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">var_name</span><span class="p">][:]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="read_stack_freq"><a class="viewcode-back" href="../../../autoapi/janelia_core/fileio/ahrens_lab/index.html#janelia_core.fileio.ahrens_lab.read_stack_freq">[docs]</a><span class="k">def</span> <span class="nf">read_stack_freq</span><span class="p">(</span><span class="n">stack_freq_file</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Reads in stack frequency information from file.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        stack_freq_file: The file with stack frequency information.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A dictionary with the stack frequency information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">stack_freq_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">txt_lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+        <span class="n">smp_freq</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">txt_lines</span><span class="p">[</span><span class="n">STACK_FREQ_STACK_FREQ_LINE</span><span class="p">])</span>
+        <span class="n">exp_duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">txt_lines</span><span class="p">[</span><span class="n">STACK_FREQ_EXP_DURATION_LINE</span><span class="p">])</span>
+        <span class="n">n_images</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">txt_lines</span><span class="p">[</span><span class="n">STACK_FREQ_N_IMAGES_LINE</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;smp_freq&#39;</span><span class="p">:</span> <span class="n">smp_freq</span><span class="p">,</span> <span class="s1">&#39;exp_duration&#39;</span> <span class="p">:</span> <span class="n">exp_duration</span><span class="p">,</span> <span class="s1">&#39;n_images&#39;</span> <span class="p">:</span> <span class="n">n_images</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="read_separated_exp"><a class="viewcode-back" href="../../../autoapi/janelia_core/fileio/ahrens_lab/index.html#janelia_core.fileio.ahrens_lab.read_separated_exp">[docs]</a><span class="k">def</span> <span class="nf">read_separated_exp</span><span class="p">(</span><span class="n">image_folders</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">image_labels</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">metadata_folder</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">ephys_folder</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="n">ephys_file</span> <span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;frame_swim.mat&#39;</span><span class="p">,</span> <span class="n">ephys_var_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;frame_swim&#39;</span><span class="p">,</span> <span class="n">image_ext</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;.h5&#39;</span><span class="p">,</span>
+             <span class="n">metadata_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;ch0.xml&#39;</span><span class="p">,</span> <span class="n">stack_freq_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Stack_frequency.txt&#39;</span><span class="p">,</span>
+             <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">janelia_core</span><span class="o">.</span><span class="n">dataprocessing</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">DataSet</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Reads in Ahrens lab experimental data after images have been split by color.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        image_folders: List of folders holding split data (e.g., one folder for images of neurons and one for glia).</span>
+
+<span class="sd">        metadata_folder: Folder containing experiment metadata.</span>
+
+<span class="sd">        image_labels: List of string labels for each series of images in image_folder.</span>
+
+<span class="sd">        ephys_folder: The folder holding the ephys data.</span>
+
+<span class="sd">        ephys_file: The name of the file holding ephys data. If this is None, no ephys data will be loaded.</span>
+
+<span class="sd">        ephys_var_name: The variable name holding ephys data in ephys_file.</span>
+
+<span class="sd">        image_ext: The extension to use when looking for image files.</span>
+
+<span class="sd">        metadata_file: The name of the .xml file holding metadata.</span>
+
+<span class="sd">        stack_freq_file: The name of the file holding stack frequency information.</span>
+
+<span class="sd">        verbose: True if progress updates should be printed to screen.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A Dataset object.  A DataSet object representing the experiment.  The data dictionary will have entries</span>
+<span class="sd">        containing the file names for the images for each color. If ephys data was available, an entry &#39;ephys&#39; will also</span>
+<span class="sd">        contain the ephys data.  The metadata for the experiment will have an entry &#39;stack_freq_info&#39; with the</span>
+<span class="sd">        information from the stack frequency file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Read in all of the raw data</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">read_imaging_metadata</span><span class="p">(</span><span class="n">metadata_folder</span> <span class="o">/</span> <span class="n">metadata_file</span><span class="p">)</span>
+
+    <span class="n">stack_freq_info</span> <span class="o">=</span> <span class="n">read_stack_freq</span><span class="p">(</span><span class="n">metadata_folder</span> <span class="o">/</span> <span class="n">stack_freq_file</span><span class="p">)</span>
+
+    <span class="n">image_names_sorted</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">image_folder</span> <span class="ow">in</span> <span class="n">image_folders</span><span class="p">:</span>
+        <span class="n">cur_sorted_names</span> <span class="o">=</span> <span class="n">find_images</span><span class="p">(</span><span class="n">image_folder</span><span class="p">,</span> <span class="n">image_ext</span><span class="p">,</span> <span class="n">image_folder_depth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">image_names_sorted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_sorted_names</span><span class="p">)</span>
+
+    <span class="n">n_series_one_images</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_names_sorted</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sorted_names</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_names_sorted</span><span class="p">):</span>
+        <span class="n">n_cur_images</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_names</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n_series_one_images</span> <span class="o">!=</span> <span class="n">n_cur_images</span><span class="p">:</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;All image series must have the same number of images. Found &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_series_one_images</span><span class="p">)</span> <span class="o">+</span>
+                               <span class="s1">&#39; but &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_cur_images</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; images for series &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span><span class="p">))</span>
+
+    <span class="n">time_stamps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="n">stack_freq_info</span><span class="p">[</span><span class="s1">&#39;smp_freq&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_series_one_images</span><span class="p">)])</span>
+
+    <span class="k">if</span> <span class="n">ephys_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ephys_data</span> <span class="o">=</span> <span class="n">read_ephys_data</span><span class="p">(</span><span class="n">ephys_folder</span> <span class="o">/</span> <span class="n">ephys_file</span><span class="p">,</span> <span class="n">ephys_var_name</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">n_ephys_smps</span> <span class="o">=</span> <span class="n">ephys_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">n_ephys_smps</span> <span class="o">!=</span> <span class="n">n_series_one_images</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s1">&#39;Found images for &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_series_one_images</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; time points but &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_ephys_smps</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; ephys data points.&#39;</span><span class="p">))</span>
+        <span class="n">ephys_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ts&#39;</span><span class="p">:</span> <span class="n">time_stamps</span><span class="p">,</span> <span class="s1">&#39;vls&#39;</span><span class="p">:</span> <span class="n">ephys_data</span><span class="p">}</span>
+
+    <span class="c1"># Check to make we found the number of image files expected from sampling frequency data</span>
+    <span class="k">if</span> <span class="n">n_series_one_images</span> <span class="o">!=</span> <span class="n">stack_freq_info</span><span class="p">[</span><span class="s1">&#39;n_images&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Found &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_series_one_images</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; image files but stack frequency file specified &#39;</span> <span class="o">+</span>
+                            <span class="nb">str</span><span class="p">(</span><span class="n">stack_freq_info</span><span class="p">[</span><span class="s1">&#39;n_images&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39; time stamps.&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Create an instance of Dataset</span>
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sorted_names</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_names_sorted</span><span class="p">):</span>
+        <span class="n">im_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ts&#39;</span><span class="p">:</span> <span class="n">time_stamps</span><span class="p">,</span> <span class="s1">&#39;vls&#39;</span><span class="p">:</span> <span class="n">sorted_names</span><span class="p">}</span>
+        <span class="n">data_dict</span><span class="p">[</span><span class="n">image_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">im_dict</span>
+
+    <span class="k">if</span> <span class="n">ephys_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;ephys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ephys_dict</span>
+
+    <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;stack_freq_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stack_freq_info</span>
+
+    <span class="k">return</span> <span class="n">dataset</span><span class="o">.</span><span class="n">DataSet</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="read_raw_ephys_data"><a class="viewcode-back" href="../../../autoapi/janelia_core/fileio/ahrens_lab/index.html#janelia_core.fileio.ahrens_lab.read_raw_ephys_data">[docs]</a><span class="k">def</span> <span class="nf">read_raw_ephys_data</span><span class="p">(</span><span class="n">in_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">num_channels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Reads in raw ephys data from an Ahrens lab experiment.</span>
+
+<span class="sd">    Raw files may end in .10chFlt.</span>
+
+<span class="sd">    This code is based on a similar function by Davis Bennett.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        in_file: The file to open</span>
+
+<span class="sd">        num_channels: The number of channels in the file</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        data: Raw data in a matrix of shape channels by time</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">in_file</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">fd</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">trim</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">size</span> <span class="o">%</span> <span class="n">num_channels</span>
+
+    <span class="c1"># transpose to make dimensions [channels, time]</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">trim</span><span class="p">)]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">size</span> <span class="o">//</span> <span class="n">num_channels</span><span class="p">,</span> <span class="n">num_channels</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">if</span> <span class="n">trim</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">Warning</span><span class="p">(</span><span class="s1">&#39;Data needed to be truncated!&#39;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

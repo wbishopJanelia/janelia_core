@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.extra_torch_modules &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.ml.extra_torch_modules</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.ml.extra_torch_modules</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Contains basic torch modules, supplementing those native to PyTorch.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch.nn.functional</span> <span class="kn">import</span> <span class="n">relu</span>
+
+<span class="kn">from</span> <span class="nn">janelia_core.math.basic_functions</span> <span class="kn">import</span> <span class="n">int_to_arb_base</span>
+<span class="kn">from</span> <span class="nn">janelia_core.ml.extra_torch_functions</span> <span class="kn">import</span> <span class="n">knn_do</span>
+
+<span class="c1"># Define aliases</span>
+<span class="n">OptionalTensor</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+<span class="sd">&quot;&quot;&quot; An optional tensor type.  &quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="Bias"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.Bias">[docs]</a><span class="k">class</span> <span class="nc">Bias</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Applies a bias transformation to the data y = x + o, where o is a 1-d vector. &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">init_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a Bias object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d: The dimensionality of the input and output</span>
+
+<span class="sd">            init_std: The standard deviation of the normal distribution initial biases are pulled from.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">o</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">init_std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Bias.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.Bias.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output given input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor, of shape n_smps*n_dims</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output tensor, same shape as input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span></div></div>
+
+
+<div class="viewcode-block" id="BiasAndPositiveScale"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.BiasAndPositiveScale">[docs]</a><span class="k">class</span> <span class="nc">BiasAndPositiveScale</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Applies a bias and non-negative scale transformation to the data y = abs(w)*x + o.</span>
+
+<span class="sd">    Here w is the same length of x so abs(w)*x indicates element-wise product and likewise ... + o is element-wise addition.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">o_init_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">w_init_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">o_init_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="n">w_init_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a Bias object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d: The dimensionality of the input and output</span>
+
+<span class="sd">            o_init_mn: The mean of the normal distribution initial biases are pulled from.</span>
+
+<span class="sd">            w_init_mn: The mean of the normal distribution initial weights are pulled from.</span>
+
+<span class="sd">            o_init_std: The standard deviation of the normal distribution initial biases are pulled from.</span>
+
+<span class="sd">            w_init_std: The standard deviation of the normal distribution initial weights are pulled from.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">w_init_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">w_init_std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+
+        <span class="n">o</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">o_init_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">o_init_std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BiasAndPositiveScale.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.BiasAndPositiveScale.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output given input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor, of shape n_smps*n_dims</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output tensor, same shape as input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="p">)</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span></div></div>
+
+
+<div class="viewcode-block" id="BiasAndScale"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.BiasAndScale">[docs]</a><span class="k">class</span> <span class="nc">BiasAndScale</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Applies a bias and scale transformation to the data y = w*x + o.</span>
+
+<span class="sd">    Here w is the same length of x so w*x indicates element-wise product and likewise ... + o is element-wise addition.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">o_init_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">w_init_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">o_init_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="n">w_init_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a Bias object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d: The dimensionality of the input and output</span>
+
+<span class="sd">            o_init_mn: The mean of the normal distribution initial biases are pulled from.</span>
+
+<span class="sd">            w_init_mn: The mean of the normal distribution initial weights are pulled from.</span>
+
+<span class="sd">            o_init_std: The standard deviation of the normal distribution initial biases are pulled from.</span>
+
+<span class="sd">            w_init_std: The standard deviation of the normal distribution initial weights are pulled from.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">w_init_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">w_init_std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+
+        <span class="n">o</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">o_init_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">o_init_std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BiasAndScale.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.BiasAndScale.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output given input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor, of shape n_smps*n_dims</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output tensor, same shape as input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span></div></div>
+
+
+<div class="viewcode-block" id="ConstantBoundedFcn"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.ConstantBoundedFcn">[docs]</a><span class="k">class</span> <span class="nc">ConstantBoundedFcn</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Object for representing a constant function which can produce output in a bounded range.</span>
+
+<span class="sd">    This is useful when working with modules which need a submodule which is a function with trainable parameters and</span>
+<span class="sd">    you desire to use a constant in place of the function.  For example, when working with conditional distributions</span>
+<span class="sd">    instead of predicting the conditional mean with a neural network, you might want a constant conditional mean.</span>
+
+<span class="sd">    Output values can be multi-dimensional.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">init_value</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a ConstantBoundedFcn object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            lower_bound, upper_bound: the lower and upper bounds the output of the function can take on.  These</span>
+<span class="sd">            should be arrays providing the bounds for each dimension of output.</span>
+
+<span class="sd">            init_value: If provided, this is the constant output the function is initialized to.  Should be an</span>
+<span class="sd">            array providing initial values for each dimension. If not provided, the constant value will be initialized</span>
+<span class="sd">            to be halfway between the lower and upper bound.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="n">n_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_dims</span> <span class="o">=</span> <span class="n">n_dims</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;lower_bound&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;upper_bound&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">upper_bound</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_dims</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">init_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">init_value</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span><span class="o">*</span><span class="p">(</span><span class="n">lower_bound</span> <span class="o">+</span> <span class="n">upper_bound</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">init_value</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ConstantBoundedFcn.set_value"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.ConstantBoundedFcn.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vl</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets the value of the function.</span>
+
+<span class="sd">        Note: Value will be cast to a float before setting.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vl: The value to set the function to.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">EP</span> <span class="o">=</span> <span class="mf">1E-7</span>
+
+        <span class="c1"># Make sure everything is within bounds</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">vl</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">vl</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span><span class="o">.</span><span class="n">numpy</span><span class="p">()):</span>
+            <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Some values out of bounds.  They will be set them to bounded values.&#39;</span><span class="p">)</span>
+
+        <span class="n">y</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">vl</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">y</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># Make sure values we put through archtanh are not exactly -1 or 1</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">y</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">EP</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">y</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-=</span> <span class="n">EP</span>
+
+        <span class="n">init_v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctanh</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">init_v</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">float</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ConstantBoundedFcn.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.ConstantBoundedFcn.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Produces constant output given input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input data of shape n_smps*d_in.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: output of shape nSmps*d_out</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">n_smps</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">vl</span> <span class="o">=</span> <span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">v</span><span class="p">)</span> <span class="o">+</span> <span class="o">.</span><span class="mi">5</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">upper_bound</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">lower_bound</span>
+
+        <span class="k">return</span> <span class="n">vl</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">n_smps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_dims</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ConstantRealFcn"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.ConstantRealFcn">[docs]</a><span class="k">class</span> <span class="nc">ConstantRealFcn</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Object for representing function which is constant w.r.t to input and take values anywhere in the reals.</span>
+
+<span class="sd">    This is useful when working with modules which need a submodule which is a function with trainable parameters and</span>
+<span class="sd">    you desire to use a constant in place of the function.  For example, when working with conditional distributions</span>
+<span class="sd">    instead of predicting the conditional mean with a neural network, you might want a constant conditional mean.</span>
+
+<span class="sd">    Output values can be multidimensional.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_vl</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">learnable_values</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a ConstantRealFcn object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            init_vl: The initial value to initialize the function with.  The length of init_vl determines the number</span>
+<span class="sd">            of dimensions of the output of the function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">init_vl</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">learnable_values</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vl</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_dims</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;vl&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_dims</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dummy_param</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>  <span class="c1"># Dummy parameter so that we can figure out which</span>
+                                                                   <span class="c1"># device this module is on</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_vl</span><span class="p">(</span><span class="n">init_vl</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ConstantRealFcn.set_vl"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.ConstantRealFcn.set_vl">[docs]</a>    <span class="k">def</span> <span class="nf">set_vl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vl</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets the value of the function.</span>
+
+<span class="sd">        Note: Values will be cast to float before setting.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vl: The value to set the function to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">vl</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">vl</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vl</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">vl</span><span class="o">.</span><span class="n">float</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ConstantRealFcn.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.ConstantRealFcn.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Produces constant output given input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input data of shape nSmps*d_in.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: output of shape nSmps*d_out</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">n_smps</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vl</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">n_smps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_dims</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="DenseLayer"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.DenseLayer">[docs]</a><span class="k">class</span> <span class="nc">DenseLayer</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A layer which concatenates its input to it&#39;s output. &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a DenseLayer object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            m: The module which input is passed through.  The output of this module is concatenated to</span>
+<span class="sd">            the input to form the final output of the module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">=</span> <span class="n">m</span>
+
+<div class="viewcode-block" id="DenseLayer.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.DenseLayer.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes input from output.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input, of shape n_smps*d_in</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output, of shape n_smps*(d_in + m_out), where m_out is the output dimensionality of the m module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="DenseLNLNet"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.DenseLNLNet">[docs]</a><span class="k">class</span> <span class="nc">DenseLNLNet</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A network of densely connected linear, non-linear units. &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nl_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">d_in</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_layers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">growth_rate</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a DenseLNLNet object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">              nl_class: The class to construct the non-linear activation functions from, e.g., torch.nn.ReLU</span>
+
+<span class="sd">              d_in: Input dimensionality to the network</span>
+
+<span class="sd">              n_layers: The number of layers in the network.</span>
+
+<span class="sd">              growth_rate: The number of unique features computed by each layer.  The output dimensionality of</span>
+<span class="sd">              the network will be: d_in + n_layers*growth_rate.</span>
+
+<span class="sd">              bias: True if linear layers should have a bias.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_layers</span><span class="p">):</span>
+
+            <span class="n">linear_layer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="n">d_in</span> <span class="o">+</span> <span class="n">i</span><span class="o">*</span><span class="n">growth_rate</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="n">growth_rate</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="n">bias</span><span class="p">)</span>
+
+            <span class="n">dense_layer</span> <span class="o">=</span> <span class="n">DenseLayer</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">linear_layer</span><span class="p">,</span> <span class="n">nl_class</span><span class="p">()))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="s1">&#39;dense_lnl_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">dense_layer</span><span class="p">)</span> <span class="c1"># Add linear layer</span>
+
+<div class="viewcode-block" id="DenseLNLNet.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.DenseLNLNet.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes input given output.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input, of shape n_smps*d_in</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output, of shape n_smps*(d_in + n_layers*growth_rate)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">module</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span></div></div>
+
+
+<div class="viewcode-block" id="BasicExp"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.BasicExp">[docs]</a><span class="k">class</span> <span class="nc">BasicExp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Applies the transformation y = exp(x) to the data.  &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new BasicExp object. &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="BasicExp.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.BasicExp.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output from input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input, of any shape</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            y: Output, same shape as input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Exp"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.Exp">[docs]</a><span class="k">class</span> <span class="nc">Exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Applies a transformation to the data y = o + exp(g*x + s) &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">o_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">o_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+                               <span class="n">g_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">g_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+                               <span class="n">s_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">s_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a Exp object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d: The dimensionality of the input and output</span>
+
+<span class="sd">            o_mn, o_std: The mean and standard deviation for initializing o</span>
+
+<span class="sd">            g_mn, g_std: The mean and standard deviation for initializing g</span>
+
+<span class="sd">            s_mn, s_std: The mean and standard deviation for initializing s</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="n">o</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">o_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">o_std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">s_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">s_std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+
+        <span class="n">g</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">g_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">g_std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Exp.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.Exp.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output given input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor, of shape n_smps*d_in</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output tensor, same shape as input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span></div></div>
+
+
+<div class="viewcode-block" id="FirstAndSecondOrderFcn"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn">[docs]</a><span class="k">class</span> <span class="nc">FirstAndSecondOrderFcn</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A function f(x[i]) = o[i] + sum_j a[i, j]*x[j] + sum_{j,k} b_[i, j,k]*x[j]*x[k], where o, a and b are parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">o_init_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">o_init_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">01</span><span class="p">,</span>
+                 <span class="n">a_init_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">a_init_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">01</span><span class="p">,</span>
+                 <span class="n">b_init_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">b_init_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">01</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new FirstAndSecondOrderFcn object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">             d_in: The input dimensionality</span>
+
+<span class="sd">             d_out: The output dimensionality</span>
+
+<span class="sd">             o_init_mn, o_init_std: The mean and standard deviation of the normal distribution to</span>
+<span class="sd">             pull initial values of o from</span>
+
+<span class="sd">             a_init_mn, a_init_std: The mean and standard deviation of the normal distribution to</span>
+<span class="sd">             pull initial values of a from</span>
+
+<span class="sd">             b_init_mn, b_init_std: The mean and standard deviation of the normal distribution to</span>
+<span class="sd">             pull initial values of b from</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_in</span> <span class="o">=</span> <span class="n">d_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_out</span> <span class="o">=</span> <span class="n">d_out</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">o</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d_out</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">o_init_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">o_init_std</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">d_out</span><span class="p">,</span> <span class="n">d_in</span><span class="p">]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">a_init_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">a_init_std</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">d_out</span><span class="p">,</span> <span class="n">d_in</span><span class="p">,</span> <span class="n">d_in</span><span class="p">]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">b_init_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">b_init_std</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FirstAndSecondOrderFcn.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes input from output.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor, of shape n_smps*d_in</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output tensor, of shape n_smps*d_out</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">)),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">t</span><span class="p">()</span> <span class="o">+</span>  <span class="c1"># Second order terms</span>
+             <span class="n">x</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">t</span><span class="p">())</span> <span class="o">+</span>  <span class="c1"># Linear terms</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">)</span> <span class="c1"># Offset term</span>
+        <span class="k">return</span> <span class="n">y</span></div></div>
+
+
+<div class="viewcode-block" id="FixedOffsetExp"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.FixedOffsetExp">[docs]</a><span class="k">class</span> <span class="nc">FixedOffsetExp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Computes y = exp(x) + o, where o is a fixed, non-learnable offset. &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span><span class="nb">float</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new FixedOffsetExp object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            o: The offset to apply</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="n">o</span><span class="p">]))</span>
+
+<div class="viewcode-block" id="FixedOffsetExp.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.FixedOffsetExp.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes input from output.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor, of any shape</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Computed output, same shape as input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span></div></div>
+
+
+<div class="viewcode-block" id="FixedOffsetAbs"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.FixedOffsetAbs">[docs]</a><span class="k">class</span> <span class="nc">FixedOffsetAbs</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Computes y = abs(x) + o, for a fixed o. &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new FixedOffsetAbs module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            o: The fixed offsest</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">o</span> <span class="o">=</span> <span class="n">o</span>
+
+<div class="viewcode-block" id="FixedOffsetAbs.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.FixedOffsetAbs.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output from input.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            x: Input, of any shape</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output, the same shape as input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span></div></div>
+
+
+<div class="viewcode-block" id="FixedOffsetTanh"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.FixedOffsetTanh">[docs]</a><span class="k">class</span> <span class="nc">FixedOffsetTanh</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Computes y = abs(s)*(tanh(x) + 1) + m, where s is learnable and m is fixed.</span>
+
+<span class="sd">    This function can learn a different scale for each dimension of data.</span>
+
+<span class="sd">    The minimum of the above function is m.  This function can be used when wanting to apply a scaled Tanh</span>
+<span class="sd">    to values while making sure function values never go below a threshold.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">init_s_vls</span><span class="p">:</span> <span class="n">OptionalTensor</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new FixedOffsetTanh object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d: The dimension of the input.</span>
+
+<span class="sd">            m: The minimum value of the function</span>
+
+<span class="sd">            init_s_vls: The initial s values.  Should be of length d.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">=</span> <span class="n">m</span>
+
+        <span class="k">if</span> <span class="n">init_s_vls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">init_s_vls</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">init_s_vls</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FixedOffsetTanh.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.FixedOffsetTanh.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output from input.</span>
+
+<span class="sd">        Arg:</span>
+<span class="sd">            x: Input, of shape n_smps*d</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output, same shape as input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span></div></div>
+
+
+<div class="viewcode-block" id="FormMatrixByCols"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.FormMatrixByCols">[docs]</a><span class="k">class</span> <span class="nc">FormMatrixByCols</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Forms a matrix output column by column, where each column is calculated from a separate function.</span>
+
+<span class="sd">    Specifically, each column is formed by applying a module unique to that column to the same input x.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col_modules</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new FormMatrixByCols object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            col_modules: col_modules[i] is the module that should be applied to form column i</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_modules</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">(</span><span class="n">col_modules</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FormMatrixByCols.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.FormMatrixByCols.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes input from output.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input, of any shape</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output.  Each column is the result of applying the appropriate function to the input data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">m</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_modules</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="IndSmpConstantBoundedFcn"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn">[docs]</a><span class="k">class</span> <span class="nc">IndSmpConstantBoundedFcn</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; For representing a function which assigns different bounded constant scalar values to given samples.</span>
+
+<span class="sd">    This is useful, for example, when wanting to have a function which provides a different standard deviation for</span>
+<span class="sd">    each sample in a conditional Gaussian distribution.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">lower_bound</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">init_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">05</span><span class="p">,</span>
+                 <span class="n">check_sizes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates an IndSmpConstantBoundedFcn object.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            n: The number of samples this function will assign values to.</span>
+
+<span class="sd">            lower_bound, upper_bound: lower and upper bounds the function can represent.  All samples will have the same</span>
+<span class="sd">            bounds.</span>
+
+<span class="sd">            init_value: The initial value to assign to each sample.  All samples will have the same initial value.</span>
+
+<span class="sd">            check_sizes: If true, checks that the number of rows of input matches n (the number of samples) when</span>
+<span class="sd">            calling forward.  If false, this check is omitted.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
+
+        <span class="n">l_bounds</span> <span class="o">=</span> <span class="n">lower_bound</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">u_bounds</span> <span class="o">=</span> <span class="n">upper_bound</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">init_vls</span> <span class="o">=</span> <span class="n">init_value</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">ConstantBoundedFcn</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="n">l_bounds</span><span class="p">,</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">u_bounds</span><span class="p">,</span> <span class="n">init_value</span><span class="o">=</span><span class="n">init_vls</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_sizes</span> <span class="o">=</span> <span class="n">check_sizes</span>
+
+<div class="viewcode-block" id="IndSmpConstantBoundedFcn.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Assigns a value to each sample in x.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input of shape n_smps*d_x</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: output of shape n_smps*1</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the number of samples in x does not match the the number of samples the function represents.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_sizes</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">!=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39; Number of input samples does not match number of output values.&#39;</span><span class="p">))</span>
+
+        <span class="n">place_holder_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">place_holder_input</span><span class="p">)</span><span class="o">.</span><span class="n">t</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="IndSmpConstantBoundedFcn.set_value"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vl</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets the value of the function.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vl: The value to set.  Must be a 1-d array of length self.n</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">vl</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="IndSmpConstantRealFcn"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn">[docs]</a><span class="k">class</span> <span class="nc">IndSmpConstantRealFcn</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; For representing a function which assigns different real-valued constant scalar values to given samples.</span>
+
+<span class="sd">    This is useful, for example, when wanting to have a function which provides a different mean for each sample in a</span>
+<span class="sd">    conditional Gaussian distribution.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">init_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">init_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">check_sizes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a IndSmpConstantBoundedFcn object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n: The number of samples this function will assign values to.</span>
+
+<span class="sd">            init_mn: The mean of the normal distribution to pull initial function values from.</span>
+
+<span class="sd">            init_std: The standard deviation of the normal distribution to pull initial function values from.</span>
+
+<span class="sd">            check_sizes: If true, checks that the number of rows of input matches n (the number of samples) when</span>
+<span class="sd">            calling forward.  If false, this check is omitted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span> <span class="o">=</span> <span class="n">ConstantRealFcn</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">vl</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">init_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">init_std</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_sizes</span> <span class="o">=</span> <span class="n">check_sizes</span>
+
+<div class="viewcode-block" id="IndSmpConstantRealFcn.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Assigns a value to each sample in x.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape n_smps*d_x</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output of shape n_smps*1</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the number of samples in x does not match the the number of samples the function represents.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_sizes</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">!=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Number of input samples does not match number of output samples.&#39;</span><span class="p">))</span>
+
+        <span class="n">place_holder_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">(</span><span class="n">place_holder_input</span><span class="p">)</span><span class="o">.</span><span class="n">t</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="IndSmpConstantRealFcn.set_value"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vl</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets the value of the function.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vl: The value to set. Should be a 1-d array of length self.n</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">set_vl</span><span class="p">(</span><span class="n">vl</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="LogGaussianBumpFcn"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.LogGaussianBumpFcn">[docs]</a><span class="k">class</span> <span class="nc">LogGaussianBumpFcn</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A module representing a log Gaussian &quot;bump&quot; function with trainable parameters of the form:</span>
+
+<span class="sd">            y = log(g*exp(-d(x,c)),</span>
+
+<span class="sd">        where d(x,c) is the distance of x from the center c defined as sqrt( (x - c)&#39;S^-2(x-c) ), where</span>
+<span class="sd">        S is a diagonal matrix of standard deviations.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ctr_std_lb</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">02</span><span class="p">,</span> <span class="n">ctr_std_ub</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">100.0</span><span class="p">,</span> <span class="n">ctr_std_init</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">log_gain_lb</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">log_gain_ub</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">log_gain_init</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=-</span><span class="mf">0.05</span><span class="p">,</span>
+                 <span class="n">ctr_range</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a LogGaussianBumpFcn object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d_x: The dimensionality of the domain of the function.</span>
+
+<span class="sd">            ctr_std_lb: Lower bound center standard deviations can take on</span>
+
+<span class="sd">            ctr_std_ub: Upper bound center standard deviations can take on</span>
+
+<span class="sd">            ctr_std_init: Initial value for center standard deviations.  All dimensions are initialized to the same</span>
+<span class="sd">            value.</span>
+
+<span class="sd">            log_gain_lb: Lower bound the log gain value can take on</span>
+
+<span class="sd">            log_gain_ub: Upper bound the log gain value can take on</span>
+
+<span class="sd">            log_gain_init: Initial value for the log gain value</span>
+
+<span class="sd">            ctr_range: The range of the uniform distribution when randomly initializing the center.  All dimensions are</span>
+<span class="sd">            selected from the same Uniform distribution.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctr</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d_x</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctr</span><span class="p">,</span> <span class="n">ctr_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ctr_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># Standard deviations determining how fast bumps fall off in each direction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctr_stds</span> <span class="o">=</span> <span class="n">ConstantBoundedFcn</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">ctr_std_lb</span><span class="p">]),</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ctr_std_ub</span><span class="p">),</span>
+                                           <span class="n">init_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">ctr_std_init</span><span class="p">]))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_gain_vl</span> <span class="o">=</span> <span class="n">ConstantBoundedFcn</span><span class="p">(</span><span class="n">lower_bound</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">log_gain_lb</span><span class="p">]),</span> <span class="n">upper_bound</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">log_gain_ub</span><span class="p">]),</span>
+                                              <span class="n">init_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">log_gain_init</span><span class="p">]))</span>
+
+<div class="viewcode-block" id="LogGaussianBumpFcn.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.LogGaussianBumpFcn.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output of function given input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape nSmps*d</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output of shape nSmps</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">place_holder_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">ctr_stds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctr_stds</span><span class="p">(</span><span class="n">place_holder_input</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="n">log_gain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_gain_vl</span><span class="p">(</span><span class="n">place_holder_input</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+
+        <span class="n">x_ctr</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctr</span>
+        <span class="n">x_ctr_scaled</span> <span class="o">=</span> <span class="n">x_ctr</span><span class="o">/</span><span class="n">ctr_stds</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_ctr_scaled</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">x_dist</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x_ctr_scaled</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x_dist</span> <span class="o">=</span> <span class="n">x_ctr_scaled</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="k">return</span> <span class="n">log_gain</span> <span class="o">+</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">x_dist</span></div></div>
+
+
+<div class="viewcode-block" id="PWLNNFcn"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.PWLNNFcn">[docs]</a><span class="k">class</span> <span class="nc">PWLNNFcn</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Piecewise-linear nearest neighbor network function.</span>
+
+<span class="sd">    For any input point, this function finds the k nearest-neighboring functions to it. The value of the function</span>
+<span class="sd">    for that point is then the sum of the point evaluated at each of its nearest-neighbor functions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_centers</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">init_weights</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+                 <span class="n">init_offsets</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_used_fcns</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new PWLNNFcn.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            init_centers: Initial centers for each function. Of shape n_ctrs*input_dim</span>
+
+<span class="sd">            init_weights: Initial weights for each function. Of shape n_ctrs*input_dim*output_dim</span>
+
+<span class="sd">            init_offsets: Initial offsets for each function. Of shape n_ctrs*output_dim</span>
+
+<span class="sd">            k: Number of nearest neighbors to use.</span>
+
+<span class="sd">            m: The number of centers to compare at once when searching for nearest neighbors.  Larger</span>
+<span class="sd">            values use more memory but can result in significantly faster computation on GPU.</span>
+
+<span class="sd">            n_used_fcns: The number of functions to use at any point in time.  Setting this equal to n_ctrs,</span>
+<span class="sd">            results in using all centers all the time.  Setting this less than n_ctrs, will result in</span>
+<span class="sd">            randomly dropping out some functions during each call to forward.  Setting this to None, will</span>
+<span class="sd">            result in using all centers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">=</span> <span class="n">m</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_fcns</span> <span class="o">=</span> <span class="n">init_centers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_in</span> <span class="o">=</span> <span class="n">init_centers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">n_used_fcns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_used_fcns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_fcns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_used_fcns</span> <span class="o">=</span> <span class="n">n_used_fcns</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctrs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">init_centers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wts</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">init_weights</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offsets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">init_offsets</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PWLNNFcn.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.PWLNNFcn.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes output from input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape n_smps*input_dim</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output of shape n_smps*output_dim</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Find the k closest centers to each data point</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">top_k_indices</span> <span class="o">=</span> <span class="n">knn_do</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">ctrs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ctrs</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">n_ctrs_used</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_used_fcns</span><span class="p">)</span>
+
+        <span class="c1"># Compute linear functions applied to each input data point</span>
+        <span class="n">selected_wts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wts</span><span class="p">[</span><span class="n">top_k_indices</span><span class="p">]</span>
+        <span class="n">selected_ctrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctrs</span><span class="p">[</span><span class="n">top_k_indices</span><span class="p">]</span>
+
+        <span class="n">applied_wts</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">selected_wts</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">applied_offsets</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">offsets</span><span class="p">[</span><span class="n">top_k_indices</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span>
+                           <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">selected_wts</span> <span class="o">*</span> <span class="n">selected_ctrs</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">applied_wts</span> <span class="o">*</span> <span class="n">x</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">applied_offsets</span></div>
+
+<div class="viewcode-block" id="PWLNNFcn.bound"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.PWLNNFcn.bound">[docs]</a>    <span class="k">def</span> <span class="nf">bound</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctr_bounds</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">bound_fcns</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;  Applies bounds to the centers.</span>
+
+<span class="sd">        Bounds are applied element-wise.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ctr_bounds: The bounds to force centers to be between. If None, no bounds are enforced. The</span>
+<span class="sd">            same bound is applied to all dimensions.</span>
+
+<span class="sd">            bound_fcns: True if bound should be called on functiions.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">ctr_bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">small_inds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctrs</span> <span class="o">&lt;</span> <span class="n">ctr_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">big_inds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctrs</span> <span class="o">&gt;</span> <span class="n">ctr_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ctrs</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">small_inds</span><span class="p">]</span> <span class="o">=</span> <span class="n">ctr_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ctrs</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">big_inds</span><span class="p">]</span> <span class="o">=</span> <span class="n">ctr_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="QuadSurf"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.QuadSurf">[docs]</a><span class="k">class</span> <span class="nc">QuadSurf</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A surface defined by: z = a*(x - x_0)^2 + b*(y - y_0)^2&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctr</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">coefs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new QuadSurf Module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ctr: the vector [x_0, x_1]</span>
+
+<span class="sd">            coefs: the vector [a, b]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctr</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">ctr</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="QuadSurf.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.QuadSurf.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output from input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape n_smps*2</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            output: Of shape n_smps*3, where each row is of the form [z, x, y], where x &amp; y are the original x &amp; y</span>
+<span class="sd">            from the input, and z is the function output.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">z</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="o">*</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctr</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Relu"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.Relu">[docs]</a><span class="k">class</span> <span class="nc">Relu</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Applies a rectified linear transformation to the data y = o + relu(x + s) &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">o_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">o_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">s_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">s_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a Relu object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d: The dimensionality of the input and output</span>
+
+<span class="sd">            o_mn: Mean of normal distribution for initializing offsets</span>
+
+<span class="sd">            o_std: Standard deviation of normal distribution for initializing offsets</span>
+
+<span class="sd">            s_mn: Mean of normal distribution for initializing shifts</span>
+
+<span class="sd">            s_std: Standard deviation of normal distribution for initializing shifts</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="n">o</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">o_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">o_std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">s_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">s_std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Relu.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.Relu.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output given input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">relu</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span></div></div>
+
+
+<div class="viewcode-block" id="SCC"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.SCC">[docs]</a><span class="k">class</span> <span class="nc">SCC</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A module which splits inputs, applies a function to that input (computes) and concatenates the results.</span>
+
+<span class="sd">    The acronym SCC is for Split, Compute, Concatenate.  This module will:</span>
+
+<span class="sd">        1) Split the input into different groups</span>
+
+<span class="sd">        2) Apply a different function to each of the groups</span>
+
+<span class="sd">        3) Concatenate the result</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group_inds</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">group_modules</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new SCC object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            group_inds: group_inds[i] is tensor of dtype long indicating which input dimensions are used to</span>
+<span class="sd">            form the data for group i.  Variables in the group will be ordered according their order in</span>
+<span class="sd">            group_inds[i]</span>
+
+<span class="sd">            group_modules: group_fcns[i] is the function to apply to data for group i.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Register the group indices as buffers - this ensures they get moved to the appropriate device when we move</span>
+        <span class="c1"># an SCC module</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">group_inds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">g_i</span><span class="p">,</span> <span class="n">inds</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">group_inds</span><span class="p">):</span>
+            <span class="n">buffer_name</span> <span class="o">=</span> <span class="s1">&#39;grp_inds&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">g_i</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="n">buffer_name</span><span class="p">,</span> <span class="n">inds</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">group_inds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">buffer_name</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">group_modules</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">(</span><span class="n">group_modules</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SCC.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.SCC.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes input from output.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: input of shape n_smps*d_x</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: output of shane n_smps*d_y, where d_y is the sum of the output dimensionalities of all</span>
+<span class="sd">            group functions.  Outputs from each group are concatenated (according to the order of the</span>
+<span class="sd">            groups) to form y.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">grp_y</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="n">inds</span><span class="p">])</span> <span class="k">for</span> <span class="n">inds</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">group_inds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_modules</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">grp_y</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SumAlongDim"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.SumAlongDim">[docs]</a><span class="k">class</span> <span class="nc">SumAlongDim</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Performs a sum along a given dimension of input. &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create a SumAlongDim object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dim: The dimension to sum along</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="n">dim</span>
+
+<div class="viewcode-block" id="SumAlongDim.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.SumAlongDim.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes input from output.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input, of any shape</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output.  The dimension summed along will be retrained.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SumOfTiledHyperCubeBasisFcns"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns">[docs]</a><span class="k">class</span> <span class="nc">SumOfTiledHyperCubeBasisFcns</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A module to represent a function which is a sum of tiled hypercube basis functions.</span>
+
+<span class="sd">        The hypercubes tile, in an overlapping fashion, a volume.  To specify a layout of hypercubes the user:</span>
+
+<span class="sd">            1. Specifies the range of each dimension that should be covered</span>
+
+<span class="sd">            2. Specifies a number of divisions to break the range of each dimension into (see illustration below). These</span>
+<span class="sd">            divisions *do not* directly correspond to hypercubes.  (See 3)</span>
+
+<span class="sd">            3. Specifies how many divisions make up the side of a hypercube in each dimension.  For non-overlapping</span>
+<span class="sd">            hypercubes 1 division makes up the side of 1 hypercube.  Increasing the number of divisions per side of each</span>
+<span class="sd">            hypercube results in overlapping hypercubes (see illustration below).</span>
+
+<span class="sd">            4. Final hypercubes are constructed to respect the hypercube sides set for each dimension.  Each hypercube</span>
+<span class="sd">            has it&#39;s own learnable magnitude.</span>
+
+<span class="sd">            Example of breaking up a dimension into divsions and overlapping hypercube sides with 2 divisions per</span>
+<span class="sd">            hypercube side::</span>
+
+<span class="sd">                |-|-|-|-|-|-|-|-| : Each block a division (e.g., 8 divisions)</span>
+<span class="sd">                ^               ^</span>
+<span class="sd">                |               |</span>
+<span class="sd">                start_range     end_range</span>
+<span class="sd">                |               |</span>
+<span class="sd">                |               |</span>
+<span class="sd">                |               |</span>
+<span class="sd">                |               |</span>
+<span class="sd">              |- -|             |   : (Notice padding so that first and last hypercubes run over the valid range)</span>
+<span class="sd">                |- -|           |</span>
+<span class="sd">                  |- -|         |</span>
+<span class="sd">                       ...      |</span>
+<span class="sd">                              |- -|</span>
+
+
+<span class="sd">         Note: This object has been optimized for speed.  Specifically, by having hypercubes defined with respect to</span>
+<span class="sd">         a base set of divisions, it is possible to take an input point and use an efficient hashing function to</span>
+<span class="sd">         determine all hypercubes that it falls in.  Moreover, by including padding of the hypercubes, we ensure</span>
+<span class="sd">         that each input point to the function anywhere in the user specified range falls within the *same* number of</span>
+<span class="sd">         hypercubes.  These two things make forward evaluation of the function efficient.</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_divisions_per_dim</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">dim_ranges</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">n_div_per_hc_side_per_dim</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a SumOfTiledHyperCubeBasisFcns object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n_divisions_per_dim: n_divisions_per_dim[i] gives the number of divisions for dimension i.</span>
+
+<span class="sd">            dim_ranges: The range for dimension i is dim_ranges[i,0] &lt;= x[i] &lt; dim_ranges[i,1]</span>
+
+<span class="sd">            n_div_per_hc_side_per_dim: The number of divisions per hypercube side for each dimension</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="n">n_dims</span> <span class="o">=</span> <span class="n">dim_ranges</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;n_dims&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="n">n_dims</span><span class="p">]))</span>
+
+        <span class="n">div_widths</span> <span class="o">=</span> <span class="p">(</span><span class="n">dim_ranges</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">dim_ranges</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="n">n_divisions_per_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;div_widths&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">div_widths</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;min_dim_ranges&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">dim_ranges</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;max_dim_ranges&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">dim_ranges</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]))</span>
+
+        <span class="c1"># Determine the order of dimensions for the purposes of linearalization - we want the dimension</span>
+        <span class="c1"># which will have the most active bump functions for a given point to be last.  This will allow us</span>
+        <span class="c1"># to specify the largest contiguous chunks of the array holding bump function magnitudes.</span>
+        <span class="n">n_div_per_hc_side_per_dim</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">n_div_per_hc_side_per_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="n">dim_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">n_div_per_hc_side_per_dim</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;dim_order&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">dim_order</span><span class="p">)</span><span class="o">.</span><span class="n">long</span><span class="p">())</span>
+
+        <span class="c1"># Determine how many bump functions per dimension there are - we order this according to dim_order</span>
+        <span class="n">n_bump_fcns_per_dim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">n_div</span> <span class="o">+</span> <span class="n">n_div_per_block</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">n_div</span><span class="p">,</span> <span class="n">n_div_per_block</span> <span class="ow">in</span>
+                                          <span class="nb">zip</span><span class="p">(</span><span class="n">n_divisions_per_dim</span><span class="p">,</span> <span class="n">n_div_per_hc_side_per_dim</span><span class="p">)])</span>
+        <span class="n">n_bump_fcns_per_dim</span> <span class="o">=</span> <span class="n">n_bump_fcns_per_dim</span><span class="p">[</span><span class="n">dim_order</span><span class="p">]</span>
+
+        <span class="c1"># Order n_div_per_hs_side_per_dim according to dim_order too - the rest of the code</span>
+        <span class="c1"># in this function will assume this order</span>
+        <span class="n">n_div_per_hc_side_per_dim</span> <span class="o">=</span> <span class="n">n_div_per_hc_side_per_dim</span><span class="p">[</span><span class="n">dim_order</span><span class="p">]</span>
+
+        <span class="c1"># Pre-calculate factors we need for linearalization - saved in order according to dim_order</span>
+        <span class="n">dim_factors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_dims</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">d_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_dims</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">dim_factors</span><span class="p">[</span><span class="n">d_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dim_factors</span><span class="p">[</span><span class="n">d_i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">n_bump_fcns_per_dim</span><span class="p">[</span><span class="n">d_i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;dim_factors&#39;</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">dim_factors</span><span class="p">)</span><span class="o">.</span><span class="n">long</span><span class="p">())</span>
+
+        <span class="c1"># Calculate offset vector for looking up active bump functions for each point.  This offset vector</span>
+        <span class="c1"># can be added to the linear index of the first active bump function for a point to get the indices of</span>
+        <span class="c1"># all active bump functions for that point</span>
+
+        <span class="n">n_active_bump_fcns</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cumprod</span><span class="p">(</span><span class="n">n_div_per_hc_side_per_dim</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;long&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">n_dims</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">n_minor_dim_repeats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumprod</span><span class="p">(</span><span class="n">n_div_per_hc_side_per_dim</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n_minor_dim_repeats</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">bump_ind_offsets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_div_per_hc_side_per_dim</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">n_minor_dim_repeats</span><span class="p">)</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+        <span class="n">cur_chunk_size</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">d_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_dims</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">cur_chunk_size</span> <span class="o">=</span> <span class="n">cur_chunk_size</span> <span class="o">*</span> <span class="n">n_div_per_hc_side_per_dim</span><span class="p">[</span><span class="n">d_i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">cur_n_chunks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_active_bump_fcns</span><span class="o">/</span><span class="n">cur_chunk_size</span><span class="p">)</span>
+            <span class="n">cur_n_stacked_chunks</span> <span class="o">=</span> <span class="n">n_div_per_hc_side_per_dim</span><span class="p">[</span><span class="n">d_i</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">c_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cur_n_chunks</span><span class="p">):</span>
+                <span class="n">cur_chunk_start_ind</span> <span class="o">=</span> <span class="n">c_i</span><span class="o">*</span><span class="n">cur_chunk_size</span>
+                <span class="n">cur_chunk_end_ind</span> <span class="o">=</span> <span class="n">cur_chunk_start_ind</span> <span class="o">+</span> <span class="n">cur_chunk_size</span>
+                <span class="n">mod_i</span> <span class="o">=</span> <span class="n">c_i</span> <span class="o">%</span> <span class="n">cur_n_stacked_chunks</span>
+                <span class="n">bump_ind_offsets</span><span class="p">[</span><span class="n">cur_chunk_start_ind</span><span class="p">:</span><span class="n">cur_chunk_end_ind</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">dim_factors</span><span class="p">[</span><span class="n">d_i</span><span class="p">]</span><span class="o">*</span><span class="n">mod_i</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_buffer</span><span class="p">(</span><span class="s1">&#39;bump_ind_offsets&#39;</span><span class="p">,</span> <span class="n">bump_ind_offsets</span><span class="p">)</span>
+
+        <span class="c1"># Initialize the magnitudes of each bump function.  We initialize to zero so that if there is never</span>
+        <span class="c1"># any training data that falls within the support of a bump, that bump will have a zero magnitude.</span>
+        <span class="c1"># Also, we put all magnitudes in a single 1-d vector for fast indexing</span>
+
+        <span class="n">n_bump_fcns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumprod</span><span class="p">(</span><span class="n">n_bump_fcns_per_dim</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b_m</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_bump_fcns</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SumOfTiledHyperCubeBasisFcns._x_to_idx"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns._x_to_idx">[docs]</a>    <span class="k">def</span> <span class="nf">_x_to_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">run_checks</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Given x data computes the indices of active basis functions for each point.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input data of shape n_smps*d_x</span>
+
+<span class="sd">            run_checks: True if input should be checked for expected properties</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            idx: Indices of active bump functions for each point.  Of shape n_smps*n_active,</span>
+<span class="sd">            where n_active is the number of active bump functions for each point.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If check_range is true and one or more x values are not in the valid range for the function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">n_smps</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">n_x_dims</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">run_checks</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n_x_dims</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_dims</span><span class="p">:</span>
+                <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;x does not have expected number of dimensions.&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_dim_ranges</span><span class="p">)</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_dim_ranges</span><span class="p">):</span>
+                <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;One or more x values falls outside of the valid range for the function.&#39;</span><span class="p">))</span>
+
+        <span class="c1"># Determine the division along each dimension each point falls into</span>
+        <span class="n">dim_div_inds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_dim_ranges</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">div_widths</span><span class="p">)</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+
+        <span class="c1"># Sort dimensions in encoding order</span>
+        <span class="n">dim_div_inds</span> <span class="o">=</span> <span class="n">dim_div_inds</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_order</span><span class="p">]</span>
+
+        <span class="c1"># Determine the first function that is active for each point in each dimension.</span>
+        <span class="c1"># We define bin indices so that the index of the first bin that is active in a dimension is equal to the</span>
+        <span class="c1"># division index.</span>
+        <span class="n">dim_first_bin_inds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim_div_inds</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dim_factors</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">([</span><span class="n">n_smps</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">dim_first_bin_inds</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">bump_ind_offsets</span></div>
+
+<div class="viewcode-block" id="SumOfTiledHyperCubeBasisFcns.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes input given output.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape n_smps*d_x.  Each x point should be within the region specified when creating the</span>
+<span class="sd">            SumOfTiledHyperCubeBasisFcns object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output of shape n_smps*1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_smps</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b_m</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_to_idx</span><span class="p">(</span><span class="n">x</span><span class="p">)],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">([</span><span class="n">n_smps</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="SumOfRelus"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.SumOfRelus">[docs]</a><span class="k">class</span> <span class="nc">SumOfRelus</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A sum of Relu functions.</span>
+
+<span class="sd">    The idea behind this function is we tile an input space by a collection of scaled ReLU functions, where the</span>
+<span class="sd">    centers for each function determine the location of these functions and the weights and scales determine how they</span>
+<span class="sd">    are oriented and the slope in the non-zero part of the relu. We then sum the results of passing a data</span>
+<span class="sd">    point through all these functions tiling the landscape to get a final output.</span>
+
+<span class="sd">    Specifically, this ia function from x \in R^d_in to y \in R^d_out, where the i^th dimensoun of output is</span>
+
+<span class="sd">        y[i] = \sum_i s_ij*relu(w_ij&#39;*(x - c_j)),</span>
+
+<span class="sd">    where w_ij is a weight vector for output dimension i and relu function j, c_j is the center for relu function</span>
+<span class="sd">    c_j and s_ij is the scale for output dimension i of relu function j.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_ctrs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">init_w</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">init_s</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new PWLManifold object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            init_ctrs: initial centers of shape n_ctrs*input_dim</span>
+
+<span class="sd">            init_w: initial weights of shape n_ctrs*output_dim*input_dim</span>
+
+<span class="sd">            init_s: initial scales of shape n_ctrs*output_dim</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctrs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">init_ctrs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">init_w</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">init_s</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_fcns</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_in</span> <span class="o">=</span> <span class="n">init_ctrs</span><span class="o">.</span><span class="n">shape</span>
+
+<div class="viewcode-block" id="SumOfRelus.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.SumOfRelus.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output from input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape n_smps*input_dim</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output of shape n_smps*output_dim</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x_centered</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctrs</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">relu_output</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x_centered</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">w</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">scaled_relu_output</span> <span class="o">=</span> <span class="n">relu_output</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">scaled_relu_output</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">t</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="SwissRole"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.SwissRole">[docs]</a><span class="k">class</span> <span class="nc">SwissRole</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Represents a swiss role function.</span>
+
+
+<span class="sd">    This is function that maps from (x,y) to (x,y,z) according to:</span>
+
+<span class="sd">        x = x</span>
+<span class="sd">        y = a*(y+b)*sin(c*y)</span>
+<span class="sd">        z = a*(y+b)*cos(c*y),</span>
+
+<span class="sd">    where a, b and c are learnable parameters.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new SwissRole object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            a: The a parameter.  Shuold be a 1-d vector with a single entry</span>
+
+<span class="sd">            b: The b parameter.  Shuold be a 1-d vector with a single entry</span>
+
+<span class="sd">            c: The c parameter.  Shuold be a 1-d vector with a single entry</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any of the parameters have the wrong shape</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span> <span class="ow">or</span> <span class="n">b</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;All inputs must be 1-d tensors with a single element.&#39;</span><span class="p">))</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SwissRole.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.SwissRole.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output from input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input of shape n_smps*2</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output of shape n_smps*3</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">x</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">)</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="o">*</span><span class="n">x</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">)</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="o">*</span><span class="n">x</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])])</span><span class="o">.</span><span class="n">t</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="Tanh"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.Tanh">[docs]</a><span class="k">class</span> <span class="nc">Tanh</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A module implementing y = s*tanh(x) + o &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">o_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">o_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+                               <span class="n">s_mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">s_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a Tanh module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d: The dimensionality of the input and output</span>
+
+<span class="sd">            o_mn, o_std: The mean and standard deviation for initializing o</span>
+
+<span class="sd">            s_mn, s_std: The mean and standard deviation for initializing s</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="n">o</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">o_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">o_std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">s_mn</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="n">s_std</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Tanh.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.Tanh.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output given input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor, of any shape</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output tensor, same shape as input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span></div></div>
+
+
+<div class="viewcode-block" id="Unsqueeze"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.Unsqueeze">[docs]</a><span class="k">class</span> <span class="nc">Unsqueeze</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Wraps the torch.unsqueeze function in a module.</span>
+
+<span class="sd">    Having unsqueeze in a module can be useful for when working with torch.nn.Sequential.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span><span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new Unsqueeze module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dim: The index to insert the empty dimension at.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="n">dim</span>
+
+<div class="viewcode-block" id="Unsqueeze.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.Unsqueeze.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes input from output.</span>
+
+<span class="sd">        Arg:</span>
+<span class="sd">            x: Input, of any shape</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output, with the appropriate dimension added.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

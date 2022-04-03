@@ -1,0 +1,72 @@
+:py:mod:`janelia_core.ml.generation`
+====================================
+
+.. py:module:: janelia_core.ml.generation
+
+.. autoapi-nested-parse::
+
+   Contains tools for generating functions and data for simulation.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.ml.generation.BumpFcnGenerator
+
+
+
+
+.. py:class:: BumpFcnGenerator(d: int = 2, n_bumps: int = 100, bump_peak_vl_range: Sequence[int] = [-1, 1], cov_ev_range: Sequence[int] = [0.5, 1])
+
+   An object for generating a sequence of functions on the unit hypercube.
+
+   The function f_t is formed as t*f_base, where f_base is a base function
+   made up of a sum of Gaussian bumps.
+
+   Bump centers will be uniformly distributed throughout the hypercube.  Bump
+   magnitudes and shapes (how fast they fall off in different directions) will
+   be randomly generated according to parameters set by the user.
+
+
+   Creates a new BumpFcnGenerator instance.
+
+   Args:
+       d: The input dimensionality.
+
+       n_bumps: The number of Gaussian bumps in the base function.
+
+       bump_peak_vl_range: Values for the peak of each bump function will be pulled
+       uniformly from this interval.
+
+       cov_ev_range: Values for the eigenvalues of the covariance matrix of the
+       Gaussian bump functions will be pulled uniformly from this range.
+
+   .. py:method:: _f(self, x: numpy.ndarray) -> numpy.ndarray
+
+      Computes output given input.
+
+      Args:
+          x: input of shape n_smps*d_in.
+
+      Returns:
+          y: output of shape n_smps
+
+
+   .. py:method:: generate(self, scale: float = 1.0) -> Callable
+
+      Generates a function at a given scale.
+
+      Args:
+          f: The scale to generate the function at
+
+      Returns:
+          s_f: The scaled function
+
+
+

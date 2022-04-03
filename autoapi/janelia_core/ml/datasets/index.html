@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.datasets &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.datasets</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/ml/datasets/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.datasets">
+<span id="janelia-core-ml-datasets"></span><h1><a class="reference internal" href="#module-janelia_core.ml.datasets" title="janelia_core.ml.datasets"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.datasets</span></code></a><a class="headerlink" href="#module-janelia_core.ml.datasets" title="Permalink to this headline"></a></h1>
+<p>Tools for representing and working with Pytorch datasets.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.datasets.TimeSeriesBatch" title="janelia_core.ml.datasets.TimeSeriesBatch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeSeriesBatch</span></code></a></p></td>
+<td><p>An object to represent a batch of samples from time series data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.datasets.TimeSeriesDataset" title="janelia_core.ml.datasets.TimeSeriesDataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeSeriesDataset</span></code></a></p></td>
+<td><p>Extends torch’s Dataset object specifically for time series data.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.datasets.cat_time_series_batches" title="janelia_core.ml.datasets.cat_time_series_batches"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cat_time_series_batches</span></code></a>(batches: Sequence[TimeSeriesBatch]) → TimeSeriesBatch</p></td>
+<td><p>Concatenates multiple TimeSeriesBatches into one object in a memory efficient manner.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="janelia_core.ml.datasets.TimeSeriesBatch">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.datasets.</code><code class="sig-name descname">TimeSeriesBatch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">i_x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">i_y</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">i_orig</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesBatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesBatch" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.utils.data.Dataset</span></code></p>
+<p>An object to represent a batch of samples from time series data.</p>
+<p>Each sample in the batch is a pair consisting of data at time t-1 and data at time t.</p>
+<dl>
+<dt>Args:</dt><dd><p>data: data[i] contains data for the i^th group of variables.  Dimension 0 indexes individual points.</p>
+<p>i_x: Indicates which points in data correspond to the t-1 data points in each sample.</p>
+<p>i_y: Indicates which points in data correspond to the t data points in each sample.</p>
+<p>i_orig: Indicates the original indices in the larger TimeSeriesData object the data points came from.
+(Keeping track of this is helpful when needing to merge and concatenate batches later.)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.datasets.TimeSeriesBatch.pin_memory">
+<code class="sig-name descname">pin_memory</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesBatch.pin_memory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesBatch.pin_memory" title="Permalink to this definition"></a></dt>
+<dd><p>Puts this object’s data into pinned memory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.datasets.TimeSeriesBatch.to">
+<code class="sig-name descname">to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">torch.device</span></em>, <em class="sig-param"><span class="n">move_i_orig</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">non_blocking</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesBatch.to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesBatch.to" title="Permalink to this definition"></a></dt>
+<dd><p>Moves data to the specified device.</p>
+<dl>
+<dt>Args:</dt><dd><p>device: The device to move the data to.</p>
+<p>move_i_orig: If true, i_orig will be moved to the device.  If false, only data, i_x and i_y will be
+moved to the device.</p>
+<p>non_blocking: If the .to() command should be passed the non_blocking option.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.datasets.TimeSeriesBatch.__len__">
+<code class="sig-name descname">__len__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesBatch.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesBatch.__len__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the number of samples in the dataset.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.datasets.TimeSeriesBatch.__getitem__">
+<code class="sig-name descname">__getitem__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">index</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesBatch.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesBatch.__getitem__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns requested samples from the dataset.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>index: Integer index, slice or numpy array indicating requested samples.
+The index is specifically into the i_x and i_y attributes.</p>
+</dd>
+<dt>Returns:</dt><dd><p>smps: The requested samples.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.datasets.TimeSeriesBatch.efficient_get_item">
+<code class="sig-name descname">efficient_get_item</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">index</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesBatch.efficient_get_item"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesBatch.efficient_get_item" title="Permalink to this definition"></a></dt>
+<dd><p>A computational (but not memory) efficient way of indexing a TimeSeriesBatch object.</p>
+<p>A new TimeSeriesBatch object will be returned with unmodified data and i_orig attributes.  The i_x
+and i_y attributes will be updated to index the data and i_orig attributes.  By not discarding
+any unused points in the data attribute, indexing can be done very quickly.</p>
+<p>This function can be useful when seeking to index an existing TimeSeriesBatch object when we will not
+need to copy the result to another place in memory (e.g., sending to a GPU when the indexed TimeSeriesBatch
+object is on CPU).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>index: Integer index, slice or numpy array indicating requested samples.
+The index is specifically into the i_x and i_y attributes.</p>
+</dd>
+<dt>Returns:</dt><dd><p>smps: The requested samples in a TimeSeriesBatch object as described above.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.datasets.TimeSeriesDataset">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.datasets.</code><code class="sig-name descname">TimeSeriesDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ts_data</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesDataset" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.utils.data.Dataset</span></code></p>
+<p>Extends torch’s Dataset object specifically for time series data.</p>
+<p>This object is specifically designed for scenarios when we want to predict points at time t + 1 from points at
+time t.</p>
+<p>The user supplies the time series data for different groups of variables.  He or she can then request samples, which
+will return the time series data for the samples. Each sampled data point is a pair corresponding to data at
+time t and the data a time t + 1.  Therefore, a dataset with T time points will contain T-1 samples.</p>
+<p>The requested samples will be returned in a memory efficient manner to avoid representing duplicate points
+twice.</p>
+<p>Creates a TimeSeriesDataset object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>ts_data: Time series data. ts_data[i] is time series data for the i^th group of variables.  Time is
+represented along dimension 0.  All ts_data tensors must have the same number of time points.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If not all ts_data tensors have the same number of time points.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.datasets.TimeSeriesDataset.__len__">
+<code class="sig-name descname">__len__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesDataset.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesDataset.__len__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the number of samples in the dataset.</p>
+<p>Note that number of samples in the dataset is 1 less than the number of time points, as samples
+consist of pairs of data points at time t-1 and time t.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>The number of samples in the dataset.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.datasets.TimeSeriesDataset.__getitem__">
+<code class="sig-name descname">__getitem__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">index</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#janelia_core.ml.datasets.TimeSeriesBatch" title="janelia_core.ml.datasets.TimeSeriesBatch">TimeSeriesBatch</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesDataset.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesDataset.__getitem__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns requested samples from the dataset.</p>
+<p>A single sample consists of a pair of data points at time t-1 and at time t.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>index: Integer index or slice indicating requested samples.</p>
+</dd>
+<dt>Returns:</dt><dd><p>smps: The requested samples.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.datasets.cat_time_series_batches">
+<code class="sig-prename descclassname">janelia_core.ml.datasets.</code><code class="sig-name descname">cat_time_series_batches</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">batches</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#janelia_core.ml.datasets.TimeSeriesBatch" title="janelia_core.ml.datasets.TimeSeriesBatch">TimeSeriesBatch</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#janelia_core.ml.datasets.TimeSeriesBatch" title="janelia_core.ml.datasets.TimeSeriesBatch">TimeSeriesBatch</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#cat_time_series_batches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.cat_time_series_batches" title="Permalink to this definition"></a></dt>
+<dd><p>Concatenates multiple TimeSeriesBatches into one object in a memory efficient manner.</p>
+<p>The i_x and i_y fields of the new TimeSeriesBatch object will effectively be concatenations of the
+i_x and i_y fields from the original, individual TimeSeriesBatch objects, though the values of i_x and
+i_y may be changed to appropriately index into the data tensors of the returned TimeSeriesBatch object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>batch: A list of TimeSeriesBatch objects to concatenate.</p>
+</dd>
+<dt>Returns:</dt><dd><p>conc_batch: The TimeSeriesBatch object representing the concatenated result.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+:py:mod:`janelia_core.math`
+===========================
+
+.. py:module:: janelia_core.math
+
+.. autoapi-nested-parse::
+
+   Contains basic math functions.
+
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   basic_functions/index.rst
+
+

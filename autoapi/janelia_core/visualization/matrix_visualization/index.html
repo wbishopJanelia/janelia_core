@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.visualization.matrix_visualization &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.matrix_visualization</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/visualization/matrix_visualization/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.visualization.matrix_visualization">
+<span id="janelia-core-visualization-matrix-visualization"></span><h1><a class="reference internal" href="#module-janelia_core.visualization.matrix_visualization" title="janelia_core.visualization.matrix_visualization"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.matrix_visualization</span></code></a><a class="headerlink" href="#module-janelia_core.visualization.matrix_visualization" title="Permalink to this headline"></a></h1>
+<p>Tools for visualizing and comparing matrices.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.matrix_visualization.colorized_tbl" title="janelia_core.visualization.matrix_visualization.colorized_tbl"><code class="xref py py-obj docutils literal notranslate"><span class="pre">colorized_tbl</span></code></a>(tbl: numpy.ndarray, dim_0_lbls: list = None, dim_1_lbls: list = None, tbl_fontsize=12, tbl_values_x_offset: float = 0.1, tbl_value_format_str: str = '{:.1e}', show_colorbar=True, cmap: Union[str, matplotlib.colors.Colormap] = None, vmin: float = None, vmax: float = None, ax: matplotlib.pyplot.Axes = None, label_fontsize=12, xtick_rotation: float = 0.0, ytick_rotation: float = 0.0)</p></td>
+<td><p>Plots a table of values with colors corresponding to values in each table entry.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.matrix_visualization.cmp_n_mats" title="janelia_core.visualization.matrix_visualization.cmp_n_mats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cmp_n_mats</span></code></a>(mats: list, clim: list = None, show_colorbars: bool = False, titles: list = None, grid_info: dict = None, cmap: matplotlib.colors.Colormap = None, subplots: list = None) → list</p></td>
+<td><p>Produces a figuring comparing matrices.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="janelia_core.visualization.matrix_visualization.colorized_tbl">
+<code class="sig-prename descclassname">janelia_core.visualization.matrix_visualization.</code><code class="sig-name descname">colorized_tbl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tbl</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">dim_0_lbls</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dim_1_lbls</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tbl_fontsize</span><span class="o">=</span><span class="default_value">12</span></em>, <em class="sig-param"><span class="n">tbl_values_x_offset</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">tbl_value_format_str</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'{:.1e}'</span></em>, <em class="sig-param"><span class="n">show_colorbar</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">cmap</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">, </span>matplotlib.colors.Colormap<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">vmin</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">vmax</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">matplotlib.pyplot.Axes</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">label_fontsize</span><span class="o">=</span><span class="default_value">12</span></em>, <em class="sig-param"><span class="n">xtick_rotation</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">ytick_rotation</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/matrix_visualization.html#colorized_tbl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.matrix_visualization.colorized_tbl" title="Permalink to this definition"></a></dt>
+<dd><p>Plots a table of values with colors corresponding to values in each table entry.</p>
+<p>The “tricky” part of using this function is getting the values to have the right font size and be correctly
+positioned in each cell of the table.  Values will always be vertically centered in each cell.  The user can
+specify the font size to make sure all values fit withing a cell, and adjust the x offset of the values to
+make sure the left/right justification looks correct as well.</p>
+<dl>
+<dt>Args:</dt><dd><p>tbl: The table of values to plot.</p>
+<p>dim_0_lbls: Labels for dimension 0 of the table</p>
+<p>dim_1_lbls: Labels for dimension 1 of the table</p>
+<p>tbl_fontsize: Fontsize in points for the table values</p>
+<p>tbl_values_x_offset: The offset (between 0 and 1) in the x position of table values we plot in each cell.
+A value of 0 corresponds to left justified text.</p>
+<p>tbl_value_format_str: The string to use to format values in the table</p>
+<p>show_colorbar: True if a colorbar should be shown.</p>
+<p>cmap: The colormap to use when mapping colors to values.</p>
+<p>vmin: The lower value that the colormap should satureate at.  If None, will be set from data.</p>
+<p>vmax: The upper value that the colormap should saturate at.  If None, will be set from data.</p>
+<p>ax: Axes to plot the table in.  If None, a new figure and axes will be created.</p>
+<p>label_fontsize: Fontsize in points for axes labels and the optional colorbar</p>
+<p>xtick_rotation: The rotation of x labels</p>
+<p>ytick_rotation: The rotation of y labels</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.matrix_visualization.cmp_n_mats">
+<code class="sig-prename descclassname">janelia_core.visualization.matrix_visualization.</code><code class="sig-name descname">cmp_n_mats</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mats</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">clim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">show_colorbars</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">titles</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">grid_info</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cmap</span><span class="p">:</span> <span class="n">matplotlib.colors.Colormap</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">subplots</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/visualization/matrix_visualization.html#cmp_n_mats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.matrix_visualization.cmp_n_mats" title="Permalink to this definition"></a></dt>
+<dd><p>Produces a figuring comparing matrices.</p>
+<p>Each matrix will be plotted in a separate axes, and all axes will use the same color scaling.</p>
+<dl>
+<dt>Args:</dt><dd><p>mats: A list of matrices to compare.</p>
+<p>clim: An list of length 2 of color limits to apply to all images.  If None is provided, will be set to
+[min_v, max_v] where min_v and max_v are the min and max values in all of the matrices</p>
+<p>show_colorbars: True if colorbars should be shown next to each plot</p>
+<p>titles: A list of tiles for each matrix in mats.  If None, no titles will be generated</p>
+<p>grid_info: A dictionary with information about how to layout the matrices in a grid.  It should have the entries:</p>
+<blockquote>
+<div><p>grid_spec: The matplotlib.gridspec.GridSpec to use for the grid</p>
+<p>cell_info: A list the same length as mats.  cell_info[i] contains:</p>
+<blockquote>
+<div><blockquote>
+<div><p>loc: The location for the subplot for the i^th matrix</p>
+<p>rowspan: The row span for the i^th matrix</p>
+<p>colspan: The column span for the i^th matrix</p>
+</div></blockquote>
+<p>If grid_info is None, one will be created for showing the matrices next to each other in a row.</p>
+</div></blockquote>
+</div></blockquote>
+<p>cmap: The colormap to use.  Can either be a string or Colormap instance.</p>
+<p>subplots: a list of subplot objects to plot into.  If used, grid_info is ignored</p>
+</dd>
+<dt>Returns:</dt><dd><p>subplots: List of subplot objects for each subplot showing the matrices in mats.  Subplots are ordered according
+to mats.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

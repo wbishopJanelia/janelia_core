@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.visualization.roi_exploration &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.roi_exploration</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/visualization/roi_exploration/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.visualization.roi_exploration">
+<span id="janelia-core-visualization-roi-exploration"></span><h1><a class="reference internal" href="#module-janelia_core.visualization.roi_exploration" title="janelia_core.visualization.roi_exploration"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.roi_exploration</span></code></a><a class="headerlink" href="#module-janelia_core.visualization.roi_exploration" title="Permalink to this headline"></a></h1>
+<p>GUI tools for viewing predefined ROIs.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.roi_exploration.StaticROIViewer" title="janelia_core.visualization.roi_exploration.StaticROIViewer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StaticROIViewer</span></code></a></p></td>
+<td><p>QT Widget for viewing static 3D roi data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.roi_exploration.TimeLine" title="janelia_core.visualization.roi_exploration.TimeLine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeLine</span></code></a></p></td>
+<td><p>QT Widget for viewing time series data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.roi_exploration.ROIViewer" title="janelia_core.visualization.roi_exploration.ROIViewer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ROIViewer</span></code></a></p></td>
+<td><p>An object for viewing ROI information across time within a single plane.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.roi_exploration.MultiPlaneROIViewer" title="janelia_core.visualization.roi_exploration.MultiPlaneROIViewer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiPlaneROIViewer</span></code></a></p></td>
+<td><p>An object for viewing ROIs across multiple planes and roi groups.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.roi_exploration.roi_clrs" title="janelia_core.visualization.roi_exploration.roi_clrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">roi_clrs</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt id="janelia_core.visualization.roi_exploration.roi_clrs">
+<code class="sig-prename descclassname">janelia_core.visualization.roi_exploration.</code><code class="sig-name descname">roi_clrs</code><a class="headerlink" href="#janelia_core.visualization.roi_exploration.roi_clrs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.visualization.roi_exploration.StaticROIViewer">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.visualization.roi_exploration.</code><code class="sig-name descname">StaticROIViewer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bg_image</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">rois</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">dim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">clrs</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">weight_gain</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">levels</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ignore_warnings</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#StaticROIViewer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.StaticROIViewer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>QT Widget for viewing static 3D roi data.</p>
+<p>This widget allows the user to provide a 3D background image as well as a set of 3D ROIs. The user
+can then view slices through the 3D volume.</p>
+<p>Creates a new StaticROIViewer object.</p>
+<dl>
+<dt>Args:</dt><dd><p>bg_image: The background image to view.</p>
+<p>rois: A list of ROI objects.</p>
+<p>dim: The dimension to slice along.</p>
+<p>clrs: A n_roi*3 array.  Each row gives the color to plot the corresponding ROI in.  If this is none,
+random colors will be assigned to ROIs.</p>
+<p>weight_gain: The value to multiply weights of rois by before mapping the weights to aplha values in the
+range of 0 to 255.</p>
+<p>levels: If none, min, max intensity levels for each plane are automatically set.  Otherwise,
+levels should be a sequence giving the [min, max] levels</p>
+<p>ignore_warning: True if warnings should not be generated</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="janelia_core.visualization.roi_exploration.StaticROIViewer.sigKeyPress">
+<code class="sig-name descname">sigKeyPress</code><a class="headerlink" href="#janelia_core.visualization.roi_exploration.StaticROIViewer.sigKeyPress" title="Permalink to this definition"></a></dt>
+<dd><p>Signal for key press events.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.visualization.roi_exploration.StaticROIViewer.process_key_press">
+<code class="sig-name descname">process_key_press</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">ev</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#StaticROIViewer.process_key_press"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.StaticROIViewer.process_key_press" title="Permalink to this definition"></a></dt>
+<dd><p>Responds to key press events.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.visualization.roi_exploration.StaticROIViewer.init_ui">
+<code class="sig-name descname">init_ui</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#StaticROIViewer.init_ui"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.StaticROIViewer.init_ui" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes the user interface.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.visualization.roi_exploration.StaticROIViewer.keyPressEvent">
+<code class="sig-name descname">keyPressEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">ev</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#StaticROIViewer.keyPressEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.StaticROIViewer.keyPressEvent" title="Permalink to this definition"></a></dt>
+<dd><p>Overrides keyPressEvent of base class, so that we signal to this object that a key has been pressed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.visualization.roi_exploration.StaticROIViewer.set_plane">
+<code class="sig-name descname">set_plane</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">p</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#StaticROIViewer.set_plane"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.StaticROIViewer.set_plane" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the plane of the viewer shows.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>idx - the index to show.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.visualization.roi_exploration.TimeLine">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.visualization.roi_exploration.</code><code class="sig-name descname">TimeLine</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ts</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">vls</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">clrs</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#TimeLine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.TimeLine" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>QT Widget for viewing time series data.</p>
+<p>The main point of this widget is to allow a user to select a point in time in data
+and emit signals as the selected time point is changed.</p>
+<p>Creates a new TimeLine object.</p>
+<dl>
+<dt>Args:</dt><dd><p>ts: A numpy array of time stamps.</p>
+<p>vls: A numpy array of values.  Each column is a different signals.  Rows correspond to
+times in ts.</p>
+<p>clrs: A n_signals*3 array, where n_signals is the number of signals in vls.  Each row
+gives the color to plot the corresponding signal in vls in.  If this is None, all
+signals will be white.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="janelia_core.visualization.roi_exploration.TimeLine.time_dragged">
+<code class="sig-name descname">time_dragged</code><a class="headerlink" href="#janelia_core.visualization.roi_exploration.TimeLine.time_dragged" title="Permalink to this definition"></a></dt>
+<dd><p>Signal for when time is changed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.visualization.roi_exploration.TimeLine.init_ui">
+<code class="sig-name descname">init_ui</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#TimeLine.init_ui"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.TimeLine.init_ui" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes the user interface.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.visualization.roi_exploration.ROIViewer">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.visualization.roi_exploration.</code><code class="sig-name descname">ROIViewer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bg_img</span></em>, <em class="sig-param"><span class="n">rois</span></em>, <em class="sig-param"><span class="n">roi_vl_str</span><span class="o">=</span><span class="default_value">'vls'</span></em>, <em class="sig-param"><span class="n">clrs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">title</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">roi_scale_f</span><span class="p">:</span> <span class="n">numpy.float64</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#ROIViewer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.ROIViewer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>An object for viewing ROI information across time within a single plane.</p>
+<p>Rois are displayed on top of a background image. The window will have a slider that allows the user to scroll
+through time.  The window also responds to left and right arrow input to scroll through time.</p>
+<p>Creates a ROIViewer object.</p>
+<dl>
+<dt>Args:</dt><dd><p>bg_img: The background image.  Should be a 2-d numpy array (first dimension y, second dimension x).</p>
+<p>rois: A list of ROI objects. These should have a ‘vls’ field which stores the values of the ROI
+across time.  vls should be between 0 and 1.</p>
+<p>roi_vl_str - If the values of the ROI across time are stored in a field with a different name than ‘vls’,
+the user can specify that with this argument.</p>
+<p>clrs - If not none, a np.ndarray of shape n_rois * 3, where each row specifies the color of an roi.  The
+dtype clrs should be int. And all entries should be within 0 and 255.</p>
+<p>title - An optional title to provide for the window</p>
+<p>roi_scale_f: If provided, the weights of all rois are divided by this factor to determine there alpha value
+(which must be between 0 and 1).  If none, each roi is scaled individually by its max weight.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="janelia_core.visualization.roi_exploration.ROIViewer.sigKeyPress">
+<code class="sig-name descname">sigKeyPress</code><a class="headerlink" href="#janelia_core.visualization.roi_exploration.ROIViewer.sigKeyPress" title="Permalink to this definition"></a></dt>
+<dd><p>Signal for when key is pressed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.visualization.roi_exploration.ROIViewer.init_ui">
+<code class="sig-name descname">init_ui</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#ROIViewer.init_ui"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.ROIViewer.init_ui" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes and shows the interface for the ROIViewer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.visualization.roi_exploration.ROIViewer.set_value">
+<code class="sig-name descname">set_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">idx</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#ROIViewer.set_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.ROIViewer.set_value" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the index of the time point the ROI viewer shows.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>idx - the index to show.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.visualization.roi_exploration.ROIViewer._gen_roi_image">
+<code class="sig-name descname">_gen_roi_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">roi_ind</span></em>, <em class="sig-param"><span class="n">clr</span></em><span class="sig-paren">)</span> &#x2192; pyqtgraph.ImageItem<a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#ROIViewer._gen_roi_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.ROIViewer._gen_roi_image" title="Permalink to this definition"></a></dt>
+<dd><p>Generates an ROI image that can be overlayed the base image.</p>
+<dl>
+<dt>Args:</dt><dd><p>roi_ind - The index of self.rois of the roi to generate the image for.</p>
+<p>clr - The color the roi should be shown in.  Should be a numpy array of type int and length 3.  All values
+should be between 0 and 255.</p>
+</dd>
+<dt>Returns:</dt><dd><p>roi_image_item - the image item for the roi</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.visualization.roi_exploration.ROIViewer.keyPressEvent">
+<code class="sig-name descname">keyPressEvent</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">ev</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#ROIViewer.keyPressEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.ROIViewer.keyPressEvent" title="Permalink to this definition"></a></dt>
+<dd><p>Overrides keyPressEvent of base class, so that we signal to this object that a key has been pressed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.visualization.roi_exploration.MultiPlaneROIViewer">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.visualization.roi_exploration.</code><code class="sig-name descname">MultiPlaneROIViewer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ts</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">vls</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">roi_groups</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">bg_imgs</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">planes</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">clrs</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">roi_signals</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">roi_group_names</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">roi_scale_fs</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#MultiPlaneROIViewer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.MultiPlaneROIViewer" title="Permalink to this definition"></a></dt>
+<dd><p>An object for viewing ROIs across multiple planes and roi groups.</p>
+<p>This object allows for the visualization of a set of signals along with roi values across time.  The main window
+consists of a TimeLine Widget showing the signals. There will be additional windows to show ROIs in each plane and
+for each group. As the user moves the slider on this widget, roi values for the time the slider
+corresponds to will be updated in the opacity of rois.</p>
+<p>Create a MultiPlaneROIViewer object.</p>
+<dl>
+<dt>Args:</dt><dd><p>ts: A numpy array of time stamps.</p>
+<p>vls: A numpy array of values for the main timeline.  Each row is a different signal.  Columns correspond to
+times in ts.</p>
+<p>roi_groups: A list of roi_groups (e.g., neurons and glia).  Each list contains roi objects for the group.
+These roi objects should be supplemented with a ‘vls’ attribute containing the value of the roi at each
+point in ts.</p>
+<p>bg_imgs: A list of back ground images.  bg_imgs[i] contains the background image to use for rois[i]</p>
+<p>planes: A list. planes[i] is the indices of planes to show for rois in roi_groups[i]</p>
+<p>clrs: A list.  clrs[i] contains a shape n_rois * 3 np.ndaray, where each row specifies the color of the
+corresponding roi in rois[i].  The dtype of clrs should be int, and all entries should be within 0 and 255.
+If clrs is None, then random colors will be assigned to the ROIs.</p>
+<p>roi_signals: A list.  roi_signals[i] contains indices of rois in roi_groups[i] whose values should be plotted
+along with those in the vls array.  If None, no roi values will be plotted.</p>
+<p>roi_group_names: An optional list providing a name for each roi group.</p>
+<p>roi_scale_fs: If provided, a list.  Each entry contains a factor by which the weights of all rois in
+the corresponding group are divided by to determine there alpha value (which must be between 0 and 1).
+If none, each roi is scaled individually by its max weight.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.visualization.roi_exploration.MultiPlaneROIViewer.init_ui">
+<code class="sig-name descname">init_ui</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/roi_exploration.html#MultiPlaneROIViewer.init_ui"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.roi_exploration.MultiPlaneROIViewer.init_ui" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes the UI.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

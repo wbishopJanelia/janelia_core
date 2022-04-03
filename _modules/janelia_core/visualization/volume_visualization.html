@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.visualization.volume_visualization &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.visualization.volume_visualization</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.visualization.volume_visualization</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Utilities for viewing volumes.  &quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
+<span class="kn">import</span> <span class="nn">pathlib</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="c1">#import imageio</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
+<span class="kn">import</span> <span class="nn">matplotlib.animation</span>
+<span class="kn">import</span> <span class="nn">matplotlib.colors</span>
+<span class="kn">import</span> <span class="nn">matplotlib.cm</span>
+<span class="kn">import</span> <span class="nn">matplotlib.figure</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.transforms</span>
+
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">moviepy.editor</span> <span class="k">as</span> <span class="nn">editor</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Unable to import moviepy.  Minor functionality will not be available.&#39;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<span class="kn">from</span> <span class="nn">janelia_core.dataprocessing.dataset</span> <span class="kn">import</span> <span class="n">ROI</span>
+<span class="kn">from</span> <span class="nn">janelia_core.visualization.custom_color_maps</span> <span class="kn">import</span> <span class="n">MultiParamCMap</span>
+<span class="kn">from</span> <span class="nn">janelia_core.visualization.custom_color_maps</span> <span class="kn">import</span> <span class="n">visualize_two_param_map</span>
+<span class="kn">from</span> <span class="nn">janelia_core.visualization.image_generation</span> <span class="kn">import</span> <span class="n">rgb_3d_max_project</span>
+
+
+<div class="viewcode-block" id="comb_movies"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/volume_visualization/index.html#janelia_core.visualization.volume_visualization.comb_movies">[docs]</a><span class="k">def</span> <span class="nf">comb_movies</span><span class="p">(</span><span class="n">movie_paths</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">],</span> <span class="n">save_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span>
+                <span class="n">fig_size</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="mi">21</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span> <span class="n">facecolor</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span>
+                <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">bitrate</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Given a set of movies, combines them by putting their frames side-by-side.</span>
+
+
+<span class="sd">    Args:</span>
+
+<span class="sd">        movie_paths: Paths to movies to combined</span>
+
+<span class="sd">        save_path: The path to save the combined video to.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">clips</span> <span class="o">=</span> <span class="p">[</span><span class="n">editor</span><span class="o">.</span><span class="n">VideoFileClip</span><span class="p">(</span><span class="n">movie_path</span><span class="p">)</span> <span class="k">for</span> <span class="n">movie_path</span> <span class="ow">in</span> <span class="n">movie_paths</span><span class="p">]</span>
+    <span class="n">final_clip</span> <span class="o">=</span> <span class="n">editor</span><span class="o">.</span><span class="n">clips_array</span><span class="p">([</span><span class="n">clips</span><span class="p">])</span>
+    <span class="n">final_clip</span><span class="o">.</span><span class="n">write_videofile</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="make_rgb_three_ch_z_plane_movie"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/volume_visualization/index.html#janelia_core.visualization.volume_visualization.make_rgb_three_ch_z_plane_movie">[docs]</a><span class="k">def</span> <span class="nf">make_rgb_three_ch_z_plane_movie</span><span class="p">(</span><span class="n">z_imgs</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+                                    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                    <span class="n">cmaps</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                                    <span class="n">figsize</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span>
+                                    <span class="n">facecolor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                                    <span class="n">text_color</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                                    <span class="n">bitrate</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">one_index_z_plane</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+
+    <span class="n">CLR_BAR_H</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span>
+    <span class="n">C_MAP_H_BUFFER</span> <span class="o">=</span> <span class="o">.</span><span class="mi">05</span>
+    <span class="n">C_MAP_V_BUFFER</span> <span class="o">=</span> <span class="o">.</span><span class="mi">05</span>
+    <span class="n">C_MAP_WIDTH</span> <span class="o">=</span> <span class="o">.</span><span class="mi">33</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">C_MAP_H_BUFFER</span>
+
+    <span class="c1"># Define a helper function</span>
+    <span class="k">def</span> <span class="nf">update_image</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">im_h</span><span class="p">,</span> <span class="n">title_h</span><span class="p">,</span> <span class="n">title_s</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">one_index_z_plane</span><span class="p">:</span>
+            <span class="n">z_title</span> <span class="o">=</span> <span class="n">z</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">z_title</span> <span class="o">=</span> <span class="n">z</span>
+
+        <span class="n">im_h</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">images</span><span class="p">[</span><span class="n">z</span><span class="p">])</span>
+        <span class="n">title_h</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">title_s</span> <span class="o">+</span> <span class="s1">&#39;z = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">z_title</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">im_h</span><span class="p">,</span>
+
+    <span class="c1"># Get the first frame of the video</span>
+    <span class="n">frame0</span> <span class="o">=</span> <span class="n">z_imgs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">n_z_planes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">z_imgs</span><span class="p">)</span>
+
+    <span class="c1"># Setup the basic figure for plotting, showing the first frame</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">facecolor</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cmaps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ax_position</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">CLR_BAR_H</span> <span class="o">-</span> <span class="o">.</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ax_position</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+
+    <span class="n">z_ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">ax_position</span><span class="p">)</span>
+    <span class="n">z_im</span> <span class="o">=</span> <span class="n">z_ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">frame0</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="c1"># Setup the title</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">title_str</span> <span class="o">=</span> <span class="n">title</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">title_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">title_h</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title_str</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">)</span>
+
+    <span class="c1"># Show colormaps if we are suppose to</span>
+    <span class="k">if</span> <span class="n">cmaps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cmap_h</span> <span class="o">=</span> <span class="n">CLR_BAR_H</span> <span class="o">-</span> <span class="n">C_MAP_V_BUFFER</span>
+        <span class="c1"># If cmaps is not None, we expect it to be of length 3</span>
+        <span class="k">for</span> <span class="n">c_i</span><span class="p">,</span> <span class="n">cmap</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cmaps</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">cur_start</span> <span class="o">=</span> <span class="n">c_i</span><span class="o">*.</span><span class="mi">33</span> <span class="o">+</span> <span class="n">C_MAP_H_BUFFER</span>
+                <span class="n">cmap_ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="n">cur_start</span><span class="p">,</span> <span class="n">C_MAP_V_BUFFER</span><span class="p">,</span> <span class="n">C_MAP_WIDTH</span><span class="p">,</span> <span class="n">cmap_h</span><span class="p">])</span>
+                <span class="n">cmap_im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+                <span class="n">cmap_im</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">c_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+                <span class="n">cmap_ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cmap_im</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+                <span class="n">cmap_ax</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_tick_params</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">text_color</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">],</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;</span><span class="si">{:3.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmap</span><span class="p">[</span><span class="s1">&#39;dark_vl&#39;</span><span class="p">]),</span><span class="s2">&quot;</span><span class="si">{:3.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmap</span><span class="p">[</span><span class="s1">&#39;bright_vl&#39;</span><span class="p">])])</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">yticks</span><span class="p">([])</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">cmap</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">)</span>
+
+    <span class="n">z_im</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">z_im</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Generate the movie</span>
+    <span class="n">Writer</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">writers</span><span class="p">[</span><span class="s1">&#39;ffmpeg&#39;</span><span class="p">]</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">Writer</span><span class="p">(</span><span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">bitrate</span><span class="o">=</span><span class="n">bitrate</span><span class="p">,</span> <span class="n">codec</span><span class="o">=</span><span class="s1">&#39;libx264&#39;</span><span class="p">,</span> <span class="n">extra_args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;-pix_fmt&#39;</span><span class="p">,</span> <span class="s1">&#39;yuv420p&#39;</span><span class="p">,</span>
+                                                                          <span class="s1">&#39;-crf&#39;</span><span class="p">,</span> <span class="s1">&#39;18&#39;</span><span class="p">])</span>
+
+    <span class="n">plane_animation</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">FuncAnimation</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">update_image</span><span class="p">,</span> <span class="n">frames</span><span class="o">=</span><span class="n">n_z_planes</span><span class="p">,</span>
+                                                         <span class="n">fargs</span><span class="o">=</span><span class="p">(</span><span class="n">z_imgs</span><span class="p">,</span> <span class="n">z_im</span><span class="p">,</span> <span class="n">title_h</span><span class="p">,</span> <span class="n">title_str</span><span class="p">),</span> <span class="n">interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                                         <span class="n">blit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Save the movie</span>
+    <span class="n">plane_animation</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">writer</span><span class="o">=</span><span class="n">writer</span><span class="p">,</span> <span class="n">savefig_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;facecolor&#39;</span><span class="p">:</span><span class="n">facecolor</span><span class="p">})</span>
+
+    <span class="c1"># Close the figure</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="make_rgb_z_plane_movie"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/volume_visualization/index.html#janelia_core.visualization.volume_visualization.make_rgb_z_plane_movie">[docs]</a><span class="k">def</span> <span class="nf">make_rgb_z_plane_movie</span><span class="p">(</span><span class="n">z_imgs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                           <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+                           <span class="n">cmap</span><span class="p">:</span> <span class="n">MultiParamCMap</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cmap_param_strs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                           <span class="n">cmap_param_vls</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                           <span class="n">figsize</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span>
+                           <span class="n">facecolor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                           <span class="n">text_color</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                           <span class="n">bitrate</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">one_index_z_plane</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                           <span class="n">ax_position</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Generates a sequence of movie of z-plane images already in RGB space.</span>
+
+<span class="sd">    Args:</span>
+
+<span class="sd">        z_imgs: A sequende of numpy arrays of the images for each plane.  Each array should be of the shape [dx, dy, 3]</span>
+
+<span class="sd">        save_path: The path for the saved video, including extension</span>
+
+<span class="sd">        title: If not None, the title to display over the video</span>
+
+<span class="sd">        fps: The frames per second of the generated movie.  Each plane is a different plane.</span>
+
+<span class="sd">        cmap: An optional color map used to generate the images.  If provided, this colormap will be plotted in the</span>
+<span class="sd">        video.</span>
+
+<span class="sd">        cmap_param_strs: String labels for parameter 0 and 1 in cmap.  Only used if cmap is provided.</span>
+
+<span class="sd">        cmap_param_vls: If not None, then cmap_param_vls[i] should contain a list of values for parameter i to plot</span>
+<span class="sd">        the color map at.  cmap_param_vls[i] can also be none, which means the range of values plotted will be the</span>
+<span class="sd">        range of values between the colormap saturation limits. Only used if cmap is provided.</span>
+
+<span class="sd">        figsize: The size of the figure to make the video as [width, height] in inches</span>
+
+<span class="sd">        facecolor: The background color of the figure to plot into</span>
+
+<span class="sd">        text_color: The color to use when plotting the title and colorbar ticks and labels</span>
+
+<span class="sd">        bitrate: The bitrate to use when saving the video</span>
+
+<span class="sd">        one_index_z_plane: True if z-plane numbers should start at 1 instead of 0 when generating titles for each plane</span>
+
+<span class="sd">        ax_position: Position of axes for plotting images.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Define a helper function</span>
+    <span class="k">def</span> <span class="nf">update_image</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">images</span><span class="p">,</span> <span class="n">im_h</span><span class="p">,</span> <span class="n">title_h</span><span class="p">,</span> <span class="n">title_s</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">one_index_z_plane</span><span class="p">:</span>
+            <span class="n">z_title</span> <span class="o">=</span> <span class="n">z</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">z_title</span> <span class="o">=</span> <span class="n">z</span>
+
+        <span class="n">im_h</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">images</span><span class="p">[</span><span class="n">z</span><span class="p">])</span>
+        <span class="n">title_h</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">title_s</span> <span class="o">+</span> <span class="s1">&#39;z = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">z_title</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">im_h</span><span class="p">,</span>
+
+    <span class="c1"># Get the first frame of the video</span>
+    <span class="n">frame0</span> <span class="o">=</span> <span class="n">z_imgs</span><span class="p">[</span><span class="mi">40</span><span class="p">]</span>
+    <span class="n">n_z_planes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">z_imgs</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;n_z_planes: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_z_planes</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;plane_0_shape: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">z_imgs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+
+    <span class="c1"># Setup the basic figure for plotting, showing the first frame</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">facecolor</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ax_position</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">z_ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">z_ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">ax_position</span><span class="p">)</span>
+    <span class="n">z_im</span> <span class="o">=</span> <span class="n">z_ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">frame0</span><span class="p">)</span>
+
+    <span class="c1"># Setup the title</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">title_str</span> <span class="o">=</span> <span class="n">title</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">title_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">title_h</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title_str</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">)</span>
+
+    <span class="c1"># Show the color map if we are suppose to</span>
+    <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1">#cmap_im = plt.subplot2grid([10, 10], [9, 8], 2, 2)</span>
+        <span class="n">cmap_im</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="o">.</span><span class="mi">8</span><span class="p">,</span> <span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">cmap_param_vls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cmap_p0_vls</span> <span class="o">=</span> <span class="n">cmap_param_vls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">cmap_p1_vls</span> <span class="o">=</span> <span class="n">cmap_param_vls</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cmap_p0_vls</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">cmap_p1_vls</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">visualize_two_param_map</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">plot_ax</span><span class="o">=</span><span class="n">cmap_im</span><span class="p">,</span> <span class="n">p0_vls</span><span class="o">=</span><span class="n">cmap_p0_vls</span><span class="p">,</span> <span class="n">p1_vls</span><span class="o">=</span><span class="n">cmap_p1_vls</span><span class="p">)</span>
+        <span class="n">cmap_im</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_tick_params</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">text_color</span><span class="p">)</span>
+        <span class="n">cmap_im</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_tick_params</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">text_color</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cmap_param_strs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">cmap_param_strs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">cmap_param_strs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">)</span>
+
+    <span class="n">z_im</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">z_im</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+
+
+    <span class="c1"># Generate the movie</span>
+    <span class="n">Writer</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">writers</span><span class="p">[</span><span class="s1">&#39;ffmpeg&#39;</span><span class="p">]</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">Writer</span><span class="p">(</span><span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">bitrate</span><span class="o">=</span><span class="n">bitrate</span><span class="p">,</span> <span class="n">codec</span><span class="o">=</span><span class="s1">&#39;libx264&#39;</span><span class="p">,</span> <span class="n">extra_args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;-pix_fmt&#39;</span><span class="p">,</span> <span class="s1">&#39;yuv420p&#39;</span><span class="p">,</span>
+                                                                          <span class="s1">&#39;-crf&#39;</span><span class="p">,</span> <span class="s1">&#39;18&#39;</span><span class="p">])</span>
+
+    <span class="n">plane_animation</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">FuncAnimation</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">update_image</span><span class="p">,</span> <span class="n">frames</span><span class="o">=</span><span class="n">n_z_planes</span><span class="p">,</span>
+                                                         <span class="n">fargs</span><span class="o">=</span><span class="p">(</span><span class="n">z_imgs</span><span class="p">,</span> <span class="n">z_im</span><span class="p">,</span> <span class="n">title_h</span><span class="p">,</span> <span class="n">title_str</span><span class="p">),</span> <span class="n">interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                                         <span class="n">blit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Save the movie</span>
+    <span class="n">plane_animation</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">writer</span><span class="o">=</span><span class="n">writer</span><span class="p">,</span> <span class="n">savefig_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;facecolor&#39;</span><span class="p">:</span><span class="n">facecolor</span><span class="p">})</span>
+
+    <span class="c1"># Close the figure</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="make_z_plane_movie"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/volume_visualization/index.html#janelia_core.visualization.volume_visualization.make_z_plane_movie">[docs]</a><span class="k">def</span> <span class="nf">make_z_plane_movie</span><span class="p">(</span><span class="n">volume</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                       <span class="n">clim</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                       <span class="n">cmap</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;hot&#39;</span><span class="p">,</span>
+                       <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                       <span class="n">cbar_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                       <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+                       <span class="n">figsize</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span>
+                       <span class="n">facecolor</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span>
+                       <span class="n">text_color</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                       <span class="n">bitrate</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                       <span class="n">clim_percs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="mf">99.9</span><span class="p">],</span>
+                       <span class="n">one_index_z_plane</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">Bbox</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates a movie of all the z-planes in a volume.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        volume: The volume to visualize, with the z-dimension indexed by the first dimension.</span>
+
+<span class="sd">        save_path: The path for the saved video, including extension</span>
+
+<span class="sd">        clim: If not none, the color limits to apply to all planes.  If None, color limits will be automtically</span>
+<span class="sd">        calculated by 1) taking a user assigned lower and upper percentile values, 2) calculating the maximum</span>
+<span class="sd">        of the absolute value of these values and then 3) setting the limits to be +/- the maximum of the</span>
+<span class="sd">        absolute value calculated in (2).</span>
+
+<span class="sd">        cmap: The colormap to use for all planes</span>
+
+<span class="sd">        title: If not None, the title to display over the video</span>
+
+<span class="sd">        cbar_label: If not None, the label for the colorbar</span>
+
+<span class="sd">        fps: The frames per second of the generated movie.  Each plane is a different plane.</span>
+
+<span class="sd">        figsize: The size of the figure to make the video as [width, height] in inches</span>
+
+<span class="sd">        facecolor: The background color of the figure to plot into</span>
+
+<span class="sd">        text_color: The color to use when plotting the title and colorbar ticks and labels</span>
+
+<span class="sd">        bitrate: The bitrate to use when saving the video</span>
+
+<span class="sd">        clims_percs: The percentile limits to use if automatically setting clim between 0 and 100.</span>
+<span class="sd">        The value of c_perc_limits[0] is the lower limit and the value of c_perc_limits[1] is the upper</span>
+<span class="sd">        limit.</span>
+
+<span class="sd">        one_index_z_plane: True if z-plane numbers should start with 1 in the frame titles</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        ax_pos: The bounding box for the axes used to show frames</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Define a helper function</span>
+    <span class="k">def</span> <span class="nf">update_image</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">im_h</span><span class="p">,</span> <span class="n">title_h</span><span class="p">,</span> <span class="n">title_s</span><span class="p">):</span>
+        <span class="n">im_h</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">image</span><span class="p">[</span><span class="n">z</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]))</span>
+        <span class="n">z_n</span> <span class="o">=</span> <span class="n">z</span>
+
+        <span class="k">if</span> <span class="n">one_index_z_plane</span><span class="p">:</span>
+            <span class="n">z_n</span> <span class="o">=</span> <span class="n">z_n</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="n">title_h</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">title_s</span> <span class="o">+</span> <span class="s1">&#39;z = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">z_n</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">im_h</span><span class="p">,</span>
+
+    <span class="c1"># If clim is None, calculate color limits</span>
+    <span class="k">if</span> <span class="n">clim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">p_lower</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanpercentile</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">clim_percs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">p_upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanpercentile</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">clim_percs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">c_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">([</span><span class="n">p_lower</span><span class="p">,</span> <span class="n">p_upper</span><span class="p">]))</span>
+        <span class="n">clim</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">c_range</span><span class="p">,</span> <span class="n">c_range</span><span class="p">)</span>
+
+    <span class="c1"># Set any nan values to 0</span>
+    <span class="n">volume</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">volume</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Get the first frame of the video</span>
+    <span class="n">frame0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">volume</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:])</span>
+    <span class="n">n_z_planes</span> <span class="o">=</span> <span class="n">volume</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Setup the basic figure for plotting, showing the first frame</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">facecolor</span><span class="p">)</span>
+    <span class="n">z_im</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">frame0</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">clim</span><span class="o">=</span><span class="n">clim</span><span class="p">)</span>
+    <span class="n">z_im</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">z_im</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Setup the color bar</span>
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">()</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_tick_params</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">text_color</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">cbar_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="n">cbar_label</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">)</span>
+
+    <span class="c1"># Setup the title</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">title_str</span> <span class="o">=</span> <span class="n">title</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">title_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">title_h</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title_str</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">)</span>
+
+    <span class="c1"># Generate the movie</span>
+    <span class="n">Writer</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">writers</span><span class="p">[</span><span class="s1">&#39;ffmpeg&#39;</span><span class="p">]</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">Writer</span><span class="p">(</span><span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">bitrate</span><span class="o">=</span><span class="n">bitrate</span><span class="p">,</span> <span class="n">codec</span><span class="o">=</span><span class="s1">&#39;libx264&#39;</span><span class="p">,</span> <span class="n">extra_args</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;-pix_fmt&#39;</span><span class="p">,</span> <span class="s1">&#39;yuv420p&#39;</span><span class="p">,</span>
+                                                                           <span class="s1">&#39;-crf&#39;</span><span class="p">,</span> <span class="s1">&#39;18&#39;</span><span class="p">])</span>
+
+    <span class="n">plane_animation</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">FuncAnimation</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">update_image</span><span class="p">,</span> <span class="n">frames</span><span class="o">=</span><span class="n">n_z_planes</span><span class="p">,</span>
+                                                        <span class="n">fargs</span><span class="o">=</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">z_im</span><span class="p">,</span> <span class="n">title_h</span><span class="p">,</span> <span class="n">title_str</span><span class="p">),</span> <span class="n">interval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                                        <span class="n">blit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Save the movie</span>
+    <span class="n">plane_animation</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">writer</span><span class="o">=</span><span class="n">writer</span><span class="p">,</span> <span class="n">savefig_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;facecolor&#39;</span><span class="p">:</span><span class="n">facecolor</span><span class="p">})</span>
+
+    <span class="n">ax_pos</span> <span class="o">=</span> <span class="n">z_im</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span>
+
+    <span class="c1"># Close the figure</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ax_pos</span></div>
+
+
+<div class="viewcode-block" id="signed_max_proj"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/volume_visualization/index.html#janelia_core.visualization.volume_visualization.signed_max_proj">[docs]</a><span class="k">def</span> <span class="nf">signed_max_proj</span><span class="p">(</span><span class="n">vol</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Performs a signed max projection of a volume.</span>
+
+<span class="sd">    By &quot;signed max project&quot; we mean the find the entry with largest absolute value along the projection</span>
+<span class="sd">    and then return the original (signed) value.</span>
+
+<span class="sd">    This function will ignore nan values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        vol: The volume.</span>
+
+<span class="sd">        dim: The dimension to project along.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        proj: The projected volume</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">vol_copy</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
+    <span class="n">vol_copy</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">vol</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="n">max_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">vol_copy</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">dim</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">dim</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">take_along_axis</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">max_inds</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">dim</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="visualize_rgb_max_project"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/volume_visualization/index.html#janelia_core.visualization.volume_visualization.visualize_rgb_max_project">[docs]</a><span class="k">def</span> <span class="nf">visualize_rgb_max_project</span><span class="p">(</span><span class="n">vol</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">dim_m</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cmap_im</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                              <span class="n">overlays</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cmap_extent</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                              <span class="n">cmap_xlabel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cmap_ylabel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                              <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">buffer</span><span class="o">=.</span><span class="mi">6</span><span class="p">,</span>
+                              <span class="n">facecolor</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">textcolor</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot; Generates a figure of max-projections of rgb volumes.</span>
+
+<span class="sd">    Will generate a figure with the following layout:</span>
+
+<span class="sd">            y_dim            z_dim</span>
+<span class="sd">        --------------     ---------</span>
+<span class="sd">        |             |    |        |</span>
+<span class="sd">        |             |    | y-proj |    ^</span>
+<span class="sd">        |             |    |        |    |</span>
+<span class="sd">        |  z-proj     |    |        |   x_dim</span>
+<span class="sd">        |             |    |        |    |</span>
+<span class="sd">        |             |    |        |</span>
+<span class="sd">        |             |    |        |</span>
+<span class="sd">        ------------       ---------</span>
+
+<span class="sd">        --------------</span>
+<span class="sd">      ^ |             |     -------</span>
+<span class="sd">      | | x-proj      |    | cmap  |</span>
+<span class="sd">  z_dim |             |    |       |</span>
+<span class="sd">      | |             |     -------</span>
+<span class="sd">        ---------------</span>
+<span class="sd">            y_dim</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        vol: The volume to generate the max projection of. Should be 4 dimensional, with the last dimension containing</span>
+<span class="sd">        RGB values.  Dimensions are assumed to be in the convention [x, y, z],</span>
+
+<span class="sd">        dim_m: A scalar multiplier for each dimension in the order x, y, z to account for aspect ratios.  If None,</span>
+<span class="sd">        a value of [1, 1, 1] will be used.</span>
+
+<span class="sd">        cmap_im: An optional image of an colormap to include</span>
+
+<span class="sd">        overlays: If provided, overlays[0] is an image to overlay the z-projection, and overlays[1] and [2] and images</span>
+<span class="sd">        to overlay the x and y projections.  These overlays should be of the same dimensions as the projections.</span>
+
+<span class="sd">        cmap_extent: Values to associate the the image of the colormap in the form of [left, right, bottom, top].</span>
+<span class="sd">        Note that colormap will be plotted so colors associated with the smallest parameter values appear in the</span>
+<span class="sd">        bottom left of the colormap image.</span>
+
+<span class="sd">        cmap_xlabel: An optional label for the x-axis of the colormap</span>
+
+<span class="sd">        cmap_ylabel: An optional label for the y-axis of the colormap</span>
+
+<span class="sd">        title: A string to use as the title for the figure. If None, no title will be created.</span>
+
+<span class="sd">        f: Figure to plot into.  If not provided, one will be created</span>
+
+<span class="sd">        buffer: The amount of space to put around plots in inches.</span>
+
+<span class="sd">        facecolor: The color of the figure background, if we are creating a figure</span>
+
+<span class="sd">        textcolor: The color to plot text in</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If vol is not 4 dimensional.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">vol</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;vol must be 4 dimensional.&#39;</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">dim_m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dim_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="c1"># Get volume dimensions</span>
+    <span class="n">d_x</span><span class="p">,</span> <span class="n">d_y</span><span class="p">,</span> <span class="n">d_z</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">shape</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;d_x: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">d_x</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;d_y: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">d_y</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;d_z: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">d_z</span><span class="p">))</span>
+
+    <span class="c1"># Apply aspect ratio correction</span>
+    <span class="n">d_x</span> <span class="o">=</span> <span class="n">d_x</span><span class="o">*</span><span class="n">dim_m</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">d_y</span> <span class="o">=</span> <span class="n">d_y</span><span class="o">*</span><span class="n">dim_m</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">d_z</span> <span class="o">=</span> <span class="n">d_z</span><span class="o">*</span><span class="n">dim_m</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="n">xy_aspect_ratio</span> <span class="o">=</span> <span class="n">dim_m</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">dim_m</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">xz_aspect_ratio</span> <span class="o">=</span> <span class="n">dim_m</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">dim_m</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">yz_aspect_ratio</span> <span class="o">=</span> <span class="n">dim_m</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">dim_m</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># Form projections</span>
+    <span class="n">x_proj</span> <span class="o">=</span> <span class="n">rgb_3d_max_project</span><span class="p">(</span><span class="n">vol</span><span class="o">=</span><span class="n">vol</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">y_proj</span> <span class="o">=</span> <span class="n">rgb_3d_max_project</span><span class="p">(</span><span class="n">vol</span><span class="o">=</span><span class="n">vol</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">z_proj</span> <span class="o">=</span> <span class="n">rgb_3d_max_project</span><span class="p">(</span><span class="n">vol</span><span class="o">=</span><span class="n">vol</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Create the figure if we need to</span>
+    <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tgt_h</span> <span class="o">=</span> <span class="mf">8.0</span> <span class="c1"># inches</span>
+        <span class="n">tgt_w</span> <span class="o">=</span> <span class="n">tgt_h</span><span class="o">*</span><span class="p">(</span><span class="n">d_y</span><span class="o">+</span><span class="n">d_z</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">d_x</span><span class="o">+</span><span class="n">d_z</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="n">buffer</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">tgt_w</span><span class="p">,</span> <span class="n">tgt_h</span><span class="p">),</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">facecolor</span><span class="p">)</span>
+
+    <span class="c1"># Get current figure size</span>
+    <span class="n">f_w</span><span class="p">,</span> <span class="n">f_h</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">get_size_inches</span><span class="p">()</span> <span class="c1"># (width, height)</span>
+
+    <span class="c1"># Determine how much usable space there is in the figure</span>
+    <span class="n">usable_w</span> <span class="o">=</span> <span class="n">f_w</span> <span class="o">-</span> <span class="mi">3</span><span class="o">*</span><span class="n">buffer</span>
+    <span class="n">usable_h</span> <span class="o">=</span> <span class="n">f_h</span> <span class="o">-</span> <span class="mi">3</span><span class="o">*</span><span class="n">buffer</span>
+
+    <span class="c1"># Determine the total height we can use for plotting, considering the aspect ratio of the figure</span>
+    <span class="n">req_height_im</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">d_x</span> <span class="o">+</span> <span class="n">d_z</span><span class="p">)</span> <span class="c1"># Height we need for plotting, in number of image pixels</span>
+    <span class="n">req_width_im</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">d_y</span> <span class="o">+</span> <span class="n">d_z</span><span class="p">)</span> <span class="c1"># Height we need for plotting, in number of image pizels</span>
+
+    <span class="n">usable_h_w_ratio</span> <span class="o">=</span> <span class="n">usable_h</span><span class="o">/</span><span class="n">usable_w</span>
+
+    <span class="n">plot_h_w_ratio</span> <span class="o">=</span> <span class="n">req_height_im</span><span class="o">/</span><span class="n">req_width_im</span>
+
+    <span class="k">if</span> <span class="n">usable_h_w_ratio</span> <span class="o">&lt;</span> <span class="n">plot_h_w_ratio</span><span class="p">:</span>
+        <span class="c1"># Figure is &quot;wider&quot; than what we need to plot, so we can scale up vertically as much as possible</span>
+        <span class="n">plottable_h</span> <span class="o">=</span> <span class="n">usable_h</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Figure is not wide enough for the plot, so we can only scale up vertically until we run out of width</span>
+        <span class="n">plottable_h</span> <span class="o">=</span> <span class="n">plot_h_w_ratio</span><span class="o">*</span><span class="n">usable_w</span>
+    <span class="n">plottable_w</span> <span class="o">=</span> <span class="n">plottable_h</span><span class="o">/</span><span class="n">plot_h_w_ratio</span>
+
+    <span class="c1"># Now we determine the size of the axes, as a percentage of the current figure size</span>
+    <span class="n">dx_perc_h</span> <span class="o">=</span> <span class="p">(</span><span class="n">plottable_h</span><span class="o">*</span><span class="n">d_x</span><span class="o">/</span><span class="p">(</span><span class="n">d_x</span> <span class="o">+</span> <span class="n">d_z</span><span class="p">))</span><span class="o">/</span><span class="n">f_h</span>
+    <span class="n">dz_perc_h</span> <span class="o">=</span> <span class="p">(</span><span class="n">plottable_h</span><span class="o">*</span><span class="n">d_z</span><span class="o">/</span><span class="p">(</span><span class="n">d_x</span> <span class="o">+</span> <span class="n">d_z</span><span class="p">))</span><span class="o">/</span><span class="n">f_h</span>
+    <span class="n">dy_perc_w</span> <span class="o">=</span> <span class="p">(</span><span class="n">plottable_w</span><span class="o">*</span><span class="n">d_y</span><span class="o">/</span><span class="p">(</span><span class="n">d_y</span> <span class="o">+</span> <span class="n">d_z</span><span class="p">))</span><span class="o">/</span><span class="n">f_w</span>
+    <span class="n">dz_perc_w</span> <span class="o">=</span> <span class="p">(</span><span class="n">plottable_w</span><span class="o">*</span><span class="n">d_z</span><span class="o">/</span><span class="p">(</span><span class="n">d_y</span> <span class="o">+</span> <span class="n">d_z</span><span class="p">))</span><span class="o">/</span><span class="n">f_w</span>
+
+    <span class="c1"># Now we determine position of axes as percentage of current figure size</span>
+    <span class="n">v_0_p</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">/</span><span class="n">f_h</span>
+    <span class="n">h_0_p</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">/</span><span class="n">f_w</span>
+    <span class="n">v_1_p</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">buffer</span><span class="o">/</span><span class="n">f_h</span> <span class="o">+</span> <span class="n">dz_perc_h</span>
+    <span class="n">h_1_p</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">buffer</span><span class="o">/</span><span class="n">f_w</span> <span class="o">+</span> <span class="n">dy_perc_w</span>
+
+    <span class="c1"># Now we specify the rectangles for each axes</span>
+    <span class="n">z_proj_rect</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_0_p</span><span class="p">,</span> <span class="n">v_1_p</span><span class="p">,</span> <span class="n">dy_perc_w</span><span class="p">,</span> <span class="n">dx_perc_h</span><span class="p">)</span>
+    <span class="n">x_proj_rect</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_0_p</span><span class="p">,</span> <span class="n">v_0_p</span><span class="p">,</span> <span class="n">dy_perc_w</span><span class="p">,</span> <span class="n">dz_perc_h</span><span class="p">)</span>
+    <span class="n">y_proj_rect</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_1_p</span><span class="p">,</span> <span class="n">v_1_p</span><span class="p">,</span> <span class="n">dz_perc_w</span><span class="p">,</span> <span class="n">dx_perc_h</span><span class="p">)</span>
+    <span class="n">cmap_rect</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_1_p</span><span class="p">,</span> <span class="n">v_0_p</span><span class="p">,</span> <span class="n">dz_perc_w</span><span class="p">,</span> <span class="n">dz_perc_h</span><span class="p">)</span>
+
+    <span class="c1"># Now we add the axes, adding the title while it is convenient</span>
+    <span class="n">z_proj_axes</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">z_proj_rect</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">textcolor</span><span class="p">)</span>
+    <span class="n">x_proj_axes</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">x_proj_rect</span><span class="p">)</span>
+    <span class="n">y_proj_axes</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">y_proj_rect</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cmap_im</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cmap_axes</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">cmap_rect</span><span class="p">)</span>
+
+    <span class="c1"># Get rid of units on the projection axes</span>
+
+    <span class="n">z_proj_axes</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">z_proj_axes</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">x_proj_axes</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">x_proj_axes</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">y_proj_axes</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">y_proj_axes</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Now we show the projections</span>
+    <span class="n">z_proj_axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">z_proj</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="n">xy_aspect_ratio</span><span class="p">)</span>
+    <span class="n">x_proj_axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flipud</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">x_proj</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">aspect</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">yz_aspect_ratio</span><span class="p">)</span>
+    <span class="n">y_proj_axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">y_proj</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="n">xz_aspect_ratio</span><span class="p">)</span>
+
+    <span class="c1"># Now we add the overlays</span>
+    <span class="n">z_proj_axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">overlays</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">aspect</span><span class="o">=</span><span class="n">xy_aspect_ratio</span><span class="p">)</span>
+    <span class="n">x_proj_axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">overlays</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">aspect</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">yz_aspect_ratio</span><span class="p">)</span>
+    <span class="n">y_proj_axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">overlays</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">aspect</span><span class="o">=</span><span class="n">xz_aspect_ratio</span><span class="p">)</span>
+
+    <span class="c1"># Now we add the colormap</span>
+    <span class="k">if</span> <span class="n">cmap_im</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cmap_extent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">a_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">cmap_extent</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">cmap_extent</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">cmap_extent</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">cmap_extent</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">cmap_axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cmap_im</span><span class="p">,</span> <span class="n">extent</span><span class="o">=</span><span class="n">cmap_extent</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="n">a_ratio</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cmap_axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cmap_im</span><span class="p">)</span>
+
+
+        <span class="n">cmap_axes</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_tick_params</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">textcolor</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">textcolor</span><span class="p">)</span>
+        <span class="n">cmap_axes</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_tick_params</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">textcolor</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">textcolor</span><span class="p">)</span>
+
+        <span class="c1"># Add labels to cmap if needed</span>
+        <span class="k">if</span> <span class="n">cmap_xlabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">cmap_xlabel</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">textcolor</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cmap_ylabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">cmap_ylabel</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">textcolor</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="visualize_projs"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/volume_visualization/index.html#janelia_core.visualization.volume_visualization.visualize_projs">[docs]</a><span class="k">def</span> <span class="nf">visualize_projs</span><span class="p">(</span><span class="n">horz_projs</span><span class="p">:</span>  <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">sag_projs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+                    <span class="n">cor_projs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">cmaps</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">],</span>
+                    <span class="n">clims</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]]],</span> <span class="n">dim_m</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">plot_cmap</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">f</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="n">buffer</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">6</span><span class="p">,</span> <span class="n">tgt_h</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span> <span class="n">facecolor</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                    <span class="n">textcolor</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+
+    <span class="sd">&quot;&quot;&quot; Visualizes horizontal, sagital and coronal projections of the same volume of data.</span>
+
+<span class="sd">    This function will generate a figure with the following layout:</span>
+
+<span class="sd">            y_dim                z_dim</span>
+<span class="sd">        --------------        -----------</span>
+<span class="sd">        |               |    |          |</span>
+<span class="sd">        |               |    | sag_proj |    ^</span>
+<span class="sd">        |               |    |          |    |</span>
+<span class="sd">        |  horz-proj    |    |          |   x_dim</span>
+<span class="sd">        |               |    |          |    |</span>
+<span class="sd">        |               |    |          |</span>
+<span class="sd">        |               |    |          |</span>
+<span class="sd">        ------------          -----------</span>
+
+<span class="sd">        ----------------</span>
+<span class="sd">      ^ |               |     ----------</span>
+<span class="sd">      | | coronal-proj  |    |    cmap  |</span>
+<span class="sd">  z_dim |               |    |          |</span>
+<span class="sd">      | |               |     ----------</span>
+<span class="sd">        ----------------</span>
+
+<span class="sd">    Multiple images can be shown, overlayed on eachother.  If a colormap is shown, it will</span>
+<span class="sd">    be the colormap for the topmost image.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        horz_projs: horz_projs[i] is the i^th horizontal projection image. Images will be overlaid one on top of the</span>
+<span class="sd">        other, with the i+1th image over the ith image.  Each image shape should be [x_dim, y_dim], where x_dim</span>
+<span class="sd">        and y_dim refer to the figure above.</span>
+
+<span class="sd">        sag_projs: sag_projs[i] is the i^th sagital projection image.  Each image should be of shape [x_dim, z_dim].</span>
+
+<span class="sd">        cor_projs: cor_projs[i] is the i^th coronal projection image.  Each image should be of shape [y_dim, z_dim]</span>
+
+<span class="sd">        cmaps: cmaps[i] is the colormap for plotting the i^th image in each of the projections.</span>
+
+<span class="sd">        clims: clims[i] is a tuple of color limits to use when plotting the i^th image.  clims[i] can also be</span>
+<span class="sd">        None, meaning no color limits will be explicitly passed to the plotting command for the i^th images.</span>
+<span class="sd">        If clims is None, then no color limits will be explicitly passed for all images.</span>
+
+<span class="sd">        dim_m: A scalar multiplier for each dimension in the order x, y, z to account for aspect ratios.  If None,</span>
+<span class="sd">        a value of [1, 1, 1] will be used.</span>
+
+<span class="sd">        title: A string to use as the title for the figure. If None, no title will be created.</span>
+
+<span class="sd">        f: Figure to plot into.  If not provided, one will be created</span>
+
+<span class="sd">        buffer: The amount of space to put around plots in inches.</span>
+
+<span class="sd">        tgt_h: The height of the figure that will be created in inches if f is None.</span>
+
+<span class="sd">        facecolor: The color of the figure background, if we are creating a figure</span>
+
+<span class="sd">        textcolor: The color to plot text in</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">dim_m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dim_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">clims</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">clims</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">horz_projs</span><span class="p">)</span>
+
+    <span class="c1"># Get volume dimensions</span>
+    <span class="n">d_x</span><span class="p">,</span> <span class="n">d_y</span> <span class="o">=</span> <span class="n">horz_projs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">d_z</span> <span class="o">=</span> <span class="n">sag_projs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Apply aspect ratio corrections</span>
+    <span class="n">d_x</span> <span class="o">=</span> <span class="n">d_x</span><span class="o">*</span><span class="n">dim_m</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">d_y</span> <span class="o">=</span> <span class="n">d_y</span><span class="o">*</span><span class="n">dim_m</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">d_z</span> <span class="o">=</span> <span class="n">d_z</span><span class="o">*</span><span class="n">dim_m</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="n">xy_aspect_ratio</span> <span class="o">=</span> <span class="n">dim_m</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">dim_m</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">xz_aspect_ratio</span> <span class="o">=</span> <span class="n">dim_m</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">dim_m</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">yz_aspect_ratio</span> <span class="o">=</span> <span class="n">dim_m</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">dim_m</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># Create the figure if we need to</span>
+    <span class="k">if</span> <span class="n">f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tgt_w</span> <span class="o">=</span> <span class="n">tgt_h</span><span class="o">*</span><span class="p">(</span><span class="n">d_y</span><span class="o">+</span><span class="n">d_z</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">d_x</span><span class="o">+</span><span class="n">d_z</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="n">buffer</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">tgt_w</span><span class="p">,</span> <span class="n">tgt_h</span><span class="p">),</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">facecolor</span><span class="p">)</span>
+
+    <span class="c1"># Get current figure size</span>
+    <span class="n">f_w</span><span class="p">,</span> <span class="n">f_h</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">get_size_inches</span><span class="p">()</span> <span class="c1"># (width, height)</span>
+
+    <span class="c1"># Determine how much usable space there is in the figure</span>
+    <span class="n">usable_w</span> <span class="o">=</span> <span class="n">f_w</span> <span class="o">-</span> <span class="mi">3</span><span class="o">*</span><span class="n">buffer</span>
+    <span class="n">usable_h</span> <span class="o">=</span> <span class="n">f_h</span> <span class="o">-</span> <span class="mi">3</span><span class="o">*</span><span class="n">buffer</span>
+
+    <span class="c1"># Determine the total height we can use for plotting, considering the aspect ratio of the figure</span>
+    <span class="n">req_height_im</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">d_x</span> <span class="o">+</span> <span class="n">d_z</span><span class="p">)</span> <span class="c1"># Height we need for plotting, in number of image pixels</span>
+    <span class="n">req_width_im</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">d_y</span> <span class="o">+</span> <span class="n">d_z</span><span class="p">)</span> <span class="c1"># Height we need for plotting, in number of image pizels</span>
+
+    <span class="n">usable_h_w_ratio</span> <span class="o">=</span> <span class="n">usable_h</span><span class="o">/</span><span class="n">usable_w</span>
+
+    <span class="n">plot_h_w_ratio</span> <span class="o">=</span> <span class="n">req_height_im</span><span class="o">/</span><span class="n">req_width_im</span>
+
+    <span class="k">if</span> <span class="n">usable_h_w_ratio</span> <span class="o">&lt;</span> <span class="n">plot_h_w_ratio</span><span class="p">:</span>
+        <span class="c1"># Figure is &quot;wider&quot; than what we need to plot, so we can scale up vertically as much as possible</span>
+        <span class="n">plottable_h</span> <span class="o">=</span> <span class="n">usable_h</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Figure is not wide enough for the plot, so we can only scale up vertically until we run out of width</span>
+        <span class="n">plottable_h</span> <span class="o">=</span> <span class="n">plot_h_w_ratio</span><span class="o">*</span><span class="n">usable_w</span>
+    <span class="n">plottable_w</span> <span class="o">=</span> <span class="n">plottable_h</span><span class="o">/</span><span class="n">plot_h_w_ratio</span>
+
+    <span class="c1"># Now we determine the size of the axes, as a percentage of the current figure size</span>
+    <span class="n">dx_perc_h</span> <span class="o">=</span> <span class="p">(</span><span class="n">plottable_h</span><span class="o">*</span><span class="n">d_x</span><span class="o">/</span><span class="p">(</span><span class="n">d_x</span> <span class="o">+</span> <span class="n">d_z</span><span class="p">))</span><span class="o">/</span><span class="n">f_h</span>
+    <span class="n">dz_perc_h</span> <span class="o">=</span> <span class="p">(</span><span class="n">plottable_h</span><span class="o">*</span><span class="n">d_z</span><span class="o">/</span><span class="p">(</span><span class="n">d_x</span> <span class="o">+</span> <span class="n">d_z</span><span class="p">))</span><span class="o">/</span><span class="n">f_h</span>
+    <span class="n">dy_perc_w</span> <span class="o">=</span> <span class="p">(</span><span class="n">plottable_w</span><span class="o">*</span><span class="n">d_y</span><span class="o">/</span><span class="p">(</span><span class="n">d_y</span> <span class="o">+</span> <span class="n">d_z</span><span class="p">))</span><span class="o">/</span><span class="n">f_w</span>
+    <span class="n">dz_perc_w</span> <span class="o">=</span> <span class="p">(</span><span class="n">plottable_w</span><span class="o">*</span><span class="n">d_z</span><span class="o">/</span><span class="p">(</span><span class="n">d_y</span> <span class="o">+</span> <span class="n">d_z</span><span class="p">))</span><span class="o">/</span><span class="n">f_w</span>
+
+    <span class="c1"># Now we determine position of axes as percentage of current figure size</span>
+    <span class="n">v_0_p</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">/</span><span class="n">f_h</span>
+    <span class="n">h_0_p</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">/</span><span class="n">f_w</span>
+    <span class="n">v_1_p</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">buffer</span><span class="o">/</span><span class="n">f_h</span> <span class="o">+</span> <span class="n">dz_perc_h</span>
+    <span class="n">h_1_p</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">buffer</span><span class="o">/</span><span class="n">f_w</span> <span class="o">+</span> <span class="n">dy_perc_w</span>
+
+    <span class="c1"># Now we specify the rectanges for each axes</span>
+    <span class="n">z_proj_rect</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_0_p</span><span class="p">,</span> <span class="n">v_1_p</span><span class="p">,</span> <span class="n">dy_perc_w</span><span class="p">,</span> <span class="n">dx_perc_h</span><span class="p">)</span>
+    <span class="n">x_proj_rect</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_0_p</span><span class="p">,</span> <span class="n">v_0_p</span><span class="p">,</span> <span class="n">dy_perc_w</span><span class="p">,</span> <span class="n">dz_perc_h</span><span class="p">)</span>
+    <span class="n">y_proj_rect</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_1_p</span><span class="p">,</span> <span class="n">v_1_p</span><span class="p">,</span> <span class="n">dz_perc_w</span><span class="p">,</span> <span class="n">dx_perc_h</span><span class="p">)</span>
+    <span class="n">cmap_rect</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_1_p</span><span class="p">,</span> <span class="n">v_0_p</span><span class="p">,</span> <span class="o">.</span><span class="mi">3</span><span class="o">*</span><span class="n">dz_perc_w</span><span class="p">,</span> <span class="n">dz_perc_h</span><span class="p">)</span>
+
+    <span class="c1"># Now we add the axes, adding the title while it is convenient</span>
+    <span class="n">z_proj_axes</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">z_proj_rect</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">textcolor</span><span class="p">)</span>
+    <span class="n">x_proj_axes</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">x_proj_rect</span><span class="p">)</span>
+    <span class="n">y_proj_axes</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">y_proj_rect</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plot_cmap</span><span class="p">:</span>
+        <span class="n">cmap_axes</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">add_axes</span><span class="p">(</span><span class="n">cmap_rect</span><span class="p">)</span>
+
+    <span class="c1"># Make sure the axes don&#39;t change aspect ratio when we scale the figure</span>
+    <span class="n">z_proj_axes</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+    <span class="n">x_proj_axes</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+    <span class="n">y_proj_axes</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plot_cmap</span><span class="p">:</span>
+        <span class="k">pass</span>
+        <span class="c1">#cmap_axes.set_aspect(&#39;equal&#39;)</span>
+
+    <span class="c1"># Get rid of units on the projection axes</span>
+
+    <span class="n">z_proj_axes</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">z_proj_axes</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">x_proj_axes</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">x_proj_axes</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">y_proj_axes</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">y_proj_axes</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Now we show the projections</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">z_proj</span><span class="p">,</span> <span class="n">y_proj</span><span class="p">,</span> <span class="n">x_proj</span><span class="p">,</span> <span class="n">cmap</span><span class="p">,</span> <span class="n">clim</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">horz_projs</span><span class="p">,</span> <span class="n">sag_projs</span><span class="p">,</span> <span class="n">cor_projs</span><span class="p">,</span> <span class="n">cmaps</span><span class="p">,</span> <span class="n">clims</span><span class="p">):</span>
+        <span class="n">c_im</span> <span class="o">=</span> <span class="n">z_proj_axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">z_proj</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">clim</span><span class="o">=</span><span class="n">clim</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="n">xy_aspect_ratio</span><span class="p">)</span>
+        <span class="n">x_proj_axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">x_proj</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">clim</span><span class="o">=</span><span class="n">clim</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">xz_aspect_ratio</span><span class="p">)</span>
+        <span class="n">y_proj_axes</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">y_proj</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">clim</span><span class="o">=</span><span class="n">clim</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="n">yz_aspect_ratio</span><span class="p">)</span>
+
+    <span class="c1"># Now we show the colormap if we are suppose to</span>
+    <span class="k">if</span> <span class="n">plot_cmap</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">c_im</span><span class="p">,</span> <span class="n">cax</span><span class="o">=</span><span class="n">cmap_axes</span><span class="p">)</span>
+
+        <span class="n">cmap_axes</span><span class="o">.</span><span class="n">get_yaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_tick_params</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">textcolor</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">textcolor</span><span class="p">)</span>
+        <span class="n">cmap_axes</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_tick_params</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">textcolor</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">textcolor</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="gen_composite_roi_vol"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/volume_visualization/index.html#janelia_core.visualization.volume_visualization.gen_composite_roi_vol">[docs]</a><span class="k">def</span> <span class="nf">gen_composite_roi_vol</span><span class="p">(</span><span class="n">rois</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">ROI</span><span class="p">],</span> <span class="n">weights</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">vol_shape</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                          <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Generates a volume for visualization of a composite ROI.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        rois: A list of rois to form the composite ROI out of.</span>
+
+<span class="sd">        weights: A list of weights for each roi in rois.</span>
+
+<span class="sd">        vol_shape: The shape of the volume to generate.  The indices of ROIS should index into this volume.</span>
+
+<span class="sd">        verbose: True if updates on progress should be printed</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        comp_roi_vol: The volume with the composite ROI in it.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">w_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">vol_shape</span><span class="p">)</span>
+    <span class="n">cnts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">vol_shape</span><span class="p">)</span>
+
+    <span class="n">n_rois</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rois</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">r_i</span><span class="p">,</span> <span class="n">roi</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rois</span><span class="p">):</span>
+        <span class="n">inds</span> <span class="o">=</span> <span class="n">roi</span><span class="o">.</span><span class="n">list_all_voxel_inds</span><span class="p">()</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">roi</span><span class="o">.</span><span class="n">list_all_weights</span><span class="p">()</span>
+
+        <span class="n">w_sum</span><span class="p">[</span><span class="n">inds</span><span class="p">]</span> <span class="o">=</span> <span class="n">w_sum</span><span class="p">[</span><span class="n">inds</span><span class="p">]</span> <span class="o">+</span> <span class="n">weights</span><span class="p">[</span><span class="n">r_i</span><span class="p">]</span><span class="o">*</span><span class="n">w</span>
+        <span class="n">cnts</span><span class="p">[</span><span class="n">inds</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">verbose</span> <span class="ow">and</span> <span class="n">r_i</span> <span class="o">%</span> <span class="mi">10000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Completed processing &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r_i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; of &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_rois</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; rois.&#39;</span><span class="p">)</span>
+
+    <span class="n">comp_roi_vol</span> <span class="o">=</span> <span class="n">w_sum</span><span class="o">/</span><span class="n">cnts</span>
+    <span class="n">comp_roi_vol</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cnts</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">comp_roi_vol</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

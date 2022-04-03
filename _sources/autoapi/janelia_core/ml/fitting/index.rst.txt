@@ -1,0 +1,53 @@
+:py:mod:`janelia_core.ml.fitting`
+=================================
+
+.. py:module:: janelia_core.ml.fitting
+
+.. autoapi-nested-parse::
+
+   General tools for fitting PyTorch modules.
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.ml.fitting.match_torch_module
+
+
+
+.. py:function:: match_torch_module(tgt_m: torch.nn.Module, fit_m: torch.nn.Module, dim_ranges: torch.Tensor, optim_opts: dict = None, n_its: int = 1000, n_smps: int = 100, device: torch.device = None, update_int: int = 100) -> torch.Tensor
+
+   Optimizes one torch module to match another.
+
+   Args:
+
+       tgt_m: The target torch module whose input to output relationship we want to match
+
+       fit_m: The module we seek to optimize
+
+       dim_ranges: dim_ranges[:,i] gives the lower bound (1st entry) and upper bound (2nd entry) of values
+       for input dimension i
+
+       optim_opts: A dictionary of options to use when creating the Adam optimizer.  These will be passed
+       directly into the constructor.  If None, an empty dictionary will be created.
+
+       n_its: The number of fitting iterations to perform
+
+       n_smps: The number of random samples to generate each fitting iteration
+
+       device: The device to perform optimization on. If none, optimization will be performed on cpu.
+
+       update_int: The interval, in iterations, at which we print fitting status
+
+   Returns:
+
+       er: The objective at the end of optimization
+
+

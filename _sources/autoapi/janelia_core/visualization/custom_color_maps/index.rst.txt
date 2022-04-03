@@ -1,0 +1,192 @@
+:py:mod:`janelia_core.visualization.custom_color_maps`
+======================================================
+
+.. py:module:: janelia_core.visualization.custom_color_maps
+
+.. autoapi-nested-parse::
+
+   Custom color maps, including color maps over multiple parameters.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.visualization.custom_color_maps.MultiParamCMap
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.visualization.custom_color_maps.generate_normalized_rgb_cmap
+   janelia_core.visualization.custom_color_maps.generate_two_param_norm_map
+   janelia_core.visualization.custom_color_maps.generate_two_param_hsv_map
+   janelia_core.visualization.custom_color_maps.visualize_two_param_map
+   janelia_core.visualization.custom_color_maps.make_red_green_c_map
+   janelia_core.visualization.custom_color_maps.make_purple_green_c_map
+
+
+
+.. py:class:: MultiParamCMap(param_vl_ranges: Sequence[numpy.ndarray], clrs: numpy.ndarray)
+
+   An object representing a color map over multiple parameters.
+
+   Unlike a typical colormap, which has a single index, these color maps allow indexing over multiple parameters.
+
+   For all colormaps, the user specifies a list of values for each parameter and combinations of these parameter
+   values are then mapped to colors.  When using a colormap, values to be assigned colors are rounded to the nearest
+   parameter values included in the colormap.  Saturation is also supported, so that values to be assigned colors
+   outside of the range of the values specified for the colormap are assigned colors at the limits of the colormap.
+
+
+   Creates a new MultiParamCMap object.
+
+   Args:
+       param_vl_ranges: param_vls[i] specifies values for the i^th parameter that specific colors will be assigned
+       to and is a tuple of the form (start_vl, stop_vl, step_size), which specifies the values
+       start_vl, start_vl + step_size, ... up too all values strictly less than stop_vl.
+
+       clrs: clrs[i_0, i_1, i_2 ... , :] is the color to assign to the combination of param_vls[0][i_0],
+       param_vls[1][i_1], param_vls[2][i_2] ...  The number of dimensions in clrs must be equal to the length of
+       param_vls plus 1, with the last dimension containing rgb values of colors.
+
+
+   .. py:method:: __getitem__(self, param_vls: Sequence[numpy.ndarray]) -> numpy.ndarray
+
+      Returns colors for combinations of parameter values.
+
+      Args:
+          param_vls: Values of parameters go generate colors for.  param_vls[i] contains parameter values for the i^th
+          parameter.  All entries in param_vls must be numpy arrays of the same shape.
+
+      Returns:
+          clrs: The colors at each combination of parameter values.  Will be of shape [*param_vls[0].shape, 3], so
+          that clrs[d_0, d_1, d_2, ..., :] is the color for the parameter combination param_vls[0][d_0, d_1, d_2],
+          param_vls[1][d_0, d_1, d_2], param_vls[1][d_0, d_1, d_2], ...
+
+
+
+   .. py:method:: to_dict(self)
+
+      Returns the attributes of the colormap as a dictionary for serialization.
+
+
+   .. py:method:: from_dict(cls, d: dict)
+      :classmethod:
+
+      Creates a MultiParamCMap from a dictionary.
+
+
+
+.. py:function:: generate_normalized_rgb_cmap(base_map: matplotlib.colors.Colormap, n: int = 1000) -> matplotlib.colors.ListedColormap
+
+   Generates a colormap of RGB values, where each value has a norm of 1.
+
+   Args:
+        base_map: The base map to sample.  RGB values of this map will be normalized.
+
+        n: The number of values in the generated map.
+
+   Returns:
+       map: The created colormap.
+
+
+.. py:function:: generate_two_param_norm_map(clr_param_range: Sequence, norm_param_range: Sequence, p1_cmap: matplotlib.colors.Colormap, clims: Sequence[float], norm_lims: Sequence[float]) -> MultiParamCMap
+
+   Generates a MultiParamCMap for two parameters.  The first indexes color; the second the norm of the color.
+
+   Args:
+       clr_param_range: The range of values for parameter 0, which indexes into color, in the form
+       (start_vl, stop_vl, step).
+
+       norm_param_range: The range of values for parameter 1, which indexes into the norm of RGB colors.
+
+       p1_cmap: The map specifying colors.  These colors will be displayed for max norm values.
+
+       clims: The lower and upper parameter values when indexing into p1_cmap.
+
+       norm_lims: The low and upper parameter values when indexing into norm values.
+
+   To use a reversed color (value) scale, start_vl should be less than stop_vl and step should be a negative value
+   in clr_param_range (vl_param_range) and clims (vllims) should also be flipped so that clims[0] > clims[1].
+
+   Returns:
+       map: The generated map
+
+
+.. py:function:: generate_two_param_hsv_map(clr_param_range: Sequence, vl_param_range: Sequence, p1_cmap: matplotlib.colors.Colormap, clims: Sequence[float], vllims: Sequence[float]) -> MultiParamCMap
+
+   Generates a MultiParamCMap for two parameters, which index hue and value of hsv colors.
+
+   Args:
+       clr_param_range: The range of values for parameter 0, which indexes into hue, in the form
+       (start_vl, stop_vl, step).
+
+       vl_param_range: The range of values for parameter 1, which indexes into value of hsv colors, in the same form
+       as clr_param_range.
+
+       p1_cmap: The color map that p1_values will index into. These colors will the be displayed
+       for value levels of 1.
+
+       clims: The lower and upper parameter values when indexing into p1_cmap.
+
+       vllims: The lower and upper parameter values when indexing into value values.
+
+   To use a reversed color (value) scale, start_vl should be less than stop_vl and step should be a negative value
+   in clr_param_range (vl_param_range) and clims (vllims) should also be flipped so that clims[0] > clims[1].
+
+   Returns:
+       map: The generated colormap.
+
+
+.. py:function:: visualize_two_param_map(cmap: MultiParamCMap, plot_ax: matplotlib.pyplot.Axes = None, p0_vls: numpy.ndarray = None, p1_vls: numpy.ndarray = None)
+
+   Plots a visualization of a two-parameter MultiParamCMap, i.e., the 2-d version of making 1-d colorbar.
+
+   Args:
+       cmap: The color map to plot
+
+       plot_ax: The axis to produce the colormap in.  If None, a new figure with axes will be created.
+
+       p0_vls: A list of values to generate the colormap for.
+
+       p1_vls: A list of values to generate the colormap for.
+
+   Raises:
+       ValueError: If the colormap is not for two parameters
+
+
+.. py:function:: make_red_green_c_map(n: int = 256, inc_transp: bool = False) -> matplotlib.colors.LinearSegmentedColormap
+
+   Generates a color map that linearly goes from red at 0, to black at .5 and then to green at 1.
+
+   Args:
+       n: The number of values in the color map
+
+       inc_transp: True if values in the middle of the map (black) should also be transparent.
+
+   Returns:
+       cmap: The generated color map.
+
+
+.. py:function:: make_purple_green_c_map(n: int = 256, inc_transp: bool = False, gentle: bool = False) -> matplotlib.colors.LinearSegmentedColormap
+
+   Generates a color map that linearly goes from purple at 0, to black at .5 and then to green at 1.
+
+   Args:
+       n: The number of values in the color map
+
+       inc_transp: True if values in the middle of the map (black) should also be transparent.
+
+   Returns:
+       cmap: The generated color map.
+
+

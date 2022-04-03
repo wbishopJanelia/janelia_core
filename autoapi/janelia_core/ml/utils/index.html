@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.utils &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.utils</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/ml/utils/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.utils">
+<span id="janelia-core-ml-utils"></span><h1><a class="reference internal" href="#module-janelia_core.ml.utils" title="janelia_core.ml.utils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.utils</span></code></a><a class="headerlink" href="#module-janelia_core.ml.utils" title="Permalink to this headline"></a></h1>
+<p>Contains basic machine learning utility functions.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.utils.format_and_check_learning_rates" title="janelia_core.ml.utils.format_and_check_learning_rates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_and_check_learning_rates</span></code></a>(learning_rates: Union[int, float, list]) → [numpy.ndarray, numpy.ndarray]</p></td>
+<td><p>Takes learning rates in different formats and puts them in a standard format, running basic checks.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.utils.torch_mod_to_fcn" title="janelia_core.ml.utils.torch_mod_to_fcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">torch_mod_to_fcn</span></code></a>(m: torch.nn.Module)</p></td>
+<td><p>Converts a torch module or function to a standard python function accepting a numpy array as input.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.utils.list_torch_devices" title="janelia_core.ml.utils.list_torch_devices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list_torch_devices</span></code></a>(verbose: bool = True)</p></td>
+<td><p>Returns a list of torch devices.  Will return <em>either</em> cpu or a list of GPUs.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.utils.torch_devices_memory_usage" title="janelia_core.ml.utils.torch_devices_memory_usage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">torch_devices_memory_usage</span></code></a>(devices: Sequence[torch.device], type: str = 'memory_allocated') → list</p></td>
+<td><p>Returns a list of memory usage on devices.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.utils.summarize_memory_stats" title="janelia_core.ml.utils.summarize_memory_stats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">summarize_memory_stats</span></code></a>(devices: Sequence[torch.device])</p></td>
+<td><p>Gets memory used across cpu and gpus.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="janelia_core.ml.utils.format_and_check_learning_rates">
+<code class="sig-prename descclassname">janelia_core.ml.utils.</code><code class="sig-name descname">format_and_check_learning_rates</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">learning_rates</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="p">[</span>numpy.ndarray<span class="p">, </span>numpy.ndarray<span class="p">]</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/utils.html#format_and_check_learning_rates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.utils.format_and_check_learning_rates" title="Permalink to this definition"></a></dt>
+<dd><p>Takes learning rates in different formats and puts them in a standard format, running basic checks.</p>
+<p>In iterative optimization routines, users may provide a single learning rate for all iterations or may provide a
+schedule of learning rates.  This function accepts input as either a single number, specifying the learning rate to
+use on all iterations, or as a list of tuples (specifying a learning rate schedule, see below) and outputs, in all
+cases, a learning rate schedule which is checked for consistency and put in a standard format.</p>
+<p>This function also allows for the user to specify multiple learning rates which get updated (useful when different
+learning rates are used for different sets of parameters).</p>
+<dl>
+<dt>Args:</dt><dd><p>learning_rates: If a single number, this is the learning rate to use for all iterations for all parameters.
+Alternatively, this can be a list of tuples.  Each tuple is of the form (iteration, learning_rate_vls0,
+learning_rate_vls1, …), which gives sets of learning rates to use from that iteration onwards, until another
+tuple specifies another set of learning rates to use at a different iteration on. learning_rate_vls can be any
+object.</p>
+<blockquote>
+<div><p>Example 1 - learning_rates = [(0, .01, .2), (1000, .001, .3), (10000, .0001, .4)] would specify would specify
+a schedule for a set of two learning rates with learning rate vallues of .01 and .2 from iteration 0 to 999,
+.001 and .3 from iteration 1000 to 9999 and .0001 and .4 from iteration 10000 onwards.</p>
+<p>Example 2 - learning_rates = [(0, .01, {‘fast’:, 1}), (1000, .0001, {‘fast’: .1}] would specify to sets of
+learning rates.  The first set (starting at epoch 0) has values .01 and then a dictionary value with the
+key fast being set to 1.  The second set (starting at epoch 1000) has values .0001 and then a dictionary
+value with key fast being set to .1.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>learning_rate_its: A sorted numpy array of the iterations each learning rate comes into effect on.</p>
+<p>learning_rate_values: A 2-d numpy array of the corresponding learning rates for learning_rate_its. Specifically,
+learning_rate_values[i,j] specifies the value for the j^th learning rate which comes into effect on iteration
+learning_rate_its[i]. If values were specified as a dictionary, the entries will be dictionaries.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If learning_rates specifies two or more learning rates for the same iteration</p>
+<p>ValueError: If learning rates are specified as a list of tuples and negative iterations are supplied</p>
+<p>ValueError: If learning rates are specified as a list of tuples and iteration</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.utils.torch_mod_to_fcn">
+<code class="sig-prename descclassname">janelia_core.ml.utils.</code><code class="sig-name descname">torch_mod_to_fcn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">m</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/utils.html#torch_mod_to_fcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.utils.torch_mod_to_fcn" title="Permalink to this definition"></a></dt>
+<dd><p>Converts a torch module or function to a standard python function accepting a numpy array as input.</p>
+<dl>
+<dt>Returns:</dt><dd><p>fcn: a new python function which:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Takes numpy input and converts that input to a torch Tensor</p></li>
+<li><p>Calls the forward method of the torch module on that input (in the context of no_grad)</p></li>
+<li><p>Converts the output to a numpy array</p></li>
+</ol>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.utils.list_torch_devices">
+<code class="sig-prename descclassname">janelia_core.ml.utils.</code><code class="sig-name descname">list_torch_devices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/utils.html#list_torch_devices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.utils.list_torch_devices" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of torch devices.  Will return <em>either</em> cpu or a list of GPUs.</p>
+<p>If GPUs are available, will return a list of GPUs over returning the cpu. Will only
+return cpu when no GPUs are available.</p>
+<dl>
+<dt>Args:</dt><dd><p>verbose: True if summary of found devices should be printed to screen.</p>
+</dd>
+<dt>Returns:</dt><dd><p>devices: List of devices</p>
+<p>cuda_is_available: True if returned devices are GPU</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.utils.torch_devices_memory_usage">
+<code class="sig-prename descclassname">janelia_core.ml.utils.</code><code class="sig-name descname">torch_devices_memory_usage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">devices</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.device<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">type</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'memory_allocated'</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/utils.html#torch_devices_memory_usage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.utils.torch_devices_memory_usage" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of memory usage on devices.</p>
+<p>This function gets either memory allocated or max memory on torch devices, providing a value of nan if a device is
+a cpu.</p>
+<dl>
+<dt>Args:</dt><dd><p>devices: List of devices</p>
+<p>type: ‘max_memory_allocated’ to list max memory allocated; for any other string memory allocated is returned</p>
+</dd>
+<dt>Returns:</dt><dd><p>mem_usage: The list of memory usage</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.utils.summarize_memory_stats">
+<code class="sig-prename descclassname">janelia_core.ml.utils.</code><code class="sig-name descname">summarize_memory_stats</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">devices</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.device<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/utils.html#summarize_memory_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.utils.summarize_memory_stats" title="Permalink to this definition"></a></dt>
+<dd><p>Gets memory used across cpu and gpus.</p>
+<dl>
+<dt>Args:</dt><dd><p>devices: The devices to summarize memory usage over</p>
+</dd>
+<dt>Returns:</dt><dd><p>memory_usage: memory_usage[i] contains the summary for device i as a dictionary with the following keys:</p>
+<blockquote>
+<div><p>type: The type of device - either ‘cpu’ or ‘cuda’</p>
+<p>current: The current memory usage of the device in GB. If the device is cpu, this is the memory used by
+the process that called this function.</p>
+<p>max: The max memory used for the device.  If the device type is cpu, this will be nan.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

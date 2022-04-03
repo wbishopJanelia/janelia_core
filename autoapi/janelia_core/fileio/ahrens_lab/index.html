@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.fileio.ahrens_lab &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio.ahrens_lab</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/fileio/ahrens_lab/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.fileio.ahrens_lab">
+<span id="janelia-core-fileio-ahrens-lab"></span><h1><a class="reference internal" href="#module-janelia_core.fileio.ahrens_lab" title="janelia_core.fileio.ahrens_lab"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio.ahrens_lab</span></code></a><a class="headerlink" href="#module-janelia_core.fileio.ahrens_lab" title="Permalink to this headline"></a></h1>
+<p>Tools for reading in Ahrens lab experimental data.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.fileio.ahrens_lab.read_exp" title="janelia_core.fileio.ahrens_lab.read_exp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_exp</span></code></a>(image_folder: str = None, ephys_folder: str = None, ephys_file: str = 'frame_swim.mat', ephys_var_name: str = 'frame_swim', image_ext: str = '.h5', metadata_file: str = 'ch0.xml', stack_freq_file: str = 'Stack_frequency.txt', verbose: bool = True) → janelia_core.dataprocessing.dataset.DataSet</p></td>
+<td><p>Reads in Ahrens lab experimental data to a Dataset object.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.fileio.ahrens_lab.read_ephys_data" title="janelia_core.fileio.ahrens_lab.read_ephys_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_ephys_data</span></code></a>(ephys_file: pathlib.Path, var_name: str = 'frame_swim', verbose: bool = True) → numpy.ndarray</p></td>
+<td><p>Reads in electophysiological data for an Ahrens lab experiment.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.fileio.ahrens_lab.read_stack_freq" title="janelia_core.fileio.ahrens_lab.read_stack_freq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_stack_freq</span></code></a>(stack_freq_file: pathlib.Path) → dict</p></td>
+<td><p>Reads in stack frequency information from file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.fileio.ahrens_lab.read_separated_exp" title="janelia_core.fileio.ahrens_lab.read_separated_exp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_separated_exp</span></code></a>(image_folders: list, image_labels: list, metadata_folder: pathlib.Path, ephys_folder: pathlib.Path = None, ephys_file: str = 'frame_swim.mat', ephys_var_name: str = 'frame_swim', image_ext: str = '.h5', metadata_file: str = 'ch0.xml', stack_freq_file: str = 'Stack_frequency.txt', verbose: bool = True) → janelia_core.dataprocessing.dataset.DataSet</p></td>
+<td><p>Reads in Ahrens lab experimental data after images have been split by color.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.fileio.ahrens_lab.read_raw_ephys_data" title="janelia_core.fileio.ahrens_lab.read_raw_ephys_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_raw_ephys_data</span></code></a>(in_file: str, num_channels: int = 10) → numpy.ndarray</p></td>
+<td><p>Reads in raw ephys data from an Ahrens lab experiment.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.fileio.ahrens_lab.STACK_FREQ_STACK_FREQ_LINE" title="janelia_core.fileio.ahrens_lab.STACK_FREQ_STACK_FREQ_LINE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STACK_FREQ_STACK_FREQ_LINE</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.fileio.ahrens_lab.STACK_FREQ_EXP_DURATION_LINE" title="janelia_core.fileio.ahrens_lab.STACK_FREQ_EXP_DURATION_LINE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STACK_FREQ_EXP_DURATION_LINE</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.fileio.ahrens_lab.STACK_FREQ_N_IMAGES_LINE" title="janelia_core.fileio.ahrens_lab.STACK_FREQ_N_IMAGES_LINE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STACK_FREQ_N_IMAGES_LINE</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt id="janelia_core.fileio.ahrens_lab.STACK_FREQ_STACK_FREQ_LINE">
+<code class="sig-prename descclassname">janelia_core.fileio.ahrens_lab.</code><code class="sig-name descname">STACK_FREQ_STACK_FREQ_LINE</code><em class="property"> = 0</em><a class="headerlink" href="#janelia_core.fileio.ahrens_lab.STACK_FREQ_STACK_FREQ_LINE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt id="janelia_core.fileio.ahrens_lab.STACK_FREQ_EXP_DURATION_LINE">
+<code class="sig-prename descclassname">janelia_core.fileio.ahrens_lab.</code><code class="sig-name descname">STACK_FREQ_EXP_DURATION_LINE</code><em class="property"> = 1</em><a class="headerlink" href="#janelia_core.fileio.ahrens_lab.STACK_FREQ_EXP_DURATION_LINE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt id="janelia_core.fileio.ahrens_lab.STACK_FREQ_N_IMAGES_LINE">
+<code class="sig-prename descclassname">janelia_core.fileio.ahrens_lab.</code><code class="sig-name descname">STACK_FREQ_N_IMAGES_LINE</code><em class="property"> = 2</em><a class="headerlink" href="#janelia_core.fileio.ahrens_lab.STACK_FREQ_N_IMAGES_LINE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.fileio.ahrens_lab.read_exp">
+<code class="sig-prename descclassname">janelia_core.fileio.ahrens_lab.</code><code class="sig-name descname">read_exp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image_folder</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ephys_folder</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ephys_file</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'frame_swim.mat'</span></em>, <em class="sig-param"><span class="n">ephys_var_name</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'frame_swim'</span></em>, <em class="sig-param"><span class="n">image_ext</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'.h5'</span></em>, <em class="sig-param"><span class="n">metadata_file</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'ch0.xml'</span></em>, <em class="sig-param"><span class="n">stack_freq_file</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'Stack_frequency.txt'</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="../../dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet" title="janelia_core.dataprocessing.dataset.DataSet">janelia_core.dataprocessing.dataset.DataSet</a><a class="reference internal" href="../../../../_modules/janelia_core/fileio/ahrens_lab.html#read_exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.fileio.ahrens_lab.read_exp" title="Permalink to this definition"></a></dt>
+<dd><p>Reads in Ahrens lab experimental data to a Dataset object.</p>
+<dl>
+<dt>Args:</dt><dd><p>image_folder: The folder holding the images, metadata file and stack frequency file.</p>
+<p>ephys_folder: The folder holding the ephys data.</p>
+<p>ephys_file: The name of the file holding ephys data.  If this is None, no ephys data will be loaded.</p>
+<p>ephys_var_name: The variable name holding ephys data in ephys_file.</p>
+<p>image_ext: The extension to use when looking for image files.</p>
+<p>metadata_file: The name of the .xml file holding metadata.</p>
+<p>stack_freq_file: The name of the file holding stack frequency information.</p>
+<p>verbose: True if progress updates should be printed to screen.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A Dataset object.  A DataSet object representing the experiment.  The data dictionary will have an
+entry ‘imgs’. This entry will contain a list of dictionaries.  Each dictionary will have a field ‘file’
+giving the file name of the image as a string. If ephys data was available, an entry ‘ephys’ will also
+contain the ephys data.  The metadata for the experiment will have one entry ‘imaging_metadata’ with the
+imaging metadata stored there.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.fileio.ahrens_lab.read_ephys_data">
+<code class="sig-prename descclassname">janelia_core.fileio.ahrens_lab.</code><code class="sig-name descname">read_ephys_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ephys_file</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.10)">pathlib.Path</a></span></em>, <em class="sig-param"><span class="n">var_name</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'frame_swim'</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/fileio/ahrens_lab.html#read_ephys_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.fileio.ahrens_lab.read_ephys_data" title="Permalink to this definition"></a></dt>
+<dd><p>Reads in electophysiological data for an Ahrens lab experiment.</p>
+<dl>
+<dt>Args:</dt><dd><p>ephys_file: The path to the .mat file holding the data</p>
+<p>var_name: The name of the variable in the .mat file holding the
+ephys_data</p>
+</dd>
+<dt>Returns:</dt><dd><p>A numpy.ndarray with the data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.fileio.ahrens_lab.read_stack_freq">
+<code class="sig-prename descclassname">janelia_core.fileio.ahrens_lab.</code><code class="sig-name descname">read_stack_freq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">stack_freq_file</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.10)">pathlib.Path</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><a class="reference internal" href="../../../../_modules/janelia_core/fileio/ahrens_lab.html#read_stack_freq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.fileio.ahrens_lab.read_stack_freq" title="Permalink to this definition"></a></dt>
+<dd><p>Reads in stack frequency information from file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>stack_freq_file: The file with stack frequency information.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A dictionary with the stack frequency information.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.fileio.ahrens_lab.read_separated_exp">
+<code class="sig-prename descclassname">janelia_core.fileio.ahrens_lab.</code><code class="sig-name descname">read_separated_exp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image_folders</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">image_labels</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">metadata_folder</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.10)">pathlib.Path</a></span></em>, <em class="sig-param"><span class="n">ephys_folder</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.10)">pathlib.Path</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ephys_file</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'frame_swim.mat'</span></em>, <em class="sig-param"><span class="n">ephys_var_name</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'frame_swim'</span></em>, <em class="sig-param"><span class="n">image_ext</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'.h5'</span></em>, <em class="sig-param"><span class="n">metadata_file</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'ch0.xml'</span></em>, <em class="sig-param"><span class="n">stack_freq_file</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'Stack_frequency.txt'</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="../../dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet" title="janelia_core.dataprocessing.dataset.DataSet">janelia_core.dataprocessing.dataset.DataSet</a><a class="reference internal" href="../../../../_modules/janelia_core/fileio/ahrens_lab.html#read_separated_exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.fileio.ahrens_lab.read_separated_exp" title="Permalink to this definition"></a></dt>
+<dd><p>Reads in Ahrens lab experimental data after images have been split by color.</p>
+<dl>
+<dt>Args:</dt><dd><p>image_folders: List of folders holding split data (e.g., one folder for images of neurons and one for glia).</p>
+<p>metadata_folder: Folder containing experiment metadata.</p>
+<p>image_labels: List of string labels for each series of images in image_folder.</p>
+<p>ephys_folder: The folder holding the ephys data.</p>
+<p>ephys_file: The name of the file holding ephys data. If this is None, no ephys data will be loaded.</p>
+<p>ephys_var_name: The variable name holding ephys data in ephys_file.</p>
+<p>image_ext: The extension to use when looking for image files.</p>
+<p>metadata_file: The name of the .xml file holding metadata.</p>
+<p>stack_freq_file: The name of the file holding stack frequency information.</p>
+<p>verbose: True if progress updates should be printed to screen.</p>
+</dd>
+<dt>Returns:</dt><dd><p>A Dataset object.  A DataSet object representing the experiment.  The data dictionary will have entries
+containing the file names for the images for each color. If ephys data was available, an entry ‘ephys’ will also
+contain the ephys data.  The metadata for the experiment will have an entry ‘stack_freq_info’ with the
+information from the stack frequency file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.fileio.ahrens_lab.read_raw_ephys_data">
+<code class="sig-prename descclassname">janelia_core.fileio.ahrens_lab.</code><code class="sig-name descname">read_raw_ephys_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">in_file</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">num_channels</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">10</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/fileio/ahrens_lab.html#read_raw_ephys_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.fileio.ahrens_lab.read_raw_ephys_data" title="Permalink to this definition"></a></dt>
+<dd><p>Reads in raw ephys data from an Ahrens lab experiment.</p>
+<p>Raw files may end in .10chFlt.</p>
+<p>This code is based on a similar function by Davis Bennett.</p>
+<dl>
+<dt>Args:</dt><dd><p>in_file: The file to open</p>
+<p>num_channels: The number of channels in the file</p>
+</dd>
+<dt>Returns:</dt><dd><p>data: Raw data in a matrix of shape channels by time</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

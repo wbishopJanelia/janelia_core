@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.stats.multiple_comparisons &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.stats.multiple_comparisons</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.stats.multiple_comparisons</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;  Tools for controlling for multiple comparisons.  &quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="apply_by"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/multiple_comparisons/index.html#janelia_core.stats.multiple_comparisons.apply_by">[docs]</a><span class="k">def</span> <span class="nf">apply_by</span><span class="p">(</span><span class="n">p_vls</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot; Applies the Benjamini-Yekutieli procedure to control the false discovery rate.</span>
+
+<span class="sd">    See the paper &quot;The Control of the False Discovery Rate in Multiple Testing Under Dependency&quot;</span>
+<span class="sd">    by Benjamini and Yekutieli for more details on the Benjamini-Yekutieli procedure.</span>
+
+<span class="sd">    See the paper &quot;Resampling-based false discovery rate controlling multiple test procedures for correlated test</span>
+<span class="sd">    statistics&quot; by Yekutieli and Benjamini for background on FDR adjusted p values.</span>
+
+<span class="sd">    Args:</span>
+
+<span class="sd">        p_vls: The p values for the null hypothesis to control.  Can be an array of any size.</span>
+
+<span class="sd">        alpha: The level to control the false discovery rate at.</span>
+
+<span class="sd">    Return:</span>
+
+<span class="sd">        reject_tests: A binary array.  True values correspond to entries in p_vls for null hypothesises that should be</span>
+<span class="sd">        rejected.</span>
+
+<span class="sd">        adjusted_p_vls: The array of FDR adjusted p-values.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">orig_shape</span> <span class="o">=</span> <span class="n">p_vls</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">flat_p_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">p_vls</span><span class="p">)</span>
+    <span class="n">sort_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">flat_p_vls</span><span class="p">)</span>
+    <span class="n">sorted_p_vls</span> <span class="o">=</span> <span class="n">flat_p_vls</span><span class="p">[</span><span class="n">sort_order</span><span class="p">]</span>
+    <span class="n">n_tests</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_p_vls</span><span class="p">)</span>
+
+    <span class="c1"># Calculate corrected p values</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_tests</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">correction_f</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_tests</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_tests</span><span class="p">)</span> <span class="o">/</span> <span class="n">c</span>
+    <span class="n">sorted_adjusted_p_vls</span> <span class="o">=</span> <span class="n">sorted_p_vls</span><span class="o">/</span><span class="n">correction_f</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sorted_p_vls</span><span class="p">)):</span>
+        <span class="n">sorted_adjusted_p_vls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">sorted_adjusted_p_vls</span><span class="p">[</span><span class="n">i</span><span class="p">:])</span>
+    <span class="n">sorted_adjusted_p_vls</span><span class="p">[</span><span class="n">sorted_adjusted_p_vls</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># Determine which tests we can reject</span>
+    <span class="n">reject_inds</span> <span class="o">=</span> <span class="n">sorted_adjusted_p_vls</span> <span class="o">&lt;=</span> <span class="n">alpha</span>
+
+    <span class="c1"># Return output in original shape and ordering</span>
+    <span class="n">unsorted_reject_tests</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">sorted_p_vls</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">unsorted_adjusted_p_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">sorted_p_vls</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="n">unsorted_reject_tests</span><span class="p">[</span><span class="n">sort_order</span><span class="p">]</span> <span class="o">=</span> <span class="n">reject_inds</span>
+    <span class="n">unsorted_adjusted_p_vls</span><span class="p">[</span><span class="n">sort_order</span><span class="p">]</span> <span class="o">=</span> <span class="n">sorted_adjusted_p_vls</span>
+
+    <span class="n">reshaped_reject_tests</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">unsorted_reject_tests</span><span class="p">,</span> <span class="n">orig_shape</span><span class="p">)</span>
+    <span class="n">reshaped_adjusted_p_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">unsorted_adjusted_p_vls</span><span class="p">,</span> <span class="n">orig_shape</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">reshaped_reject_tests</span><span class="p">,</span> <span class="n">reshaped_adjusted_p_vls</span></div>
+
+
+<div class="viewcode-block" id="apply_bonferroni"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/multiple_comparisons/index.html#janelia_core.stats.multiple_comparisons.apply_bonferroni">[docs]</a><span class="k">def</span> <span class="nf">apply_bonferroni</span><span class="p">(</span><span class="n">p_vls</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot; Applies a Bonferroni correction to p values.</span>
+
+<span class="sd">    Args:</span>
+
+<span class="sd">        p_vls: An array of p values.  Can be any shape.</span>
+
+<span class="sd">        alpha: The level to test for significance at.  Between 0 and 1, inclusive.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        rejected_tests: A boolean array, the same shape as p_vls, indicating which null hypothesises should be rejected</span>
+
+<span class="sd">        adjusted_p_vls: Bonferoni adjusted p-values.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">adjusted_p_vls</span> <span class="o">=</span> <span class="n">p_vls</span><span class="o">*</span><span class="n">p_vls</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">rejected_tests</span> <span class="o">=</span> <span class="n">adjusted_p_vls</span> <span class="o">&lt;=</span> <span class="n">alpha</span>
+
+    <span class="k">return</span> <span class="n">rejected_tests</span><span class="p">,</span> <span class="n">adjusted_p_vls</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

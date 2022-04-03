@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.visualization.image_generation &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.image_generation</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/visualization/image_generation/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.visualization.image_generation">
+<span id="janelia-core-visualization-image-generation"></span><h1><a class="reference internal" href="#module-janelia_core.visualization.image_generation" title="janelia_core.visualization.image_generation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization.image_generation</span></code></a><a class="headerlink" href="#module-janelia_core.visualization.image_generation" title="Permalink to this headline"></a></h1>
+<p>Tools for generating images.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.image_generation.alpha_composite" title="janelia_core.visualization.image_generation.alpha_composite"><code class="xref py py-obj docutils literal notranslate"><span class="pre">alpha_composite</span></code></a>(dest: numpy.ndarray, src: numpy.ndarray) → numpy.ndarray</p></td>
+<td><p>Performs alpha compositing with two RGBA images with alpha-premultiplicaiton applied.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.image_generation.generate_2d_fcn_image" title="janelia_core.visualization.image_generation.generate_2d_fcn_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_2d_fcn_image</span></code></a>(f: Callable, dim_0_range: Sequence[float] = None, dim_1_range: Sequence[float] = None, n_pts_per_dim: Sequence[int] = None, vis_dim: int = None) → Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]</p></td>
+<td><p>Generates an image of a 2d function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.image_generation.standard_rgba_to_premultiplied" title="janelia_core.visualization.image_generation.standard_rgba_to_premultiplied"><code class="xref py py-obj docutils literal notranslate"><span class="pre">standard_rgba_to_premultiplied</span></code></a>(img: numpy.ndarray) → numpy.ndarray</p></td>
+<td><p>Converts between standard and pre-multiplied RGBA representations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.image_generation.premultiplied_rgba_to_standard" title="janelia_core.visualization.image_generation.premultiplied_rgba_to_standard"><code class="xref py py-obj docutils literal notranslate"><span class="pre">premultiplied_rgba_to_standard</span></code></a>(img: numpy.ndarray) → numpy.ndarray</p></td>
+<td><p>Converts between pre-multiplied and standard RGBA representations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.image_generation.generate_mean_dot_image" title="janelia_core.visualization.image_generation.generate_mean_dot_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_mean_dot_image</span></code></a>(image_shape: Sequence[int], dot_ctrs: numpy.ndarray, dot_vls: numpy.ndarray, sa_lengths: Sequence[int]) → numpy.ndarray</p></td>
+<td><p>Generates a 2-d or 3-d image of the mean of values in ellipsoids.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.image_generation.generate_dot_image" title="janelia_core.visualization.image_generation.generate_dot_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_dot_image</span></code></a>(image_shape: Sequence, dot_ctrs: numpy.ndarray, dot_clrs: numpy.ndarray, dot_diameter: int) → numpy.ndarray</p></td>
+<td><p>Generates an image of dots over a transparent background.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.image_generation.generate_dot_image_3d" title="janelia_core.visualization.image_generation.generate_dot_image_3d"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_dot_image_3d</span></code></a>(image_shape: Sequence[int], dot_ctrs: numpy.ndarray, dot_vls: numpy.ndarray, ellipse_shape: Sequence[int]) → numpy.ndarray</p></td>
+<td><p>Generates a 3-d scalar image of ellipses, given the center location of each ellipse.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.image_generation.generate_image_from_fcn" title="janelia_core.visualization.image_generation.generate_image_from_fcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_image_from_fcn</span></code></a>(f, dim_sampling: Sequence[Sequence]) → numpy.ndarray</p></td>
+<td><p>Generates a multi-d image from a function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.image_generation.generate_binary_color_rgba_image" title="janelia_core.visualization.image_generation.generate_binary_color_rgba_image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_binary_color_rgba_image</span></code></a>(a: numpy.ndarray, neg_clr: Sequence[float] = None, pos_clr: Sequence[float] = None) → numpy.ndarray</p></td>
+<td><p>Generates an RGBA image of two colors from a 2-d numpy array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.image_generation.max_project_pts" title="janelia_core.visualization.image_generation.max_project_pts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">max_project_pts</span></code></a>(dot_positions: numpy.ndarray, dot_vls: numpy.ndarray, box_position: numpy.ndarray, n_divisions: numpy.ndarray, dot_dim_width: numpy.ndarray) → numpy.ndarray</p></td>
+<td><p>Assigns a radius to points in 2-d space to make dots.  Then generates an image of max dot values in a grid.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.image_generation.rgb_3d_max_project" title="janelia_core.visualization.image_generation.rgb_3d_max_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rgb_3d_max_project</span></code></a>(vol: numpy.ndarray, axis: int = 2) → numpy.ndarray</p></td>
+<td><p>Computes 3d-max projection of RGB data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.visualization.image_generation.scalar_3d_max_project" title="janelia_core.visualization.image_generation.scalar_3d_max_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scalar_3d_max_project</span></code></a>(vol: numpy.ndarray, axis: int = 2, abs_vl: bool = False) → numpy.ndarray</p></td>
+<td><p>Computes 3d max projection of scalar data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.visualization.image_generation.signed_max_project" title="janelia_core.visualization.image_generation.signed_max_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">signed_max_project</span></code></a>(volume: numpy.ndarray, axis: int) → numpy.ndarray</p></td>
+<td><p>Performs a signed max projection on 3-d data.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="janelia_core.visualization.image_generation.alpha_composite">
+<code class="sig-prename descclassname">janelia_core.visualization.image_generation.</code><code class="sig-name descname">alpha_composite</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dest</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">src</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_generation.html#alpha_composite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_generation.alpha_composite" title="Permalink to this definition"></a></dt>
+<dd><p>Performs alpha compositing with two RGBA images with alpha-premultiplicaiton applied.</p>
+<p>All values should be floating point in the range 0 - 1.</p>
+<p>Standard RGBA values of the form [R_s, G_s, B_s, A_s] can be converted to a
+pre-multiplied RGBA value as [R_s*A_s, G_s*A_s, B_s*A_s, A_s].</p>
+<p>Good notes can be found at: <a class="reference external" href="https://ipfs.io/ipfs/QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco/wiki/Alpha_compositing.html">https://ipfs.io/ipfs/QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco/wiki/Alpha_compositing.html</a></p>
+<dl>
+<dt>Args:</dt><dd><p>dest: The bottom image of shape d_x*d_y*4</p>
+<p>src: The top image.  Must be of the same shape as dest_img.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Nothing.  The dest array will be modified.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.image_generation.generate_2d_fcn_image">
+<code class="sig-prename descclassname">janelia_core.visualization.image_generation.</code><code class="sig-name descname">generate_2d_fcn_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">Callable</span></em>, <em class="sig-param"><span class="n">dim_0_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dim_1_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">n_pts_per_dim</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">vis_dim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>numpy.ndarray<span class="p">, </span>numpy.ndarray<span class="p">, </span>numpy.ndarray<span class="p">]</span><a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_generation.html#generate_2d_fcn_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_generation.generate_2d_fcn_image" title="Permalink to this definition"></a></dt>
+<dd><p>Generates an image of a 2d function.</p>
+<dl>
+<dt>Args:</dt><dd><p>f: The function to visualize. Should accept input of shape [n by 2], where n is an arbitrary number
+of values and output values of length n.</p>
+<p>dim_0_range: The range of dim 0 values to visualize the function over.  If None, [0.0, 1.0] will be used.</p>
+<p>dim_1_range: The range of dim 1 values to visualize the function over.  If None, [0.0, 1.0] will be used.</p>
+<p>n_pts_per_dim: The number of points to sample per dimension.</p>
+<p>vis_dim: If f produces multiple dimension output, this is the dimension to visualize</p>
+</dd>
+<dt>Returns:</dt><dd><p>im: The image of the function as a 2-d numpy array</p>
+<p>dim_0_pts: The sampled points along dim 0</p>
+<p>dim_1_pts: The sampled points along dim 1</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.image_generation.standard_rgba_to_premultiplied">
+<code class="sig-prename descclassname">janelia_core.visualization.image_generation.</code><code class="sig-name descname">standard_rgba_to_premultiplied</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_generation.html#standard_rgba_to_premultiplied"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_generation.standard_rgba_to_premultiplied" title="Permalink to this definition"></a></dt>
+<dd><p>Converts between standard and pre-multiplied RGBA representations.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>img: Input image in standard RGBA format of shape d_x*d_y*4</p>
+</dd>
+<dt>Returns:</dt><dd><p>Nothing.  The image is modified in place.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.image_generation.premultiplied_rgba_to_standard">
+<code class="sig-prename descclassname">janelia_core.visualization.image_generation.</code><code class="sig-name descname">premultiplied_rgba_to_standard</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_generation.html#premultiplied_rgba_to_standard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_generation.premultiplied_rgba_to_standard" title="Permalink to this definition"></a></dt>
+<dd><p>Converts between pre-multiplied and standard RGBA representations.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>img: Input image in pre-multiplied RGBA format of shape d_x*d_y*4</p>
+</dd>
+<dt>Returns:</dt><dd><p>img: Nothing.  The image is modified in place.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.image_generation.generate_mean_dot_image">
+<code class="sig-prename descclassname">janelia_core.visualization.image_generation.</code><code class="sig-name descname">generate_mean_dot_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image_shape</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dot_ctrs</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">dot_vls</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">sa_lengths</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_generation.html#generate_mean_dot_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_generation.generate_mean_dot_image" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a 2-d or 3-d image of the mean of values in ellipsoids.</p>
+<p>Generates an image by associating an ellipsoid with a set of 2 or 3-d locations. Each of these locations
+has an associated value.  A pixel value in the final image is simply the average of all the values associated
+with ellipsoids that contain that pixel.</p>
+<dl>
+<dt>Args:</dt><dd><p>image_shape: The shape of the image to generate. Must be of length 2 or 3.</p>
+<p>dot_ctrs: The location of each ellipsoid center.  dot_ctrs[i, :] is the location
+for dot i.</p>
+<p>dot_vls: The value to associate with the locations.  dot_vls[i] is associated with the location
+dot_ctrs[i, :]</p>
+<p>sa_lengths: The lengths of the semi-axes of the ellipsoids to generate. The value of sa_lengths[j] is the
+length for dimension j.  All values in sa_lengths must be odd.</p>
+</dd>
+<dt>Returns:</dt><dd><p>img: The generated image.  Any pixel outside of an ellipsoid will have a value of nan.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If image_shape is not of length 2 or 3.
+ValueError: If all values in sa_lengths are not odd
+ValueError: If any dot centers are outside of the dimensions of the image to be generated</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.image_generation.generate_dot_image">
+<code class="sig-prename descclassname">janelia_core.visualization.image_generation.</code><code class="sig-name descname">generate_dot_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image_shape</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">dot_ctrs</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">dot_clrs</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">dot_diameter</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_generation.html#generate_dot_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_generation.generate_dot_image" title="Permalink to this definition"></a></dt>
+<dd><p>Generates an image of dots over a transparent background.</p>
+<p>All position/size units are in pixels.</p>
+<p>Dots are layered according to their order in dot_ctrs with dot_ctrs[0,:] on the bottom.</p>
+<dl>
+<dt>Args:</dt><dd><p>image_shape: The [width, height] of the image in pixels</p>
+<p>dot_ctrs: dot_ctrs[i,:] gives the position of the center of the i^th dot</p>
+<p>dot_clrs: dot_clrs[i,:] gives the RGBA color of the i^th dot</p>
+<p>dot_diameter: The diameter of the dot to generate in pixel.  Must be an odd number.</p>
+</dd>
+<dt>Returns:</dt><dd><p>img: The generated image of shape [image_shape[0], image_shape[1], 4] where the last dimension is the RGBA
+value of each pixel.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.image_generation.generate_dot_image_3d">
+<code class="sig-prename descclassname">janelia_core.visualization.image_generation.</code><code class="sig-name descname">generate_dot_image_3d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image_shape</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dot_ctrs</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">dot_vls</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">ellipse_shape</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_generation.html#generate_dot_image_3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_generation.generate_dot_image_3d" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a 3-d scalar image of ellipses, given the center location of each ellipse.</p>
+<p>All position/size units are in pixels.</p>
+<p>If two ellipses or more ellipses overlap, the value of the overlapping region is the average of the ellipse values.</p>
+<p>Any pixels in the generated image without an ellipse in them will have the value nan.</p>
+<dl>
+<dt>Args:</dt><dd><p>image_shape: The shape of the image to generate.</p>
+<p>dot_ctrs: dot_ctrs[i,:] is the center position of the i^th dot in pixels.  Dot centers will be rounded to the
+nearest whole pixel values before generating images of ellipses.</p>
+<p>dot_vls: dot_vls[i] is the value for the i^th ellipse</p>
+<p>ellipse_shape: ellipse_shape[d] gives the width of the generated ellipses in the d^th dimension.  All
+values in ellipse_shape must be odd.</p>
+</dd>
+<dt>Returns:</dt><dd><p>img: The generated image.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If any of the dot centers are outside of the image.
+ValueError: If any value in ellipse_shape is not odd.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.image_generation.generate_image_from_fcn">
+<code class="sig-prename descclassname">janelia_core.visualization.image_generation.</code><code class="sig-name descname">generate_image_from_fcn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span></em>, <em class="sig-param"><span class="n">dim_sampling</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Sequence<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_generation.html#generate_image_from_fcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_generation.generate_image_from_fcn" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a multi-d image from a function.</p>
+<p>The main use for this function is generating images for visualization.</p>
+<dl>
+<dt>Args:</dt><dd><p>f: The function to plot.</p>
+<p>dim_sampling: Each entry of dim_sampling specifies how to sample a dimension in the
+domain of the fuction.  Each entry is of the form [start, stop, int] where start and
+and stop are the start and stop of the range of values to sample from and int
+is the interval values are sampled from.</p>
+</dd>
+<dt>Returns:</dt><dd><p>im: The image</p>
+<p>coords: A list of coordinates along each dimension the function was sampled at.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.image_generation.generate_binary_color_rgba_image">
+<code class="sig-prename descclassname">janelia_core.visualization.image_generation.</code><code class="sig-name descname">generate_binary_color_rgba_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">neg_clr</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">pos_clr</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_generation.html#generate_binary_color_rgba_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_generation.generate_binary_color_rgba_image" title="Permalink to this definition"></a></dt>
+<dd><p>Generates an RGBA image of two colors from a 2-d numpy array.</p>
+<p>Negative values will be one color while positive values will be another.</p>
+<p>The alpha channel will be equal to the absolute value of entries of a, so all values of a must be in [-1, 1].</p>
+<p>The negative color will be assigned to entries strictly less than 0, while the positive channel will be assigned
+to entries greater than or equal to 0.</p>
+<dl>
+<dt>Args:</dt><dd><p>a: The array to binarize.</p>
+<p>neg_clr: A sequence of floats specifying the RGB values for the negative color.  All value should in [0, 1].
+If None, the negative color will be red.</p>
+<p>pos_clr: A sequence of floats specifying the RGB values for the positive color.  All value should in [0, 1].
+If None, the positive color will be green.</p>
+</dd>
+<dt>Returns:</dt><dd><p>im: The image of shape [a.shape[0], a.shape[1], 4]</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If any entry in a is outside of [-1, 1]
+ValueError: If a is not a 2-d array.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.image_generation.max_project_pts">
+<code class="sig-prename descclassname">janelia_core.visualization.image_generation.</code><code class="sig-name descname">max_project_pts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dot_positions</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">dot_vls</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">box_position</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">n_divisions</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">dot_dim_width</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_generation.html#max_project_pts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_generation.max_project_pts" title="Permalink to this definition"></a></dt>
+<dd><p>Assigns a radius to points in 2-d space to make dots.  Then generates an image of max dot values in a grid.</p>
+<p>The motivation for this function is that there are times when physical objects in space (such as neurons) have
+been represented as finite points.  In these cases, we might desire to visualize how physical properties associated
+with each object are distributed in space.  There are three challenges we face when doing this:</p>
+<ol class="arabic simple">
+<li><p>How to visualize a point.  We solve this by adding a radius to the points to make dots.</p></li>
+</ol>
+<p>2) How to make sense of over-lapping dots.  We do this by taking a “max projection” of the dots - that is
+at each point in space, we keep the value associated with the largest magnitude (so sign doesn’t matter).</p>
+<p>3) How to go from continuous space to discrete space, so we can make images.  We solve this by allowing the
+user to specify a grid, defining discrete points in space we want to calculate a value for.</p>
+<p>The final question we need to consider is what to do with points in space that have no dot in them?  In this
+case, we will return an nan value.</p>
+<dl>
+<dt>Args:</dt><dd><p>dot_positions: The positions of dots, each column is a dimension.  Values must be floating point.</p>
+<p>dot_vls: The values associated with each point.  A 1-d array.</p>
+<p>box_position: The position of a box we define the grid in.  box_position[0,0] is the start of the side for
+dimension 0 and box_position[1,0] is the end of the side for dimension 0.  box_position[:,1] contains the
+start and end of the side for dimension 1.</p>
+<p>n_divisions: The number of divisions to use for the grid.  n_divisions[i] is the number of divisions for
+dimension i.</p>
+<p>dot_dim_width: We allow dots to be ellipses.  dot_dim_width[i] is the width of a dot in dimension i.</p>
+</dd>
+<dt>Returns:</dt><dd><p>im: The final image, of shape n_divisions.</p>
+<p>inds: Same shape as im.  inds[i,j] is the index of the dot in dot_vls that the value of im[i,j] came from.
+Entries in im with nan values will also have nan values in inds.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If dot positions are not floating point.
+ValueError: If any dot position is outside of the boundaries of the box.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.image_generation.rgb_3d_max_project">
+<code class="sig-prename descclassname">janelia_core.visualization.image_generation.</code><code class="sig-name descname">rgb_3d_max_project</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vol</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">axis</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">2</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_generation.html#rgb_3d_max_project"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_generation.rgb_3d_max_project" title="Permalink to this definition"></a></dt>
+<dd><p>Computes 3d-max projection of RGB data.</p>
+<p>The computation is done by converting the image to gray scale, finding max values of the gray scale image,
+and the retaining the rgb information at these max values.</p>
+<dl>
+<dt>Args:</dt><dd><p>vol: The volume to max project.  Should be of shape [dx, dy, dz, 3], with the last dimension holding RGB values.</p>
+<p>axis: The axis to project along</p>
+</dd>
+<dt>Returns:</dt><dd><p>proj: The projected image.  The first two dimensions will be the retained dimensions from the projection and
+the last dimension will be of length 3, holding RGB values.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If the last dimension of vol is not of length 3.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.image_generation.scalar_3d_max_project">
+<code class="sig-prename descclassname">janelia_core.visualization.image_generation.</code><code class="sig-name descname">scalar_3d_max_project</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vol</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">axis</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">2</span></em>, <em class="sig-param"><span class="n">abs_vl</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_generation.html#scalar_3d_max_project"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_generation.scalar_3d_max_project" title="Permalink to this definition"></a></dt>
+<dd><p>Computes 3d max projection of scalar data.</p>
+<dl>
+<dt>Args:</dt><dd><p>vol: The volume to project.  Should be of shape [dx, dy, dz]</p>
+<p>axis: The dimension to project along</p>
+<p>abs_vl: True if values with the largest absolute value should be returned; if false, then values with the
+largest positive value will be returned.</p>
+</dd>
+<dt>Returns:</dt><dd><p>proj:  The projected image. Will be 2-d with a shape corresponding to the retained dimensions of vol.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If vol is not a 3d array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.visualization.image_generation.signed_max_project">
+<code class="sig-prename descclassname">janelia_core.visualization.image_generation.</code><code class="sig-name descname">signed_max_project</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">volume</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">axis</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/visualization/image_generation.html#signed_max_project"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.visualization.image_generation.signed_max_project" title="Permalink to this definition"></a></dt>
+<dd><p>Performs a signed max projection on 3-d data.</p>
+<dl>
+<dt>Args:</dt><dd><p>volume: The volume to do the max projection on</p>
+<p>axis: The axis to do the max projection along.</p>
+</dd>
+<dt>Returns:</dt><dd><p>im: The max projection image.  A 2-d array with dimensions inherited from volume.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If volume is not a 3d array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

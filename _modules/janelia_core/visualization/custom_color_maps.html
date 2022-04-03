@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.visualization.custom_color_maps &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../autoapi/index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.visualization.custom_color_maps</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.visualization.custom_color_maps</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Custom color maps, including color maps over multiple parameters. &quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Sequence</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.colors</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="MultiParamCMap"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.MultiParamCMap">[docs]</a><span class="k">class</span> <span class="nc">MultiParamCMap</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; An object representing a color map over multiple parameters.</span>
+
+<span class="sd">    Unlike a typical colormap, which has a single index, these color maps allow indexing over multiple parameters.</span>
+
+<span class="sd">    For all colormaps, the user specifies a list of values for each parameter and combinations of these parameter</span>
+<span class="sd">    values are then mapped to colors.  When using a colormap, values to be assigned colors are rounded to the nearest</span>
+<span class="sd">    parameter values included in the colormap.  Saturation is also supported, so that values to be assigned colors</span>
+<span class="sd">    outside of the range of the values specified for the colormap are assigned colors at the limits of the colormap.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_vl_ranges</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">clrs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new MultiParamCMap object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param_vl_ranges: param_vls[i] specifies values for the i^th parameter that specific colors will be assigned</span>
+<span class="sd">            to and is a tuple of the form (start_vl, stop_vl, step_size), which specifies the values</span>
+<span class="sd">            start_vl, start_vl + step_size, ... up too all values strictly less than stop_vl.</span>
+
+<span class="sd">            clrs: clrs[i_0, i_1, i_2 ... , :] is the color to assign to the combination of param_vls[0][i_0],</span>
+<span class="sd">            param_vls[1][i_1], param_vls[2][i_2] ...  The number of dimensions in clrs must be equal to the length of</span>
+<span class="sd">            param_vls plus 1, with the last dimension containing rgb values of colors.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_vl_ranges</span> <span class="o">=</span> <span class="n">param_vl_ranges</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clrs</span> <span class="o">=</span> <span class="n">clrs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_params</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">param_vl_ranges</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_param_vls</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">*</span><span class="n">p_vls</span><span class="p">))</span> <span class="k">for</span> <span class="n">p_vls</span> <span class="ow">in</span> <span class="n">param_vl_ranges</span><span class="p">]</span>
+
+<div class="viewcode-block" id="MultiParamCMap.__getitem__"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.MultiParamCMap.__getitem__">[docs]</a>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_vls</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Returns colors for combinations of parameter values.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param_vls: Values of parameters go generate colors for.  param_vls[i] contains parameter values for the i^th</span>
+<span class="sd">            parameter.  All entries in param_vls must be numpy arrays of the same shape.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            clrs: The colors at each combination of parameter values.  Will be of shape [*param_vls[0].shape, 3], so</span>
+<span class="sd">            that clrs[d_0, d_1, d_2, ..., :] is the color for the parameter combination param_vls[0][d_0, d_1, d_2],</span>
+<span class="sd">            param_vls[1][d_0, d_1, d_2], param_vls[1][d_0, d_1, d_2], ...</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">param_0_shape</span> <span class="o">=</span> <span class="n">param_vls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_params</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">param_0_shape</span> <span class="o">!=</span> <span class="n">param_vls</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                <span class="k">raise</span><span class="p">(</span><span class="ne">IndexError</span><span class="p">(</span><span class="s1">&#39;All param_vls arrays must have the same shape.&#39;</span><span class="p">))</span>
+
+        <span class="n">inds</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">vls</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span><span class="o">/</span><span class="n">step</span><span class="p">)</span> <span class="k">for</span> <span class="n">vls</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">param_vls</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">param_vl_ranges</span><span class="p">)]</span>
+        <span class="n">inds</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">inds_i</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">n_p_vls_i</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">inds_i</span><span class="p">,</span> <span class="n">n_p_vls_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">inds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_param_vls</span><span class="p">)]</span>
+        <span class="n">inds</span> <span class="o">=</span> <span class="p">[</span><span class="n">inds_i</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">inds_i</span> <span class="ow">in</span> <span class="n">inds</span><span class="p">]</span>
+        <span class="n">inds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">inds</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">inds</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clrs</span><span class="p">[</span><span class="n">inds</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="MultiParamCMap.to_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.MultiParamCMap.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the attributes of the colormap as a dictionary for serialization.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MultiParamCMap.from_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.MultiParamCMap.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a MultiParamCMap from a dictionary. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">param_vl_ranges</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;param_vl_ranges&#39;</span><span class="p">],</span> <span class="n">clrs</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;clrs&#39;</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="generate_normalized_rgb_cmap"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.generate_normalized_rgb_cmap">[docs]</a><span class="k">def</span> <span class="nf">generate_normalized_rgb_cmap</span><span class="p">(</span><span class="n">base_map</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">ListedColormap</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Generates a colormap of RGB values, where each value has a norm of 1.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">         base_map: The base map to sample.  RGB values of this map will be normalized.</span>
+
+<span class="sd">         n: The number of values in the generated map.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        map: The created colormap.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">rgb_vls</span> <span class="o">=</span> <span class="n">base_map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">rgb_norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">rgb_vls</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">ListedColormap</span><span class="p">(</span><span class="n">colors</span><span class="o">=</span><span class="n">rgb_vls</span><span class="o">/</span><span class="n">rgb_norms</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">base_map</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;_normalized&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generate_two_param_norm_map"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.generate_two_param_norm_map">[docs]</a><span class="k">def</span> <span class="nf">generate_two_param_norm_map</span><span class="p">(</span><span class="n">clr_param_range</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">norm_param_range</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span>
+                                <span class="n">p1_cmap</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">,</span> <span class="n">clims</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+                                <span class="n">norm_lims</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">MultiParamCMap</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Generates a MultiParamCMap for two parameters.  The first indexes color; the second the norm of the color.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        clr_param_range: The range of values for parameter 0, which indexes into color, in the form</span>
+<span class="sd">        (start_vl, stop_vl, step).</span>
+
+<span class="sd">        norm_param_range: The range of values for parameter 1, which indexes into the norm of RGB colors.</span>
+
+<span class="sd">        p1_cmap: The map specifying colors.  These colors will be displayed for max norm values.</span>
+
+<span class="sd">        clims: The lower and upper parameter values when indexing into p1_cmap.</span>
+
+<span class="sd">        norm_lims: The low and upper parameter values when indexing into norm values.</span>
+
+<span class="sd">    To use a reversed color (value) scale, start_vl should be less than stop_vl and step should be a negative value</span>
+<span class="sd">    in clr_param_range (vl_param_range) and clims (vllims) should also be flipped so that clims[0] &gt; clims[1].</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        map: The generated map</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">clr_param_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">*</span><span class="n">clr_param_range</span><span class="p">)</span>
+    <span class="n">norm_param_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">*</span><span class="n">norm_param_range</span><span class="p">)</span>
+    <span class="n">n_norm_vls</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">norm_param_vls</span><span class="p">)</span>
+
+    <span class="c1"># Get base colors</span>
+    <span class="n">scaled_clr_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">((</span><span class="n">clr_param_vls</span> <span class="o">-</span> <span class="n">clims</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">clims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">clims</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">base_clrs_rgb</span> <span class="o">=</span> <span class="n">p1_cmap</span><span class="p">(</span><span class="n">scaled_clr_vls</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+
+    <span class="c1"># Get norm values</span>
+    <span class="n">scaled_vl_param_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">((</span><span class="n">norm_param_vls</span> <span class="o">-</span> <span class="n">norm_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">norm_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">norm_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Generate array of colors values</span>
+    <span class="n">clrs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">base_clrs_rgb</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">n_norm_vls</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">clrs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">n_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_norm_vls</span><span class="p">):</span>
+        <span class="n">clrs</span><span class="p">[:,</span> <span class="n">n_i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">clrs</span><span class="p">[:,</span> <span class="n">n_i</span><span class="p">,</span> <span class="p">:]</span><span class="o">*</span><span class="n">scaled_vl_param_vls</span><span class="p">[</span><span class="n">n_i</span><span class="p">]</span>
+
+    <span class="c1"># Create the MultiParamCMap object</span>
+    <span class="k">return</span> <span class="n">MultiParamCMap</span><span class="p">(</span><span class="n">param_vl_ranges</span><span class="o">=</span><span class="p">[</span><span class="n">clr_param_range</span><span class="p">,</span> <span class="n">norm_param_range</span><span class="p">],</span> <span class="n">clrs</span><span class="o">=</span><span class="n">clrs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generate_two_param_hsv_map"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.generate_two_param_hsv_map">[docs]</a><span class="k">def</span> <span class="nf">generate_two_param_hsv_map</span><span class="p">(</span><span class="n">clr_param_range</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">vl_param_range</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span>
+                               <span class="n">p1_cmap</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">,</span> <span class="n">clims</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+                               <span class="n">vllims</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">MultiParamCMap</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Generates a MultiParamCMap for two parameters, which index hue and value of hsv colors.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        clr_param_range: The range of values for parameter 0, which indexes into hue, in the form</span>
+<span class="sd">        (start_vl, stop_vl, step).</span>
+
+<span class="sd">        vl_param_range: The range of values for parameter 1, which indexes into value of hsv colors, in the same form</span>
+<span class="sd">        as clr_param_range.</span>
+
+<span class="sd">        p1_cmap: The color map that p1_values will index into. These colors will the be displayed</span>
+<span class="sd">        for value levels of 1.</span>
+
+<span class="sd">        clims: The lower and upper parameter values when indexing into p1_cmap.</span>
+
+<span class="sd">        vllims: The lower and upper parameter values when indexing into value values.</span>
+
+<span class="sd">    To use a reversed color (value) scale, start_vl should be less than stop_vl and step should be a negative value</span>
+<span class="sd">    in clr_param_range (vl_param_range) and clims (vllims) should also be flipped so that clims[0] &gt; clims[1].</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        map: The generated colormap.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">clr_param_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">*</span><span class="n">clr_param_range</span><span class="p">)</span>
+    <span class="n">vl_param_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">*</span><span class="n">vl_param_range</span><span class="p">)</span>
+    <span class="n">n_vl_vls</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vl_param_vls</span><span class="p">)</span>
+
+    <span class="c1"># Get base colors</span>
+    <span class="n">scaled_clr_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">((</span><span class="n">clr_param_vls</span> <span class="o">-</span> <span class="n">clims</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">clims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">clims</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">base_clrs_rgb</span> <span class="o">=</span> <span class="n">p1_cmap</span><span class="p">(</span><span class="n">scaled_clr_vls</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">base_clrs_hsv</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">rgb_to_hsv</span><span class="p">(</span><span class="n">base_clrs_rgb</span><span class="p">)</span>
+
+    <span class="c1"># Get saturation values</span>
+    <span class="n">scaled_vl_param_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">((</span><span class="n">vl_param_vls</span> <span class="o">-</span> <span class="n">vllims</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span>
+                                                <span class="p">(</span><span class="n">vllims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">vllims</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Generate array of color values in hsv format</span>
+    <span class="n">clrs_hsv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">base_clrs_hsv</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">n_vl_vls</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">v_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_vl_vls</span><span class="p">):</span>
+        <span class="n">clrs_hsv</span><span class="p">[:,</span> <span class="n">v_i</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">scaled_vl_param_vls</span><span class="p">[</span><span class="n">v_i</span><span class="p">]</span><span class="o">*</span><span class="n">clrs_hsv</span><span class="p">[:,</span> <span class="n">v_i</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># Convert colors to rgb</span>
+    <span class="n">clrs_rgb</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">hsv_to_rgb</span><span class="p">(</span><span class="n">clrs_hsv</span><span class="p">)</span>
+
+    <span class="c1"># Create the MultiParamCMap object</span>
+    <span class="k">return</span> <span class="n">MultiParamCMap</span><span class="p">(</span><span class="n">param_vl_ranges</span><span class="o">=</span><span class="p">[</span><span class="n">clr_param_range</span><span class="p">,</span> <span class="n">vl_param_range</span><span class="p">],</span> <span class="n">clrs</span><span class="o">=</span><span class="n">clrs_rgb</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="visualize_two_param_map"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.visualize_two_param_map">[docs]</a><span class="k">def</span> <span class="nf">visualize_two_param_map</span><span class="p">(</span><span class="n">cmap</span><span class="p">:</span> <span class="n">MultiParamCMap</span><span class="p">,</span> <span class="n">plot_ax</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">p0_vls</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="n">p1_vls</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Plots a visualization of a two-parameter MultiParamCMap, i.e., the 2-d version of making 1-d colorbar.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cmap: The color map to plot</span>
+
+<span class="sd">        plot_ax: The axis to produce the colormap in.  If None, a new figure with axes will be created.</span>
+
+<span class="sd">        p0_vls: A list of values to generate the colormap for.</span>
+
+<span class="sd">        p1_vls: A list of values to generate the colormap for.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the colormap is not for two parameters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">cmap</span><span class="o">.</span><span class="n">n_params</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The color map must be for two parameters.&#39;</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">plot_ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">plot_ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">p0_vls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">p0_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">*</span><span class="n">cmap</span><span class="o">.</span><span class="n">param_vl_ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">p0_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">p0_vls</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">p1_vls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">p1_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">*</span><span class="n">cmap</span><span class="o">.</span><span class="n">param_vl_ranges</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">p1_vls</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">p1_vls</span><span class="p">)</span>
+
+    <span class="n">n_p0_smps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">p0_vls</span><span class="p">)</span>
+    <span class="n">n_p1_smps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">p1_vls</span><span class="p">)</span>
+
+    <span class="n">p0_smps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">p0_vls</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">n_p1_smps</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">p1_smps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">p1_vls</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">n_p0_smps</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">clr_smps</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">[</span><span class="n">p0_smps</span><span class="p">,</span> <span class="n">p1_smps</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p1_vls</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">p0_vls</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">a_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">p1_vls</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">p1_vls</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">p0_vls</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">p0_vls</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">plot_ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">clr_smps</span><span class="p">,</span> <span class="n">extent</span><span class="o">=</span><span class="p">[</span><span class="n">p1_vls</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p1_vls</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">p0_vls</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p0_vls</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="n">aspect</span><span class="o">=</span><span class="n">a_ratio</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="make_red_green_c_map"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.make_red_green_c_map">[docs]</a><span class="k">def</span> <span class="nf">make_red_green_c_map</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span> <span class="n">inc_transp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Generates a color map that linearly goes from red at 0, to black at .5 and then to green at 1.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        n: The number of values in the color map</span>
+
+<span class="sd">        inc_transp: True if values in the middle of the map (black) should also be transparent.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        cmap: The generated color map.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">inc_transp</span><span class="p">:</span>
+        <span class="n">middle_alpha</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">middle_alpha</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="k">return</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;red_to_green&#39;</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span>  <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]),</span>
+                                                               <span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">middle_alpha</span><span class="p">]),</span>
+                                                               <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])],</span> <span class="n">N</span><span class="o">=</span><span class="n">n</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="make_purple_green_c_map"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.make_purple_green_c_map">[docs]</a><span class="k">def</span> <span class="nf">make_purple_green_c_map</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span> <span class="n">inc_transp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                            <span class="n">gentle</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Generates a color map that linearly goes from purple at 0, to black at .5 and then to green at 1.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        n: The number of values in the color map</span>
+
+<span class="sd">        inc_transp: True if values in the middle of the map (black) should also be transparent.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        cmap: The generated color map.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">inc_transp</span><span class="p">:</span>
+        <span class="n">middle_alpha</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">middle_alpha</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">gentle</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;purple_to_green&#39;</span><span class="p">,</span>
+                                                                   <span class="n">colors</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span>  <span class="p">[</span><span class="mf">75.0</span><span class="o">/</span><span class="mi">255</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">146.0</span><span class="o">/</span><span class="mf">255.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]),</span>
+                                                                           <span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">middle_alpha</span><span class="p">]),</span>
+                                                                           <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="p">[</span><span class="mf">26.0</span><span class="o">/</span><span class="mi">255</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">26.0</span><span class="o">/</span><span class="mf">255.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])],</span>
+                                                                   <span class="n">N</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;purple_to_green&#39;</span><span class="p">,</span>
+                                                                   <span class="n">colors</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="mf">75.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">146.0</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]),</span>
+                                                                           <span class="p">(</span><span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="p">[</span><span class="mf">75.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">146.0</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">]),</span>
+                                                                           <span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">middle_alpha</span><span class="p">]),</span>
+                                                                           <span class="p">(</span><span class="o">.</span><span class="mi">6</span><span class="p">,</span> <span class="p">[</span><span class="mf">26.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">26.0</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">]),</span>
+                                                                           <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="p">[</span><span class="mf">26.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">26.0</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])],</span>
+                                                                   <span class="n">N</span><span class="o">=</span><span class="n">n</span><span class="p">)</span></div>
+
+
+
+
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

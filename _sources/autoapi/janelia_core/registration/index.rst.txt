@@ -1,0 +1,20 @@
+:py:mod:`janelia_core.registration`
+===================================
+
+.. py:module:: janelia_core.registration
+
+.. autoapi-nested-parse::
+
+   Tools for registering imaging data.
+
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   registration/index.rst
+
+

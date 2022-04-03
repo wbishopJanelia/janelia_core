@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.extra_torch_modules &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.extra_torch_modules</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/janelia_core/ml/extra_torch_modules/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.extra_torch_modules">
+<span id="janelia-core-ml-extra-torch-modules"></span><h1><a class="reference internal" href="#module-janelia_core.ml.extra_torch_modules" title="janelia_core.ml.extra_torch_modules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.extra_torch_modules</span></code></a><a class="headerlink" href="#module-janelia_core.ml.extra_torch_modules" title="Permalink to this headline"></a></h1>
+<p>Contains basic torch modules, supplementing those native to PyTorch.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.Bias" title="janelia_core.ml.extra_torch_modules.Bias"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Bias</span></code></a></p></td>
+<td><p>Applies a bias transformation to the data y = x + o, where o is a 1-d vector.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.BiasAndPositiveScale" title="janelia_core.ml.extra_torch_modules.BiasAndPositiveScale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BiasAndPositiveScale</span></code></a></p></td>
+<td><p>Applies a bias and non-negative scale transformation to the data y = abs(w)*x + o.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.BiasAndScale" title="janelia_core.ml.extra_torch_modules.BiasAndScale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BiasAndScale</span></code></a></p></td>
+<td><p>Applies a bias and scale transformation to the data y = w*x + o.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.ConstantBoundedFcn" title="janelia_core.ml.extra_torch_modules.ConstantBoundedFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConstantBoundedFcn</span></code></a></p></td>
+<td><p>Object for representing a constant function which can produce output in a bounded range.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.ConstantRealFcn" title="janelia_core.ml.extra_torch_modules.ConstantRealFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConstantRealFcn</span></code></a></p></td>
+<td><p>Object for representing function which is constant w.r.t to input and take values anywhere in the reals.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.DenseLayer" title="janelia_core.ml.extra_torch_modules.DenseLayer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DenseLayer</span></code></a></p></td>
+<td><p>A layer which concatenates its input to it’s output.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.DenseLNLNet" title="janelia_core.ml.extra_torch_modules.DenseLNLNet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DenseLNLNet</span></code></a></p></td>
+<td><p>A network of densely connected linear, non-linear units.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.BasicExp" title="janelia_core.ml.extra_torch_modules.BasicExp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BasicExp</span></code></a></p></td>
+<td><p>Applies the transformation y = exp(x) to the data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.Exp" title="janelia_core.ml.extra_torch_modules.Exp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Exp</span></code></a></p></td>
+<td><p>Applies a transformation to the data y = o + exp(g*x + s)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn" title="janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FirstAndSecondOrderFcn</span></code></a></p></td>
+<td><p>A function f(x[i]) = o[i] + sum_j a[i, j]*x[j] + sum_{j,k} b_[i, j,k]*x[j]*x[k], where o, a and b are parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FixedOffsetExp" title="janelia_core.ml.extra_torch_modules.FixedOffsetExp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedOffsetExp</span></code></a></p></td>
+<td><p>Computes y = exp(x) + o, where o is a fixed, non-learnable offset.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FixedOffsetAbs" title="janelia_core.ml.extra_torch_modules.FixedOffsetAbs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedOffsetAbs</span></code></a></p></td>
+<td><p>Computes y = abs(x) + o, for a fixed o.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FixedOffsetTanh" title="janelia_core.ml.extra_torch_modules.FixedOffsetTanh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedOffsetTanh</span></code></a></p></td>
+<td><p>Computes y = abs(s)*(tanh(x) + 1) + m, where s is learnable and m is fixed.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FormMatrixByCols" title="janelia_core.ml.extra_torch_modules.FormMatrixByCols"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FormMatrixByCols</span></code></a></p></td>
+<td><p>Forms a matrix output column by column, where each column is calculated from a separate function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn" title="janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IndSmpConstantBoundedFcn</span></code></a></p></td>
+<td><p>For representing a function which assigns different bounded constant scalar values to given samples.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn" title="janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IndSmpConstantRealFcn</span></code></a></p></td>
+<td><p>For representing a function which assigns different real-valued constant scalar values to given samples.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.LogGaussianBumpFcn" title="janelia_core.ml.extra_torch_modules.LogGaussianBumpFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LogGaussianBumpFcn</span></code></a></p></td>
+<td><p>A module representing a log Gaussian “bump” function with trainable parameters of the form:</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.PWLNNFcn" title="janelia_core.ml.extra_torch_modules.PWLNNFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PWLNNFcn</span></code></a></p></td>
+<td><p>Piecewise-linear nearest neighbor network function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.QuadSurf" title="janelia_core.ml.extra_torch_modules.QuadSurf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuadSurf</span></code></a></p></td>
+<td><p>A surface defined by: z = a*(x - x_0)^2 + b*(y - y_0)^2</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.Relu" title="janelia_core.ml.extra_torch_modules.Relu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Relu</span></code></a></p></td>
+<td><p>Applies a rectified linear transformation to the data y = o + relu(x + s)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SCC" title="janelia_core.ml.extra_torch_modules.SCC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCC</span></code></a></p></td>
+<td><p>A module which splits inputs, applies a function to that input (computes) and concatenates the results.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SumAlongDim" title="janelia_core.ml.extra_torch_modules.SumAlongDim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SumAlongDim</span></code></a></p></td>
+<td><p>Performs a sum along a given dimension of input.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns" title="janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SumOfTiledHyperCubeBasisFcns</span></code></a></p></td>
+<td><p>A module to represent a function which is a sum of tiled hypercube basis functions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SumOfRelus" title="janelia_core.ml.extra_torch_modules.SumOfRelus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SumOfRelus</span></code></a></p></td>
+<td><p>A sum of Relu functions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SwissRole" title="janelia_core.ml.extra_torch_modules.SwissRole"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SwissRole</span></code></a></p></td>
+<td><p>Represents a swiss role function.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.Tanh" title="janelia_core.ml.extra_torch_modules.Tanh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Tanh</span></code></a></p></td>
+<td><p>A module implementing y = s*tanh(x) + o</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.Unsqueeze" title="janelia_core.ml.extra_torch_modules.Unsqueeze"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Unsqueeze</span></code></a></p></td>
+<td><p>Wraps the torch.unsqueeze function in a module.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.OptionalTensor" title="janelia_core.ml.extra_torch_modules.OptionalTensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OptionalTensor</span></code></a></p></td>
+<td><p>An optional tensor type.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt id="janelia_core.ml.extra_torch_modules.OptionalTensor">
+<code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">OptionalTensor</code><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.OptionalTensor" title="Permalink to this definition"></a></dt>
+<dd><p>An optional tensor type.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.Bias">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">Bias</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#Bias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.Bias" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.ModuleList</span></code></p>
+<p>Applies a bias transformation to the data y = x + o, where o is a 1-d vector.</p>
+<p>Creates a Bias object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d: The dimensionality of the input and output</p>
+<p>init_std: The standard deviation of the normal distribution initial biases are pulled from.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.Bias.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#Bias.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.Bias.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input tensor, of shape n_smps*n_dims</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output tensor, same shape as input</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.BiasAndPositiveScale">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">BiasAndPositiveScale</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">o_init_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">w_init_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">o_init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">w_init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#BiasAndPositiveScale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.BiasAndPositiveScale" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.ModuleList</span></code></p>
+<p>Applies a bias and non-negative scale transformation to the data y = abs(w)*x + o.</p>
+<p>Here w is the same length of x so abs(w)*x indicates element-wise product and likewise … + o is element-wise addition.</p>
+<p>Creates a Bias object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d: The dimensionality of the input and output</p>
+<p>o_init_mn: The mean of the normal distribution initial biases are pulled from.</p>
+<p>w_init_mn: The mean of the normal distribution initial weights are pulled from.</p>
+<p>o_init_std: The standard deviation of the normal distribution initial biases are pulled from.</p>
+<p>w_init_std: The standard deviation of the normal distribution initial weights are pulled from.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.BiasAndPositiveScale.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#BiasAndPositiveScale.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.BiasAndPositiveScale.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input tensor, of shape n_smps*n_dims</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output tensor, same shape as input</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.BiasAndScale">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">BiasAndScale</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">o_init_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">w_init_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">o_init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">w_init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#BiasAndScale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.BiasAndScale" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.ModuleList</span></code></p>
+<p>Applies a bias and scale transformation to the data y = w*x + o.</p>
+<p>Here w is the same length of x so w*x indicates element-wise product and likewise … + o is element-wise addition.</p>
+<p>Creates a Bias object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d: The dimensionality of the input and output</p>
+<p>o_init_mn: The mean of the normal distribution initial biases are pulled from.</p>
+<p>w_init_mn: The mean of the normal distribution initial weights are pulled from.</p>
+<p>o_init_std: The standard deviation of the normal distribution initial biases are pulled from.</p>
+<p>w_init_std: The standard deviation of the normal distribution initial weights are pulled from.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.BiasAndScale.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#BiasAndScale.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.BiasAndScale.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input tensor, of shape n_smps*n_dims</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output tensor, same shape as input</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.ConstantBoundedFcn">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">ConstantBoundedFcn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lower_bound</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">upper_bound</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">init_value</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#ConstantBoundedFcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.ConstantBoundedFcn" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Object for representing a constant function which can produce output in a bounded range.</p>
+<p>This is useful when working with modules which need a submodule which is a function with trainable parameters and
+you desire to use a constant in place of the function.  For example, when working with conditional distributions
+instead of predicting the conditional mean with a neural network, you might want a constant conditional mean.</p>
+<p>Output values can be multi-dimensional.</p>
+<p>Creates a ConstantBoundedFcn object.</p>
+<dl>
+<dt>Args:</dt><dd><p>lower_bound, upper_bound: the lower and upper bounds the output of the function can take on.  These
+should be arrays providing the bounds for each dimension of output.</p>
+<p>init_value: If provided, this is the constant output the function is initialized to.  Should be an
+array providing initial values for each dimension. If not provided, the constant value will be initialized
+to be halfway between the lower and upper bound.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.ConstantBoundedFcn.set_value">
+<code class="sig-name descname">set_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">vl</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#ConstantBoundedFcn.set_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.ConstantBoundedFcn.set_value" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the value of the function.</p>
+<p>Note: Value will be cast to a float before setting.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>vl: The value to set the function to.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.ConstantBoundedFcn.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#ConstantBoundedFcn.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.ConstantBoundedFcn.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Produces constant output given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input data of shape n_smps*d_in.</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: output of shape nSmps*d_out</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.ConstantRealFcn">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">ConstantRealFcn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">init_vl</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">learnable_values</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#ConstantRealFcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.ConstantRealFcn" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Object for representing function which is constant w.r.t to input and take values anywhere in the reals.</p>
+<p>This is useful when working with modules which need a submodule which is a function with trainable parameters and
+you desire to use a constant in place of the function.  For example, when working with conditional distributions
+instead of predicting the conditional mean with a neural network, you might want a constant conditional mean.</p>
+<p>Output values can be multidimensional.</p>
+<p>Creates a ConstantRealFcn object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>init_vl: The initial value to initialize the function with.  The length of init_vl determines the number
+of dimensions of the output of the function.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.ConstantRealFcn.set_vl">
+<code class="sig-name descname">set_vl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">vl</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#ConstantRealFcn.set_vl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.ConstantRealFcn.set_vl" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the value of the function.</p>
+<p>Note: Values will be cast to float before setting.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>vl: The value to set the function to.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.ConstantRealFcn.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#ConstantRealFcn.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.ConstantRealFcn.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Produces constant output given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input data of shape nSmps*d_in.</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: output of shape nSmps*d_out</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.DenseLayer">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">DenseLayer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">m</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#DenseLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.DenseLayer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A layer which concatenates its input to it’s output.</p>
+<p>Creates a DenseLayer object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>m: The module which input is passed through.  The output of this module is concatenated to
+the input to form the final output of the module.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.DenseLayer.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#DenseLayer.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.DenseLayer.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes input from output.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input, of shape n_smps*d_in</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output, of shape n_smps*(d_in + m_out), where m_out is the output dimensionality of the m module.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.DenseLNLNet">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">DenseLNLNet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nl_class</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.10)">type</a></span></em>, <em class="sig-param"><span class="n">d_in</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">n_layers</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">growth_rate</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">bias</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#DenseLNLNet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.DenseLNLNet" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A network of densely connected linear, non-linear units.</p>
+<p>Creates a DenseLNLNet object.</p>
+<dl>
+<dt>Args:</dt><dd><p>nl_class: The class to construct the non-linear activation functions from, e.g., torch.nn.ReLU</p>
+<p>d_in: Input dimensionality to the network</p>
+<p>n_layers: The number of layers in the network.</p>
+<p>growth_rate: The number of unique features computed by each layer.  The output dimensionality of
+the network will be: d_in + n_layers*growth_rate.</p>
+<p>bias: True if linear layers should have a bias.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.DenseLNLNet.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#DenseLNLNet.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.DenseLNLNet.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes input given output.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input, of shape n_smps*d_in</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output, of shape n_smps*(d_in + n_layers*growth_rate)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.BasicExp">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">BasicExp</code><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#BasicExp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.BasicExp" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Applies the transformation y = exp(x) to the data.</p>
+<p>Creates a new BasicExp object.</p>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.BasicExp.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#BasicExp.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.BasicExp.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output from input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input, of any shape</p>
+</dd>
+</dl>
+<p>Returns:</p>
+<blockquote>
+<div><p>y: Output, same shape as input</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.Exp">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">Exp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">o_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">o_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">g_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">g_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">s_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">s_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#Exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.Exp" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.ModuleList</span></code></p>
+<p>Applies a transformation to the data y = o + exp(g*x + s)</p>
+<p>Creates a Exp object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d: The dimensionality of the input and output</p>
+<p>o_mn, o_std: The mean and standard deviation for initializing o</p>
+<p>g_mn, g_std: The mean and standard deviation for initializing g</p>
+<p>s_mn, s_std: The mean and standard deviation for initializing s</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.Exp.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#Exp.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.Exp.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input tensor, of shape n_smps*d_in</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output tensor, same shape as input</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">FirstAndSecondOrderFcn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_in</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">d_out</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">o_init_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">o_init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">a_init_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">a_init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">b_init_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">b_init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#FirstAndSecondOrderFcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A function f(x[i]) = o[i] + sum_j a[i, j]*x[j] + sum_{j,k} b_[i, j,k]*x[j]*x[k], where o, a and b are parameters.</p>
+<p>Creates a new FirstAndSecondOrderFcn object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d_in: The input dimensionality</p>
+<p>d_out: The output dimensionality</p>
+<p>o_init_mn, o_init_std: The mean and standard deviation of the normal distribution to
+pull initial values of o from</p>
+<p>a_init_mn, a_init_std: The mean and standard deviation of the normal distribution to
+pull initial values of a from</p>
+<p>b_init_mn, b_init_std: The mean and standard deviation of the normal distribution to
+pull initial values of b from</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#FirstAndSecondOrderFcn.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes input from output.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input tensor, of shape n_smps*d_in</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output tensor, of shape n_smps*d_out</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.FixedOffsetExp">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">FixedOffsetExp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">o</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#FixedOffsetExp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.FixedOffsetExp" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Computes y = exp(x) + o, where o is a fixed, non-learnable offset.</p>
+<p>Creates a new FixedOffsetExp object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>o: The offset to apply</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.FixedOffsetExp.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#FixedOffsetExp.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.FixedOffsetExp.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes input from output.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input tensor, of any shape</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Computed output, same shape as input</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.FixedOffsetAbs">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">FixedOffsetAbs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">o</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#FixedOffsetAbs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.FixedOffsetAbs" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Computes y = abs(x) + o, for a fixed o.</p>
+<p>Creates a new FixedOffsetAbs module.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>o: The fixed offsest</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.FixedOffsetAbs.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#FixedOffsetAbs.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.FixedOffsetAbs.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output from input.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>x: Input, of any shape</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>y: Output, the same shape as input</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.FixedOffsetTanh">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">FixedOffsetTanh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">m</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">init_s_vls</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.OptionalTensor" title="janelia_core.ml.extra_torch_modules.OptionalTensor">OptionalTensor</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#FixedOffsetTanh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.FixedOffsetTanh" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Computes y = abs(s)*(tanh(x) + 1) + m, where s is learnable and m is fixed.</p>
+<p>This function can learn a different scale for each dimension of data.</p>
+<p>The minimum of the above function is m.  This function can be used when wanting to apply a scaled Tanh
+to values while making sure function values never go below a threshold.</p>
+<p>Creates a new FixedOffsetTanh object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d: The dimension of the input.</p>
+<p>m: The minimum value of the function</p>
+<p>init_s_vls: The initial s values.  Should be of length d.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.FixedOffsetTanh.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#FixedOffsetTanh.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.FixedOffsetTanh.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output from input.</p>
+<dl class="simple">
+<dt>Arg:</dt><dd><p>x: Input, of shape n_smps*d</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output, same shape as input</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.FormMatrixByCols">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">FormMatrixByCols</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">col_modules</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.nn.Module<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#FormMatrixByCols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.FormMatrixByCols" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Forms a matrix output column by column, where each column is calculated from a separate function.</p>
+<p>Specifically, each column is formed by applying a module unique to that column to the same input x.</p>
+<p>Creates a new FormMatrixByCols object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>col_modules: col_modules[i] is the module that should be applied to form column i</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.FormMatrixByCols.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#FormMatrixByCols.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.FormMatrixByCols.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes input from output.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input, of any shape</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output.  Each column is the result of applying the appropriate function to the input data</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">IndSmpConstantBoundedFcn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">lower_bound</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">- 1.0</span></em>, <em class="sig-param"><span class="n">upper_bound</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">init_value</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.05</span></em>, <em class="sig-param"><span class="n">check_sizes</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#IndSmpConstantBoundedFcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>For representing a function which assigns different bounded constant scalar values to given samples.</p>
+<p>This is useful, for example, when wanting to have a function which provides a different standard deviation for
+each sample in a conditional Gaussian distribution.</p>
+<p>Creates an IndSmpConstantBoundedFcn object.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>n: The number of samples this function will assign values to.</p>
+<p>lower_bound, upper_bound: lower and upper bounds the function can represent.  All samples will have the same
+bounds.</p>
+<p>init_value: The initial value to assign to each sample.  All samples will have the same initial value.</p>
+<p>check_sizes: If true, checks that the number of rows of input matches n (the number of samples) when
+calling forward.  If false, this check is omitted.</p>
+</div></blockquote>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#IndSmpConstantBoundedFcn.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Assigns a value to each sample in x.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: input of shape n_smps*d_x</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: output of shape n_smps*1</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If the number of samples in x does not match the the number of samples the function represents.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn.set_value">
+<code class="sig-name descname">set_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">vl</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#IndSmpConstantBoundedFcn.set_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn.set_value" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the value of the function.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>vl: The value to set.  Must be a 1-d array of length self.n</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">IndSmpConstantRealFcn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">init_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">check_sizes</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#IndSmpConstantRealFcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>For representing a function which assigns different real-valued constant scalar values to given samples.</p>
+<p>This is useful, for example, when wanting to have a function which provides a different mean for each sample in a
+conditional Gaussian distribution.</p>
+<p>Creates a IndSmpConstantBoundedFcn object.</p>
+<dl>
+<dt>Args:</dt><dd><p>n: The number of samples this function will assign values to.</p>
+<p>init_mn: The mean of the normal distribution to pull initial function values from.</p>
+<p>init_std: The standard deviation of the normal distribution to pull initial function values from.</p>
+<p>check_sizes: If true, checks that the number of rows of input matches n (the number of samples) when
+calling forward.  If false, this check is omitted.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#IndSmpConstantRealFcn.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Assigns a value to each sample in x.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*d_x</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output of shape n_smps*1</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If the number of samples in x does not match the the number of samples the function represents.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn.set_value">
+<code class="sig-name descname">set_value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">vl</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#IndSmpConstantRealFcn.set_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn.set_value" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the value of the function.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>vl: The value to set. Should be a 1-d array of length self.n</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.LogGaussianBumpFcn">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">LogGaussianBumpFcn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_x</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">ctr_std_lb</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.02</span></em>, <em class="sig-param"><span class="n">ctr_std_ub</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">100.0</span></em>, <em class="sig-param"><span class="n">ctr_std_init</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">log_gain_lb</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">- 3.0</span></em>, <em class="sig-param"><span class="n">log_gain_ub</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">log_gain_init</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">- 0.05</span></em>, <em class="sig-param"><span class="n">ctr_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">[0, 1]</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#LogGaussianBumpFcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.LogGaussianBumpFcn" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A module representing a log Gaussian “bump” function with trainable parameters of the form:</p>
+<blockquote>
+<div><p>y = log(g*exp(-d(x,c)),</p>
+</div></blockquote>
+<p>where d(x,c) is the distance of x from the center c defined as sqrt( (x - c)’S^-2(x-c) ), where
+S is a diagonal matrix of standard deviations.</p>
+<p>Creates a LogGaussianBumpFcn object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d_x: The dimensionality of the domain of the function.</p>
+<p>ctr_std_lb: Lower bound center standard deviations can take on</p>
+<p>ctr_std_ub: Upper bound center standard deviations can take on</p>
+<p>ctr_std_init: Initial value for center standard deviations.  All dimensions are initialized to the same
+value.</p>
+<p>log_gain_lb: Lower bound the log gain value can take on</p>
+<p>log_gain_ub: Upper bound the log gain value can take on</p>
+<p>log_gain_init: Initial value for the log gain value</p>
+<p>ctr_range: The range of the uniform distribution when randomly initializing the center.  All dimensions are
+selected from the same Uniform distribution.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.LogGaussianBumpFcn.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#LogGaussianBumpFcn.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.LogGaussianBumpFcn.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output of function given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input of shape nSmps*d</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output of shape nSmps</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.PWLNNFcn">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">PWLNNFcn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">init_centers</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">init_weights</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">init_offsets</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">k</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">m</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">n_used_fcns</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#PWLNNFcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.PWLNNFcn" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Piecewise-linear nearest neighbor network function.</p>
+<p>For any input point, this function finds the k nearest-neighboring functions to it. The value of the function
+for that point is then the sum of the point evaluated at each of its nearest-neighbor functions.</p>
+<p>Creates a new PWLNNFcn.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>init_centers: Initial centers for each function. Of shape n_ctrs*input_dim</p>
+<p>init_weights: Initial weights for each function. Of shape n_ctrs*input_dim*output_dim</p>
+<p>init_offsets: Initial offsets for each function. Of shape n_ctrs*output_dim</p>
+<p>k: Number of nearest neighbors to use.</p>
+<p>m: The number of centers to compare at once when searching for nearest neighbors.  Larger
+values use more memory but can result in significantly faster computation on GPU.</p>
+<p>n_used_fcns: The number of functions to use at any point in time.  Setting this equal to n_ctrs,
+results in using all centers all the time.  Setting this less than n_ctrs, will result in
+randomly dropping out some functions during each call to forward.  Setting this to None, will
+result in using all centers.</p>
+</div></blockquote>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.PWLNNFcn.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#PWLNNFcn.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.PWLNNFcn.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output from input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*input_dim</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output of shape n_smps*output_dim</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.PWLNNFcn.bound">
+<code class="sig-name descname">bound</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">ctr_bounds</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">=</span> <span class="default_value">[0, 1]</span></em>, <em class="sig-param"><span class="n">bound_fcns</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#PWLNNFcn.bound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.PWLNNFcn.bound" title="Permalink to this definition"></a></dt>
+<dd><p>Applies bounds to the centers.</p>
+<p>Bounds are applied element-wise.</p>
+<dl>
+<dt>Args:</dt><dd><p>ctr_bounds: The bounds to force centers to be between. If None, no bounds are enforced. The
+same bound is applied to all dimensions.</p>
+<p>bound_fcns: True if bound should be called on functiions.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.QuadSurf">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">QuadSurf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ctr</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">coefs</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#QuadSurf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.QuadSurf" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A surface defined by: z = a*(x - x_0)^2 + b*(y - y_0)^2</p>
+<p>Creates a new QuadSurf Module.</p>
+<dl>
+<dt>Args:</dt><dd><p>ctr: the vector [x_0, x_1]</p>
+<p>coefs: the vector [a, b]</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.QuadSurf.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#QuadSurf.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.QuadSurf.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output from input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*2</p>
+</dd>
+<dt>Returns:</dt><dd><p>output: Of shape n_smps*3, where each row is of the form [z, x, y], where x &amp; y are the original x &amp; y
+from the input, and z is the function output.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.Relu">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">Relu</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">o_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">o_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">s_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">s_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#Relu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.Relu" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.ModuleList</span></code></p>
+<p>Applies a rectified linear transformation to the data y = o + relu(x + s)</p>
+<p>Creates a Relu object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d: The dimensionality of the input and output</p>
+<p>o_mn: Mean of normal distribution for initializing offsets</p>
+<p>o_std: Standard deviation of normal distribution for initializing offsets</p>
+<p>s_mn: Mean of normal distribution for initializing shifts</p>
+<p>s_std: Standard deviation of normal distribution for initializing shifts</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.Relu.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#Relu.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.Relu.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input tensor</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.SCC">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">SCC</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">group_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">group_modules</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.nn.Module<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#SCC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.SCC" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A module which splits inputs, applies a function to that input (computes) and concatenates the results.</p>
+<p>The acronym SCC is for Split, Compute, Concatenate.  This module will:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Split the input into different groups</p></li>
+<li><p>Apply a different function to each of the groups</p></li>
+<li><p>Concatenate the result</p></li>
+</ol>
+</div></blockquote>
+<p>Creates a new SCC object.</p>
+<dl>
+<dt>Args:</dt><dd><p>group_inds: group_inds[i] is tensor of dtype long indicating which input dimensions are used to
+form the data for group i.  Variables in the group will be ordered according their order in
+group_inds[i]</p>
+<p>group_modules: group_fcns[i] is the function to apply to data for group i.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.SCC.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#SCC.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.SCC.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes input from output.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: input of shape n_smps*d_x</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: output of shane n_smps*d_y, where d_y is the sum of the output dimensionalities of all
+group functions.  Outputs from each group are concatenated (according to the order of the
+groups) to form y.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.SumAlongDim">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">SumAlongDim</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#SumAlongDim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.SumAlongDim" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Performs a sum along a given dimension of input.</p>
+<p>Create a SumAlongDim object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dim: The dimension to sum along</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.SumAlongDim.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#SumAlongDim.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.SumAlongDim.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes input from output.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input, of any shape</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output.  The dimension summed along will be retrained.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">SumOfTiledHyperCubeBasisFcns</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_divisions_per_dim</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dim_ranges</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">n_div_per_hc_side_per_dim</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#SumOfTiledHyperCubeBasisFcns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A module to represent a function which is a sum of tiled hypercube basis functions.</p>
+<p>The hypercubes tile, in an overlapping fashion, a volume.  To specify a layout of hypercubes the user:</p>
+<blockquote>
+<div><blockquote>
+<div><ol class="arabic simple">
+<li><p>Specifies the range of each dimension that should be covered</p></li>
+</ol>
+<p>2. Specifies a number of divisions to break the range of each dimension into (see illustration below). These
+divisions <em>do not</em> directly correspond to hypercubes.  (See 3)</p>
+<p>3. Specifies how many divisions make up the side of a hypercube in each dimension.  For non-overlapping
+hypercubes 1 division makes up the side of 1 hypercube.  Increasing the number of divisions per side of each
+hypercube results in overlapping hypercubes (see illustration below).</p>
+<p>4. Final hypercubes are constructed to respect the hypercube sides set for each dimension.  Each hypercube
+has it’s own learnable magnitude.</p>
+<p>Example of breaking up a dimension into divsions and overlapping hypercube sides with 2 divisions per
+hypercube side:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="o">|-|-|-|-|-|-|-|-|</span> <span class="p">:</span> <span class="n">Each</span> <span class="n">block</span> <span class="n">a</span> <span class="n">division</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span><span class="p">,</span> <span class="mi">8</span> <span class="n">divisions</span><span class="p">)</span>
+  <span class="o">^</span>               <span class="o">^</span>
+  <span class="o">|</span>               <span class="o">|</span>
+  <span class="n">start_range</span>     <span class="n">end_range</span>
+  <span class="o">|</span>               <span class="o">|</span>
+  <span class="o">|</span>               <span class="o">|</span>
+  <span class="o">|</span>               <span class="o">|</span>
+  <span class="o">|</span>               <span class="o">|</span>
+<span class="o">|-</span> <span class="o">-|</span>             <span class="o">|</span>   <span class="p">:</span> <span class="p">(</span><span class="n">Notice</span> <span class="n">padding</span> <span class="n">so</span> <span class="n">that</span> <span class="n">first</span> <span class="ow">and</span> <span class="n">last</span> <span class="n">hypercubes</span> <span class="n">run</span> <span class="n">over</span> <span class="n">the</span> <span class="n">valid</span> <span class="nb">range</span><span class="p">)</span>
+  <span class="o">|-</span> <span class="o">-|</span>           <span class="o">|</span>
+    <span class="o">|-</span> <span class="o">-|</span>         <span class="o">|</span>
+         <span class="o">...</span>      <span class="o">|</span>
+                <span class="o">|-</span> <span class="o">-|</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Note: This object has been optimized for speed.  Specifically, by having hypercubes defined with respect to
+a base set of divisions, it is possible to take an input point and use an efficient hashing function to
+determine all hypercubes that it falls in.  Moreover, by including padding of the hypercubes, we ensure
+that each input point to the function anywhere in the user specified range falls within the <em>same</em> number of
+hypercubes.  These two things make forward evaluation of the function efficient.</p>
+</div></blockquote>
+<p>Creates a SumOfTiledHyperCubeBasisFcns object.</p>
+<dl>
+<dt>Args:</dt><dd><p>n_divisions_per_dim: n_divisions_per_dim[i] gives the number of divisions for dimension i.</p>
+<p>dim_ranges: The range for dimension i is dim_ranges[i,0] &lt;= x[i] &lt; dim_ranges[i,1]</p>
+<p>n_div_per_hc_side_per_dim: The number of divisions per hypercube side for each dimension</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns._x_to_idx">
+<code class="sig-name descname">_x_to_idx</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">run_checks</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#SumOfTiledHyperCubeBasisFcns._x_to_idx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns._x_to_idx" title="Permalink to this definition"></a></dt>
+<dd><p>Given x data computes the indices of active basis functions for each point.</p>
+<dl>
+<dt>Args:</dt><dd><p>x: Input data of shape n_smps*d_x</p>
+<p>run_checks: True if input should be checked for expected properties</p>
+</dd>
+<dt>Returns:</dt><dd><p>idx: Indices of active bump functions for each point.  Of shape n_smps*n_active,
+where n_active is the number of active bump functions for each point.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If check_range is true and one or more x values are not in the valid range for the function.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#SumOfTiledHyperCubeBasisFcns.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes input given output.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*d_x.  Each x point should be within the region specified when creating the
+SumOfTiledHyperCubeBasisFcns object.</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output of shape n_smps*1.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.SumOfRelus">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">SumOfRelus</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">init_ctrs</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">init_w</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">init_s</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#SumOfRelus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.SumOfRelus" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A sum of Relu functions.</p>
+<p>The idea behind this function is we tile an input space by a collection of scaled ReLU functions, where the
+centers for each function determine the location of these functions and the weights and scales determine how they
+are oriented and the slope in the non-zero part of the relu. We then sum the results of passing a data
+point through all these functions tiling the landscape to get a final output.</p>
+<p>Specifically, this ia function from x in R^d_in to y in R^d_out, where the i^th dimensoun of output is</p>
+<blockquote>
+<div><p>y[i] = sum_i s_ij*relu(w_ij’<a href="#id1"><span class="problematic" id="id2">*</span></a>(x - c_j)),</p>
+</div></blockquote>
+<p>where w_ij is a weight vector for output dimension i and relu function j, c_j is the center for relu function
+c_j and s_ij is the scale for output dimension i of relu function j.</p>
+<p>Creates a new PWLManifold object.</p>
+<dl>
+<dt>Args:</dt><dd><p>init_ctrs: initial centers of shape n_ctrs*input_dim</p>
+<p>init_w: initial weights of shape n_ctrs*output_dim*input_dim</p>
+<p>init_s: initial scales of shape n_ctrs*output_dim</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.SumOfRelus.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#SumOfRelus.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.SumOfRelus.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output from input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*input_dim</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output of shape n_smps*output_dim</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.SwissRole">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">SwissRole</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">b</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">c</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#SwissRole"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.SwissRole" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Represents a swiss role function.</p>
+<p>This is function that maps from (x,y) to (x,y,z) according to:</p>
+<blockquote>
+<div><p>x = x
+y = a*(y+b)*sin(c*y)
+z = a*(y+b)*cos(c*y),</p>
+</div></blockquote>
+<p>where a, b and c are learnable parameters.</p>
+<p>Creates a new SwissRole object.</p>
+<dl>
+<dt>Args:</dt><dd><p>a: The a parameter.  Shuold be a 1-d vector with a single entry</p>
+<p>b: The b parameter.  Shuold be a 1-d vector with a single entry</p>
+<p>c: The c parameter.  Shuold be a 1-d vector with a single entry</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If any of the parameters have the wrong shape</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.SwissRole.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#SwissRole.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.SwissRole.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output from input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*2</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output of shape n_smps*3</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.Tanh">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">Tanh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">o_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">o_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">s_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">s_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#Tanh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.Tanh" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A module implementing y = s*tanh(x) + o</p>
+<p>Creates a Tanh module.</p>
+<dl>
+<dt>Args:</dt><dd><p>d: The dimensionality of the input and output</p>
+<p>o_mn, o_std: The mean and standard deviation for initializing o</p>
+<p>s_mn, s_std: The mean and standard deviation for initializing s</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.Tanh.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#Tanh.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.Tanh.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input tensor, of any shape</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output tensor, same shape as input</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.Unsqueeze">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">Unsqueeze</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#Unsqueeze"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.Unsqueeze" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Wraps the torch.unsqueeze function in a module.</p>
+<p>Having unsqueeze in a module can be useful for when working with torch.nn.Sequential.</p>
+<p>Creates a new Unsqueeze module.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dim: The index to insert the empty dimension at.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.Unsqueeze.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#Unsqueeze.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.Unsqueeze.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes input from output.</p>
+<dl class="simple">
+<dt>Arg:</dt><dd><p>x: Input, of any shape</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output, with the appropriate dimension added.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
