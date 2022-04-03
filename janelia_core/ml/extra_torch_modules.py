@@ -1,4 +1,4 @@
-""" Contains basic torch modules, supplementing those natviely in Torch.
+""" Contains basic torch modules, supplementing those native to PyTorch.
 """
 
 from typing import Sequence, Union
@@ -13,10 +13,11 @@ from janelia_core.ml.extra_torch_functions import knn_do
 
 # Define aliases
 OptionalTensor = Union[torch.Tensor, None]
+""" An optional tensor type.  """
 
 
 class Bias(torch.nn.ModuleList):
-    """ Applies a bias transformation to the data y = x + o """
+    """ Applies a bias transformation to the data y = x + o, where o is a 1-d vector. """
 
     def __init__(self, d: int, init_std: float = .1):
         """ Creates a Bias object.
@@ -36,16 +37,16 @@ class Bias(torch.nn.ModuleList):
         """ Computes output given input.
 
         Args:
-            x: Input tensor
+            x: Input tensor, of shape n_smps*n_dims
 
         Returns:
-            y: Output tensor
+            y: Output tensor, same shape as input
         """
         return x + self.o
 
 
 class BiasAndPositiveScale(torch.nn.ModuleList):
-    """ Applies a bias and non-nonegative scale transformation to the data y = abs(w)*x + o.
+    """ Applies a bias and non-negative scale transformation to the data y = abs(w)*x + o.
 
     Here w is the same length of x so abs(w)*x indicates element-wise product and likewise ... + o is element-wise addition.
     """
@@ -80,10 +81,10 @@ class BiasAndPositiveScale(torch.nn.ModuleList):
         """ Computes output given input.
 
         Args:
-            x: Input tensor
+            x: Input tensor, of shape n_smps*n_dims
 
         Returns:
-            y: Output tensor
+            y: Output tensor, same shape as input
         """
         return torch.abs(self.w)*x + self.o
 
@@ -124,19 +125,26 @@ class BiasAndScale(torch.nn.ModuleList):
         """ Computes output given input.
 
         Args:
-            x: Input tensor
+            x: Input tensor, of shape n_smps*n_dims
 
         Returns:
-            y: Output tensor
+            y: Output tensor, same shape as input
         """
         return self.w*x + self.o
 
 
 class ConstantBoundedFcn(torch.nn.Module):
-    """ Object for representing a constant function which can produce output in a bounded range. """
+    """ Object for representing a constant function which can produce output in a bounded range.
+
+    This is useful when working with modules which need a submodule which is a function with trainable parameters and
+    you desire to use a constant in place of the function.  For example, when working with conditional distributions
+    instead of predicting the conditional mean with a neural network, you might want a constant conditional mean.
+
+    Output values can be multi-dimensional.
+    """
 
     def __init__(self, lower_bound: np.ndarray, upper_bound: np.ndarray, init_value: np.ndarray = None):
-        """ Creates a ConstantLowerBoundedFcn object.
+        """ Creates a ConstantBoundedFcn object.
 
         Args:
             lower_bound, upper_bound: the lower and upper bounds the output of the function can take on.  These
@@ -213,7 +221,9 @@ class ConstantRealFcn(torch.nn.Module):
 
     This is useful when working with modules which need a submodule which is a function with trainable parameters and
     you desire to use a constant in place of the function.  For example, when working with conditional distributions
-    intsead of predicting the conditional mean with a neural network, you might want a constant conditional mean.
+    instead of predicting the conditional mean with a neural network, you might want a constant conditional mean.
+
+    Output values can be multidimensional.
     """
 
     def __init__(self, init_vl: np.ndarray, learnable_values: bool = True):
@@ -268,7 +278,6 @@ class DenseLayer(torch.nn.Module):
         """ Creates a DenseLayer object.
 
         Args:
-
             m: The module which input is passed through.  The output of this module is concatenated to
             the input to form the final output of the module.
         """
@@ -277,7 +286,14 @@ class DenseLayer(torch.nn.Module):
         self.m = m
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes input from output. """
+        """ Computes input from output.
+
+        Args:
+            x: Input, of shape n_smps*d_in
+
+        Returns:
+            y: Output, of shape n_smps*(d_in + m_out), where m_out is the output dimensionality of the m module.
+        """
 
         return torch.cat((x, self.m(x)), dim=1)
 
@@ -299,7 +315,6 @@ class DenseLNLNet(torch.nn.Module):
               the network will be: d_in + n_layers*growth_rate.
 
               bias: True if linear layers should have a bias.
-
         """
 
         super().__init__()
@@ -313,7 +328,14 @@ class DenseLNLNet(torch.nn.Module):
             self.add_module('dense_lnl_' + str(i), dense_layer) # Add linear layer
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes input given output. """
+        """ Computes input given output.
+
+        Args:
+            x: Input, of shape n_smps*d_in
+
+        Returns:
+            y: Output, of shape n_smps*(d_in + n_layers*growth_rate)
+        """
 
         for module in self._modules.values():
             x = module(x)
@@ -329,7 +351,15 @@ class BasicExp(torch.nn.Module):
         super().__init__()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes output from input. """
+        """ Computes output from input.
+
+        Args:
+            x: Input, of any shape
+
+        Returns:
+
+            y: Output, same shape as input
+        """
         return torch.exp(x)
 
 
@@ -369,16 +399,16 @@ class Exp(torch.nn.ModuleList):
         """ Computes output given input.
 
         Args:
-            x: Input tensor
+            x: Input tensor, of shape n_smps*d_in
 
         Returns:
-            y: Output tensor
+            y: Output tensor, same shape as input
         """
         return torch.exp(self.g*x + self.s) + self.o
 
 
 class FirstAndSecondOrderFcn(torch.nn.Module):
-    """ A function f(x[i]) = o[i] + sum_j a[j]*x[j] + sum_{j,k} b_[j,k]*x[j]*x[k], where o, a and b are parameters.
+    """ A function f(x[i]) = o[i] + sum_j a[i, j]*x[j] + sum_{j,k} b_[i, j,k]*x[j]*x[k], where o, a and b are parameters.
     """
 
     def __init__(self, d_in: int, d_out: int,
@@ -417,51 +447,18 @@ class FirstAndSecondOrderFcn(torch.nn.Module):
         torch.nn.init.normal_(self.b, mean=b_init_mn, std=b_init_std)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes intput from output.
+        """ Computes input from output.
 
         Args:
-            x: Input tensor
+            x: Input tensor, of shape n_smps*d_in
 
         Returns:
-            y: Output tensor
+            y: Output tensor, of shape n_smps*d_out
         """
         y = (torch.sum(x*(x.matmul(self.b)), dim=2).t() +  # Second order terms
              x.matmul(self.a.t()) +  # Linear terms
              self.o) # Offset term
         return y
-
-
-class FixedOffsetCELU(torch.nn.Module):
-    """ Computes y = CELU(x; alpha) + alpha + o, where o and alpha are non-learnable.
-
-    This module simply shifts the CELU function up by alpha + 0, so that minimum value
-    it can ever take on is o.
-
-    """
-
-    def __init__(self, alpha: float, o: float):
-        """ Creates a new FixedOffsetCELU module.
-
-        """
-
-        super().__init__()
-        self.f = torch.nn.CELU(alpha=alpha)
-        self.alpha = alpha
-        self.o = o
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes output from input.
-
-        Args:
-
-            x: Input
-
-        Returns:
-
-            y: Output, the same shape as output
-        """
-
-        return self.f(x) + self.alpha + self.o
 
 
 class FixedOffsetExp(torch.nn.Module):
@@ -480,10 +477,10 @@ class FixedOffsetExp(torch.nn.Module):
         """ Computes input from output.
 
         Args:
-            x: Input tensor
+            x: Input tensor, of any shape
 
         Returns:
-            y: Computed output
+            y: Computed output, same shape as input
         """
 
         return torch.exp(x) + self.o
@@ -493,7 +490,7 @@ class FixedOffsetAbs(torch.nn.Module):
     """ Computes y = abs(x) + o, for a fixed o. """
 
     def __init__(self, o: float):
-        """ Creates a new FixedOffsetSq module.
+        """ Creates a new FixedOffsetAbs module.
 
         Args:
             o: The fixed offsest
@@ -507,8 +504,9 @@ class FixedOffsetAbs(torch.nn.Module):
 
         Args:
 
-            x: Input
+            x: Input, of any shape
 
+        Returns:
             y: Output, the same shape as input
         """
 
@@ -526,7 +524,15 @@ class FixedOffsetTanh(torch.nn.Module):
     """
 
     def __init__(self, d: int, m: float, init_s_vls: OptionalTensor = None):
-        """ Creates a new FixedOffsetTanh object. """
+        """ Creates a new FixedOffsetTanh object.
+
+        Args:
+            d: The dimension of the input.
+
+            m: The minimum value of the function
+
+            init_s_vls: The initial s values.  Should be of length d.
+        """
 
         super().__init__()
         self.m = m
@@ -537,12 +543,19 @@ class FixedOffsetTanh(torch.nn.Module):
         self.s = torch.nn.Parameter(init_s_vls)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes output from input. """
+        """ Computes output from input.
+
+        Arg:
+            x: Input, of shape n_smps*d
+
+        Returns:
+            y: Output, same shape as input
+        """
         return torch.abs(self.s)*(torch.tanh(x) + 1) + self.m
 
 
 class FormMatrixByCols(torch.nn.Module):
-    """ Forms a matrix output column by column, where each column is calculated from a seperate function.
+    """ Forms a matrix output column by column, where each column is calculated from a separate function.
 
     Specifically, each column is formed by applying a module unique to that column to the same input x.
     """
@@ -557,7 +570,14 @@ class FormMatrixByCols(torch.nn.Module):
         self.col_modules = torch.nn.ModuleList(col_modules)
 
     def forward(self, x: torch.Tensor):
-        """ Computes input from output. """
+        """ Computes input from output.
+
+        Args:
+            x: Input, of any shape
+
+        Returns:
+            y: Output.  Each column is the result of applying the appropriate function to the input data
+        """
         return torch.cat([m(x) for m in self.col_modules], dim=1)
 
 
@@ -582,7 +602,7 @@ class IndSmpConstantBoundedFcn(torch.nn.Module):
 
             init_value: The initial value to assign to each sample.  All samples will have the same initial value.
 
-            check_sizes: If true, checks that the number of rows of input matches n (the number of samples) whenn
+            check_sizes: If true, checks that the number of rows of input matches n (the number of samples) when
             calling forward.  If false, this check is omitted.
 
         """
@@ -621,7 +641,6 @@ class IndSmpConstantBoundedFcn(torch.nn.Module):
         """ Sets the value of the function.
 
         Args:
-
             vl: The value to set.  Must be a 1-d array of length self.n
 
         """
@@ -642,9 +661,11 @@ class IndSmpConstantRealFcn(torch.nn.Module):
         Args:
             n: The number of samples this function will assign values to.
 
-            init_value: The initial value to assign to each sample.
+            init_mn: The mean of the normal distribution to pull initial function values from.
 
-            check_sizes: If true, checks that the number of rows of input matches n (the number of samples) whenn
+            init_std: The standard deviation of the normal distribution to pull initial function values from.
+
+            check_sizes: If true, checks that the number of rows of input matches n (the number of samples) when
             calling forward.  If false, this check is omitted.
         """
 
@@ -655,7 +676,7 @@ class IndSmpConstantRealFcn(torch.nn.Module):
 
         self.check_sizes = check_sizes
 
-    def forward(self, x):
+    def forward(self, x) -> torch.Tensor:
         """ Assigns a value to each sample in x.
 
         Args:
@@ -699,14 +720,13 @@ class LogGaussianBumpFcn(torch.nn.Module):
         """ Creates a LogGaussianBumpFcn object.
 
         Args:
-
             d_x: The dimensionality of the domain of the function.
 
-            ctr_stds_lb: Lower bound center standard deviations can take on
+            ctr_std_lb: Lower bound center standard deviations can take on
 
             ctr_std_ub: Upper bound center standard deviations can take on
 
-            ctr_stds_init: Initial value for center standard deviations.  All dimensions are initialized to the same
+            ctr_std_init: Initial value for center standard deviations.  All dimensions are initialized to the same
             value.
 
             log_gain_lb: Lower bound the log gain value can take on
@@ -732,7 +752,7 @@ class LogGaussianBumpFcn(torch.nn.Module):
         self.log_gain_vl = ConstantBoundedFcn(lower_bound=np.asarray([log_gain_lb]), upper_bound=np.asarray([log_gain_ub]),
                                               init_value=np.asarray([log_gain_init]))
 
-    def forward(self, x:torch.Tensor):
+    def forward(self, x:torch.Tensor) -> torch.Tensor:
         """ Computes output of function given input.
 
         Args:
@@ -759,7 +779,11 @@ class LogGaussianBumpFcn(torch.nn.Module):
 
 
 class PWLNNFcn(torch.nn.Module):
-    """ Piecewise-linear nearest neighbor network function. """
+    """ Piecewise-linear nearest neighbor network function.
+
+    For any input point, this function finds the k nearest-neighboring functions to it. The value of the function
+    for that point is then the sum of the point evaluated at each of its nearest-neighbor functions.
+    """
 
     def __init__(self, init_centers: torch.Tensor, init_weights: torch.Tensor,
                  init_offsets: torch.Tensor, k: int = 1, m=100, n_used_fcns: int = None):
@@ -767,7 +791,7 @@ class PWLNNFcn(torch.nn.Module):
 
         Args:
 
-            init_centers: Initial centeres for each function. Of shape n_ctrs*input_dim
+            init_centers: Initial centers for each function. Of shape n_ctrs*input_dim
 
             init_weights: Initial weights for each function. Of shape n_ctrs*input_dim*output_dim
 
@@ -803,7 +827,6 @@ class PWLNNFcn(torch.nn.Module):
         """ Computes output from input.
 
         Args:
-
             x: Input of shape n_smps*input_dim
 
         Returns:
@@ -830,7 +853,6 @@ class PWLNNFcn(torch.nn.Module):
         Bounds are applied element-wise.
 
         Args:
-
             ctr_bounds: The bounds to force centers to be between. If None, no bounds are enforced. The
             same bound is applied to all dimensions.
 
@@ -851,9 +873,7 @@ class QuadSurf(torch.nn.Module):
     def __init__(self, ctr: torch.Tensor, coefs: torch.Tensor):
         """ Creates a new QuadSurf Module.
 
-
         Args:
-
             ctr: the vector [x_0, x_1]
 
             coefs: the vector [a, b]
@@ -872,7 +892,7 @@ class QuadSurf(torch.nn.Module):
 
         Returns:
             output: Of shape n_smps*3, where each row is of the form [z, x, y], where x & y are the original x & y
-            from the input
+            from the input, and z is the function output.
         """
 
         z = torch.sum(self.coefs*((x - self.ctr)**2), dim=1)
@@ -883,7 +903,7 @@ class Relu(torch.nn.ModuleList):
     """ Applies a rectified linear transformation to the data y = o + relu(x + s) """
 
     def __init__(self, d: int, o_mn: float = 0.0, o_std: float = .1,
-                               s_mn: float = 0.0, s_std: float = .1):
+                 s_mn: float = 0.0, s_std: float = .1):
         """ Creates a Relu object.
 
         Args:
@@ -908,7 +928,7 @@ class Relu(torch.nn.ModuleList):
         torch.nn.init.normal_(s, mean=s_mn, std=s_std)
         self.register_parameter('s', s)
 
-    def forward(self, x: torch.Tensor) -> torch.tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """ Computes output given input.
 
         Args:
@@ -956,12 +976,13 @@ class SCC(torch.nn.Module):
 
         self.group_modules = torch.nn.ModuleList(group_modules)
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """ Computes input from output.
 
         Args:
             x: input of shape n_smps*d_x
 
+        Returns:
             y: output of shane n_smps*d_y, where d_y is the sum of the output dimensionalities of all
             group functions.  Outputs from each group are concatenated (according to the order of the
             groups) to form y.
@@ -985,6 +1006,14 @@ class SumAlongDim(torch.nn.Module):
         self.dim = dim
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes input from output.
+
+        Args:
+            x: Input, of any shape
+
+        Returns:
+            y: Output.  The dimension summed along will be retrained.
+        """
         return torch.sum(x, dim=self.dim, keepdim=True)
 
 
@@ -993,20 +1022,20 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
 
         The hypercubes tile, in an overlapping fashion, a volume.  To specify a layout of hypercubes the user:
 
-            (1) Specifies the range of each dimension that should be covered
+            1. Specifies the range of each dimension that should be covered
 
-            (2) Specifies a number of divisions to break the range of each dimension into (see illustration below). These
+            2. Specifies a number of divisions to break the range of each dimension into (see illustration below). These
             divisions *do not* directly correspond to hypercubes.  (See 3)
 
-            (3) Specifies how many divisions make up the side of a hypercube in each dimension.  For non-overlapping
+            3. Specifies how many divisions make up the side of a hypercube in each dimension.  For non-overlapping
             hypercubes 1 division makes up the side of 1 hypercube.  Increasing the number of divisions per side of each
             hypercube results in overlapping hypercubes (see illustration below).
 
-            (4) Final hypercubes are constructed to respect the hypercube sides set for each dimension.  Each hypercube
+            4. Final hypercubes are constructed to respect the hypercube sides set for each dimension.  Each hypercube
             has it's own learnable magnitude.
 
             Example of breaking up a dimension into divsions and overlapping hypercube sides with 2 divisions per
-            hypercube side:
+            hypercube side::
 
                 |-|-|-|-|-|-|-|-| : Each block a division (e.g., 8 divisions)
                 ^               ^
@@ -1025,23 +1054,22 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
 
          Note: This object has been optimized for speed.  Specifically, by having hypercubes defined with respect to
          a base set of divisions, it is possible to take an input point and use an efficient hashing function to
-         determine all hypercubes that it falls in.  More ever, by including padding of the hypercubes, we ensure
+         determine all hypercubes that it falls in.  Moreover, by including padding of the hypercubes, we ensure
          that each input point to the function anywhere in the user specified range falls within the *same* number of
          hypercubes.  These two things make forward evaluation of the function efficient.
      """
 
-    def __init__(self, n_divisions_per_dim: Sequence[int], dim_ranges: np.ndarray, n_div_per_hc_side_per_dim: Sequence[int]):
+    def __init__(self, n_divisions_per_dim: Sequence[int], dim_ranges: np.ndarray,
+                 n_div_per_hc_side_per_dim: Sequence[int]):
         """
         Creates a SumOfTiledHyperCubeBasisFcns object.
 
         Args:
-
             n_divisions_per_dim: n_divisions_per_dim[i] gives the number of divisions for dimension i.
 
             dim_ranges: The range for dimension i is dim_ranges[i,0] <= x[i] < dim_ranges[i,1]
 
             n_div_per_hc_side_per_dim: The number of divisions per hypercube side for each dimension
-
         """
 
         super().__init__()
@@ -1109,8 +1137,8 @@ class SumOfTiledHyperCubeBasisFcns(torch.nn.Module):
         n_bump_fcns = np.cumprod(n_bump_fcns_per_dim)[-1]
         self.b_m = torch.nn.Parameter(torch.zeros(n_bump_fcns), requires_grad=True)
 
-    def _x_to_idx(self, x: torch.Tensor, run_checks: bool = True):
-        """ Given x data computes the indices of active bump functions for each point.
+    def _x_to_idx(self, x: torch.Tensor, run_checks: bool = True) -> torch.Tensor:
+        """ Given x data computes the indices of active basis functions for each point.
 
         Args:
             x: Input data of shape n_smps*d_x
@@ -1170,7 +1198,6 @@ class SumOfRelus(torch.nn.Module):
     are oriented and the slope in the non-zero part of the relu. We then sum the results of passing a data
     point through all these functions tiling the landscape to get a final output.
 
-
     Specifically, this ia function from x \in R^d_in to y \in R^d_out, where the i^th dimensoun of output is
 
         y[i] = \sum_i s_ij*relu(w_ij'*(x - c_j)),
@@ -1183,11 +1210,12 @@ class SumOfRelus(torch.nn.Module):
     def __init__(self, init_ctrs: torch.Tensor, init_w: torch.Tensor, init_s: torch.Tensor):
         """ Creates a new PWLManifold object.
 
-        init_ctrs: initial centers of shape n_ctrs*input_dim
+        Args:
+            init_ctrs: initial centers of shape n_ctrs*input_dim
 
-        init_w: initial weights of shape n_ctrs*output_dim*input_dim
+            init_w: initial weights of shape n_ctrs*output_dim*input_dim
 
-        init_s: initial scales of shape n_ctrs*output_dim
+            init_s: initial scales of shape n_ctrs*output_dim
         """
 
         super().__init__()
@@ -1217,11 +1245,11 @@ class SwissRole(torch.nn.Module):
     """ Represents a swiss role function.
 
 
-    This is function that maps from (x,y) to (x,y,z) according to
+    This is function that maps from (x,y) to (x,y,z) according to:
 
-    x = x
-    y = a*(y+b)*sin(c*y)
-    z = a*(y+b)*cos(c*y),
+        x = x
+        y = a*(y+b)*sin(c*y)
+        z = a*(y+b)*cos(c*y),
 
     where a, b and c are learnable parameters.
 
@@ -1231,7 +1259,6 @@ class SwissRole(torch.nn.Module):
         """ Creates a new SwissRole object.
 
         Args:
-
             a: The a parameter.  Shuold be a 1-d vector with a single entry
 
             b: The b parameter.  Shuold be a 1-d vector with a single entry
@@ -1239,7 +1266,6 @@ class SwissRole(torch.nn.Module):
             c: The c parameter.  Shuold be a 1-d vector with a single entry
 
         Raises:
-
             ValueError: If any of the parameters have the wrong shape
         """
 
@@ -1295,10 +1321,10 @@ class Tanh(torch.nn.Module):
         """ Computes output given input.
 
         Args:
-            x: Input tensor
+            x: Input tensor, of any shape
 
         Returns:
-            y: Output tensor
+            y: Output tensor, same shape as input
         """
         return self.s*torch.tanh(x) + self.o
 
@@ -1320,5 +1346,12 @@ class Unsqueeze(torch.nn.Module):
         self.dim = dim
 
     def forward(self, x:torch.Tensor) -> torch.Tensor:
-        """ Computes input from output. """
+        """ Computes input from output.
+
+        Arg:
+            x: Input, of any shape
+
+        Returns:
+            y: Output, with the appropriate dimension added.
+        """
         return torch.unsqueeze(input=x, dim=self.dim)

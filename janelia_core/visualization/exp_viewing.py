@@ -1,7 +1,4 @@
-""" Tools for visualizing imaging experiment data.
-
-    William Bishop
-    bishopw@hhmi.org
+""" GUI tools for visualizing data from imaging experiments.
 """
 
 from copy import deepcopy
@@ -40,7 +37,8 @@ def visualize_exp(dataset: janelia_core.dataprocessing.dataset.DataSet,
 
         sc: A spark context, which can be optionally provided to speed up loading images.
 
-    Returns: The created window.
+    Returns:
+        The created window.
     """
 
     ephys_time_stamps = dataset.ts_data[cont_var_key]['ts']
@@ -138,7 +136,8 @@ def view_images_with_continuous_values(cont_var_dict: dict, image_dicts: list, f
 
         sc: A spark context, which can be optionally provided to speed up loading images.
 
-        Returns: The created window.
+    Returns:
+        The created window.
     """
 
     time_stamps = cont_var_dict['ts']
@@ -232,8 +231,10 @@ class KeyPressWindow(pg.GraphicsWindow):
     sigKeyPress = QtCore.pyqtSignal(object)
 
     def __init__(self, *args, **kwargs):
+        """ Creates a new KeyPressWidget object. """
         super().__init__(*args, **kwargs)
 
     def keyPressEvent(self, ev):
+        """ Responds to a key press event"""
         self.scene().keyPressEvent(ev)
         self.sigKeyPress.emit(ev)

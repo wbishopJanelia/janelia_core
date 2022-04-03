@@ -1,8 +1,4 @@
 """ Tools for generating images.
-
-    William Bishop
-    bishopw@hhmi.org
-
 """
 
 import copy
@@ -30,8 +26,8 @@ def alpha_composite(dest: np.ndarray, src: np.ndarray) -> np.ndarray:
 
         src: The top image.  Must be of the same shape as dest_img.
 
-    Returns: Nothing.  The dest array will be modified.
-
+    Returns:
+        Nothing.  The dest array will be modified.
     """
 
     src_alpha = np.expand_dims(src[:, :, 3],2)
@@ -39,7 +35,8 @@ def alpha_composite(dest: np.ndarray, src: np.ndarray) -> np.ndarray:
 
 
 def generate_2d_fcn_image(f: Callable, dim_0_range: Sequence[float] = None, dim_1_range: Sequence[float] = None,
-                          n_pts_per_dim: Sequence[int] = None, vis_dim: int = None) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+                          n_pts_per_dim: Sequence[int] = None,
+                          vis_dim: int = None) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """ Generates an image of a 2d function.
 
     Args:
@@ -55,13 +52,11 @@ def generate_2d_fcn_image(f: Callable, dim_0_range: Sequence[float] = None, dim_
         vis_dim: If f produces multiple dimension output, this is the dimension to visualize
 
     Returns:
-
         im: The image of the function as a 2-d numpy array
 
         dim_0_pts: The sampled points along dim 0
 
         dim_1_pts: The sampled points along dim 1
-
     """
 
     if dim_0_range is None:
@@ -88,7 +83,8 @@ def standard_rgba_to_premultiplied(img: np.ndarray) -> np.ndarray:
     Args:
         img: Input image in standard RGBA format of shape d_x*d_y*4
 
-    Returns: Nothing.  The image is modified in place.
+    Returns:
+        Nothing.  The image is modified in place.
     """
 
     alpha = np.expand_dims(img[:, :, 3], 2)
@@ -210,7 +206,6 @@ def generate_dot_image(image_shape: Sequence, dot_ctrs: np.ndarray, dot_clrs: np
     Returns:
         img: The generated image of shape [image_shape[0], image_shape[1], 4] where the last dimension is the RGBA
         value of each pixel.
-
     """
 
     img_w = image_shape[0]
@@ -268,7 +263,8 @@ def generate_dot_image(image_shape: Sequence, dot_ctrs: np.ndarray, dot_clrs: np
     return img
 
 
-def generate_dot_image_3d(image_shape: Sequence[int], dot_ctrs: np.ndarray, dot_vls: np.ndarray, ellipse_shape: Sequence[int]):
+def generate_dot_image_3d(image_shape: Sequence[int], dot_ctrs: np.ndarray, dot_vls: np.ndarray,
+                          ellipse_shape: Sequence[int]) -> np.ndarray:
     """ Generates a 3-d scalar image of ellipses, given the center location of each ellipse.
 
     All position/size units are in pixels.
@@ -280,8 +276,8 @@ def generate_dot_image_3d(image_shape: Sequence[int], dot_ctrs: np.ndarray, dot_
     Args:
         image_shape: The shape of the image to generate.
 
-        dot_ctrs: dot_ctrs[i,:] is the center position of the i^th dot in pixels.  Dot centers will be rounded to the nearest
-        whole pixel values before generating images of ellipses.
+        dot_ctrs: dot_ctrs[i,:] is the center position of the i^th dot in pixels.  Dot centers will be rounded to the
+        nearest whole pixel values before generating images of ellipses.
 
         dot_vls: dot_vls[i] is the value for the i^th ellipse
 
@@ -349,7 +345,7 @@ def generate_dot_image_3d(image_shape: Sequence[int], dot_ctrs: np.ndarray, dot_
     return img
 
 
-def generate_image_from_fcn(f, dim_sampling: Sequence[Sequence]):
+def generate_image_from_fcn(f, dim_sampling: Sequence[Sequence]) -> np.ndarray:
     """ Generates a multi-d image from a function.
 
     The main use for this function is generating images for visualization.
@@ -363,11 +359,9 @@ def generate_image_from_fcn(f, dim_sampling: Sequence[Sequence]):
         is the interval values are sampled from.
 
     Returns:
-
         im: The image
 
         coords: A list of coordinates along each dimension the function was sampled at.
-
     """
 
     # Determine coordinates we will sample from along each dimension
@@ -388,7 +382,8 @@ def generate_image_from_fcn(f, dim_sampling: Sequence[Sequence]):
     return [im, coords]
 
 
-def generate_binary_color_rgba_image(a: np.ndarray, neg_clr: Sequence[float] = None, pos_clr: Sequence[float] = None):
+def generate_binary_color_rgba_image(a: np.ndarray, neg_clr: Sequence[float] = None,
+                                     pos_clr: Sequence[float] = None) -> np.ndarray:
     """ Generates an RGBA image of two colors from a 2-d numpy array.
 
     Negative values will be one color while positive values will be another.
@@ -464,7 +459,6 @@ def max_project_pts(dot_positions: np.ndarray, dot_vls: np.ndarray, box_position
     case, we will return an nan value.
 
     Args:
-
         dot_positions: The positions of dots, each column is a dimension.  Values must be floating point.
 
         dot_vls: The values associated with each point.  A 1-d array.
@@ -479,7 +473,6 @@ def max_project_pts(dot_positions: np.ndarray, dot_vls: np.ndarray, box_position
         dot_dim_width: We allow dots to be ellipses.  dot_dim_width[i] is the width of a dot in dimension i.
 
     Returns:
-
         im: The final image, of shape n_divisions.
 
         inds: Same shape as im.  inds[i,j] is the index of the dot in dot_vls that the value of im[i,j] came from.
@@ -488,7 +481,6 @@ def max_project_pts(dot_positions: np.ndarray, dot_vls: np.ndarray, box_position
     Raises:
         ValueError: If dot positions are not floating point.
         ValueError: If any dot position is outside of the boundaries of the box.
-
     """
 
     # Run some checks
@@ -573,7 +565,7 @@ def max_project_pts(dot_positions: np.ndarray, dot_vls: np.ndarray, box_position
     return [non_padded_im, inds]
 
 
-def rgb_3d_max_project(vol: np.ndarray, axis: int =2) -> np.ndarray:
+def rgb_3d_max_project(vol: np.ndarray, axis: int = 2) -> np.ndarray:
     """ Computes 3d-max projection of RGB data.
 
     The computation is done by converting the image to gray scale, finding max values of the gray scale image,
@@ -643,7 +635,6 @@ def scalar_3d_max_project(vol: np.ndarray, axis: int = 2, abs_vl: bool = False) 
     if vol.ndim != 3:
         raise(ValueError('vol must be a 3d array'))
 
-
     if abs_vl:
         max_inds = np.argmax(np.abs(vol), axis=axis)
     else:
@@ -670,5 +661,33 @@ def scalar_3d_max_project(vol: np.ndarray, axis: int = 2, abs_vl: bool = False) 
     return vol[inds_sel]
 
 
+def signed_max_project(volume: np.ndarray, axis: int) -> np.ndarray:
+    """ Performs a signed max projection on 3-d data.
+
+    Args:
+        volume: The volume to do the max projection on
+
+        axis: The axis to do the max projection along.
+
+    Returns:
+        im: The max projection image.  A 2-d array with dimensions inherited from volume.
+
+    Raises:
+        ValueError: If volume is not a 3d array
+    """
+
+    if volume.ndim != 3:
+        raise(ValueError('volume must be a 3-d array.'))
+
+    inds = np.argmax(a=np.abs(volume), axis=axis)
+
+    ret_shape = list(volume.shape)
+    ret_shape[axis] = 1
+    m_grid = np.meshgrid(*[np.arange(v) for v in ret_shape], indexing='ij')
+    m_grid = [m.squeeze() for m in m_grid]
+    m_grid[axis] = inds
+    m_grid = tuple(m_grid)
+
+    return volume[m_grid]
 
 

@@ -1,9 +1,10 @@
-""" Contains custom torch functions. """
+""" Contains custom PyTorch functions. """
 
 import torch
 
 # Define constants
 LOG_2 = torch.log(torch.tensor(2.0))
+""" The value log(2) as a torch tensor. """
 
 
 def knn_do(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int, n_ctrs_used: int) -> torch.Tensor:
@@ -14,7 +15,6 @@ def knn_do(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int, n_ctrs_used: int
     among these centers.  Setting n_ctrs_used to the total number of centers results in no dropout.
 
     Args:
-
         x: The set of data.  We return centers closest to each point in x.  Of shape n_smps*d
 
         ctrs: The centers to search among.  Of shape n_ctrs*d
@@ -27,7 +27,6 @@ def knn_do(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int, n_ctrs_used: int
         n_ctrs_used: The number of centers to randomly select.
 
     Returns:
-
         indices: The indices of the nearest centers for each data point. indices[:,i] are the indices for x[i,:]
 
     """
@@ -60,7 +59,6 @@ def knn_mc(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int) -> torch.Tensor:
     of each loop keeps track of the k-nearest centers seen up until that point in time to each data point.
 
     Args:
-
         x: The set of data.  We return centers closest to each point in x.  Of shape n_smps*d
 
         ctrs: The centers to search among.  Of shape n_ctrs*d
@@ -71,13 +69,10 @@ def knn_mc(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int) -> torch.Tensor:
         more memory.
 
     Returns:
-
         indices: The indices of the nearest centers for each data point. indices[:,i] are the indices for x[i,:]
 
     Raise:
-
         ValueError: If k is greater than the number of centers.
-
     """
 
     n_ctrs, d = ctrs.shape

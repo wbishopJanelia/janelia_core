@@ -29,13 +29,19 @@ def percentile_filter_1d(data: np.ndarray, window_length: int, filter_start: int
     cases, only values in the window will be used for calculating percentiles.
 
     Here are some examples.  To perform standard, acausal filtering with a window of size 101 set:
+
         window_length = 101
+
         filter_start = -50
+
         write_offset = 50
 
     To perform standard, causal filtering with a window of size 101 set:
+
         window_length = 101
+
         filter_start: 0
+
         write_offset = 100
 
     Diagram of window placement and parameters::

@@ -11,7 +11,7 @@ def get_immediate_subfolders(base_folder: Union[str, pathlib.Path]) -> List[str]
 
     Args:
 
-        base_folder: The folder to search for subfolders under
+        base_folder: The folder to search for subfolders under.
 
     Returns:
 

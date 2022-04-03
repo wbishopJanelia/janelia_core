@@ -34,7 +34,6 @@ class BumpFcnGenerator():
 
             cov_ev_range: Values for the eigenvalues of the covariance matrix of the
             Gaussian bump functions will be pulled uniformly from this range.
-
         """
 
         self.d = d
@@ -89,6 +88,9 @@ class BumpFcnGenerator():
 
         Args:
             f: The scale to generate the function at
+
+        Returns:
+            s_f: The scaled function
         """
 
         def s_f(x):
