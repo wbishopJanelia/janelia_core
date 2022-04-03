@@ -1,7 +1,4 @@
 """ Contains tools for performing linear discriminant analysis.
-
-    William Bishop
-    bishopw@hhmi.org
 """
 
 import numpy as np
@@ -19,7 +16,7 @@ def fisher_lda(x: np.ndarray, y: np.ndarray, use_cov: bool = False) -> np.ndarra
         S_W = \sum_c S_w_c, where S_w_c = \sum_i (x_i - mu_c)(x_i - mu_c)^T, where the sum
         is over x_i belonging to class c.
 
-        This function will return C - 1 w vector, where C is the number of classes.
+        This function will return C - 1 vectors, where C is the number of classes.
 
     Args:
         x: An array with feature vectors.  Each row is a vector.
@@ -31,10 +28,9 @@ def fisher_lda(x: np.ndarray, y: np.ndarray, use_cov: bool = False) -> np.ndarra
         data points is different for each class.
 
     Returns:
-
         w: An array with weight vectors. Each column is a weight vector.
 
-    Example:
+    Example::
 
         import matplotlib.pyplot as plt
         import numpy as np

@@ -1,7 +1,4 @@
 """ Contains tools for performing cross validation with data.
-
-    William Bishop
-    bishopw@hhmi.org
 """
 
 import numpy as np
@@ -43,7 +40,9 @@ def generate_balanced_folds(labels: np.ndarray, n_folds: int, balance_across_fol
 
     Returns:
         folds: A list of length n_folds.  folds[i] contains a dictionary with the fields:
+
             test_inds: Containing indices of test points for the fold
+
             train_inds: Containing indices of train points for the fold
 
     Raises:

@@ -7,11 +7,11 @@ from janelia_core.math.basic_functions import find_binary_runs
 
 
 def plot_segmented_signal(tm_pts: np.ndarray, sig: np.ndarray, ax: plt.Axes = None, delta: float = .6,
-                          remove_tm_btw_chunks: bool = True, tm_padding: float = 1.0, color='k',
-                          linewidth=1.0):
+                          remove_tm_btw_chunks: bool = True, tm_padding: float = 1.0, color: str = 'k',
+                          linewidth: float = 1.0) -> plt.Axes:
     """ Plots a signal that exists at different chunks in time.
 
-    Each chunk will be plotted as a seperate trace, and the user can chose to remove time between chunks.
+    Each chunk will be plotted as a separate trace, and the user can chose to remove time between chunks.
 
     Args:
         tm_pts: The array of time points the signal is sampled at
@@ -30,9 +30,7 @@ def plot_segmented_signal(tm_pts: np.ndarray, sig: np.ndarray, ax: plt.Axes = No
 
         linewidth: The linewidth to plot the signal with
 
-
     Returns:
-
         ax: The axis everything was plotted in
     """
 

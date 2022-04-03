@@ -8,7 +8,7 @@ import numpy as np
 def apply_by(p_vls: np.ndarray, alpha: float) -> Tuple[np.ndarray]:
     """ Applies the Benjamini-Yekutieli procedure to control the false discovery rate.
 
-    See the paper "THE CONTROL OF THE FALSE DISCOVERY RATE IN MULTIPLE TESTING UNDER DEPENDENCY"
+    See the paper "The Control of the False Discovery Rate in Multiple Testing Under Dependency"
     by Benjamini and Yekutieli for more details on the Benjamini-Yekutieli procedure.
 
     See the paper "Resampling-based false discovery rate controlling multiple test procedures for correlated test
@@ -22,7 +22,7 @@ def apply_by(p_vls: np.ndarray, alpha: float) -> Tuple[np.ndarray]:
 
     Return:
 
-        reject_tests: A binary array.  True values correspond to entries in p_vls that should be
+        reject_tests: A binary array.  True values correspond to entries in p_vls for null hypothesises that should be
         rejected.
 
         adjusted_p_vls: The array of FDR adjusted p-values.

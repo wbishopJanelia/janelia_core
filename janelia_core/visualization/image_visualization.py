@@ -1,7 +1,4 @@
 """ Tools for visualizing images.
-
-    William Bishop
-    bishopw@hhmi.org
 """
 
 from typing import Callable, Sequence
@@ -15,34 +12,6 @@ import pyqtgraph as pg
 from janelia_core.visualization.image_generation import generate_2d_fcn_image
 
 
-def signed_max_project(volume: np.ndarray, axis: int):
-    """ Performs a signed max projection on 3-d data.
-
-    Args:
-        volume: The volume to do the max projection on
-
-        axis: The axis to do the max projection along.
-
-    Returns:
-        im: The max projection image.  A 2-d array with dimensions inherited from volume.
-
-    Raises:
-        ValueError: If volume is not a 3d array
-    """
-
-    if volume.ndim != 3:
-        raise(ValueError('volume must be a 3-d array.'))
-
-    inds = np.argmax(a=np.abs(volume), axis=axis)
-
-    ret_shape = list(volume.shape)
-    ret_shape[axis] = 1
-    m_grid = np.meshgrid(*[np.arange(v) for v in ret_shape], indexing='ij')
-    m_grid = [m.squeeze() for m in m_grid]
-    m_grid[axis] = inds
-    m_grid = tuple(m_grid)
-
-    return volume[m_grid]
 
 
 def visualize_2d_function(f: Callable, dim_0_range: Sequence[float] = None, dim_1_range: Sequence[float] = None,

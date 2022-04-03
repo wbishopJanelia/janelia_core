@@ -1,8 +1,6 @@
 """ Contains classes and functions for performing different forms of nonlinear reduced
 rank regression.
 
-    William Bishop
-    bishopw@hhmi.org
 """
 
 import copy
@@ -13,6 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sklearn.decomposition
 import torch
+from typing import List
 
 from janelia_core.visualization.matrix_visualization import cmp_n_mats
 from janelia_core.ml.utils import format_and_check_learning_rates
@@ -113,12 +112,11 @@ class RRLinearModel(torch.nn.Module):
                 raise(NotImplementedError('Initialization for ' + param_name + ' is not implemented.'))
 
     def generate_random_model(self, var_range: list = [.5, 1], o2_std: float = 10.0, w_gain: float = 1.0):
-        """ Genarates random values for model parameters.
+        """ Generates random values for model parameters.
 
         This function is useful for when generating models for testing code.
 
         Args:
-
             var_range: A list giving limits of a uniform distribution variance values will be pulled from
 
             o2_std: Standard deviation of normal distribution values of o2 are pulled from
@@ -166,7 +164,7 @@ class RRLinearModel(torch.nn.Module):
             x: Input of shape n_smps*d_in
 
         Returns:
-            l: Infered latents of shape n_smps*d_latents.
+            l: Inferred latents of shape n_smps*d_latents.
 
         """
         with torch.no_grad():
@@ -201,10 +199,9 @@ class RRLinearModel(torch.nn.Module):
             noise = torch.randn_like(mns)*torch.sqrt(torch.t(self.v))
             return mns + noise
 
-    def neg_log_likelihood(self, y: torch.Tensor, mns: torch.Tensor):
+    def neg_log_likelihood(self, y: torch.Tensor, mns: torch.Tensor) -> torch.Tensor:
 
-        """ Calculates the negative log-likelihood of observed data, given conditional means for
-         that data up to a constant.
+        """ Calculates the negative log-likelihood of observed data, given conditional means for that data up to a constant.
 
         Note: This function does not compute the term .5*n_smps*log(2*pi).  Add this term in if you want the exact
         log likelihood.
@@ -213,13 +210,11 @@ class RRLinearModel(torch.nn.Module):
         Using this function as loss will give (subject to local optima) MLE solutions.
 
         Args:
-
             y: Data to measure the negative log likelihood for of shape n_smps*d_in.
 
             mns: The conditional means for the data.  These can be obtained with forward().
 
         Returns:
-
             nll: The negative log-likelihood of the observed data.
 
         """
@@ -230,13 +225,13 @@ class RRLinearModel(torch.nn.Module):
     def fit(self, x: torch.Tensor, y: torch.Tensor, batch_size: int=100, send_size: int=100, max_its: int=10,
             learning_rates=.01, adam_params: dict = {}, min_var: float = 0.0, update_int: int = 1000,
             parameters: list = None, w0_l2: float = 0.0, w1_l2: float = 0, w0_l1: float = 0, w1_l1: float = 0,
-            print_penalties: bool = False):
+            print_penalties: bool = False) -> dict:
         """ Fits a model to data.
 
         This function performs stochastic optimization with the ADAM algorithm.  The weights of the model
         should be initialized before calling this function.
 
-        Optimization will be perfomed on whatever device the model parameters are on.
+        Optimization will be performed on whatever device the model parameters are on.
 
         Args:
 
@@ -426,8 +421,8 @@ class RRLinearModel(torch.nn.Module):
     def standardize(self):
         """ Puts the model in a standard form.
 
-            The values of w1 and w2 are not fully determined.  The svd of w1 = u1*s1*v1.T will be performed (where s1
-            is a non-negative diagonal matrix) and then w1 will be set w1=u1 and w0 will be set w0 = wo*s1*v1
+            The values of w0 and w1 are not fully determined.  The svd of w0*w1.T = u*s*v.T will be performed,
+            and then w0 will be set to u*s and w1 will be set to v.
         """
         latent_dim = self.w0.shape[1]
         output_dim = self.w1.shape[0]
@@ -490,7 +485,6 @@ class RRLinearModel(torch.nn.Module):
 
             plot_vars: Indices of variables to plot if plotting conditional means. If this None, the first (up to) two
             variables will be plotted.
-
         """
 
         ROW_SPAN = 14  # Number of rows in the gridspec
@@ -667,7 +661,6 @@ class RRSigmoidModel(RRLinearModel):
         This function is useful for when generating models for testing code.
 
         Args:
-
             var_range: A list giving limits of a uniform distribution variance values will be pulled from
 
             g_range: A list giving limits of a uniform distribution g values will be pulled from
@@ -728,7 +721,7 @@ class RRSigmoidModel(RRLinearModel):
             in w1, o1 and d.  This function will put models in a form where all gains have positive
             sign.
 
-            2) Even after (1), the values of w1 and w2 are not fully determined.
+            2) Even after (1), the values of w0 and w1 are not fully determined.
             See RRLinearModel.standardize() for how this is done.
         """
 
@@ -827,12 +820,11 @@ class RRExpModel(RRLinearModel):
 
     def generate_random_model(self, var_range: list = [.5, 1], g_range: list = [5, 10],
                               o2_range: list = [0, 1], w_offsets: list = [0, -1], w_gains: list = [1, 1]):
-        """ Genarates random values for model parameters.
+        """ Generates random values for model parameters.
 
         This function is useful for when generating models for testing code.
 
         Args:
-
             var_range: A list giving limits of a uniform distribution variance values will be pulled from
 
             g_range: A list giving limits of a uniform distribution g values will be pulled from
@@ -885,7 +877,21 @@ class RRExpModel(RRLinearModel):
         x = x + self.o2
         return torch.t(x)
 
-    def latent_rep(self, x:torch.Tensor) -> torch.Tensor:
+    def latent_rep(self, x:torch.Tensor) -> List[torch.Tensor]:
+        """ Computes unobserved intermediate values in the model.
+
+        Args:
+            x: Input of shape n_smps*d_in
+
+        Returns:
+            mn: The value of g_out + o_2 (see below)
+
+            g_out: The value of g*exp(exp_in) (see below)
+
+            exp_in: The value of w1*l (see l below)
+
+            l: The value of w_0^T*x_t
+        """
         with torch.no_grad():
             l = torch.matmul(torch.t(self.w0), torch.t(x))
             exp_in = torch.matmul(self.w1, l)
@@ -982,12 +988,11 @@ class RRReluModel(RRLinearModel):
 
     def generate_random_model(self, var_range: list = [.5, 1], o1_range: list = [-.2, .2],
                               o2_range: list = [5, 10], w_gain: float = 1.0):
-        """ Genarates random values for model parameters.
+        """ Generates random values for model parameters.
 
         This function is useful for when generating models for testing code.
 
         Args:
-
             var_range: A list giving limits of a uniform distribution variance values will be pulled from
 
             o1_range: A list giving limits of a uniform distribution o1 values will be pulled from
@@ -1071,7 +1076,6 @@ class RRReluModel(RRLinearModel):
             number of latent dimensions varied.
 
         Returns:
-
             delta: The model output for each point in latent_vls as a tensor.  Of shape n_smps*d_out
 
             w_0_proj: A tensor equal o w_0*p_mat of shape d_in*d_latent
@@ -1079,7 +1083,6 @@ class RRReluModel(RRLinearModel):
             w_1_proj: A tensor equal to w_1*p_mat of shape d_out*d_latent
 
         Raises:
-
             ValueError: If the columns of p_mat are not orthonormal.
         """
 

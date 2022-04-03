@@ -1,7 +1,4 @@
 """ Contains basic machine learning utility functions.
-
-    William Bishop
-    bishopw@hhmi.org
 """
 
 from typing import Sequence
@@ -12,44 +9,47 @@ import torch
 
 from janelia_core.utils.memory_management import get_current_memory_usage
 
+
 def format_and_check_learning_rates(learning_rates: Union[int, float, list]) -> [np.ndarray, np.ndarray]:
     """ Takes learning rates in different formats and puts them in a standard format, running basic checks.
 
     In iterative optimization routines, users may provide a single learning rate for all iterations or may provide a
     schedule of learning rates.  This function accepts input as either a single number, specifying the learning rate to
     use on all iterations, or as a list of tuples (specifying a learning rate schedule, see below) and outputs, in all
-    cases, a learning rate schedule which is checked for consistency and in a standard format.
+    cases, a learning rate schedule which is checked for consistency and put in a standard format.
 
     This function also allows for the user to specify multiple learning rates which get updated (useful when different
     learning rates are used for different sets of parameters).
 
     Args:
         learning_rates: If a single number, this is the learning rate to use for all iterations for all parameters.
-            Alternatively, this can be a list of tuples.  Each tuple is of the form
-            (iteration, learning_rate_vls0, learning_rate_vls1, ...), which gives sets of learning rates to use from that
-            iteration onwards, until another tuple specifies another set of learning rates to use at a different
-            iteration on. learning_rate_vls can be any object.
+        Alternatively, this can be a list of tuples.  Each tuple is of the form (iteration, learning_rate_vls0,
+        learning_rate_vls1, ...), which gives sets of learning rates to use from that iteration onwards, until another
+        tuple specifies another set of learning rates to use at a different iteration on. learning_rate_vls can be any
+        object.
 
-            Example 1: learning_rates = [(0, .01, .2), (1000, .001, .3), (10000, .0001, .4)] would specify would specify
+            Example 1 - learning_rates = [(0, .01, .2), (1000, .001, .3), (10000, .0001, .4)] would specify would specify
             a schedule for a set of two learning rates with learning rate vallues of .01 and .2 from iteration 0 to 999,
             .001 and .3 from iteration 1000 to 9999 and .0001 and .4 from iteration 10000 onwards.
 
-            Example 2: learning_rates = [(0, .01, {'fast':, 1}), (1000, .0001, {'fast': .1}] would specify to sets of
+            Example 2 - learning_rates = [(0, .01, {'fast':, 1}), (1000, .0001, {'fast': .1}] would specify to sets of
             learning rates.  The first set (starting at epoch 0) has values .01 and then a dictionary value with the
             key fast being set to 1.  The second set (starting at epoch 1000) has values .0001 and then a dictionary
             value with key fast being set to .1.
 
     Returns:
         learning_rate_its: A sorted numpy array of the iterations each learning rate comes into effect on.
+
         learning_rate_values: A 2-d numpy array of the corresponding learning rates for learning_rate_its. Specifically,
         learning_rate_values[i,j] specifies the value for the j^th learning rate which comes into effect on iteration
-        learning_rate_its[i].
+        learning_rate_its[i]. If values were specified as a dictionary, the entries will be dictionaries.
 
     Raises:
         ValueError: If learning_rates specifies two or more learning rates for the same iteration
-        ValueError: If learning rates are specified as a list of tuples and negative iterations are supplied
-        ValueError: If learning rates are specified as a list of tuples and iteration
 
+        ValueError: If learning rates are specified as a list of tuples and negative iterations are supplied
+
+        ValueError: If learning rates are specified as a list of tuples and iteration
     """
 
     if not isinstance(learning_rates, (int, float, list)):
@@ -76,12 +76,16 @@ def format_and_check_learning_rates(learning_rates: Union[int, float, list]) -> 
 
 
 def torch_mod_to_fcn(m: torch.nn.Module):
-    """ Converts a torch Module or function to a standard python function accepting a numpy array as input.
+    """ Converts a torch module or function to a standard python function accepting a numpy array as input.
 
-    Returns a new python function which:
-        1) Takes numpy input and converts that input to a torch Tensor
-        2) Calls the forward method of the torch module on that input (in the context of no_grad)
-        3) Converts the output to a numpy array
+    Returns:
+        fcn: a new python function which:
+
+            1) Takes numpy input and converts that input to a torch Tensor
+
+            2) Calls the forward method of the torch module on that input (in the context of no_grad)
+
+            3) Converts the output to a numpy array
     """
 
     def wrapper_fcn(x):
@@ -147,11 +151,9 @@ def summarize_memory_stats(devices: Sequence[torch.device]):
     """ Gets memory used across cpu and gpus.
 
     Args:
-
         devices: The devices to summarize memory usage over
 
     Returns:
-
         memory_usage: memory_usage[i] contains the summary for device i as a dictionary with the following keys:
 
             type: The type of device - either 'cpu' or 'cuda'
@@ -160,7 +162,6 @@ def summarize_memory_stats(devices: Sequence[torch.device]):
             the process that called this function.
 
             max: The max memory used for the device.  If the device type is cpu, this will be nan.
-
     """
 
     BYTES_TO_GB = 1024 ** 3

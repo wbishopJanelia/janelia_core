@@ -1,4 +1,4 @@
-""" Tools for fitting ML models.  """
+""" General tools for fitting PyTorch modules.  """
 
 import torch
 
@@ -17,7 +17,7 @@ def match_torch_module(tgt_m: torch.nn.Module, fit_m: torch.nn.Module, dim_range
         dim_ranges: dim_ranges[:,i] gives the lower bound (1st entry) and upper bound (2nd entry) of values
         for input dimension i
 
-        optim_opts_opts: A dictionary of options to use when creating the Adam optimizer.  These will be passed
+        optim_opts: A dictionary of options to use when creating the Adam optimizer.  These will be passed
         directly into the constructor.  If None, an empty dictionary will be created.
 
         n_its: The number of fitting iterations to perform
@@ -31,8 +31,6 @@ def match_torch_module(tgt_m: torch.nn.Module, fit_m: torch.nn.Module, dim_range
     Returns:
 
         er: The objective at the end of optimization
-
-
     """
 
     if device is None:

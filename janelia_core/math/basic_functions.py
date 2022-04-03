@@ -1,7 +1,4 @@
 """ Basic math functions.
-
-    William Bishop
-    bishopw@hhmi.org
 """
 
 import math
@@ -15,7 +12,6 @@ def bound(a: np.ndarray, lb: float, ub: float) -> np.ndarray:
     """ Thresholds values in array between lower and upper bounds.
 
      Args:
-
          a: The array with values to threshold
 
          lb: The lower bound to apply
@@ -105,7 +101,6 @@ def copy_and_delay(sig: np.ndarray, delay_inds: List[int] = None):
     return delayed_sig
 
 
-
 def divide_into_nearly_equal_parts(n, k) -> np.ndarray:
     """ Produces k nearly equal integer values which sum to n.
 
@@ -137,7 +132,7 @@ def divide_into_nearly_equal_parts(n, k) -> np.ndarray:
 def find_binary_runs(seq: np.ndarray):
     """ Finds runs of contiguous True values in a 1-d numpy array.
 
-    Inputs:
+    Args:
         seq: Array of binary values.
 
     Returns:
@@ -274,13 +269,11 @@ def generate_hypergrid_pts(d: int = 2, n_smps_per_dim = 100):
     This function will place all points in an array for easy function evaluation.
 
     Args:
-
         d: The dimensionality of the grid.
 
         n_smps_per_dim: The number of samples per dimension to generate.
 
     Returns:
-
         pts: The generated points of shape n_pts*d
 
     """
@@ -298,7 +291,6 @@ def int_to_arb_base(base_10_vl: np.ndarray, max_digit_vls: Sequence[int]) -> np.
     The base can be arbitrary in that each digit can take on a different number of values.
 
     Args:
-
         base_10_vl: The values to convert
 
         max_digit_vls: The length of max_digit_vls gives the length of the output representation.  max_digit_vls[i]
@@ -378,7 +370,7 @@ def is_simple_slice(s: Union[slice, Sequence[slice]]) -> bool:
         s: A single slice object or sequence of slice objects.  If a sequence, this
         function will return true only if all slice objects have non-negative, non-None start and stop values.
 
-    Returns:
+     Returns:
         is_simple: True if all slice objects are simple
      """
 
@@ -437,12 +429,10 @@ def list_grid_pts(grid_limits: np.ndarray, n_pts_per_dim: Sequence) -> Tuple[np.
     the generated points into a single list.
 
     Args:
-
         grid_limits: grid_limits[i, :] are the limits of the grid for dimension i. Points for
         this dimension will *include* the end points of the grid.
 
-        n_pts_per_dim[i] are the number of points to generate along dimension i. Must be greater than
-        1.
+        n_pts_per_dim: n_pts_per_dim[i] are the number of points to generate along dimension i. Must be greater than 1.
 
     Returns:
         The list of returned points of shape n_pts*N
@@ -475,7 +465,8 @@ def l_th(a: np.ndarray, t: np.ndarray) -> np.ndarray:
 
         t: the threshold to use
 
-    Returns: The thresholded array
+    Returns:
+        The thresholded array
     """
     a[np.where(a < t)] = t
     return a
@@ -523,7 +514,6 @@ def pts_in_arc(pts, ctr, arc_angle):
     """ Checks if points are withing a given arc.
 
     Args:
-
         pts: The coordinates of the points, of shape n_pts*2
 
         ctr: The origin for defining the arc.
@@ -531,7 +521,6 @@ def pts_in_arc(pts, ctr, arc_angle):
         arc_angle: The angle the arc covers.  Can be in the range (-inf, inf).
 
     Returns:
-
         pts_in: A boolean array of length n_pts, indicating which points are in the arc
 
     """
@@ -568,8 +557,6 @@ def pts_in_arc(pts, ctr, arc_angle):
         return np.asarray([(a >= ang_0[0] and a <= ang_0[1]) or (a >= ang_1[0] and a <= ang_1[1]) for a in angs])
 
 
-
-
 def select_subslice(s1: slice, s2: slice) -> slice:
     """ Selects a smaller portion of a slice.
 
@@ -588,8 +575,7 @@ def select_subslice(s1: slice, s2: slice) -> slice:
     Args:
         s1: The slice to select from.  Can also be a tuple of slices.
 
-        s2: The portion of the slice to select.  Can also be a tuple of slices. The step size of this slice must
-        be 1.
+        s2: The portion of the slice to select.  Can also be a tuple of slices. The step size of this slice must be 1.
 
     Returns:
         subslice: The returned subslice.
@@ -684,7 +670,8 @@ def u_th(a: np.ndarray, t: np.ndarray) -> np.ndarray:
 
         t: the threshold to use
 
-    Returns: The thresholded array
+    Returns:
+        The thresholded array
     """
     a[np.where(a > t)] = t
     return a

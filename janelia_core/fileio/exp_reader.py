@@ -6,7 +6,6 @@
 """
 
 import glob
-import os
 import pathlib
 import re
 from xml.etree import ElementTree as ET
@@ -36,7 +35,7 @@ def find_images(image_folder: pathlib.Path, image_ext: str, image_folder_depth: 
         image_ext: String to use when searching for files with the extension for image files.
 
         image_folder_depth: The number of layers of subfolders under image_folder to look to find the image files. If
-            this is 0, then the images are directly under image_folder.
+        this is 0, then the images are directly under image_folder.
 
         verbose: True if progress updates should be printed to screen
 
@@ -86,7 +85,7 @@ def read_imaging_metadata(metadata_file: pathlib.Path) -> dict:
 
     Raises:
         RuntimeError: If xml elements produce dictionaries which have more than one key (This function
-            currently only handles xml tags with single attributes.)
+        currently only handles xml tags with single attributes.)
     """
 
     # First replace '&' characters with 'and' so xml will parse

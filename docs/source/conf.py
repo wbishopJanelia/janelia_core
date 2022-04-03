@@ -14,13 +14,13 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('../../janelia_core'))
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'janelia_core'
-copyright = '2018, William Bishop'
+copyright = '2022, William Bishop'
 author = 'William Bishop'
 
 # The short X.Y version
@@ -39,7 +39,9 @@ release = '0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'autoapi.extension',
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
@@ -48,8 +50,26 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinx.ext.napoleon',	
+    'sphinx.ext.napoleon',
+    'sphinx_rtd_theme',
 ]
+
+# Napoleon settings
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = False
+
+# Make sure __init__ methods are documented
+autoclass_content = 'both'
+autoapi_python_class_content = 'both'
+
+# Specify defaults for autodoc
+#autodoc_default_options = {
+#    'special-members': '__init__',
+#}
+
+autoapi_dirs = ['../../janelia_core']
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -84,7 +104,7 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

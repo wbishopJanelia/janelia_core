@@ -1,7 +1,5 @@
-""" Utilities for working with imaging data:
+""" Utilities for working with time series data.
 
-    William Bishop
-    bishopw@hhmi.org
 """
 
 import pathlib
@@ -33,7 +31,8 @@ def get_image_data(image, img_slice: slice = slice(None, None, None), h5_data_gr
 
         h5_data_group: The hdfs group holding image data in h5 files.
 
-    Returns: The image data.
+    Returns:
+        The image data.
     """
     if isinstance(image, np.ndarray):
         return image[img_slice]
@@ -59,7 +58,8 @@ def get_reg_image_data(image, image_slice: slice, image_shape: np.ndarray = None
 
         h5_data_group: The hdfs group holding image data in h5 files.
 
-    Returns: The image data
+    Returns:
+        The image data
 
     Raises:
         ValueError: If the requested slice for the registered image includes voxels for which there was no data in the
@@ -147,7 +147,7 @@ def get_processed_image_data(images: list, func: types.FunctionType = None, img_
         of the form func(image: np.ndarray, **keyword_args)
 
         img_slice: The slice of each image that should be returned before any processing is applied.  If registration is
-        applies (see t_dict), then the slice coordinates are for images after registration.
+        applied (see t_dict parameter), then the slice coordinates are for images after registration.
 
         t_dict: A dictionary with information for performing image registration as images are loaded.  If set to None,
         no image registration will be performed.  t_dict should have two fields:
@@ -164,7 +164,8 @@ def get_processed_image_data(images: list, func: types.FunctionType = None, img_
         
         sc: An optional pySpark.SparkContext object to use in speeding up reading of images.
         
-    Returns: The processed image data as a list.  Each processed image is an entry in the list. 
+    Returns:
+        The processed image data as a list.  Each processed image is an entry in the list.
     """
 
     n_images = len(images)
@@ -204,14 +205,14 @@ def write_planes_to_files(planes: np.ndarray, files: list,
                           base_planes_dir: pathlib.Path, plane_suffix: str='plane',
                           skip_existing_files=False, sc: pyspark.SparkContext=None,
                           h5_data_group='data') -> list:
-    """ Extracts one or more planes from image files, writing planes to seperate files.
+    """ Extracts one or more planes from image files, writing planes to separate files.
 
     Args:
         planes: An array of indices of planes to extract.
 
         files: A list of original image files to pull planes from.
 
-        base_planes_dir: The base directory to save plane files into.  Under this folder, seperate subfolders
+        base_planes_dir: The base directory to save plane files into.  Under this folder, separate subfolders
         will be saved for each plane.
 
         plane_suffix: The suffix to append to the file name to indicate the file contains just one plane.

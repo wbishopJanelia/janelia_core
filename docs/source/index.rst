@@ -1,16 +1,16 @@
-.. janelia_core documentation master file, created by
-   sphinx-quickstart on Thu Nov  1 20:11:16 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. We use autoapi to generate api documentation: See https://sphinx-autoapi.readthedocs.io/en/latest/tutorials.html
 
 Welcome to janelia_core's documentation!
 ========================================
 
+**janelia_core** is a Python library containing various machine learning, statistical and basic math
+tools originally developed to support Will Bishop's various projects at the Janelia Research campus.
+
+.. note:: This project is under active development.
+
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-
+   :maxdepth: 1
+   :caption: Table of Contents
 
 Indices and tables
 ==================

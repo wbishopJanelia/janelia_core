@@ -14,8 +14,8 @@ class MultiParamCMap():
 
     For all colormaps, the user specifies a list of values for each parameter and combinations of these parameter
     values are then mapped to colors.  When using a colormap, values to be assigned colors are rounded to the nearest
-    parameter values included in the colormap.  Saturation is also supported, so that values to be assigned colors outside
-    of the range of the values specified for the colormap are assigned colors at the limits of the colormap.
+    parameter values included in the colormap.  Saturation is also supported, so that values to be assigned colors
+    outside of the range of the values specified for the colormap are assigned colors at the limits of the colormap.
 
     """
 
@@ -82,6 +82,8 @@ def generate_normalized_rgb_cmap(base_map: matplotlib.colors.Colormap, n: int = 
 
          n: The number of values in the generated map.
 
+    Returns:
+        map: The created colormap.
     """
 
     rgb_vls = base_map(np.linspace(0, 1, n))[:, 0:3]
@@ -92,7 +94,7 @@ def generate_normalized_rgb_cmap(base_map: matplotlib.colors.Colormap, n: int = 
 def generate_two_param_norm_map(clr_param_range: Sequence, norm_param_range: Sequence,
                                 p1_cmap: matplotlib.colors.Colormap, clims: Sequence[float],
                                 norm_lims: Sequence[float]) -> MultiParamCMap:
-    """ Generates a MultiParamCMap for two parameters.  The first indexed color; the second the norm of the color.
+    """ Generates a MultiParamCMap for two parameters.  The first indexes color; the second the norm of the color.
 
     Args:
         clr_param_range: The range of values for parameter 0, which indexes into color, in the form
@@ -134,8 +136,8 @@ def generate_two_param_norm_map(clr_param_range: Sequence, norm_param_range: Seq
 
 
 def generate_two_param_hsv_map(clr_param_range: Sequence, vl_param_range: Sequence,
-                                      p1_cmap: matplotlib.colors.Colormap, clims: Sequence[float],
-                                      vllims: Sequence[float]) -> MultiParamCMap:
+                               p1_cmap: matplotlib.colors.Colormap, clims: Sequence[float],
+                               vllims: Sequence[float]) -> MultiParamCMap:
     """ Generates a MultiParamCMap for two parameters, which index hue and value of hsv colors.
 
     Args:
@@ -154,6 +156,9 @@ def generate_two_param_hsv_map(clr_param_range: Sequence, vl_param_range: Sequen
 
     To use a reversed color (value) scale, start_vl should be less than stop_vl and step should be a negative value
     in clr_param_range (vl_param_range) and clims (vllims) should also be flipped so that clims[0] > clims[1].
+
+    Returns:
+        map: The generated colormap.
     """
 
     clr_param_vls = np.arange(*clr_param_range)
@@ -249,7 +254,8 @@ def make_red_green_c_map(n: int = 256, inc_transp: bool = False) -> matplotlib.c
                                                                (1.0, [0.0, 1.0, 0.0, 1.0])], N=n)
 
 
-def make_purple_green_c_map(n: int = 256, inc_transp: bool = False, gentle: bool = False) -> matplotlib.colors.LinearSegmentedColormap:
+def make_purple_green_c_map(n: int = 256, inc_transp: bool = False,
+                            gentle: bool = False) -> matplotlib.colors.LinearSegmentedColormap:
     """ Generates a color map that linearly goes from purple at 0, to black at .5 and then to green at 1.
 
     Args:

@@ -1,8 +1,5 @@
-""" Tools and classes for working with basic statistics.
+""" Tools for working with histograms. """
 
-    William Bishop
-    bishopw@hhmi.org
-"""
 
 import warnings
 

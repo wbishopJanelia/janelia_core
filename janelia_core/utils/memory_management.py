@@ -4,7 +4,7 @@ import os
 import psutil
 
 
-def get_current_memory_usage():
+def get_current_memory_usage() -> float:
     """ Returns the memory used by the process this function is called from.
 
     Returns:
