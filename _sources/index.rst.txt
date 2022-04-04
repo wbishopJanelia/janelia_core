@@ -23,7 +23,7 @@ See the full :doc:`API <autoapi/janelia_core/index>` to explore all tools which 
     1. :doc:`Conditional distributions<autoapi/janelia_core/ml/torch_distributions/index>` for use with PyTorch designed specifically for handling structured data.
     2. Penalizers, again designed for use with PyTorch, for flexibly penalizing :doc:`distributions<autoapi/janelia_core/ml/torch_distributions/index>` and :doc:`PyTorch module parameters<autoapi/janelia_core/ml/torch_parameter_penalizers/index>`.
     3. Tools for representing and fitting general, :doc:`non-linear extensions of reduced-rank regression models<autoapi/janelia_core/ml/reduced_rank_models/index>`.
-    4. :doc:`Custom PyTorch modules <autoapi/janelia_core/ml/extra_torch_modules/index>`, including an optimized function of hypercube basis functions over low-dimensional spaces.
+    4. :doc:`Custom PyTorch modules <autoapi/janelia_core/ml/extra_torch_modules/index>`, including an optimized function representing a sum of hypercube basis functions over low-dimensional spaces.
 
 3.  Various statistical tools, including those designed for performing statistical inference in various ways with :doc:`linear regression models under non-standard noise assumptions<autoapi/janelia_core/stats/regression/index>`.
 
