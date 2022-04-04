@@ -10,6 +10,7 @@ Subpackages
    :titlesonly:
    :maxdepth: 3
 
+   cell_extraction/index.rst
    dataprocessing/index.rst
    fileio/index.rst
    math/index.rst

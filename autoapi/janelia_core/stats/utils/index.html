@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.stats.utils &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <title>janelia_core.stats.utils &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -16,7 +16,9 @@
         <script src="../../../../_static/language_data.js"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../../search.html" /> 
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="janelia_core.utils" href="../../utils/index.html" />
+    <link rel="prev" title="janelia_core.stats.regression" href="../regression/index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -34,9 +36,31 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+              <p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Setting up the core library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html#dependencies">Dependencies</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">janelia_core</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../cell_extraction/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.cell_extraction</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../dataprocessing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../fileio/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../math/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.math</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ml/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../registration/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.registration</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.stats</span></code></a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.utils</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../visualization/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -53,6 +77,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core</span></code></a> &raquo;</li>
+          <li><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.stats</span></code></a> &raquo;</li>
       <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.stats.utils</span></code></li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../../../_sources/autoapi/janelia_core/stats/utils/index.rst.txt" rel="nofollow"> View page source</a>
@@ -83,7 +109,7 @@
 </table>
 <dl class="py function">
 <dt id="janelia_core.stats.utils.get_2d_confidence_ellipse">
-<code class="sig-prename descclassname">janelia_core.stats.utils.</code><code class="sig-name descname">get_2d_confidence_ellipse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mn</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">cov</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">n_side_pts</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">100</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/stats/utils.html#get_2d_confidence_ellipse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.stats.utils.get_2d_confidence_ellipse" title="Permalink to this definition"></a></dt>
+<code class="sig-prename descclassname">janelia_core.stats.utils.</code><code class="sig-name descname">get_2d_confidence_ellipse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mn</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">cov</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">conf</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">n_side_pts</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">100</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/stats/utils.html#get_2d_confidence_ellipse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.stats.utils.get_2d_confidence_ellipse" title="Permalink to this definition"></a></dt>
 <dd><p>Generates points for plotting a 2-d ellipse containing conf% of probability mass for a Normal distribution.</p>
 <dl>
 <dt>Args:</dt><dd><p>mn: The mean for the distribution.</p>
@@ -105,7 +131,10 @@
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../regression/index.html" class="btn btn-neutral float-left" title="janelia_core.stats.regression" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../utils/index.html" class="btn btn-neutral float-right" title="janelia_core.utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

@@ -1,7 +1,7 @@
-:py:mod:`roi`
-=============
+:py:mod:`janelia_core.cell_extraction.roi`
+==========================================
 
-.. py:module:: roi
+.. py:module:: janelia_core.cell_extraction.roi
 
 .. autoapi-nested-parse::
 
@@ -18,7 +18,7 @@ Functions
 
 .. autoapisummary::
 
-   roi.extract_rois
+   janelia_core.cell_extraction.roi.extract_rois
 
 
 

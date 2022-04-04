@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to janelia_core’s documentation! &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Welcome to janelia_core’s documentation! &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -16,7 +16,8 @@
         <script src="_static/language_data.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Setting up the core library" href="install.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -34,9 +35,14 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+              <p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Setting up the core library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html#dependencies">Dependencies</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="autoapi/janelia_core/index.html">janelia_core</a></li>
 </ul>
 
         </div>
@@ -65,17 +71,59 @@
              
   <div class="section" id="welcome-to-janelia-core-s-documentation">
 <h1>Welcome to janelia_core’s documentation!<a class="headerlink" href="#welcome-to-janelia-core-s-documentation" title="Permalink to this headline"></a></h1>
-<p><strong>janelia_core</strong> is a Python library containing various machine learning, statistical and basic math
-tools originally developed to support Will Bishop’s various projects at the Janelia Research campus.</p>
+<p><strong>janelia_core</strong> is a Python library containing a core set of machine learning, statistical and dataset tools
+originally developed to support Will Bishop’s various projects and collaborations at the Janelia Research campus.</p>
+<p>These tools are made available here for collaborators as well as any others in the research community who may find
+them helpful.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This project is under active development.</p>
 </div>
+<div class="section" id="provided-tools">
+<h2>Provided Tools<a class="headerlink" href="#provided-tools" title="Permalink to this headline"></a></h2>
+<p>See the full <a class="reference internal" href="autoapi/janelia_core/index.html"><span class="doc">API</span></a> to explore all tools which are provided in the library.  Some highlights:</p>
+<ol class="arabic">
+<li><p>Objects for representing <a class="reference internal" href="autoapi/janelia_core/dataprocessing/dataset/index.html"><span class="doc">time series datasets</span></a>, particularly those derived from imaging datasets.</p></li>
+<li><p>Various machine learning tools, including:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p><a class="reference internal" href="autoapi/janelia_core/ml/torch_distributions/index.html"><span class="doc">Conditional distributions</span></a> for use with PyTorch designed specifically for handling structured data.</p></li>
+<li><p>Penalizers, again designed for use with PyTorch, for flexibly penalizing <a class="reference internal" href="autoapi/janelia_core/ml/torch_distributions/index.html"><span class="doc">distributions</span></a> and <a class="reference internal" href="autoapi/janelia_core/ml/torch_parameter_penalizers/index.html"><span class="doc">PyTorch module parameters</span></a>.</p></li>
+<li><p>Tools for representing and fitting general, <a class="reference internal" href="autoapi/janelia_core/ml/reduced_rank_models/index.html"><span class="doc">non-linear extensions of reduced-rank regression models</span></a>.</p></li>
+<li><p><a class="reference internal" href="autoapi/janelia_core/ml/extra_torch_modules/index.html"><span class="doc">Custom PyTorch modules</span></a>, including an optimized function of hypercube basis functions over low-dimensional spaces.</p></li>
+</ol>
+</div></blockquote>
+</li>
+<li><p>Various statistical tools, including those designed for performing statistical inference in various ways with <a class="reference internal" href="autoapi/janelia_core/stats/regression/index.html"><span class="doc">linear regression models under non-standard noise assumptions</span></a>.</p></li>
+<li><p>Various visualization tools, including those for generating <a class="reference internal" href="autoapi/janelia_core/visualization/custom_color_maps/index.html"><span class="doc">custom colormaps</span></a>, <a class="reference internal" href="autoapi/janelia_core/visualization/image_generation/index.html"><span class="doc">generating projections of volumetric data</span></a>, and <a class="reference internal" href="autoapi/janelia_core/visualization/exp_viewing/index.html"><span class="doc">GUI tools for visualizing data obtained in imaging experiments</span></a>.</p></li>
+</ol>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Table of Contents</span></p>
+<p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Setting up the core library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html#dependencies">Dependencies</a></li>
 </ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="autoapi/janelia_core/index.html">janelia_core</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="autoapi/janelia_core/index.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="autoapi/janelia_core/cell_extraction/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.cell_extraction</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoapi/janelia_core/dataprocessing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoapi/janelia_core/fileio/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoapi/janelia_core/math/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.math</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoapi/janelia_core/ml/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoapi/janelia_core/registration/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.registration</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoapi/janelia_core/stats/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.stats</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoapi/janelia_core/utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.utils</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="autoapi/janelia_core/visualization/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="section" id="indices-and-tables">
@@ -90,7 +138,9 @@ tools originally developed to support Will Bishop’s various projects at the Ja
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="install.html" class="btn btn-neutral float-right" title="Setting up the core library" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.utils.searching &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <title>janelia_core.cell_extraction.roi &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -17,8 +17,8 @@
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="janelia_core.visualization" href="../../visualization/index.html" />
-    <link rel="prev" title="janelia_core.utils.memory_management" href="../memory_management/index.html" /> 
+    <link rel="next" title="janelia_core.dataprocessing" href="../../dataprocessing/index.html" />
+    <link rel="prev" title="janelia_core.cell_extraction" href="../index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -45,17 +45,17 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../../index.html">janelia_core</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../index.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="../../cell_extraction/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.cell_extraction</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.cell_extraction</span></code></a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html#submodules">Submodules</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../../dataprocessing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../fileio/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../math/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.math</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../ml/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../registration/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.registration</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../stats/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.stats</span></code></a></li>
-<li class="toctree-l3 current"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.utils</span></code></a><ul class="current">
-<li class="toctree-l4 current"><a class="reference internal" href="../index.html#submodules">Submodules</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="../../utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.utils</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../visualization/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization</span></code></a></li>
 </ul>
 </li>
@@ -78,10 +78,10 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core</span></code></a> &raquo;</li>
-          <li><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.utils</span></code></a> &raquo;</li>
-      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.utils.searching</span></code></li>
+          <li><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.cell_extraction</span></code></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.cell_extraction.roi</span></code></li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../../../_sources/autoapi/janelia_core/utils/searching/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../../../_sources/autoapi/janelia_core/cell_extraction/roi/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -89,9 +89,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="module-janelia_core.utils.searching">
-<span id="janelia-core-utils-searching"></span><h1><a class="reference internal" href="#module-janelia_core.utils.searching" title="janelia_core.utils.searching"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.utils.searching</span></code></a><a class="headerlink" href="#module-janelia_core.utils.searching" title="Permalink to this headline"></a></h1>
-<p>Helper functions and objects for searching and finding stings, values, etc in differt types of objects.</p>
+  <div class="section" id="module-janelia_core.cell_extraction.roi">
+<span id="janelia-core-cell-extraction-roi"></span><h1><a class="reference internal" href="#module-janelia_core.cell_extraction.roi" title="janelia_core.cell_extraction.roi"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.cell_extraction.roi</span></code></a><a class="headerlink" href="#module-janelia_core.cell_extraction.roi" title="Permalink to this headline"></a></h1>
+<p>Tools for extracting ROIS from an imaging datset.</p>
 <div class="section" id="module-contents">
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
 <div class="section" id="functions">
@@ -102,23 +102,38 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.utils.searching.dict_find" title="janelia_core.utils.searching.dict_find"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict_find</span></code></a>(d: dict, vl: object) → object</p></td>
-<td><p>Searches a dictionary’s fields, which must be sequences, and returns key to a field containing the value.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.cell_extraction.roi.extract_rois" title="janelia_core.cell_extraction.roi.extract_rois"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_rois</span></code></a>(images: list, rois: List[janelia_core.dataprocessing.roi.ROI], preprocess_f: Callable = None, t_dict: dict = None, h5_data_group='default', sc: pyspark.SparkContext = None, verbose=True) → list</p></td>
+<td><p>Extracts generate ROIS from imaging data.</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py function">
-<dt id="janelia_core.utils.searching.dict_find">
-<code class="sig-prename descclassname">janelia_core.utils.searching.</code><code class="sig-name descname">dict_find</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">vl</span><span class="p">:</span> <span class="n">object</span></em><span class="sig-paren">)</span> &#x2192; object<a class="reference internal" href="../../../../_modules/janelia_core/utils/searching.html#dict_find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.utils.searching.dict_find" title="Permalink to this definition"></a></dt>
-<dd><p>Searches a dictionary’s fields, which must be sequences, and returns key to a field containing the value.</p>
-<p>This function assumes each field in the dictionary is a sequence.  It then searches the sequence associated with
-each key.  It returns the first key for which a matching value is found in its sequence.  If the value is not
-found in the sequences for any key, None is returned.</p>
+<dt id="janelia_core.cell_extraction.roi.extract_rois">
+<code class="sig-prename descclassname">janelia_core.cell_extraction.roi.</code><code class="sig-name descname">extract_rois</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">images</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">rois</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="../../dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI" title="janelia_core.dataprocessing.roi.ROI">janelia_core.dataprocessing.roi.ROI</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">preprocess_f</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">t_dict</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">h5_data_group</span><span class="o">=</span><span class="default_value">'default'</span></em>, <em class="sig-param"><span class="n">sc</span><span class="p">:</span> <span class="n">pyspark.SparkContext</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#janelia_core.cell_extraction.roi.extract_rois" title="Permalink to this definition"></a></dt>
+<dd><p>Extracts generate ROIS from imaging data.</p>
+<blockquote>
+<div><p>The value of the ROI at each image is simply the mean of the voxels in the ROI.</p>
 <dl>
-<dt>Args:</dt><dd><p>d: The dictionary to search.  Each field must be a sequence.</p>
-<p>vl: The value to search for equality for</p>
+<dt>Args:</dt><dd><p>images: either (1) a list of images or (2) a list of np.ndarrays, where each array is an image.</p>
+<p>rois: A list of rois to extract fluorescence in.</p>
+<p>preprocess_f: An optional function to apply independently to each image after registration but before
+supervoxel extraction.  If None, the function x=f(x) is used.</p>
+<p>t_dict: A dictionary with information for performing image registration as images are loaded.  If set to None,
+no image registration will be performed.  t_dict should have two fields:</p>
+<blockquote>
+<div><p>transforms: A list of registration transforms to apply to the images as they are being read in.  If none,
+no registration will be applied.</p>
+<p>image_shape: This is the shape of the original images being read in.</p>
+</div></blockquote>
+<p>h5_data_group: The data group images are stored in if reading images from .h5 files</p>
+<p>sc: An optional Spark context to speed up computation.</p>
+<p>verbose: True if status updates should be printed to screen.</p>
 </dd>
-<dt>Returns:</dt><dd><p>k: The key of the fist field found with a match.  If not match is found, None is returned.</p>
+</dl>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>roi_vls: A np.ndarraay of shape time*n_rois containing the value of each roi at each point in time.  The
+order of ROIs corresponds to the rois input.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -131,8 +146,8 @@ found in the sequences for any key, None is returned.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../memory_management/index.html" class="btn btn-neutral float-left" title="janelia_core.utils.memory_management" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../../visualization/index.html" class="btn btn-neutral float-right" title="janelia_core.visualization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../index.html" class="btn btn-neutral float-left" title="janelia_core.cell_extraction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../dataprocessing/index.html" class="btn btn-neutral float-right" title="janelia_core.dataprocessing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

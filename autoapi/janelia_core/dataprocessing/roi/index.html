@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.dataprocessing.roi &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <title>janelia_core.dataprocessing.roi &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -16,7 +16,9 @@
         <script src="../../../../_static/language_data.js"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../../search.html" /> 
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="janelia_core.dataprocessing.utils" href="../utils/index.html" />
+    <link rel="prev" title="janelia_core.dataprocessing.point" href="../point/index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -34,9 +36,31 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+              <p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Setting up the core library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html#dependencies">Dependencies</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">janelia_core</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../cell_extraction/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.cell_extraction</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing</span></code></a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../fileio/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../math/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.math</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ml/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../registration/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.registration</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../stats/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.stats</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.utils</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../visualization/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -53,6 +77,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core</span></code></a> &raquo;</li>
+          <li><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing</span></code></a> &raquo;</li>
       <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing.roi</span></code></li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../../../_sources/autoapi/janelia_core/dataprocessing/roi/index.rst.txt" rel="nofollow"> View page source</a>
@@ -83,7 +109,7 @@
 </table>
 <dl class="py class">
 <dt id="janelia_core.dataprocessing.roi.ROI">
-<em class="property">class </em><code class="sig-prename descclassname">janelia_core.dataprocessing.roi.</code><code class="sig-name descname">ROI</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">voxel_inds</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">weights</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/roi.html#ROI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.roi.ROI" title="Permalink to this definition"></a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.dataprocessing.roi.</code><code class="sig-name descname">ROI</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">voxel_inds</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">weights</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/roi.html#ROI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.roi.ROI" title="Permalink to this definition"></a></dt>
 <dd><p>Initializes an ROI object.</p>
 <dl>
 <dt>Args:</dt><dd><p>voxel_inds: This is a tuple of length n_dims.  Each entry contains either (1) the indices of each voxel
@@ -94,7 +120,7 @@ ROI.  In both cases, dimensions are listed in the same order as the image the RO
 </dl>
 <dl class="py method">
 <dt id="janelia_core.dataprocessing.roi.ROI.from_dict">
-<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cls</span></em>, <em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/roi.html#ROI.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.roi.ROI.from_dict" title="Permalink to this definition"></a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cls</span></em>, <em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/roi.html#ROI.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.roi.ROI.from_dict" title="Permalink to this definition"></a></dt>
 <dd><p>Creates a new ROI object from a dictionary.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>d: A dictionary with the keys ‘voxel_inds’ and ‘weights’  Extra keys in the dictionary will be
@@ -138,7 +164,7 @@ the class definition of ROI change.</p>
 
 <dl class="py method">
 <dt id="janelia_core.dataprocessing.roi.ROI.bounding_box">
-<code class="sig-name descname">bounding_box</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/roi.html#ROI.bounding_box"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.roi.ROI.bounding_box" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname">bounding_box</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/roi.html#ROI.bounding_box"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.roi.ROI.bounding_box" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates a bounding box around the ROI.</p>
 <dl class="simple">
 <dt>Returns:</dt><dd><p>A tuple giving slices for each dimension of the bounding box.</p>
@@ -164,7 +190,7 @@ the class definition of ROI change.</p>
 
 <dl class="py method">
 <dt id="janelia_core.dataprocessing.roi.ROI.list_all_voxel_inds">
-<code class="sig-name descname">list_all_voxel_inds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/roi.html#ROI.list_all_voxel_inds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.roi.ROI.list_all_voxel_inds" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname">list_all_voxel_inds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/roi.html#ROI.list_all_voxel_inds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.roi.ROI.list_all_voxel_inds" title="Permalink to this definition"></a></dt>
 <dd><p>Exhaustively lists all voxel coordinates in the roi.</p>
 <dl class="simple">
 <dt>Returns:</dt><dd><p>dim_coords - A tuple listing all voxel indices.</p>
@@ -186,7 +212,7 @@ of the ROI object is a scalar (indicating all weights are the same)</p>
 
 <dl class="py method">
 <dt id="janelia_core.dataprocessing.roi.ROI.slice_roi">
-<code class="sig-name descname">slice_roi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">plane_idx</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">dim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">retain_dim</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/roi.html#ROI.slice_roi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.roi.ROI.slice_roi" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname">slice_roi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">plane_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">dim</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">retain_dim</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/roi.html#ROI.slice_roi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.roi.ROI.slice_roi" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a slice of an ROI.</p>
 <dl>
 <dt>Args:</dt><dd><p>plane_idx: The index of the plane to slice</p>
@@ -202,7 +228,7 @@ sliced along will be removed.</p>
 
 <dl class="py method">
 <dt id="janelia_core.dataprocessing.roi.ROI.intersect_plane">
-<code class="sig-name descname">intersect_plane</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">plane_idx</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">dim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/roi.html#ROI.intersect_plane"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.roi.ROI.intersect_plane" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname">intersect_plane</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">plane_idx</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">dim</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/roi.html#ROI.intersect_plane"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.roi.ROI.intersect_plane" title="Permalink to this definition"></a></dt>
 <dd><p>Tests if an ROI intersects a plane.</p>
 <dl>
 <dt>Args:</dt><dd><p>plane_idx: The index of the plane</p>
@@ -222,7 +248,10 @@ sliced along will be removed.</p>
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../point/index.html" class="btn btn-neutral float-left" title="janelia_core.dataprocessing.point" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../utils/index.html" class="btn btn-neutral float-right" title="janelia_core.dataprocessing.utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

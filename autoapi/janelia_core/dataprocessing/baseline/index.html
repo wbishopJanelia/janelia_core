@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.dataprocessing.baseline &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <title>janelia_core.dataprocessing.baseline &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -16,7 +16,9 @@
         <script src="../../../../_static/language_data.js"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../../search.html" /> 
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="janelia_core.dataprocessing.data_handling" href="../data_handling/index.html" />
+    <link rel="prev" title="janelia_core.dataprocessing.ahrens_lab" href="../ahrens_lab/index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -34,9 +36,31 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+              <p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Setting up the core library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html#dependencies">Dependencies</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">janelia_core</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../cell_extraction/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.cell_extraction</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing</span></code></a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../fileio/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../math/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.math</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ml/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../registration/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.registration</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../stats/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.stats</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.utils</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../visualization/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -53,6 +77,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core</span></code></a> &raquo;</li>
+          <li><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing</span></code></a> &raquo;</li>
       <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing.baseline</span></code></li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../../../_sources/autoapi/janelia_core/dataprocessing/baseline/index.rst.txt" rel="nofollow"> View page source</a>
@@ -95,7 +121,7 @@
 </table>
 <dl class="py function">
 <dt id="janelia_core.dataprocessing.baseline.percentile_filter_1d">
-<code class="sig-prename descclassname">janelia_core.dataprocessing.baseline.</code><code class="sig-name descname">percentile_filter_1d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">window_length</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">filter_start</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">write_offset</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">n_hist_bins</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">1000</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/baseline.html#percentile_filter_1d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.baseline.percentile_filter_1d" title="Permalink to this definition"></a></dt>
+<code class="sig-prename descclassname">janelia_core.dataprocessing.baseline.</code><code class="sig-name descname">percentile_filter_1d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">window_length</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">filter_start</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">write_offset</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">n_hist_bins</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/baseline.html#percentile_filter_1d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.baseline.percentile_filter_1d" title="Permalink to this definition"></a></dt>
 <dd><p>Performs percentile filtering for a single variable.</p>
 <p>This function uses a moving window to calculate percentiles.  The window is determined by two parameters:
 window_length and filter_start. Window_length is the number of data points in the window.</p>
@@ -161,7 +187,7 @@ calculated will be nan.</p>
 
 <dl class="py function">
 <dt id="janelia_core.dataprocessing.baseline.percentile_filter_multi_d">
-<code class="sig-prename descclassname">janelia_core.dataprocessing.baseline.</code><code class="sig-name descname">percentile_filter_multi_d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">window_length</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">filter_start</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">write_offset</span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">mask</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">n_processes</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">1</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/baseline.html#percentile_filter_multi_d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.baseline.percentile_filter_multi_d" title="Permalink to this definition"></a></dt>
+<code class="sig-prename descclassname">janelia_core.dataprocessing.baseline.</code><code class="sig-name descname">percentile_filter_multi_d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">window_length</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">filter_start</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">write_offset</span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">mask</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">n_processes</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/baseline.html#percentile_filter_multi_d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.baseline.percentile_filter_multi_d" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates baselines independently for each variable in the data across time.</p>
 <p>This function is a wrapper around percentile_filter_1d.  It adds the ability to filter in parellel on
 machines with multiple cores and to filter a restricted set of variabels in a volume, indicated by a mask.</p>
@@ -192,7 +218,7 @@ calculated for some variables, the percentiles for these variables will be nan.<
 
 <dl class="py function">
 <dt id="janelia_core.dataprocessing.baseline.calculate_causal_percentile_baseline">
-<code class="sig-prename descclassname">janelia_core.dataprocessing.baseline.</code><code class="sig-name descname">calculate_causal_percentile_baseline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">window_size</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">n_hist_bins</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">1000</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/baseline.html#calculate_causal_percentile_baseline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.baseline.calculate_causal_percentile_baseline" title="Permalink to this definition"></a></dt>
+<code class="sig-prename descclassname">janelia_core.dataprocessing.baseline.</code><code class="sig-name descname">calculate_causal_percentile_baseline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">window_size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">n_hist_bins</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/baseline.html#calculate_causal_percentile_baseline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.baseline.calculate_causal_percentile_baseline" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates percentile based baseline in causal manner for one variable.</p>
 <p>The value baseline[i] is calculated as the p-th percentile in the window data[i-window_size+1:i+1].</p>
 <p>Values of baseline[0:window_size] = NAN.</p>
@@ -210,7 +236,7 @@ calculated for some variables, the percentiles for these variables will be nan.<
 
 <dl class="py function">
 <dt id="janelia_core.dataprocessing.baseline.calculate_causal_percentile_baselines">
-<code class="sig-prename descclassname">janelia_core.dataprocessing.baseline.</code><code class="sig-name descname">calculate_causal_percentile_baselines</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">window_size</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">n_hist_bins</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">n_processes</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/baseline.html#calculate_causal_percentile_baselines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.baseline.calculate_causal_percentile_baselines" title="Permalink to this definition"></a></dt>
+<code class="sig-prename descclassname">janelia_core.dataprocessing.baseline.</code><code class="sig-name descname">calculate_causal_percentile_baselines</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">window_size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">n_hist_bins</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">n_processes</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/baseline.html#calculate_causal_percentile_baselines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.baseline.calculate_causal_percentile_baselines" title="Permalink to this definition"></a></dt>
 <dd><p>A wrapper function for calculating baseline values for multiple variables in parallel.</p>
 <p>This function wraps around calculate_causal_percentile_baseline, allowing a user to use multiple
 cores to calculate baselines in parallel.</p>
@@ -235,7 +261,10 @@ machine.</p>
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../ahrens_lab/index.html" class="btn btn-neutral float-left" title="janelia_core.dataprocessing.ahrens_lab" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../data_handling/index.html" class="btn btn-neutral float-right" title="janelia_core.dataprocessing.data_handling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

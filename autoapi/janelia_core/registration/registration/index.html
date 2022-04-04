@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.registration.registration &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <title>janelia_core.registration.registration &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -16,7 +16,9 @@
         <script src="../../../../_static/language_data.js"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../../search.html" /> 
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="janelia_core.stats" href="../../stats/index.html" />
+    <link rel="prev" title="janelia_core.registration" href="../index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -34,9 +36,31 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+              <p class="caption"><span class="caption-text">Installation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Setting up the core library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html#dependencies">Dependencies</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">janelia_core</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../../cell_extraction/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.cell_extraction</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../dataprocessing/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../fileio/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../math/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.math</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../ml/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.registration</span></code></a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../stats/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.stats</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.utils</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../visualization/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.visualization</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -53,6 +77,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core</span></code></a> &raquo;</li>
+          <li><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.registration</span></code></a> &raquo;</li>
       <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.registration.registration</span></code></li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../../../_sources/autoapi/janelia_core/registration/registration/index.rst.txt" rel="nofollow"> View page source</a>
@@ -98,7 +124,7 @@
 </table>
 <dl class="py function">
 <dt id="janelia_core.registration.registration.calc_dataset_ref_image">
-<code class="sig-prename descclassname">janelia_core.registration.registration.</code><code class="sig-name descname">calc_dataset_ref_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet" title="janelia_core.dataprocessing.dataset.DataSet">janelia_core.dataprocessing.dataset.DataSet</a></span></em>, <em class="sig-param"><span class="n">img_field</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">ref_inds</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">median_filter_shape</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[1, 5, 5]</span></em>, <em class="sig-param"><span class="n">sc</span><span class="p">:</span> <span class="n">pyspark.SparkContext</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/registration/registration.html#calc_dataset_ref_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.registration.registration.calc_dataset_ref_image" title="Permalink to this definition"></a></dt>
+<code class="sig-prename descclassname">janelia_core.registration.registration.</code><code class="sig-name descname">calc_dataset_ref_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet" title="janelia_core.dataprocessing.dataset.DataSet">janelia_core.dataprocessing.dataset.DataSet</a></span></em>, <em class="sig-param"><span class="n">img_field</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">ref_inds</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">median_filter_shape</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[1, 5, 5]</span></em>, <em class="sig-param"><span class="n">sc</span><span class="p">:</span> <span class="n">pyspark.SparkContext</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/registration/registration.html#calc_dataset_ref_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.registration.registration.calc_dataset_ref_image" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates a reference image.</p>
 <p>This function will:</p>
 <blockquote>
@@ -121,7 +147,7 @@
 
 <dl class="py function">
 <dt id="janelia_core.registration.registration.register_dataset_images">
-<code class="sig-prename descclassname">janelia_core.registration.registration.</code><code class="sig-name descname">register_dataset_images</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet" title="janelia_core.dataprocessing.dataset.DataSet">janelia_core.dataprocessing.dataset.DataSet</a></span></em>, <em class="sig-param"><span class="n">img_field</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">ref_image</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">median_filter_shape</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[1, 5, 5]</span></em>, <em class="sig-param"><span class="n">reg_params</span><span class="p">:</span> <span class="n">dict()</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">t_field_name</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span> <span class="o">=</span> <span class="default_value">'shift_transform'</span></em>, <em class="sig-param"><span class="n">reg_inds</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">over_write</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sc</span><span class="p">:</span> <span class="n">pyspark.SparkContext</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/registration/registration.html#register_dataset_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.registration.registration.register_dataset_images" title="Permalink to this definition"></a></dt>
+<code class="sig-prename descclassname">janelia_core.registration.registration.</code><code class="sig-name descname">register_dataset_images</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet" title="janelia_core.dataprocessing.dataset.DataSet">janelia_core.dataprocessing.dataset.DataSet</a></span></em>, <em class="sig-param"><span class="n">img_field</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">ref_image</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">median_filter_shape</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[1, 5, 5]</span></em>, <em class="sig-param"><span class="n">reg_params</span><span class="p">:</span> <span class="n">dict()</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">t_field_name</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'shift_transform'</span></em>, <em class="sig-param"><span class="n">reg_inds</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">over_write</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sc</span><span class="p">:</span> <span class="n">pyspark.SparkContext</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/registration/registration.html#register_dataset_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.registration.registration.register_dataset_images" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates transforms to register images through time.</p>
 <p>Currently this function calculates translations in x-y.  This function will:</p>
 <blockquote>
@@ -152,7 +178,7 @@ for that image added as a ‘transform’ entry of the dictionary.</p>
 
 <dl class="py function">
 <dt id="janelia_core.registration.registration.estimate_translation">
-<code class="sig-prename descclassname">janelia_core.registration.registration.</code><code class="sig-name descname">estimate_translation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fixed</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">moving</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">metric_sampling</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">factors</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="default_value">4, 2, 1</span></em>, <em class="sig-param"><span class="n">level_iters</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="default_value">1000, 1000, 1000</span></em>, <em class="sig-param"><span class="n">sigmas</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="default_value">8, 4, 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/registration/registration.html#estimate_translation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.registration.registration.estimate_translation" title="Permalink to this definition"></a></dt>
+<code class="sig-prename descclassname">janelia_core.registration.registration.</code><code class="sig-name descname">estimate_translation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fixed</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">moving</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">metric_sampling</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">factors</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="default_value">4, 2, 1</span></em>, <em class="sig-param"><span class="n">level_iters</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="default_value">1000, 1000, 1000</span></em>, <em class="sig-param"><span class="n">sigmas</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="default_value">8, 4, 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/registration/registration.html#estimate_translation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.registration.registration.estimate_translation" title="Permalink to this definition"></a></dt>
 <dd><p>Estimate translation between 2D or 3D images using dipy.align.</p>
 <p>This is code provided by Davis Bennett with minor reformatting by Will Bishop.</p>
 <dl>
@@ -185,7 +211,7 @@ that this by a floating point datatype (vs. integer).</p>
 
 <dl class="py function">
 <dt id="janelia_core.registration.registration.median_filter_2d_dipy_affine_transforms">
-<code class="sig-prename descclassname">janelia_core.registration.registration.</code><code class="sig-name descname">median_filter_2d_dipy_affine_transforms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">transforms</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">filter_len</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">50</span></em><span class="sig-paren">)</span> &#x2192; Sequence<a class="reference internal" href="../../../../_modules/janelia_core/registration/registration.html#median_filter_2d_dipy_affine_transforms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.registration.registration.median_filter_2d_dipy_affine_transforms" title="Permalink to this definition"></a></dt>
+<code class="sig-prename descclassname">janelia_core.registration.registration.</code><code class="sig-name descname">median_filter_2d_dipy_affine_transforms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">transforms</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">filter_len</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">50</span></em><span class="sig-paren">)</span> &#x2192; Sequence<a class="reference internal" href="../../../../_modules/janelia_core/registration/registration.html#median_filter_2d_dipy_affine_transforms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.registration.registration.median_filter_2d_dipy_affine_transforms" title="Permalink to this definition"></a></dt>
 <dd><p>Median filters a sequence of affine transforms.</p>
 <dl>
 <dt>Args:</dt><dd><p>transforms: The sequence of transforms to filter</p>
@@ -198,7 +224,7 @@ that this by a floating point datatype (vs. integer).</p>
 
 <dl class="py function">
 <dt id="janelia_core.registration.registration.get_valid_translated_image_window">
-<code class="sig-prename descclassname">janelia_core.registration.registration.</code><code class="sig-name descname">get_valid_translated_image_window</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shifts</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">image_shape</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a><a class="reference internal" href="../../../../_modules/janelia_core/registration/registration.html#get_valid_translated_image_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.registration.registration.get_valid_translated_image_window" title="Permalink to this definition"></a></dt>
+<code class="sig-prename descclassname">janelia_core.registration.registration.</code><code class="sig-name descname">get_valid_translated_image_window</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shifts</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">image_shape</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; tuple<a class="reference internal" href="../../../../_modules/janelia_core/registration/registration.html#get_valid_translated_image_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.registration.registration.get_valid_translated_image_window" title="Permalink to this definition"></a></dt>
 <dd><p>Gets a window of an image which is still valid after a shift.</p>
 <p>Returns an window of a shifted image for which pixels in that window were shifted versions of pixels in an
 unshifted image.  This allows us to remove pixels from consideration in a shifted which were not based on
@@ -223,7 +249,10 @@ can be recovered as image[t], if t is the returned tuple.</p>
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="janelia_core.registration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../stats/index.html" class="btn btn-neutral float-right" title="janelia_core.stats" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
