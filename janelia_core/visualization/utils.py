@@ -1,7 +1,5 @@
 """ Basic visualization utilities.
 
-    William Bishop
-    bishopw@hhmi.org
 """
 
 import torch

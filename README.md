@@ -7,7 +7,7 @@ Core code for William Bishop's work at Janelia.
 2) pyklb
 3) pytorch
 
-## Setting up for development purposes
+## Setting up
 
 1) Create a conda environment by running this command:  
     - conda create -n janelia_core python=3.7
