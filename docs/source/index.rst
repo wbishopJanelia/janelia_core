@@ -42,6 +42,10 @@ See the full :doc:`API <autoapi/janelia_core/index>` to explore all tools which 
 
    janelia_core <autoapi/janelia_core/index>
 
+Contact
+-------
+bishopw@janelia.hhmi.org
+
 Indices and tables
 ==================
 

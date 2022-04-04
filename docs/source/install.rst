@@ -3,15 +3,17 @@ Setting up the core library
 
 To install the janelia_core library, follow these steps:
 
-1. Navigate to the top-level folder with the setup.py script
+1. Download the code available `here <https://github.com/wbishopJanelia/janelia_core>`_.
 
-2. To install the code for development purposes run::
+2. Navigate to the top-level folder which includes the setup.py script, and
 
-    python setup.py develop
+    * To install the code for development purposes run::
 
-3. To install the code for normal use (non-development purposes) run::
+        python setup.py develop
 
-    python setup.py install
+    * To install the code for normal use (non-development purposes) run::
+
+        python setup.py install
 
 Dependencies
 ------------
@@ -21,9 +23,7 @@ dependencies that must be installed separately:
 
 1. PyTorch must be installed, following directions `here <https://pytorch.org/>`_.
 
-2. If you will be working with [klb files](https://bitbucket.org/fernandoamat/keller-lab-block-filetype),
-you will need to install pyklb which is available from https://github.com/bhoeckendorf/pyklb.
-Follow the instructions there to install it.  If you are not working with klb files, you can skip this.
+2. If you will be working with `klb files <https://bitbucket.org/fernandoamat/keller-lab-block-filetype>`_, you will need to install pyklb which is available from https://github.com/bhoeckendorf/pyklb. Follow the instructions there to install it.  If you are not working with klb files, you can skip this.
 
 
 
