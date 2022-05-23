@@ -758,6 +758,147 @@ class LogGaussianBumpFcn(torch.nn.Module):
         return log_gain + -1*x_dist
 
 
+class PWPNNFcn(torch.nn.Module):
+
+    def __init__(self, d_out: int, d_in: int = 32, k: int = 1, order: int = 1, m=100,
+                 n_fcns: int = 100, n_used_fcns: int = None, init_ctrs: torch.Tensor = None,
+                 init_wts: torch.Tensor = None, init_offsets: torch.Tensor = None):
+        """ Creates a new PWLNNFcn.
+
+        Args:
+
+            d_in: Input dimensionality
+
+            d_out: Output dimensionality
+
+            k: Number of nearest neighbors to use.
+
+            m: The number of centers to compare at once when searching for nearest neighbors.  Larger
+            values use more memory but can result in significantly faster computation on GPU.
+
+            n_used_fcns: The number of functions to use at any point in time.  Setting this equal to n_ctrs,
+            results in using all centers all the time.  Setting this less than n_ctrs, will result in
+            randomly dropping out some functions during each call to forward.  Setting this to None, will
+            result in using all centers.
+
+            init_ctrs: Initial centeres for each function. Of shape n_ctrs*d_in
+
+            init_wts: Initial weights for each function. Of shape n_ctrs*d_in*d_out
+
+            init_offsets: Initial offsets for each function. Of shape n_ctrs*d_out
+
+        """
+
+        super().__init__()
+
+        self.k = k
+        self.m = m
+        self.n_fcns = n_fcns
+        self.d_in = d_in
+        self.d_out = d_out
+        self.order = order
+
+        # Set number of used functions
+        if n_used_fcns is None:
+            n_used_fcns = self.n_fcns
+        self.n_used_fcns = n_used_fcns
+
+        # Create parameters
+        self.ctrs = torch.nn.Parameter(torch.zeros(size=(n_fcns, d_in)))
+        self.wts = torch.nn.Parameter(torch.empty(size=(n_fcns, order, d_in, d_out)))
+        self.offsets = torch.nn.Parameter(torch.zeros(size=(n_fcns, d_out)))
+
+        # Initialize weights
+        with torch.no_grad():
+            torch.nn.init.xavier_uniform_(self.wts, gain=1e-3)
+
+        # Initialize with given initial parameters if given
+        self.init_parameters(init_ctrs=init_ctrs, init_wts=init_wts, init_offsets=init_offsets)
+
+    def init_parameters(self, init_ctrs: torch.Tensor = None, init_wts: torch.Tensor = None,
+                        init_offsets: torch.Tensor = None):
+        """
+        Initialize parameters with specified values
+
+        Args:
+            init_ctrs: Values to initialize function centers with
+
+            init_wts: Values to initialize function weights with
+
+            init_offsets: Values to initialize function offsets with
+
+        Raises:
+        ValueError if any of the tensors used for initialization does not have the expected dimensionality
+        """
+        # Check for correct dimensionalities
+        if init_ctrs is not None and init_ctrs.shape != self.ctrs.data.shape:
+            raise ValueError('Dimensionality of init_ctrs {} is incorrect, expected {}'.format(init_ctrs.shape,
+                                                                                               self.ctrs.data.shape))
+        if init_wts is not None and init_wts.shape != self.wts.data.shape:
+            raise ValueError('Dimensionality of init_wts {} is incorrect, expected {}'.format(init_wts.shape,
+                                                                                              self.wts.data.shape))
+        if init_offsets is not None and init_offsets.shape != self.offsets.data.shape:
+            raise ValueError('Dimensionality of init_ctrs {} is incorrect, expected {}'.format(init_offsets.shape,
+                                                                                               self.offsets.data.shape))
+
+        # Initialize parameters with specified values if applicable
+        if init_ctrs is not None:
+            self.ctrs.data = init_ctrs
+        if init_wts is not None:
+            self.wts.data = init_wts
+        if init_offsets is not None:
+            self.offsets.data = init_offsets
+
+    def forward(self, x: torch.Tensor):
+        """ Computes output from input.
+
+        Args:
+
+            x: Input of shape n_smps*input_dim
+
+        Returns:
+            y: Output of shape n_smps*output_dim
+        """
+
+        # Find the k closest centers to each data point
+        with torch.no_grad():
+            top_k_indices = knn_do(x=x, ctrs=self.ctrs, k=self.k, m=self.m, n_ctrs_used=self.n_used_fcns)
+
+        # Compute linear functions applied to each input data point
+        selected_wts = self.wts[top_k_indices]
+        selected_ctrs = self.ctrs[top_k_indices]
+
+        applied_wts = torch.sum(selected_wts, dim=0)
+        applied_offsets = (torch.sum(self.offsets[top_k_indices], dim=0) -
+                           torch.sum(torch.stack([wts * (selected_ctrs.unsqueeze(3)) ** (i+1) for i, wts in enumerate(selected_wts.permute(2, 0, 1, 3, 4))]), [0, 1, 3]))
+
+        # r1 = torch.stack([(selected_ctrs.unsqueeze(3)) ** (i+1) for i, wts in enumerate(selected_wts.permute(2, 0, 1, 3, 4))])
+        # r2 = ((selected_ctrs.unsqueeze(3) ** torch.arange(1,3, device='cuda')).unsqueeze(2))
+
+        out = (torch.sum(torch.stack([wts * (x.unsqueeze(2))**(i+1) for i, wts in enumerate(applied_wts.permute(1,0,2,3))]), [0,2]) + applied_offsets).squeeze()
+
+        return out
+
+    def bound(self, ctr_bounds: Sequence = [0, 1], bound_fcns: bool = True):
+        """  Applies bounds to the centers.
+
+        Bounds are applied element-wise.
+
+        Args:
+
+            ctr_bounds: The bounds to force centers to be between. If None, no bounds are enforced. The
+            same bound is applied to all dimensions.
+
+            bound_fcns: True if bound should be called on functiions.
+
+        """
+
+        if ctr_bounds is not None:
+            small_inds = self.ctrs < ctr_bounds[0]
+            big_inds = self.ctrs > ctr_bounds[1]
+            self.ctrs.data[small_inds] = ctr_bounds[0]
+            self.ctrs.data[big_inds] = ctr_bounds[1]
+
 class PWLNNFcn(torch.nn.Module):
     """ Piecewise-linear nearest neighbor network function. """
 
