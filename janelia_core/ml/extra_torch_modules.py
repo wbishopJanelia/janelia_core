@@ -867,7 +867,7 @@ class PWPNNFcn(torch.nn.Module):
         # Compute linear functions applied to each input data point
         selected_wts = self.wts[top_k_indices]
         selected_ctrs = self.ctrs[top_k_indices]
-:
+
         applied_wts = torch.sum(selected_wts, dim=0)
 
         # Get power contributions according to order number for the selected centers
