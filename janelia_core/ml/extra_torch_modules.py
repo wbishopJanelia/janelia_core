@@ -867,15 +867,16 @@ class PWPNNFcn(torch.nn.Module):
         # Compute linear functions applied to each input data point
         selected_wts = self.wts[top_k_indices]
         selected_ctrs = self.ctrs[top_k_indices]
-
+:
         applied_wts = torch.sum(selected_wts, dim=0)
-        applied_offsets = (torch.sum(self.offsets[top_k_indices], dim=0) -
-                           torch.sum(torch.stack([wts * (selected_ctrs.unsqueeze(3)) ** (i+1) for i, wts in enumerate(selected_wts.permute(2, 0, 1, 3, 4))]), [0, 1, 3]))
 
-        # r1 = torch.stack([(selected_ctrs.unsqueeze(3)) ** (i+1) for i, wts in enumerate(selected_wts.permute(2, 0, 1, 3, 4))])
-        # r2 = ((selected_ctrs.unsqueeze(3) ** torch.arange(1,3, device='cuda')).unsqueeze(2))
+        # Get power contributions according to order number for the selected centers
+        order_centers = selected_ctrs[..., None] ** torch.arange(1, self.order+1, device=selected_ctrs.device)
+        applied_offsets = (torch.sum(self.offsets[top_k_indices], dim=0) - torch.sum(selected_wts * order_centers.permute(0,1,3,2)[..., None], [0,2,3]))
 
-        out = (torch.sum(torch.stack([wts * (x.unsqueeze(2))**(i+1) for i, wts in enumerate(applied_wts.permute(1,0,2,3))]), [0,2]) + applied_offsets).squeeze()
+        # Get power contributions according to order number for the input x
+        order_x = x[..., None] ** torch.arange(1, self.order+1, device=x.device)
+        out = torch.sum(applied_wts * order_x.permute(0,2,1)[..., None], [1,2]) + applied_offsets
 
         return out
 
