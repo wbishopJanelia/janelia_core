@@ -1589,3 +1589,29 @@ class Unsqueeze(torch.nn.Module):
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         """ Computes input from output. """
         return torch.unsqueeze(input=x, dim=self.dim)
+
+
+class AttentionNet(torch.nn.Module):
+
+    def __init__(self, d_out: int, d_in: int = 32, dim: int = 100):
+        super().__init__()
+
+        # Initialize keys and values
+        keys = torch.nn.Parameter(torch.zeros(d_in, dim), requires_grad=True)
+        torch.nn.init.normal_(keys, mean=0, std=1)
+        self.register_parameter('keys', keys)
+
+        values = torch.nn.Parameter(torch.zeros(dim, d_out), requires_grad=True)
+        torch.nn.init.normal_(values, mean=0, std=1)
+        self.register_parameter('values', values)
+
+
+    def forward(self, x:torch.Tensor) -> torch.Tensor:
+        """ Computes input from output. """
+
+        scores = torch.matmul(x, self.keys)
+        scores = torch.softmax(scores, dim=1)
+
+        out = torch.matmul(scores, self.values)
+
+        return out
