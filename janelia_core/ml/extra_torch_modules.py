@@ -8,11 +8,113 @@ import numpy as np
 import torch
 from torch.nn.functional import relu
 
+from sklearn.cluster import KMeans
+
 from janelia_core.math.basic_functions import int_to_arb_base
 from janelia_core.ml.torch_fcns import knn_do
 
 # Define aliases
 OptionalTensor = Union[torch.Tensor, None]
+
+
+class AffineAttentionNN(torch.nn.Module):
+
+    def __init__(self, d_out, d_in: int = 32, n_ctrs: int = 100):
+        super().__init__()
+
+        self.d_x = d_in
+        self.d_y = d_out
+
+        self.n_ctrs = n_ctrs
+        self.ctrs = torch.nn.Parameter(torch.zeros(n_ctrs, d_in))
+        self.Wv = torch.nn.Parameter(torch.zeros(n_ctrs, d_in, d_out))
+        self.Ov = torch.nn.Parameter(torch.zeros(n_ctrs, d_out))
+
+    def init_ctrs(self, x: torch.Tensor, method='random'):
+        if method == 'random':
+            inds = np.random.choice(x.shape[0], self.n_ctrs)
+            self.ctrs.data = x[inds]
+        elif method == 'kmeans':
+            kmeans = KMeans(n_clusters=self.n_ctrs).fit(x)
+            self.ctrs.data = torch.Tensor(kmeans.cluster_centers_)
+
+    def init_values(self, std_v=1e-5):
+        torch.nn.init.normal_(self.Wv, std=std_v)
+        # torch.nn.init.normal_(self.Ov, std=std_v)
+
+    def _soft_assignments(self, x):
+        dist_sq = torch.sum((x.unsqueeze(1) - self.ctrs) ** 2, dim=-1)
+        assignments = torch.nn.functional.softmax(-1 * dist_sq, dim=1)
+        return assignments
+
+    def _hard_assignments(self, x):
+        assignments = torch.zeros(size=(x.shape[0], self.ctrs.shape[0]))
+        assignments[np.arange(0, x.shape[0]),
+                    self.assign(x)[None, :]] = 1
+        return assignments
+
+    def forward(self, x, assignment_type='soft'):
+
+        if assignment_type == 'soft':
+            assignments = self._soft_assignments(x)
+        elif assignment_type == 'hard':
+            assignments = self._hard_assignments(x)
+
+        scored_weights = torch.einsum('nc,cgp -> ngp', assignments, self.Wv)
+        scored_offsets = torch.matmul(assignments, self.Ov)
+
+        return torch.sum(scored_weights * x.unsqueeze(2), dim=1) + scored_offsets
+
+    def assign(self, x):
+        _, assignments = torch.topk(self._soft_assignments(x), k=1, dim=1)
+        return assignments.squeeze()
+
+
+class AttentionNN(torch.nn.Module):
+
+    def __init__(self, d_out, d_in: int = 32, n_ctrs: int = 100):
+        super().__init__()
+
+        self.n_ctrs = n_ctrs
+        self.ctrs = torch.nn.Parameter(torch.zeros(n_ctrs, d_in))
+        self.values = torch.nn.Parameter(torch.zeros(n_ctrs, d_in))
+
+        self.out_net = torch.nn.Sequential(torch.nn.Tanh(),
+                                           torch.nn.Linear(d_in, d_out))
+
+    def init_ctrs(self, x: torch.Tensor):
+        inds = np.random.choice(x.shape[0], self.n_ctrs)
+        self.ctrs.data = x[inds]
+
+    def init_values(self, std_v=.01):
+        torch.nn.init.normal_(self.values, std=std_v)
+
+    def _soft_assignments(self, x):
+        dist_sq = torch.sum((x.unsqueeze(1) - self.ctrs) ** 2, dim=-1)
+        assignments = torch.nn.functional.softmax(-1 * dist_sq, dim=1)
+        return assignments
+
+    def forward(self, x):
+        assignments = self._soft_assignments(x)
+
+        # In general, values do not have to be centers
+        return self.out_net(torch.matmul(assignments, self.values))
+
+    def assign(self, x):
+        _, assignments = torch.topk(self._soft_assignments(x), k=1, dim=1)
+        return assignments.squeeze()
+
+
+class BasicExp(torch.nn.Module):
+    """ Applies the transformation y = exp(x) to the data.  """
+
+    def __init__(self):
+        """ Creates a new BasicExp object. """
+        super().__init__()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Computes output from input. """
+        return torch.exp(x)
 
 
 class Bias(torch.nn.ModuleList):
@@ -319,19 +421,7 @@ class DenseLNLNet(torch.nn.Module):
             x = module(x)
 
         return x
-
-
-class BasicExp(torch.nn.Module):
-    """ Applies the transformation y = exp(x) to the data.  """
-
-    def __init__(self):
-        """ Creates a new BasicExp object. """
-        super().__init__()
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes output from input. """
-        return torch.exp(x)
-
+    
 
 class Exp(torch.nn.ModuleList):
     """ Applies a transformation to the data y = o + exp(g*x + s) """
@@ -464,10 +554,22 @@ class FixedOffsetCELU(torch.nn.Module):
         return self.f(x) + self.alpha + self.o
 
 
+class FixedScaleOffset(torch.nn.Module):
+
+    def __init__(self, s: float = 1., o: float = .0):
+        super().__init__()
+
+        self.register_buffer('s', torch.Tensor([s]))
+        self.register_buffer('o', torch.Tensor([o]))
+        
+    def forward(self, x: torch.Tensor):
+        return self.s * x + self.o
+
+
 class FixedOffsetExp(torch.nn.Module):
     """ Computes y = exp(x) + o, where o is a fixed, non-learnable offset. """
 
-    def __init__(self, o:float):
+    def __init__(self, o: float):
         """ Creates a new FixedOffsetExp object.
 
         Args:
@@ -758,11 +860,33 @@ class LogGaussianBumpFcn(torch.nn.Module):
         return log_gain + -1*x_dist
 
 
+class MultiheadAttentionNN(torch.nn.Module):
+
+    def __init__(self, d_out, d_p: int, n_heads: int, model, model_kwargs, d_in: int = 32):
+        super().__init__()
+
+        self.Wq = torch.nn.Parameter(torch.zeros((d_in, d_p, n_heads)))
+        self.Wo = torch.nn.Parameter(torch.zeros((d_p * n_heads, d_out)))
+
+        self.networks = torch.nn.ModuleList([model(d_in=d_p, d_out=d_p, **model_kwargs) for _ in range(n_heads)])
+
+    def init_ctrs(self, x, **kwargs):
+        [nn.init_ctrs(x, **kwargs) for nn in self.networks]
+
+    def init_values(self, **kwargs):
+        [nn.init_values(**kwargs) for nn in self.networks]
+
+    def forward(self, x: torch.Tensor):
+        x_in = torch.einsum('ni,iph->nph', x, self.Wq)
+        out = torch.cat([nn(x_in[..., i]) for i, nn in enumerate(self.networks)], dim=1)
+
+        return torch.matmul(out, self.Wo)
+
+
 class PWPNNFcn(torch.nn.Module):
 
     def __init__(self, d_out: int, d_in: int = 32, k: int = 1, order: int = 1, m=100,
-                 n_fcns: int = 100, n_used_fcns: int = None, init_ctrs: torch.Tensor = None,
-                 init_wts: torch.Tensor = None, init_offsets: torch.Tensor = None):
+                 n_fcns: int = 100, n_used_fcns: int = None):
         """ Creates a new PWLNNFcn.
 
         Args:
@@ -808,46 +932,24 @@ class PWPNNFcn(torch.nn.Module):
         self.wts = torch.nn.Parameter(torch.empty(size=(n_fcns, order, d_in, d_out)))
         self.offsets = torch.nn.Parameter(torch.zeros(size=(n_fcns, d_out)))
 
-        # Initialize weights
-        with torch.no_grad():
-            torch.nn.init.xavier_uniform_(self.wts, gain=1e-3)
+        self.init_wts()
+        self.init_offsets()
 
-        # Initialize with given initial parameters if given
-        self.init_parameters(init_ctrs=init_ctrs, init_wts=init_wts, init_offsets=init_offsets)
+    def init_ctrs(self, x: torch.Tensor, method: str = 'random'):
+        if method == 'random':
+            inds = np.random.choice(x.shape[0], self.n_ctrs)
+            self.ctrs.data = x[inds]
+        elif method == 'kmeans':
+            kmeans = KMeans(n_clusters=self.n_ctrs).fit(x)
+            self.ctrs.data = torch.Tensor(kmeans.cluster_centers_)
+        else:
+            raise ValueError('Initialization method undefined')
 
-    def init_parameters(self, init_ctrs: torch.Tensor = None, init_wts: torch.Tensor = None,
-                        init_offsets: torch.Tensor = None):
-        """
-        Initialize parameters with specified values
+    def init_wts(self, gain: float = 1e-3):
+        torch.nn.init.xavier_uniform_(self.wts, gain=gain)
 
-        Args:
-            init_ctrs: Values to initialize function centers with
-
-            init_wts: Values to initialize function weights with
-
-            init_offsets: Values to initialize function offsets with
-
-        Raises:
-        ValueError if any of the tensors used for initialization does not have the expected dimensionality
-        """
-        # Check for correct dimensionalities
-        if init_ctrs is not None and init_ctrs.shape != self.ctrs.data.shape:
-            raise ValueError('Dimensionality of init_ctrs {} is incorrect, expected {}'.format(init_ctrs.shape,
-                                                                                               self.ctrs.data.shape))
-        if init_wts is not None and init_wts.shape != self.wts.data.shape:
-            raise ValueError('Dimensionality of init_wts {} is incorrect, expected {}'.format(init_wts.shape,
-                                                                                              self.wts.data.shape))
-        if init_offsets is not None and init_offsets.shape != self.offsets.data.shape:
-            raise ValueError('Dimensionality of init_ctrs {} is incorrect, expected {}'.format(init_offsets.shape,
-                                                                                               self.offsets.data.shape))
-
-        # Initialize parameters with specified values if applicable
-        if init_ctrs is not None:
-            self.ctrs.data = init_ctrs
-        if init_wts is not None:
-            self.wts.data = init_wts
-        if init_offsets is not None:
-            self.offsets.data = init_offsets
+    def init_offsets(self, gain: float = 1e-3):
+        torch.nn.init.xavier_uniform_(self.wts, gain=gain)
 
     def forward(self, x: torch.Tensor):
         """ Computes output from input.
@@ -900,12 +1002,11 @@ class PWPNNFcn(torch.nn.Module):
             self.ctrs.data[small_inds] = ctr_bounds[0]
             self.ctrs.data[big_inds] = ctr_bounds[1]
 
+
 class PWLNNFcn(torch.nn.Module):
     """ Piecewise-linear nearest neighbor network function. """
 
-    def __init__(self, d_out: int, d_in: int = 32, k: int = 1, m=100, n_fcns: int = 100, n_used_fcns: int = None,
-                 init_ctrs: torch.Tensor = None, init_wts: torch.Tensor = None,
-                 init_offsets: torch.Tensor = None):
+    def __init__(self, d_out: int, d_in: int = 32, k: int = 1, m=100, n_fcns: int = 100, n_used_fcns: int = None):
         """ Creates a new PWLNNFcn.
 
         Args:
@@ -947,49 +1048,29 @@ class PWLNNFcn(torch.nn.Module):
 
         # Create parameters
         self.ctrs = torch.nn.Parameter(torch.zeros(size=(n_fcns, d_in)))
-        self.wts = torch.nn.Parameter(torch.empty(size=(n_fcns, d_in, d_out)))
+        self.wts = torch.nn.Parameter(torch.zeros(size=(n_fcns, d_in, d_out)))
         self.offsets = torch.nn.Parameter(torch.zeros(size=(n_fcns, d_out)))
-
-        # Initialize weights
-        with torch.no_grad():
-            torch.nn.init.xavier_uniform_(self.wts, gain=1e-3)
-            
-        # Initialize with given initial parameters if given
-        self.init_parameters(init_ctrs=init_ctrs, init_wts=init_wts, init_offsets=init_offsets)
-
-    def init_parameters(self, init_ctrs: torch.Tensor = None, init_wts: torch.Tensor = None,
-                        init_offsets: torch.Tensor = None):
-        """
-        Initialize parameters with specified values
         
-        Args:
-            init_ctrs: Values to initialize function centers with
-            
-            init_wts: Values to initialize function weights with
-            
-            init_offsets: Values to initialize function offsets with
-            
-        Raises:
-        ValueError if any of the tensors used for initialization does not have the expected dimensionality
-        """
-        # Check for correct dimensionalities
-        if init_ctrs is not None and init_ctrs.shape != self.ctrs.data.shape:
-            raise ValueError('Dimensionality of init_ctrs {} is incorrect, expected {}'.format(init_ctrs.shape,
-                                                                                               self.ctrs.data.shape))
-        if init_wts is not None and init_wts.shape != self.wts.data.shape:
-            raise ValueError('Dimensionality of init_wts {} is incorrect, expected {}'.format(init_wts.shape,
-                                                                                               self.wts.data.shape))
-        if init_offsets is not None and init_offsets.shape != self.offsets.data.shape:
-            raise ValueError('Dimensionality of init_ctrs {} is incorrect, expected {}'.format(init_offsets.shape,
-                                                                                               self.offsets.data.shape))
+        self.init_wts()
+        self.init_offsets()
+
+    def init_ctrs(self, x: torch.Tensor, method: str ='random'):
+        if method == 'random':
+            inds = np.random.choice(x.shape[0], self.n_ctrs)
+            self.ctrs.data = x[inds]
+        elif method == 'kmeans':
+            kmeans = KMeans(n_clusters=self.n_ctrs).fit(x)
+            self.ctrs.data = torch.Tensor(kmeans.cluster_centers_)
+        else:
+            raise ValueError('Initialization method undefined')
         
-        # Initialize parameters with specified values if applicable
-        if init_ctrs is not None:
-            self.ctrs.data = init_ctrs
-        if init_wts is not None:
-            self.wts.data = init_wts
-        if init_offsets is not None:
-            self.offsets.data = init_offsets
+    def init_wts(self, gain: float = 1e-5, offset: float = .0):
+        torch.nn.init.xavier_uniform_(self.wts, gain=gain)
+        self.wts.data -= torch.Tensor([offset])
+        
+    def init_offsets(self, gain: float = 1e-5, offset: float = .0):
+        torch.nn.init.xavier_uniform_(self.wts, gain=gain)
+        self.wts.data -= torch.Tensor([offset])
 
     def forward(self, x: torch.Tensor):
         """ Computes output from input.
@@ -1589,29 +1670,4 @@ class Unsqueeze(torch.nn.Module):
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         """ Computes input from output. """
         return torch.unsqueeze(input=x, dim=self.dim)
-
-
-class AttentionNet(torch.nn.Module):
-
-    def __init__(self, d_out: int, d_in: int = 32, dim: int = 100):
-        super().__init__()
-
-        # Initialize keys and values
-        keys = torch.nn.Parameter(torch.zeros(d_in, dim), requires_grad=True)
-        torch.nn.init.normal_(keys, mean=0, std=1)
-        self.register_parameter('keys', keys)
-
-        values = torch.nn.Parameter(torch.zeros(dim, d_out), requires_grad=True)
-        torch.nn.init.normal_(values, mean=0, std=1)
-        self.register_parameter('values', values)
-
-
-    def forward(self, x:torch.Tensor) -> torch.Tensor:
-        """ Computes input from output. """
-
-        scores = torch.matmul(x, self.keys)
-        scores = torch.softmax(scores, dim=1)
-
-        out = torch.matmul(scores, self.values)
-
-        return out
+    
