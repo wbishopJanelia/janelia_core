@@ -16,10 +16,9 @@ from janelia_core.ml.torch_fcns import knn_do
 # Define aliases
 OptionalTensor = Union[torch.Tensor, None]
 
-
 class AffineAttentionNN(torch.nn.Module):
 
-    def __init__(self, d_out, d_in: int = 32, n_ctrs: int = 100):
+    def __init__(self, d_out, d_in: int = 32, n_ctrs: int = 100, distance_scales: bool = False, dropout: float = None):
         super().__init__()
 
         self.d_x = d_in
@@ -29,14 +28,96 @@ class AffineAttentionNN(torch.nn.Module):
         self.ctrs = torch.nn.Parameter(torch.zeros(n_ctrs, d_in))
         self.Wv = torch.nn.Parameter(torch.zeros(n_ctrs, d_in, d_out))
         self.Ov = torch.nn.Parameter(torch.zeros(n_ctrs, d_out))
+        
+        self.s = torch.nn.Parameter(torch.zeros(d_in), requires_grad=distance_scales)
+    
+        self.dropout = dropout
 
-    def init_ctrs(self, x: torch.Tensor, method='random'):
+    def init_ctrs(self, x: torch.Tensor, method='random', gain: float = 1.):
         if method == 'random':
             inds = np.random.choice(x.shape[0], self.n_ctrs)
-            self.ctrs.data = x[inds]
+            self.ctrs.data = x[inds] * gain
+        elif method == 'fully_random':
+            self.ctrs.data = torch.rand(size=self.ctrs.data.shape) * gain
         elif method == 'kmeans':
             kmeans = KMeans(n_clusters=self.n_ctrs).fit(x)
-            self.ctrs.data = torch.Tensor(kmeans.cluster_centers_)
+            self.ctrs.data = torch.Tensor(kmeans.cluster_centers_) * gain
+        elif method == 'kmeans_sc':
+            kmeans = KMeans(n_clusters=200).fit(x)
+            self.ctrs.data = torch.Tensor(kmeans.cluster_centers_[np.random.choice(np.arange(0, 200), self.n_ctrs)])\
+                             * gain
+
+    def init_values(self, std_v=1e-5):
+        torch.nn.init.normal_(self.Wv, std=std_v)
+        # torch.nn.init.normal_(self.Ov, std=std_v)
+
+    def _soft_assignments(self, x):
+
+        # Select center indices based on dropout (if no dropout, use all centers)
+        if self.dropout is not None and self.dropout < 1:
+            ctr_inds = np.random.choice(np.arange(self.n_ctrs), int(self.dropout * self.n_ctrs), replace=False)
+        else:
+            ctr_inds = np.arange(self.n_ctrs)
+
+        dist_sq = torch.sum((x.unsqueeze(1) - self.ctrs[ctr_inds]) ** 2 * self.s, dim=-1)
+        assignments = torch.zeros((x.shape[0], self.n_ctrs), device=dist_sq.device)
+        assignments[:, ctr_inds] = torch.nn.functional.softmax(-1 * dist_sq, dim=1)
+        return assignments
+
+    def _hard_assignments(self, x):
+        assignments = torch.zeros(size=(x.shape[0], self.ctrs.shape[0]))
+        assignments[np.arange(0, x.shape[0]),
+                    self.assign(x)[None, :]] = 1
+        return assignments
+
+    def forward(self, x, assignment_type='soft'):
+
+        if assignment_type == 'soft':
+            assignments = self._soft_assignments(x)
+        elif assignment_type == 'hard':
+            assignments = self._hard_assignments(x)
+
+        scored_weights = torch.einsum('nc,cgp -> ngp', assignments, self.Wv)
+        scored_offsets = torch.matmul(assignments, self.Ov)
+
+        return torch.sum(scored_weights * x.unsqueeze(2), dim=1) + scored_offsets
+
+    def assign(self, x):
+        _, assignments = torch.topk(self._soft_assignments(x), k=1, dim=1)
+        return assignments.squeeze()
+    
+
+class AffineNearestNeighborAttentionNN(torch.nn.Module):
+
+    def __init__(self, d_out, d_in: int = 32, n_ctrs: int = 100, k: int = None):
+        super().__init__()
+
+        self.d_x = d_in
+        self.d_y = d_out
+        
+        if k is None:
+            self.k = n_ctrs
+        else:
+            self.k = k
+
+        self.n_ctrs = n_ctrs
+        self.ctrs = torch.nn.Parameter(torch.zeros(n_ctrs, d_in))
+        self.Wv = torch.nn.Parameter(torch.zeros(n_ctrs, d_in, d_out))
+        self.Ov = torch.nn.Parameter(torch.zeros(n_ctrs, d_out))
+        
+    def init_ctrs(self, x: torch.Tensor, method='random', gain: float = 1.):
+        if method == 'random':
+            inds = np.random.choice(x.shape[0], self.n_ctrs)
+            self.ctrs.data = x[inds] * gain
+        elif method == 'fully_random':
+            self.ctrs.data = torch.rand(size=self.ctrs.data.shape) * gain
+        elif method == 'kmeans':
+            kmeans = KMeans(n_clusters=self.n_ctrs).fit(x)
+            self.ctrs.data = torch.Tensor(kmeans.cluster_centers_) * gain
+        elif method == 'kmeans_sc':
+            kmeans = KMeans(n_clusters=200).fit(x)
+            self.ctrs.data = torch.Tensor(kmeans.cluster_centers_[np.random.choice(np.arange(0, 200), self.n_ctrs)])\
+                             * gain
 
     def init_values(self, std_v=1e-5):
         torch.nn.init.normal_(self.Wv, std=std_v)
@@ -44,7 +125,11 @@ class AffineAttentionNN(torch.nn.Module):
 
     def _soft_assignments(self, x):
         dist_sq = torch.sum((x.unsqueeze(1) - self.ctrs) ** 2, dim=-1)
-        assignments = torch.nn.functional.softmax(-1 * dist_sq, dim=1)
+        closest_fcn_inds = torch.argsort(dist_sq, dim=1)[:, :self.k]
+        scores = torch.nn.functional.softmax(-1*torch.gather(input=dist_sq, index=closest_fcn_inds, dim=1), dim=1)
+        
+        assignments = torch.zeros_like(dist_sq)
+        [assignments.index_put_((torch.arange(0, x.shape[0]), closest_fcn_inds[:, i]), scores[:, i]) for i in range(self.k)]
         return assignments
 
     def _hard_assignments(self, x):
@@ -72,33 +157,52 @@ class AffineAttentionNN(torch.nn.Module):
 
 class AttentionNN(torch.nn.Module):
 
-    def __init__(self, d_out, d_in: int = 32, n_ctrs: int = 100):
+    def __init__(self, d_out, d_in: int = 32, n_ctrs: int = 100, distance_scales: bool = False, dropout: float = None):
         super().__init__()
 
         self.n_ctrs = n_ctrs
         self.ctrs = torch.nn.Parameter(torch.zeros(n_ctrs, d_in))
-        self.values = torch.nn.Parameter(torch.zeros(n_ctrs, d_in))
+        self.values = torch.nn.Parameter(torch.zeros(n_ctrs, d_out))
+        
+        self.s = torch.nn.Parameter(torch.ones(d_in), requires_grad=distance_scales)
+        
+        self.dropout = dropout
 
-        self.out_net = torch.nn.Sequential(torch.nn.Tanh(),
-                                           torch.nn.Linear(d_in, d_out))
+    def init_ctrs(self, x: torch.Tensor, method='random', gain: float = 1.):
+        if method == 'random':
+            inds = np.random.choice(x.shape[0], self.n_ctrs)
+            self.ctrs.data = x[inds] * gain
+        elif method == 'fully_random':
+            self.ctrs.data = torch.rand(size=self.ctrs.data.shape) * gain
+        elif method == 'kmeans':
+            kmeans = KMeans(n_clusters=self.n_ctrs).fit(x)
+            self.ctrs.data = torch.Tensor(kmeans.cluster_centers_) * gain
+        elif method == 'kmeans_sc':
+            kmeans = KMeans(n_clusters=200).fit(x)
+            self.ctrs.data = torch.Tensor(kmeans.cluster_centers_[np.random.choice(np.arange(0, 200), self.n_ctrs)])\
+                             * gain
 
-    def init_ctrs(self, x: torch.Tensor):
-        inds = np.random.choice(x.shape[0], self.n_ctrs)
-        self.ctrs.data = x[inds]
-
-    def init_values(self, std_v=.01):
+    def init_values(self, std_v=1e-5):
         torch.nn.init.normal_(self.values, std=std_v)
 
     def _soft_assignments(self, x):
-        dist_sq = torch.sum((x.unsqueeze(1) - self.ctrs) ** 2, dim=-1)
-        assignments = torch.nn.functional.softmax(-1 * dist_sq, dim=1)
+
+        # Select center indices based on dropout (if no dropout, use all centers)
+        if self.dropout is not None and self.dropout < 1:
+            ctr_inds = np.random.choice(np.arange(self.n_ctrs), int(self.dropout * self.n_ctrs), replace=False)
+        else:
+            ctr_inds = np.arange(self.n_ctrs)
+
+        dist_sq = torch.sum((x.unsqueeze(1) - self.ctrs[ctr_inds]) ** 2 * self.s, dim=-1)
+        assignments = torch.zeros((x.shape[0], self.n_ctrs), device=dist_sq.device)
+        assignments[:, ctr_inds] = torch.nn.functional.softmax(-1 * dist_sq, dim=1)
         return assignments
 
     def forward(self, x):
         assignments = self._soft_assignments(x)
 
         # In general, values do not have to be centers
-        return self.out_net(torch.matmul(assignments, self.values))
+        return torch.matmul(assignments, self.values)
 
     def assign(self, x):
         _, assignments = torch.topk(self._soft_assignments(x), k=1, dim=1)
@@ -858,7 +962,7 @@ class LogGaussianBumpFcn(torch.nn.Module):
             x_dist = x_ctr_scaled**2
 
         return log_gain + -1*x_dist
-
+    
 
 class MultiheadAttentionNN(torch.nn.Module):
 
@@ -881,6 +985,57 @@ class MultiheadAttentionNN(torch.nn.Module):
         out = torch.cat([nn(x_in[..., i]) for i, nn in enumerate(self.networks)], dim=1)
 
         return torch.matmul(out, self.Wo)
+
+
+
+class MultiheadStandAttentionNN(torch.nn.Module):
+
+    def __init__(self, d_out, d_p: int, n_heads: int, d_in: int = 32, n_ctrs: int = 100):
+        super().__init__()
+
+        self.d_in = d_in
+        self.d_out = d_out
+        self.d_p = d_p
+        self.n_heads = n_heads
+        self.n_ctrs = n_ctrs
+        
+        self.ctrs = torch.nn.Parameter(torch.zeros(n_heads, n_ctrs, d_p))
+        self.Wv = torch.nn.Parameter(torch.zeros(n_heads, n_ctrs, d_p, d_p))
+        self.Ov = torch.nn.Parameter(torch.zeros(n_heads, n_ctrs, d_p))
+        
+        self.Wq = torch.nn.Parameter(torch.zeros((d_in, d_p, n_heads)))
+        self.Wo = torch.nn.Parameter(torch.zeros((n_heads*d_p, d_out)))
+
+    def init_ctrs(self, x: torch.Tensor, method='random'):
+        if method == 'random':
+            for i in range(self.n_heads): self.ctrs.data[i] = x[np.random.choice(x.shape[0], self.n_ctrs)][:, :self.d_p]
+        elif method == 'kmeans':
+            kmeans = KMeans(n_clusters=self.n_ctrs).fit(x)
+            for i in range(self.n_heads): self.ctrs.data[i] = torch.Tensor(kmeans.cluster_centers_)[:, :self.d_p]
+        else:
+            pass
+
+    def init_values(self, std_v=1e-5):
+        torch.nn.init.normal_(self.Wv, std=std_v)
+        # torch.nn.init.normal_(self.Ov, std=std_v)
+
+    def _soft_assignments(self, x):
+        dist_sq = torch.sum((x.unsqueeze(2) - self.ctrs.unsqueeze(1)) ** 2, dim=-1)
+        assignments = torch.nn.functional.softmax(-1 * dist_sq, dim=2)
+        return assignments
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        
+        x_in = torch.einsum('ni,iph->hnp', x, self.Wq)
+        assignments = self._soft_assignments(x_in)
+
+        scored_weights = torch.einsum('hnc,hcgp->hngp', assignments, self.Wv)
+        scored_offsets = torch.einsum('hnc,hcp->hnp', assignments, self.Ov)
+
+        heads_out = torch.sum(scored_weights * x_in.unsqueeze(2), dim=2) + scored_offsets
+        heads_out = heads_out.reshape([x.shape[0], self.n_heads*self.d_p])
+
+        return torch.matmul(heads_out, self.Wo)
 
 
 class PWPNNFcn(torch.nn.Module):
@@ -1056,10 +1211,10 @@ class PWLNNFcn(torch.nn.Module):
 
     def init_ctrs(self, x: torch.Tensor, method: str ='random'):
         if method == 'random':
-            inds = np.random.choice(x.shape[0], self.n_ctrs)
+            inds = np.random.choice(x.shape[0], self.n_fcns)
             self.ctrs.data = x[inds]
         elif method == 'kmeans':
-            kmeans = KMeans(n_clusters=self.n_ctrs).fit(x)
+            kmeans = KMeans(n_clusters=self.n_fcns).fit(x)
             self.ctrs.data = torch.Tensor(kmeans.cluster_centers_)
         else:
             raise ValueError('Initialization method undefined')
@@ -1069,8 +1224,8 @@ class PWLNNFcn(torch.nn.Module):
         self.wts.data -= torch.Tensor([offset])
         
     def init_offsets(self, gain: float = 1e-5, offset: float = .0):
-        torch.nn.init.xavier_uniform_(self.wts, gain=gain)
-        self.wts.data -= torch.Tensor([offset])
+        torch.nn.init.xavier_uniform_(self.offsets, gain=gain)
+        self.offsets.data -= torch.Tensor([offset])
 
     def forward(self, x: torch.Tensor):
         """ Computes output from input.
