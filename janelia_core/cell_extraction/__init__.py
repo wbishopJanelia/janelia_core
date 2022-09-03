@@ -1,1 +1,1 @@
-""" Tools for extracting cells form imaging data. """
+""" Basic classes and functions for extracting cells and their fluorescence traces from images."""

@@ -1,7 +1,5 @@
-""" Tools for viewing predefined ROIs.
+""" GUI tools for viewing predefined ROIs.
 
-    William Bishop
-    bishopw@hhmi.org
 """
 
 import warnings
@@ -40,6 +38,7 @@ class StaticROIViewer(QWidget):
     """
 
     sigKeyPress = pyqtSignal(object)
+    """ Signal for key press events. """
 
     def __init__(self, bg_image: np.ndarray, rois: list, dim: int = 0, clrs: np.ndarray = None,
                  weight_gain: float = 1.0, levels: list = None, ignore_warnings: bool = False):
@@ -86,6 +85,7 @@ class StaticROIViewer(QWidget):
 
     # Set things up to respond to key presses
     def process_key_press(self, ev):
+        """ Responds to key press events. """
         if ev.key() == Qt.Key_Right:
             self.slider.setValue(self.slider.value() + 1)
         elif ev.key() == Qt.Key_Left:
@@ -183,12 +183,13 @@ class StaticROIViewer(QWidget):
 class TimeLine(QWidget):
     """ QT Widget for viewing time series data.
 
-    The main point of this widget is to allow a user to move select a point in time in data
+    The main point of this widget is to allow a user to select a point in time in data
     and emit signals as the selected time point is changed.
     """
 
-    # This signal emitted as the lines indicating selected time are dragged
+    # This signal is emitted as the lines indicating selected time are dragged
     time_dragged = pyqtSignal(float)
+    """ Signal for when time is changed.  """
 
     def __init__(self, ts: np.ndarray, vls: np.ndarray, clrs: np.ndarray = None):
         """ Creates a new TimeLine object.
@@ -285,9 +286,10 @@ class ROIViewer(QWidget):
     through time.  The window also responds to left and right arrow input to scroll through time.
     """
     sigKeyPress = pyqtSignal(object)
+    """ Signal for when key is pressed. """
 
     def __init__(self, bg_img, rois, roi_vl_str='vls', clrs=None, title:str=None, roi_scale_f: np.float64=None):
-        """ Creates an ROIViewer object.
+        """ Creates a ROIViewer object.
 
         Args:
             bg_img: The background image.  Should be a 2-d numpy array (first dimension y, second dimension x).
@@ -298,8 +300,8 @@ class ROIViewer(QWidget):
             roi_vl_str - If the values of the ROI across time are stored in a field with a different name than 'vls',
             the user can specify that with this argument.
 
-            clrs - If not none, a np.ndarray of shape n_rois * 3, where each row specifies the color of an roi.  The dtype
-            clrs should be int. And all entries should be within 0 and 255.
+            clrs - If not none, a np.ndarray of shape n_rois * 3, where each row specifies the color of an roi.  The
+            dtype clrs should be int. And all entries should be within 0 and 255.
 
             title - An optional title to provide for the window
 
@@ -473,8 +475,9 @@ class MultiPlaneROIViewer():
             vls: A numpy array of values for the main timeline.  Each row is a different signal.  Columns correspond to
             times in ts.
 
-            roi_groups: A list of roi_groups (e.g., neurons and glia).  Each list contains roi objects for the group.  These
-            roi objects should be supplemented with a 'vls' attribute containing the value of the roi at each point in ts.
+            roi_groups: A list of roi_groups (e.g., neurons and glia).  Each list contains roi objects for the group.
+            These roi objects should be supplemented with a 'vls' attribute containing the value of the roi at each
+            point in ts.
 
             bg_imgs: A list of back ground images.  bg_imgs[i] contains the background image to use for rois[i]
 

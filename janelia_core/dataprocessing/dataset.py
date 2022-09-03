@@ -1,7 +1,4 @@
-""" Tools for working with imaging datasets.
-
-    William Bishop
-    bishopw@hhmi.org
+""" Tools for representing and working with time series datasets.
 """
 
 import itertools
@@ -16,23 +13,27 @@ from janelia_core.dataprocessing.point import Point
 class DataSet:
     """A class for holding a basic data set.
 
-    Args:
-        ts_data: A dictionary of time series data.  Each entry in the dictionary is one set of data (with a user
-            specified key).  Each set of data is itself stored in a dictionary with two entries.  The fist with
+   """
+
+    def __init__(self, ts_data: dict=None, metadata: dict=None, **kwargs):
+        """ Creates a new DataSet object.
+
+        Args:
+            ts_data: A dictionary of time series data.  Each entry in the dictionary is one set of data (with a user
+            specified key).  Each set of data is itself stored in a dictionary with two entries.  The first with
             the key 'ts' is a 1-d numpy.ndarray with timestamps.  The second 'vls' can be:
                 1) A list, with one entry per time point
                 2) A numpy array of data, with the first dimension corresponding to time
                 3) A janelia_core.fileio.data_handlers.NDArrayHandler object
 
-        If data is none the data attribute of the created object will be an empty dictionary.
+            If data is none the data attribute of the created object will be an empty dictionary.
 
-        metadata: A dictionary of metadata. If meta_data is None, the meta_data attribute of the created object will be
+            metadata: A dictionary of metadata. If meta_data is None, the meta_data attribute of the created object will be
             a empty dictionary.
 
-        **kwargs: Additional keyword arguments that will be added as attributes of the object.
-    """
+            **kwargs: Additional keyword arguments that will be added as attributes of the object.
 
-    def __init__(self, ts_data: dict=None, metadata: dict=None, **kwargs):
+        """
         if ts_data is None:
             self.ts_data = dict()
         else:
@@ -71,12 +72,12 @@ class DataSet:
 
     @staticmethod
     def update_image_folder(dataset, img_field, new_base):
-        """ Updates the folder images are stored in the path information for image folder.
+        """ Updates the folder images are stored under when a dataset holds paths to a time series of images.
 
         When images are stored as paths in a ts_data dictionary, this function can be used to
         update the part of the path specifying the folder they are stored in.  This is useful
         when using a dataset across computers/operating systems where we need to specify that
-        images are stored in difference locations.
+        images are stored in different locations.
 
         This function expects images to be saved in dataset.ts_data[img_field]['vls'] with one
         dictionary per image.  Each dictionary should have a 'file' field with the path to each
@@ -164,18 +165,18 @@ class ROIDataset(DataSet):
 
             metadata: A dictionary of metadata.  See description in Dataset.__init__()
 
-            roi_groups.  A dictionary holding ROI groups.  A "ROI group" is a group of ROIs whose values
-                are stored together in entries in ts_data.  One group can have values stored in multiple entries in
-                ts_data. Each entry in roi_groups is specified by a key giving the name of the group and a value which
-                is a dictionary with the keys:
-                    1) rois: A list of ROI objects representing the rois in the group
-                    2) ts_labels: A list of ts_data entries with data for this group of rois.
-                    3) Optional keys the user may specify. For example, a "type" can be specified.
+            roi_groups: A dictionary holding ROI groups.  A "ROI group" is a group of ROIs whose values are stored
+            together in entries in ts_data.  One group can have values stored in multiple entries in ts_data. Each entry
+            in roi_groups is specified by a key giving the name of the group and a value which is a dictionary with the
+            keys:
+                1) rois: A list of ROI objects representing the rois in the group
+                2) ts_labels: A list of ts_data entries with data for this group of rois.
+                3) Optional keys the user may specify. For example, a "type" can be specified.
 
-                If an entry in ts_data holds values for an ROI group, it must hold only values for those ROIs and the order
-                order of variables in ts_data 'vls' entry must match the order of ROIs in the rois list for the group.
+            If an entry in ts_data holds values for an ROI group, it must hold only values for those ROIs and the order
+            order of variables in ts_data 'vls' must match the order of ROIs in the rois list for the group.
 
-                If roi_groups is none, an empty dictionary will be created.
+            If roi_groups is none, an empty dictionary will be created.
 
             **kwargs: Additional keyword arguments that will be added as attributes of the object.
 
@@ -289,7 +290,7 @@ class ROIDataset(DataSet):
 
             roi_inds: The indices of the dataset.rois to extract
 
-            labels: A list of labels of tsdata for the rois to pull out.
+            labels: A list of labels of ts_data for the rois to pull out.
 
         Returns:
             rois: A list of the extracted rois.  Each entry as an ROI object.
@@ -377,14 +378,12 @@ class PointDataset(DataSet):
         """
             Initializes a PointDataset object.
 
-            ROI data is added to the ts_data dictionary.
-
         Args:
             ts_data: A dictionary of time series data.  See description in Dataset.__init__()
 
             metadata: A dictionary of metadata.  See description in Dataset.__init__()
 
-            point_groups: A dictionary hold point groups.  A "point group" is a group of points whose values
+            point_groups: A dictionary holding point groups.  A "point group" is a group of points whose values
             are stored together in entries in ts_data.  One group can have values stored in multiple entries in
             ts_data.  Each entry in point_groups is specified by a key giving the name of the group and a value which
             is a dictionary with the keys:
@@ -392,7 +391,7 @@ class PointDataset(DataSet):
                 2) ts_labels: A list of ts_data entries with data for this group of points.
                 3) Optional keys the user may specify. For example, a "type" can be specified.
 
-            If an entry in ts_data holds values for an point group, it must hold only values for those points and the
+            If an entry in ts_data holds values for a point group, it must hold only values for those points and the
             order of variables in the ts_data 'vls' entry must match the order of points in the points list for the
             group.
 

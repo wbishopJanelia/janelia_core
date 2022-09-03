@@ -1,15 +1,11 @@
 """ Tools for reading in Ahrens lab experimental data.
 
-    William Bishop
-    bishopw@hhmi.org
 """
 
-import glob
 import pathlib
 
 import h5py
 import numpy as np
-from scipy import stats
 
 import janelia_core.dataprocessing.dataset
 import janelia_core.dataprocessing.dataset as dataset
@@ -47,10 +43,10 @@ def read_exp(image_folder: str = None, ephys_folder: str = None, ephys_file: str
 
     Returns:
         A Dataset object.  A DataSet object representing the experiment.  The data dictionary will have an
-            entry 'imgs'. This entry will contain a list of dictionaries.  Each dictionary will have a field 'file'
-            giving the file name of the image as a string. If ephys data was available, an entry 'ephys' will also
-            contain the ephys data.  The metadata for the experiment will have one entry 'imaging_metadata' with the
-            imaging metadata stored there.
+        entry 'imgs'. This entry will contain a list of dictionaries.  Each dictionary will have a field 'file'
+        giving the file name of the image as a string. If ephys data was available, an entry 'ephys' will also
+        contain the ephys data.  The metadata for the experiment will have one entry 'imaging_metadata' with the
+        imaging metadata stored there.
     """
 
     # Read in all of the raw data
@@ -92,7 +88,7 @@ def read_exp(image_folder: str = None, ephys_folder: str = None, ephys_file: str
     return dataset.DataSet(data_dict, metadata)
 
 
-def read_ephys_data(ephys_file: pathlib.Path, var_name: str = 'frame_swim', verbose: bool = True):
+def read_ephys_data(ephys_file: pathlib.Path, var_name: str = 'frame_swim', verbose: bool = True) -> np.ndarray:
     """ Reads in electophysiological data for an Ahrens lab experiment.
 
     Args:
@@ -113,8 +109,8 @@ def read_ephys_data(ephys_file: pathlib.Path, var_name: str = 'frame_swim', verb
         return data
 
 
-def read_stack_freq(stack_freq_file: pathlib.Path):
-    """ Reads in stack frequency inforation from file.
+def read_stack_freq(stack_freq_file: pathlib.Path) -> dict:
+    """ Reads in stack frequency information from file.
 
     Args:
         stack_freq_file: The file with stack frequency information.
@@ -133,7 +129,7 @@ def read_stack_freq(stack_freq_file: pathlib.Path):
         return {'smp_freq': smp_freq, 'exp_duration' : exp_duration, 'n_images' : n_images}
 
 
-def read_seperated_exp(image_folders: list, image_labels: list, metadata_folder: pathlib.Path, ephys_folder: pathlib.Path = None,
+def read_separated_exp(image_folders: list, image_labels: list, metadata_folder: pathlib.Path, ephys_folder: pathlib.Path = None,
              ephys_file : str = 'frame_swim.mat', ephys_var_name: str = 'frame_swim', image_ext: str = '.h5',
              metadata_file: str = 'ch0.xml', stack_freq_file: str = 'Stack_frequency.txt',
              verbose: bool = True) -> janelia_core.dataprocessing.dataset.DataSet:
@@ -163,8 +159,8 @@ def read_seperated_exp(image_folders: list, image_labels: list, metadata_folder:
     Returns:
         A Dataset object.  A DataSet object representing the experiment.  The data dictionary will have entries
         containing the file names for the images for each color. If ephys data was available, an entry 'ephys' will also
-        contain the ephys data.  The metadata for the experiment will have an entry 'stack_freq_info' with the information from
-        the stack frequency file.
+        contain the ephys data.  The metadata for the experiment will have an entry 'stack_freq_info' with the
+        information from the stack frequency file.
     """
 
     # Read in all of the raw data
@@ -213,7 +209,7 @@ def read_seperated_exp(image_folders: list, image_labels: list, metadata_folder:
     return dataset.DataSet(data_dict, metadata)
 
 
-def read_raw_ephys_data(in_file: str, num_channels: int =10):
+def read_raw_ephys_data(in_file: str, num_channels: int =10) -> np.ndarray:
     """ Reads in raw ephys data from an Ahrens lab experiment.
 
     Raw files may end in .10chFlt.

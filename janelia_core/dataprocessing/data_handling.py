@@ -1,7 +1,4 @@
 """ Tools for moving and copying image files.
-
-    William Bishop
-    bishopw@hhmi.org
 """
 
 import os

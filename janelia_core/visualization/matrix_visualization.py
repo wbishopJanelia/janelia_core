@@ -1,7 +1,4 @@
 """ Tools for visualizing and comparing matrices.
-
-    William Bishop
-    bishopw@hhmi.org
 """
 
 
@@ -25,7 +22,6 @@ def colorized_tbl(tbl: np.ndarray, dim_0_lbls: list = None, dim_1_lbls: list = N
     make sure the left/right justification looks correct as well.
 
     Args:
-
         tbl: The table of values to plot.
 
         dim_0_lbls: Labels for dimension 0 of the table
@@ -90,11 +86,6 @@ def colorized_tbl(tbl: np.ndarray, dim_0_lbls: list = None, dim_1_lbls: list = N
                         i_0 + y_offset_units), fontsize=tbl_fontsize)
 
 
-
-
-
-
-
 def cmp_n_mats(mats: list, clim: list = None, show_colorbars: bool = False, titles: list = None,
                grid_info: dict = None, cmap: matplotlib.colors.Colormap = None, subplots: list = None) -> list:
     """ Produces a figuring comparing matrices.
@@ -112,11 +103,16 @@ def cmp_n_mats(mats: list, clim: list = None, show_colorbars: bool = False, titl
         titles: A list of tiles for each matrix in mats.  If None, no titles will be generated
 
         grid_info: A dictionary with information about how to layout the matrices in a grid.  It should have the entries:
-            grid_spec: The matplotlib.gridspec.GridSpec to use for the grid
-            cell_info: A list the same length as mats.  cell_info[i] contains:
-                loc: The location for the subplot for the i^th matrix
-                rowspan: The row span for the i^th matrix
-                colspan: The column span for the i^th matrix
+
+           grid_spec: The matplotlib.gridspec.GridSpec to use for the grid
+
+           cell_info: A list the same length as mats.  cell_info[i] contains:
+
+               loc: The location for the subplot for the i^th matrix
+
+               rowspan: The row span for the i^th matrix
+
+               colspan: The column span for the i^th matrix
 
             If grid_info is None, one will be created for showing the matrices next to each other in a row.
 

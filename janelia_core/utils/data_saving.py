@@ -1,9 +1,6 @@
 """ Contains tools for saving research results.
 
 The tools here enable results to be saved and archived for later retrieval.
-
-    William Bishop
-    bishopw@hhmi.org
 """
 
 import datetime
@@ -19,7 +16,6 @@ HDF5_TYPES = {'nparray': 'nparray',
               'list': 'list'}
 
 
-
 def append_ts(filename: str, no_underscores: bool = False) -> str:
     """ Appends a time stamp to a string.
 
@@ -31,10 +27,12 @@ def append_ts(filename: str, no_underscores: bool = False) -> str:
                                             _<2 digit minute>_<2 digit second>_<0 padded microsecond>
 
     Args:
-
         filename: The filename to append to
 
         no_underscores: If true, underscores in the date string above will be omitted.
+
+    Returns:
+        str: The filename with the time stamp appended.
     """
 
     data_str = '{:%Y_%m_%d_%H_%M_%S_%f}'.format(datetime.datetime.now())
@@ -43,6 +41,7 @@ def append_ts(filename: str, no_underscores: bool = False) -> str:
         data_str = data_str.replace('_', '')
 
     return filename + '_' + data_str
+
 
 def save_structured_hdf5(o: Union[np.ndarray, list, dict], f: pathlib.Path, name: str, overwrite: bool = False):
     """ Saves structured data to an hdf5 file.
@@ -86,12 +85,14 @@ def save_structured_hdf5(o: Union[np.ndarray, list, dict], f: pathlib.Path, name
     _recursive_save(o, f, name, name)
 
 
-def load_structured_hdf5(f: pathlib.Path):
+def load_structured_hdf5(f: pathlib.Path) -> dict:
     """ Loads data saved by save_structured_hdf5.
 
     Args:
         f: A path to the file with the saved data in it.
 
+    Returns:
+        d: A dictionary of loaded data.
     """
 
     def _recursive_load(f, grp):

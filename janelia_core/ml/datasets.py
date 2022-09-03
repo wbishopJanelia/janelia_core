@@ -1,4 +1,4 @@
-""" Tools for representing and working with dataset. """
+""" Tools for representing and working with Pytorch datasets. """
 
 from typing import Sequence
 
@@ -24,7 +24,7 @@ class TimeSeriesBatch(torch.utils.data.Dataset):
             i_y: Indicates which points in data correspond to the t data points in each sample.
 
             i_orig: Indicates the original indices in the larger TimeSeriesData object the data points came from.
-                    (Keeping track of this is helpful when needing to merge and concatenate batches later.)
+            (Keeping track of this is helpful when needing to merge and concatenate batches later.)
 
         """
         super().__init__()
@@ -63,7 +63,7 @@ class TimeSeriesBatch(torch.utils.data.Dataset):
         if move_i_orig:
             self.i_orig = self.i_orig.to(device, non_blocking=non_blocking)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """ Returns the number of samples in the dataset. """
         return len(self.i_x)
 
@@ -160,7 +160,7 @@ class TimeSeriesDataset(torch.utils.data.Dataset):
 
         self.ts_data = ts_data
 
-    def __len__(self):
+    def __len__(self) -> int:
         """ Returns the number of samples in the dataset.
 
         Note that number of samples in the dataset is 1 less than the number of time points, as samples

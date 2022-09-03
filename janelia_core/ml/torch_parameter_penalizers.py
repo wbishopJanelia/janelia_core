@@ -1,4 +1,7 @@
-""" Holds modules for penalizing torch parameters. """
+""" Holds modules for penalizing torch parameters.
+
+See the base class ParameterPenalizer for more information.
+"""
 
 from abc import ABC, abstractmethod
 import copy
@@ -37,8 +40,6 @@ class ParameterPenalizer(ABC, torch.nn.Module):
     def check_point(self) -> dict:
         """ Returns a dictionary of parameters and values for the penalizer that should be saved in a check point.
 
-        The idea is that for the purposes of creating a check point, we can save memory by only logging the
-        important parameters and values of a penalizer.
         """
         raise(NotImplementedError())
 
@@ -52,7 +53,6 @@ class ParameterPenalizer(ABC, torch.nn.Module):
 
         Returns:
             obj: The new object
-
         """
         raise(NotImplementedError())
 
@@ -76,7 +76,6 @@ class ParameterPenalizer(ABC, torch.nn.Module):
         (e.g., fast_learning_rate_params).  Each parameter should be associated with only one key
         (though multiple parameters can use the same key).  This function will return a list of parameters
         associated with the requested key.  If no parameters match the key an empty list should be returned.
-
         """
         raise(NotImplementedError())
 
@@ -173,7 +172,6 @@ class ClusterPenalizer(ParameterPenalizer):
 
         Returns:
             obj: The new object
-
         """
 
         self_copy = copy.deepcopy(self)
@@ -187,7 +185,9 @@ class ClusterPenalizer(ParameterPenalizer):
 
         Returns:
             d: A dictionary with the following keys:
+
                 c: The center of the parameter
+
                 last_p: The value of the last penalty that was computed
         """
 
@@ -246,10 +246,10 @@ class ClusterPenalizer(ParameterPenalizer):
 class TargetLengthPenalizer(ParameterPenalizer):
     """ Penalizes the l-2 norm of a parameter as it deviates from a target length.
 
-    The l-2 norm is calculated by summing the square of all elements a parameter, no matter what it's shape is,
+    The l-2 norm is calculated by summing the square of all elements in a parameter, no matter what it's shape is,
     and then taking the square root.
 
-    The penalty for a paremeter is calculated as: w*(l - tgt_l)**2, where w is a penalty weight, l is the l-2 norm
+    The penalty for a parameter is calculated as: w*(l - tgt_l)**2, where w is a penalty weight, l is the l_2 norm
     of the parameter and tgt_l is the target length we would like the parameter to have.
 
     This object can hold multiple parameters and will return the sum of penalizing all of them.
@@ -259,7 +259,6 @@ class TargetLengthPenalizer(ParameterPenalizer):
         """ Creates a new TargetLengthPenalizer object.
 
         Args:
-
             params: the parameters to penalize.  Each parameter will be treated independently.
 
             w: the weight to apply to the penalty
@@ -267,7 +266,6 @@ class TargetLengthPenalizer(ParameterPenalizer):
             tgt_l: The target length for each parameter
 
             description: A short description identifying the penalizer.
-
         """
 
         super().__init__(params)
@@ -293,7 +291,6 @@ class TargetLengthPenalizer(ParameterPenalizer):
 
         Returns:
             obj: The new object
-
         """
 
         self_copy = copy.deepcopy(self)
@@ -307,6 +304,7 @@ class TargetLengthPenalizer(ParameterPenalizer):
 
         Returns:
             d: A dictionary with the following keys:
+
                 last_p: The value of the last penalty that was computed
         """
 
@@ -327,7 +325,6 @@ class TargetLengthPenalizer(ParameterPenalizer):
         """ Returns the list of keys associated with internal, learnable parameters.
 
         Because there are no learnable parameters for this penalizer, an empty list will be returned.
-
         """
         return []
 
@@ -360,7 +357,6 @@ class TargetLengthPenalizer(ParameterPenalizer):
                 '\n Last Penalty: ' + str(self.last_p))
 
 
-
 class UnsignedClusterPenalizer(ClusterPenalizer):
     """ This is the same as the ClusterPenalizer but the penalty is computed after taking absolute values of parameters.
 
@@ -368,14 +364,13 @@ class UnsignedClusterPenalizer(ClusterPenalizer):
 
         w\sum_{i=1}^N ||abs(p_i) - abs(c)||_2^2 where c is a tensor the same shape as any of the p_i parameters
         representing the center of a cluster and w is a penalty weight.
-
     """
 
     def __init__(self, params: Sequence[torch.nn.Parameter], w: float, init_ctr: torch.Tensor,
                  description:str = None, learnable_parameters: bool = True):
         """ Creates a new UnsignedClusterPenalizer instance.
 
-        See __init__ for ClusterPenalizer for documenation.
+        See __init__ of parent for more information.
         """
         super().__init__(params=params, w=w, init_ctr=init_ctr, description=description,
                          learnable_parameters=learnable_parameters)
@@ -408,7 +403,7 @@ class ScalarPenalizer(ParameterPenalizer):
 
         In particular, given a set of paremters p_0, ..., p_N of arbitrary shape, the penalty computed by this object is:
 
-        w\sum_{i=1}^N ||p_i - c||_2^2 where c the scalar center.
+            w\sum_{i=1}^N ||p_i - c||_2^2 where c the scalar center.
 
     There is only one parameter for this penalizer, which is tagged with 'fast', to indicate that in models trained
     with slow and fast learning rates, we would expect the center to be updated with the fast learning rate.
@@ -464,7 +459,6 @@ class ScalarPenalizer(ParameterPenalizer):
 
         Returns:
             obj: The new object
-
         """
 
         self_copy = copy.deepcopy(self)
@@ -478,7 +472,9 @@ class ScalarPenalizer(ParameterPenalizer):
 
         Returns:
             d: A dictionary with the following keys:
+
                 c: The center of the parameter
+
                 last_p: The value of the last penalty that was computed
         """
 
@@ -543,14 +539,13 @@ class UnsignedScalarPenalizer(ScalarPenalizer):
 
     There is only one parameter for this penalizer, which is tagged with 'fast', to indicate that in models trained
     with slow and fast learning rates, we would expect the center to be updated with the fast learning rate.
-
     """
 
     def __init__(self, params: Sequence[torch.nn.Parameter], w: float, init_ctr: float,
                  description:str = None, learnable_parameters: bool = True):
         """ Creates a new instance of an UnsignedScalarPenalizer object.
 
-        See __init__() of ScalarPenalizer for documentation of input arguments.
+        See __init__() of paraent for more information.
         """
 
         super().__init__(params=params, w=w, init_ctr=init_ctr, description=description,

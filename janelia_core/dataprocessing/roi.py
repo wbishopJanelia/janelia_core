@@ -1,4 +1,4 @@
-""" Module for working with and representing rois. """
+""" Module for working with and representing regions of interest (ROIS) in imaging data. """
 
 import copy
 
@@ -11,7 +11,7 @@ class ROI():
         """ Initializes an ROI object.
 
         Args:
-            voxel_inds: This is tuple of length n_dims.  Each entry contains either (1) the indices of each voxel
+            voxel_inds: This is a tuple of length n_dims.  Each entry contains either (1) the indices of each voxel
             for that dimension or (2) a slice denoting the sides of a hyper rectangle which defines the
             ROI.  In both cases, dimensions are listed in the same order as the image the ROI is for.
 

@@ -1,54 +1,42 @@
 # janelia_core
-Core code for William Bishop's work at Janelia.
 
-## Dependencies
 
-1) conda
-2) pyklb
-3) pytorch
+**janelia_core** is a Python library containing a core set of machine learning, statistical and dataset tools
+originally developed to support Will Bishop's various projects and collaborations at the Janelia Research campus.
 
-## Setting up for development purposes
+These tools are made available here for collaborators as well as any others in the research community who may find
+them helpful.
 
-1) Create a conda environment by running this command:  
-    - conda create -n janelia_core python=3.7
 
-2) Activate the conda environment by running this command:
-    - Mac: source activate janelia_core
-    - Windows: conda activate janelia_core
-3) In the directory containing setup.py run the command from the terminal: 
-	- python setup.py develop
+See the [documentation](https://wbishopjanelia.github.io/janelia_core/) for a full API, but here are some of the tools
+provided:
 
-4) Install jupyter notebook by running this command
-	conda install jupyter
+1. Objects for representing [time series datasets](https://wbishopjanelia.github.io/janelia_core/autoapi/janelia_core/dataprocessing/dataset/index.html), particularly those derived from imaging datasets.
 
-5) Install pytorch by running this command:
-    - Mac: conda install pytorch torchvision -c pytorch
-    - Windows: conda install pytorch -c pytorch, pip install torchvision
-    
-6) Optionally install moviepy by running this command:  pip install moviepy==2.0.0.dev1.
-    - moviepy is required for only one visualization function.  If you do not need this function, there is 
-    no need to install it - the rest of the code will function fine without it
+2. Various machine learning tools, including:
 
-#### Installing pyklb
+    1. [Conditional distributions](https://wbishopjanelia.github.io/janelia_core/autoapi/janelia_core/ml/torch_distributions/index.html) 
+    for use with PyTorch designed specifically for handling structured data.
+    2. Penalizers, again designed for use with PyTorch, for flexibly penalizing
+    [distributions](https://wbishopjanelia.github.io/janelia_core/autoapi/janelia_core/ml/torch_distributions/index.html) 
+    and [PyTorch module parameters](https://wbishopjanelia.github.io/janelia_core/autoapi/janelia_core/ml/torch_parameter_penalizers/index.html).
+    3. Tools for representing and fitting general, 
+    [non-linear extensions of reduced-rank regression models](https://wbishopjanelia.github.io/janelia_core/autoapi/janelia_core/ml/reduced_rank_models/index.html).
+    4. [Custom PyTorch modules](https://wbishopjanelia.github.io/janelia_core/autoapi/janelia_core/ml/extra_torch_modules/index.html), 
+    including an optimized function representing a sum of hypercube basis functions over low-dimensional spaces.
 
-If you will be working with [klb files](https://bitbucket.org/fernandoamat/keller-lab-block-filetype), 
-you will need to install pyklb which is available from https://github.com/bhoeckendorf/pyklb. 
-Follow the instructions there to install into the janelia_core conda environment. 
+3.  Various statistical tools, including those designed for performing statistical inference in various ways with [linear regression models under non-standard noise assumptions](https://wbishopjanelia.github.io/janelia_core/autoapi/janelia_core/stats/regression/index.html).
 
-##### Note on installing pyklb for mac
+4.  Various visualization tools, including those for generating [custom colormaps](https://wbishopjanelia.github.io/janelia_core/autoapi/janelia_core/visualization/custom_color_maps/index.html), 
+[generating projections of volumetric data](https://wbishopjanelia.github.io/janelia_core/autoapi/janelia_core/visualization/image_generation/index.html), 
+and [GUI tools for visualizing data obtained in imaging experiments](https://wbishopjanelia.github.io/janelia_core/autoapi/janelia_core/visualization/exp_viewing/index.html).
 
-There is an bug in the current version of pyklb so that after following the instructions referenced 
-above you must use Mac's install_name_tool command and run:
- 
-   install_name_tool -change /Users/clackn/src/keller-lab-block-filetype/build/libklb.dylib [path to downloaded dylib] [path to the .so file in site-packages]
+## Installation
 
-The dylib file will by default be in the build/lib directory in the top level folder of the pyklb repository.  
-The .so file will be in the site-packages folder of the conda environment (e.g., /anaconda3/envs/janelia_core/lib/python3.6/site-packages/pyklb.cpython-36m-darwin.so). 
+See the [documentation](https://wbishopjanelia.github.io/janelia_core/install.html) for installation instructions. 
 
-##### Note on installing pyklb for Windows
+## Contact
+bishopw@janelia.hhmi.org  
 
-There is an bug in the current version of pyklb so that after following the instructions referenced 
-above the klb.dll library is not in the right spot.  To fix this, find the klb.dll file in the build/lib folder 
-under the pyklb folder of the pyklb project and copy it to the site packages folder for your environment.
  
 

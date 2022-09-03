@@ -1,6 +1,17 @@
 """ Torch modules and tools for working with distributions.
 
-Note: The distribution objects defined here are *not* subclasses of the torch.distributions.
+The distribution objects defined here are *not* subclasses of torch.distributions.  There are a couple of
+innovations over standard Pytorch distributions:
+
+    1) Samples are returned in compact notation.  This is convenient when sampling structured data and enables
+    efficient representation of sparse samples.  Each distribution also has its own methods for converting between
+    compact and standard data representations.
+
+    2) The distributions here naturally accomodate conditioning data.  See the base class CondVAEDistribution for
+    more details.
+
+In addition to holding distribution objects, this module also holds distribution penalizers.  See the base class
+DistributionPenalizer for more information.
 
  """
 
@@ -23,14 +34,14 @@ from janelia_core.ml.extra_torch_modules import Tanh
 
 
 class CondVAEDistribution(torch.nn.Module):
-    """ CondVAEDistribution is an abstract base class for conditional distributions used by VAEs."""
+    """ CondVAEDistribution is a base class for conditional distributions used by VAEs."""
 
     def __init__(self):
         """ Creates a CondVAEDistribution object. """
         super().__init__()
 
     def forward(self, x: torch.tensor) -> torch.tensor:
-        """ Computes the conditional mean of the distribtion at different samples.
+        """ Computes the conditional mean of the distribution at different samples.
 
         Args:
             x: A tensor of shape n_smps*d_x.
@@ -45,8 +56,8 @@ class CondVAEDistribution(torch.nn.Module):
 
         When possible, samples should be generated from a reparameterized distribution.
 
-        Returned samples may be represented by a set of compact parameters.  See form_sample() on how to transform this
-        compact represntation into a standard representation.
+        Returned samples may be represented by a set of compact parameters.  See form_standard_sample() on how to
+        transform this compact representation into a standard representation.
 
         Args:
             x: A tensor of shape n_smps*d_x.  x[i,:] is what sample i is conditioned on.
@@ -92,7 +103,6 @@ class CondVAEDistribution(torch.nn.Module):
             smp: The sample to move.
 
             device: The device to move the sample to.
-
         """
         raise(NotImplementedError)
 
@@ -143,7 +153,6 @@ class CondVAEDistribution(torch.nn.Module):
         Returns:
             kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th conditioning
             input.
-
         """
 
         self_device = next(self.parameters()).device
@@ -166,21 +175,20 @@ class CondVAEDistribution(torch.nn.Module):
         In particular this returns the list of parameters for which gradients can be estimated with the
         reparaterization trick when the distribution serves as q when optimizing KL(q, p).
 
-        If no parameters can be estiamted in this way, should return an empty list.
+        If no parameters can be estimated in this way, it should return an empty list.
 
         Returns:
             l: the list of parameters
-
         """
         raise NotImplementedError
 
     def s_params(self) ->list:
-        """ Returns a list of parameters which can be estimated with a score method based gradient.
+        """ Returns a list of parameters which should be estimated with a score method based gradient.
 
         In particular this returns the list of parameters for which gradients can be estimated with the
         score function based gradient when the distribution serves as q when optimizing KL(q, p).
 
-        If no parameters can be estiamted in this way, should return an empty list.
+        If no parameters can be estimated in this way, should return an empty list.
 
         Returns:
             l: the list of parameters
@@ -204,9 +212,8 @@ class CondFoldedNormalDistribution(CondVAEDistribution):
             mu_f: A module whose forward function accepts input of size n_smps*d_x and outputs a vector of mu
             parameters for size n_smps*d_y
 
-            sigma_f: A module whose forward function accepts input of sixe n_smps*d and outputs a vector of
-            standard deviations for each sample of size n_smps*dy
-
+            sigma_f: A module whose forward function accepts input of size n_smps*d_x and outputs a vector of
+            standard deviations for each sample of size n_smps*d_y
         """
 
         super().__init__()
@@ -218,9 +225,17 @@ class CondFoldedNormalDistribution(CondVAEDistribution):
         self.register_buffer('sqrt_2_over_pi', torch.sqrt(2/torch.tensor(math.pi)))
 
     def form_standard_sample(self, smp):
+        """ Returns a sample in standard form.
+
+        See method of parent for more information.
+        """
         return smp
 
     def form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor:
+        """ Converts sample in standard form to compact form.
+
+        See method of parent for more information.
+        """
         return smp
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -240,7 +255,7 @@ class CondFoldedNormalDistribution(CondVAEDistribution):
                 mu*torch.erf(mu/torch.sqrt(2*(sigma**2))))
 
     def log_prob(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-        """ Computes log P(y| x).
+        """ Computes log P(y|x).
 
         Args:
             x: Data we condition on.  Of shape n_smps*d_x
@@ -262,13 +277,11 @@ class CondFoldedNormalDistribution(CondVAEDistribution):
     def sample(self, x: torch.Tensor) -> torch.Tensor:
         """ Samples from the reparameterized form of P(y|x).
 
-        If a sample without gradients is desired, wrap the call to sample in torch.no_grad().
-
         Args:
-            x: Data we condition on.  Of shape nSmps*d_x.
+            x: Data we condition on.  Of shape n_mps*d_x.
 
         Returns:
-            y: sampled data of shape nSmps*d_y.
+            y: sampled data of shape n_smps*d_y.
         """
 
         mn = self.mu_f(x)
@@ -279,12 +292,24 @@ class CondFoldedNormalDistribution(CondVAEDistribution):
         return torch.abs(mn + z*std)
 
     def sample_to(self, smp: object, device: torch.device):
+        """ Moves a sample to a specified device.
+
+        See function of parent object for more information.
+        """
         return smp.to(device)
 
     def r_params(self):
+        """ Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
+
+        See method of parent for more information.
+        """
         return list(self.parameters())
 
     def s_params(self) -> list:
+        """ Returns an empty list as there are no parameters for optimization with a score method based gradient.
+
+        See method of parent for more information.
+        """
         return list()
 
 
@@ -292,7 +317,7 @@ class CondBernoulliDistribution(CondVAEDistribution):
     """ A module for working with conditional Bernoulli distributions."""
 
     def __init__(self, log_prob_fcn: torch.nn.Module):
-        """ Creates a BernoulliCondDistribution variable.
+        """ Creates a BernoulliCondDistribution object.
 
         Args:
             log_prob_fcn: A function which accepts input of shape n_smps*d_x and outputs a tensor of shape n_smps with
@@ -309,14 +334,14 @@ class CondBernoulliDistribution(CondVAEDistribution):
             x: data samples are conditioned on. Of shape n_smps*d_x.
 
         Returns:
-            mn: mn[i,:] is the mean conditioned on x[i,:]
+            mn: mn[i] is the mean conditioned on x[i,:]
         """
 
         nz_prob = torch.exp(self.log_prob_fcn(x))
         return nz_prob
 
     def log_prob(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-        """ Computes log P(y| x).
+        """ Computes log P(y|x).
 
         Args:
             x: Data we condition on.  Of shape nSmps*d_x.
@@ -361,15 +386,30 @@ class CondBernoulliDistribution(CondVAEDistribution):
         return bern_dist.sample().byte()
 
     def form_standard_sample(self, smp: torch.Tensor) -> torch.Tensor:
+        """ Converts between compact and standard sample form.
+
+        See method of parent for more information. """
         return smp
 
     def form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor:
+        """ Converts sample in standard form to compact form.
+
+        See method of parent for more information.
+        """
         return  smp
 
     def r_params(self) -> list:
+        """ Returns an empty list as there are no parameters for optimization with the reparamaterization trick.
+
+        See method of parent for more information.
+        """
         return list()
 
     def s_params(self) -> list:
+        """ Returns a list of parameters that can be optimized with a score method based gradient.
+
+        See method of parent for more information.
+        """
         return list(self.parameters())
 
 
@@ -398,9 +438,16 @@ class CondGammaDistribution(CondVAEDistribution):
         self.rate_f = rate_f
 
     def form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor:
+        """ Converts between compact and standard sample form.
+
+        See method of parent for more information. """
         return smp
 
     def form_standard_sample(self, smp):
+        """ Returns a sample in standard form.
+
+        See method of parent for more information.
+        """
         return smp
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -460,7 +507,7 @@ class CondGammaDistribution(CondVAEDistribution):
                          + self_conc * ((d_2_rate - self_rate) / self_rate), dim=1)
 
     def log_prob(self, x: torch.tensor, y: torch.Tensor) -> torch.tensor:
-        """ Computes log P(y| x).
+        """ Computes log P(y|x).
 
         Args:
             x: Data we condition on.  Of shape n_smps*d_x
@@ -469,7 +516,6 @@ class CondGammaDistribution(CondVAEDistribution):
 
         Returns:
             ll: Log-likelihood of each sample. Of shape n_smps.
-
         """
         concentration = self.conc_f(x)
         rate = self.rate_f(x)
@@ -484,42 +530,57 @@ class CondGammaDistribution(CondVAEDistribution):
           If a sample without gradients is desired, wrap the call to sample in torch.no_grad().
 
           Args:
-              x: Data we condition on.  Of shape nSmps*d_x.
+              x: Data we condition on.  Of shape n_smps*d_x.
 
           Returns:
-              y: sampled data of shape nSmps*d_y.
+              y: sampled data of shape n_smps*d_y.
           """
 
         return torch._standard_gamma(self.conc_f(x))/self.rate_f(x)
 
     def std(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes conditional standard deviation given samples.  """
+        """ Computes conditional standard deviation.
+
+        Args:
+            x: Conditioning data.  Of shape n_smps*d_x.
+
+        Returns:
+             std: Standard deviation.  Of shape n_smps*d_y.
+        """
 
         return torch.sqrt(self.conc_f(x)/(self.rate_f(x)**2))
 
     def mode(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes conditional mode given samples. """
+        """ Computes conditional mode.
+
+        Args:
+            x: Conditioning data.  Of shape n_smps*d_x
+
+        Returns:
+            mode: Mode: Of shape n_smps*d_y.
+        """
 
         return (self.conc_f(x) - 1)/(self.rate_f(x))
 
     def r_params(self):
+        """ Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
+
+        See method of parent for more information.
+        """
         return list(self.parameters())
 
     def sample_to(self, smp: torch.Tensor, device: torch.device) -> torch.Tensor:
         """ Moves a sample in compact form to a given device.
 
-        This function is provided because different distributions may return samples in arbitrary objects,
-        so a custom function may be needed to move a sample to a device.
-
-        Args:
-            smp: The sample to move.
-
-            device: The device to move the sample to.
-
+        See method of parent for more information.
         """
         return smp.to(device)
 
     def s_params(self) -> list:
+        """ Returns an empty list as there are no parameters for optimization with a score method based gradient.
+
+        See method of parent for more information.
+        """
         return list()
 
 
@@ -531,11 +592,11 @@ class CondGaussianDistribution(CondVAEDistribution):
         """ Creates a CondGaussianDistribution object.
 
         Args:
-            mn_f: A module whose forward function accepts input of size n_smps*d_x and outputs a mean for each sample in a
-                  tensor of size n_smps*d_y
+            mn_f: A module whose forward function accepts input of size n_smps*d_x and outputs a mean for each sample in
+            a tensor of size n_smps*d_y
 
             std_f: A module whose forward function accepts input of sixe n_smps*d and outputs a standard deviation for
-                   each sample of size n_smps*d_y
+            each sample of size n_smps*d_y
 
         """
 
@@ -547,7 +608,7 @@ class CondGaussianDistribution(CondVAEDistribution):
         self.register_buffer('log_2_pi', torch.log(torch.tensor(2*math.pi)))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes conditional mean given samples.
+        """ Computes conditional mean.
 
         Args:
             x: data samples are conditioned on. Of shape n_smps*d_x.
@@ -559,7 +620,7 @@ class CondGaussianDistribution(CondVAEDistribution):
         return self.mn_f(x)
 
     def log_prob(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-        """ Computes log P(y| x).
+        """ Computes log P(y|x).
 
         Args:
             x: Data we condition on.  Of shape n_smps*d_x
@@ -658,40 +719,48 @@ class CondGaussianDistribution(CondVAEDistribution):
         return kl.squeeze()
 
     def form_standard_sample(self, smp):
+        """ Returns a sample in standard form.
+
+        See method of parent for more information.
+        """
         return smp
 
     def form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor:
+        """ Converts between compact and standard sample form.
+
+        See method of parent for more information.
+        """
         return smp
 
     def sample_to(self, smp: object, device: torch.device):
         """ Moves a sample in compact form to a given device.
 
-        This function is provided because different distributions may return samples in arbitrary objects,
-        so a custom function may be needed to move a sample to a device.
-
-        Args:
-            smp: The sample to move.
-
-            device: The device to move the sample to.
-
+        See method of parent for more information.
         """
         return smp.to(device)
 
     def r_params(self):
+        """ Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
+
+        See method of parent for more information.
+        """
         return list(self.parameters())
 
     def s_params(self) -> list:
+        """ Returns an empty list as there are no parameters for optimization with a score method based gradient.
+
+        See method of parent for more information.
+        """
         return list()
 
 
 class CondSpikeSlabDistribution(CondVAEDistribution):
-    """ Represents a condition spike and slab distriubtion. """
+    """ Represents a conditional spike and slab distribution. """
 
     def __init__(self, d: int, spike_d: CondVAEDistribution, slab_d: CondVAEDistribution):
         """ Creates a CondSpikeSlabDistribution object.
 
         Args:
-
             d: The number of variables the spike and slab distribution is over
 
             spike_d: The spike distribution
@@ -705,7 +774,7 @@ class CondSpikeSlabDistribution(CondVAEDistribution):
         self.slab_d = slab_d
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """ Computes  E(y| x).
+        """ Computes  E(y|x).
 
         Args:
             x: Data we condition on.  Of shape n_smps*d_x
@@ -714,7 +783,6 @@ class CondSpikeSlabDistribution(CondVAEDistribution):
 
         Returns:
             mn: Conditional expectation. Of shape n_smps*d_y
-
         """
         n_smps = x.shape[0]
 
@@ -740,7 +808,6 @@ class CondSpikeSlabDistribution(CondVAEDistribution):
             nz_vls: A tensor with the non-zero values.  nz_vls[j,:] contains the value for the j^th non-zero entry in
                     support. In other words, nz_vls gives the non-zero values corresponding to the samples in
                     x[support, :].  If there are no non-zero values this will be None.
-
         """
 
         n_smps = x.shape[0]
@@ -753,7 +820,7 @@ class CondSpikeSlabDistribution(CondVAEDistribution):
         return [n_smps, support, nz_vls]
 
     def log_prob(self, x: torch.Tensor, y: list) -> torch.Tensor:
-        """ Computes log P(y| x).
+        """ Computes log P(y|x).
 
         Args:
             x: Data we condition on.  Of shape n_smps*d_x.
@@ -762,7 +829,6 @@ class CondSpikeSlabDistribution(CondVAEDistribution):
 
         Returns:
             ll: Log-likelihood of each sample.
-
         """
 
         n_smps, support, nz_vls = y
@@ -827,9 +893,17 @@ class CondSpikeSlabDistribution(CondVAEDistribution):
         return [n_smps, support, nz_vls]
 
     def r_params(self) -> list:
+        """ Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
+
+        See method of parent for more information.
+        """
         return self.slab_d.r_params()
 
     def s_params(self) -> list:
+        """ Returns an empty list as there are no parameters for optimization with a score method based gradient.
+
+        See method of parent for more information.
+        """
         return self.spike_d.s_params()
 
 
@@ -925,7 +999,6 @@ class CondMatrixProductDistribution(CondVAEDistribution):
             smp: The sample to move.
 
             device: The device to move the sample to.
-
         """
         return [d.sample_to(s, device) for s, d in zip(smp, self.dists)]
 
@@ -968,7 +1041,6 @@ class CondMatrixProductDistribution(CondVAEDistribution):
 
         Returns:
             kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th sample.
-
         """
 
         n_cols = len(self.dists)
@@ -983,9 +1055,17 @@ class CondMatrixProductDistribution(CondVAEDistribution):
         return kl
 
     def r_params(self):
+        """ Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
+
+        See method of parent for more information.
+        """
         return list(self.parameters())
 
     def s_params(self) -> list:
+        """ Returns an empty list as there are no parameters for optimization with a score method based gradient.
+
+        See method of parent for more information.
+        """
         return list()
 
 
@@ -1013,6 +1093,11 @@ class CondGaussianMatrixProductDistribution(CondMatrixProductDistribution):
     """
 
     def __init__(self, dists: Sequence[CondGaussianDistribution]):
+        """ Creates a new CondGaussianMatrixProductDistribution object.
+
+        Args:
+            dists: Conditional gaussian distributions for each column of the matrix.
+        """
 
         for d in dists:
             if not isinstance(d, CondGaussianDistribution):
@@ -1107,7 +1192,6 @@ class MatrixGammaProductDistribution(CondMatrixProductDistribution):
         """ Creates a new MatrixGammaProductDistribution object.
 
         Args:
-
             shape: The shape of matrices this represents distributions over.
 
             conc_lb: The lower bound that concentration parameters can take on
@@ -1137,25 +1221,6 @@ class MatrixGammaProductDistribution(CondMatrixProductDistribution):
         super().__init__(dists=col_dists)
         self.n_rows = n_rows
 
-    #def forward(self, x: torch.Tensor = None):
-    #    """ Overwrites parent forward so x does not have to be provided. """
-    #    return super().forward(x=torch.zeros([self.n_rows, 1]))
-
-    #def sample(self, x: torch.Tensor = None) -> list:
-    #    """ Overwrites parent sample so x does not have to be provided. """
-    #    return super().sample(x=torch.zeros([self.n_rows, 1]))
-
-    #def log_prob(self, x: torch.Tensor = None, y: Sequence = None) -> torch.Tensor:
-    #    """ Overwrites parent log_prob so x does not have to be provided.
-
-    #    Raises:
-    #        ValueError: If y is None.
-    #   """
-    #    if y is None:
-    #        raise(ValueError('y value cannot be none'))
-    #
-    #    return super().log_prob(x=torch.zeros([self.n_rows, 1]), y=y)
-
 
 class MatrixFoldedNormalProductDistribution(CondMatrixProductDistribution):
     """ Represents a distribution over matrices where each entry is pulled iid from a Folded Normal distribution.
@@ -1177,7 +1242,6 @@ class MatrixFoldedNormalProductDistribution(CondMatrixProductDistribution):
         """ Creates a new MatrixGammaProductDistribution object.
 
         Args:
-
             shape: The shape of matrices this represents distributions over.
 
             mu_lb: The lower bound that mu parameters can take on
@@ -1253,7 +1317,6 @@ class MatrixGaussianProductDistribution(CondGaussianMatrixProductDistribution):
 
             std_lb, std_ub, std_iv: lower & upper bounds for standard deviation values and the initial value
             for the standard deviation for the distribution for each entry.
-
         """
 
         # Generate the distributions for each column
@@ -1287,25 +1350,6 @@ class MatrixGaussianProductDistribution(CondGaussianMatrixProductDistribution):
             init_v = torch.Tensor(init_v)
             init_v = init_v.to(std_device)
             d.std_f.f.v.data = init_v
-
-    #def forward(self, x: torch.Tensor = None) -> torch.Tensor:
-    #    """ Overwrites parent forward so x does not have to be provided. """
-    #    return super().forward(x=torch.zeros([self.n_rows, 1]))
-
-    #def sample(self, x: torch.Tensor = None) -> list:
-    #    """ Overwrites parent sample so x does not have to be provided. """
-    #    return super().sample(x=torch.zeros([self.n_rows, 1]))
-
-    #def log_prob(self, x: torch.Tensor = None, y: Sequence = None) -> torch.Tensor:
-    #    """ Overwrites parent log_prob so x does not have to be provided.
-    #
-    #    Raises:
-    #        ValueError: If y is None.
-    #    """
-    #    if y is None:
-    #        raise(ValueError('y value cannot be none'))
-
-    #    return super().log_prob(x=torch.zeros([self.n_rows, 1]), y=y)
 
 
 class CondMatrixHypercubePrior(CondGaussianMatrixProductDistribution):
@@ -1388,7 +1432,6 @@ class CondMatrixHypercubePrior(CondGaussianMatrixProductDistribution):
         """ Set the mean to a single value everyhwere.
 
         Args:
-
             v: The value to set the mean to
         """
 
@@ -1402,7 +1445,6 @@ class CondMatrixHypercubePrior(CondGaussianMatrixProductDistribution):
         """ Sets the standard deviation to a single value everywhere.
 
         Args:
-
             v: The value to set the standard deviation to
 
         """
@@ -1521,8 +1563,8 @@ class DistributionPenalizer(torch.nn.Module):
     def check_point(self) -> dict:
         """ Returns a dictionary of parameters for the penalizer that should be saved in a check point.
 
-        The idea is that for the purposes of creating a check point, we can save memory by only logging the
-        important parameters of a penalizer.
+        For the purposes of creating a check point, we can save memory by only logging the important parameters of a
+        penalizer.
         """
         raise(NotImplementedError)
 
@@ -1533,7 +1575,6 @@ class DistributionPenalizer(torch.nn.Module):
         parameter should be associated with only one key (though multiple parameters can use the same key).  This
         function will return a list of parameters associated with the requested key.  If no parameters match the
         key an empty list should be returned.
-
         """
         raise(NotImplementedError)
 
@@ -1589,7 +1630,6 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
         """ Creates a new ColumnMeanClusterPenalizer object.
 
         Args:
-
             init_ctrs: Initial centers for each column.  Of shape [n_cols, x_dim]
 
             x: The points at which we evaluate the mean of the distribution. Of shape [n_pts, x_dim].
@@ -1627,9 +1667,13 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
 
          Returns:
              params: A dictionary with the following keys:
+
                 col_ctrs: The value of column centers
+
                 scales: The value of the scales
+
                 last_weight_pen: The value of the last weight penalty computed with the penalizer
+
                 last_scale_pen: The value of the last scale penalty computed with the penalizer
          """
 
@@ -1647,7 +1691,7 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
 
         Args:
             key: The type of parameters that should be returned.  'fast' will return parameters that should be trained
-            with fast learning rates; 'slow' will return parameters that should be trained with slow training weights
+            with fast learning rates; 'slow' will return parameters that should be trained with slow training weights.
 
         Returns:
             params: The list of parameters matching the key
@@ -1700,10 +1744,9 @@ class ColumnMeanClusterPenalizer(DistributionPenalizer):
         return penalty
 
     def __str__(self):
-        """ Returns a string of the current state of the penalizer, including the last weight and scale penalty values. """
+        """ Returns a string of the current state of the penalizer. """
         return ('Weight penalty: ' + str(self.last_weight_pen) +
-                '\n Scale penalty: ' + str(self.last_scale_pen))# +
-                #'\n Centers: \n' + str(self.col_ctrs.t()) + '\n Scales: \n' + str(self.scales.t()))
+                '\n Scale penalty: ' + str(self.last_scale_pen))
 
 
 def gen_columns_mean_cluster_penalizer(n_cols: int, dim_ranges: np.ndarray, n_pts_per_dim: Sequence[int],
