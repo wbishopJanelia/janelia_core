@@ -396,7 +396,8 @@ Functions
 
    A distribution over a set of conditionally independent Gamma random variables.
 
-   We use the convention of parameterizing a Gamma distribution with concentration and rate parameters.
+   We use the convention of parameterizing a Gamma distribution with concentration (also refered to as shape) and
+   rate parameters.
 
    Much of the implementation here has been taken from torch's own Gamma distribution.
 

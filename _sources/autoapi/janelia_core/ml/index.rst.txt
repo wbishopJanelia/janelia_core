@@ -26,5 +26,6 @@ Submodules
    torch_distributions/index.rst
    torch_parameter_penalizers/index.rst
    utils/index.rst
+   wandering_modules/index.rst
 
 

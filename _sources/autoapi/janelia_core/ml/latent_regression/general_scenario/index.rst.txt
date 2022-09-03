@@ -1,0 +1,203 @@
+:py:mod:`janelia_core.ml.latent_regression.general_scenario`
+============================================================
+
+.. py:module:: janelia_core.ml.latent_regression.general_scenario
+
+.. autoapi-nested-parse::
+
+   This provides high-level tools for working with latent regression models of multiple groups of input
+   driving multiple groups of output.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.ml.latent_regression.general_scenario.calc_projs_given_post_modes
+
+
+
+.. py:class:: GeneralInputOutputScenario(input_dims: numpy.ndarray, output_dims: numpy.ndarray, n_input_modes: Sequence[int], n_output_modes: Sequence[int], shared_m_core: torch.nn.Module, use_scales: bool = True, use_offsets: bool = True, direct_pairs: Sequence[tuple] = None, p_mode_point_ests: Union[bool, Sequence[bool]] = False, u_mode_point_ests: Union[bool, Sequence[bool]] = False, scales_point_ests: Union[bool, Sequence[bool]] = False, offsets_point_ests: Union[bool, Sequence[bool]] = False, direct_mappings_point_ests: Union[bool, Sequence[bool]] = False, psi_point_ests: Union[bool, Sequence[bool]] = False, fixed_p_modes: Union[None, Sequence[tuple]] = None, fixed_u_modes: Union[None, Sequence[tuple]] = None, fixed_scales: Union[None, Sequence[tuple]] = None, fixed_offsets: Union[None, Sequence[tuple]] = None, fixed_direct_mappings: Union[None, Sequence[tuple]] = None, fixed_psi: Union[None, Sequence[tuple]] = None)
+
+   Class for working with latent regression models of multiple groups of input and output across multiple subjects.
+
+   In particular, we assume all subjects:
+
+       1) Have the same input groups (but the number of variables in each group can vary from subject to
+       subject)
+
+       2) Have the same output groups (but again, the number of variables in each group can vary from subject to
+       subject).
+
+       3) We also assume that m-module (the mapping from low-dimenaional input to low-dimensional output) has two
+       components for each subject: a component that is shared between all subjects and a component that is unique to
+       each subject, where the subject-unique component is applied to the low-dimensioanal projections of inputs and
+       it's output is passed to the shared-component.
+
+   Note: When creating the initial scenario, subjects are entered in a particular order. (e.g., the number of variables
+   in input and output groups for each subject).  This ordering corresponds to their index, s_i, which is used in
+   multiple functions.
+
+
+
+   Creates a GenInputOutputScenario object.
+
+   The user had the option estimate point estimates over parameters or full posterior distributions. For a given
+   parameter, the user can specify what he or she would like to do by using the appropriate '*_point_ests'
+   argument. This argument can be specified in two ways.  Providing a single boolean value indicates point
+   estimates should or should not be used for all groups for that parameter.  Alternatively, the user can specify
+   a sequence of boolean values indicatinb which groups point estimates should be used for.
+
+   Args:
+
+       input_dims: Dimensions of input groups of variables for each subject.  input_dims[s, g] is the number of
+       input variables in group g for subject s
+
+       ouput_dims: Dimensions of output groups of variables for each subject.  output_dims[s, h] is the number of
+       output variables in group h for subject s
+
+       n_input_modes: n_input_modes[g] is the number of modes for input group g
+
+       n_output_modes: n_output_modes[h] is the number of modes for output group h
+
+       shared_m_core: The portion of the m-module that is shared between subjects.  This should be a module which
+       receives input in the form of a sequence the same length as the number of input groups and produces output
+       which is also a sequence with a length equal to the number of output groups.  The dimensionality of the
+       input and output tensors should match the number of modes of the respective input and output groups.
+
+       use_scales: True if models should including scaling of output
+
+       use_offsets: True if models should include offsets applied to output
+
+       direct_pairs: Pairs of input and output groups which have direction connections.
+
+       p_mode_point_ests: Indicates if point estimtates should be used for the p modes.  See note above on
+       specifying the form of this argument.
+
+       u_mode_point_ests: Indicates if point estimtates should be used for the u modes.  See note above on
+       specifying the form of this argument.
+
+       scales_point_ests: Indicates if point estimtates should be used for the scales.  See note above on
+       specifying the form of this argument.
+
+       offsets_point_ests: Indicates if point estimtates should be used for the offsets.  See note above on
+       specifying the form of this argument.
+
+       direct_mappings_point_ests: Indicates if point estimtates should be used for the direct mappings.
+       If provided as a list, the i^th entry indicates if the the direct mapping for the i^th entry in
+       direct_pairs should be estimated with a point estimate.
+
+       psi_point_ests: Indicates if point estimtates should be used for the psi parameters.  See note above on
+       specifying the form of this argument.
+
+       fixed_p_modes: A sequence of tuples of the form (g, p_g) where g is the index of an input group and
+       p_g is a tensor that should be used as fixed (non-learnable) modes for this input group across all subjects.
+
+       fixed_u_modes: A sequence of tuples specifying fixed output modes in the same manner as
+       fixed_p_modes.
+
+       fixed_scales: A sequence of scales of the form (h, t_h) where h is the index of an output group and
+       t_h is a tensor of scales that should be used as fixed (non-learnable) scale parameter for that output
+       group across all subjects.
+
+       fixed_offsets: A sequence of tuples specifying fixed offset parameters, in the same form as fixed_scales.
+
+       fixed_direct_mappings: A sequence of tuples specifying fixed direct pair mappings of the form (i, t_i)
+       where i is the index into direct pairs giving the pair the mapping is for and t_i is the fixed mapping
+       that should be used.
+
+       fixed_psi: A sequence of tuples specifying fixed psi parameters, in the same form as fixed scales.
+
+
+   .. py:method:: gen_subj_mdl(self, s_i: int, specific_s: Sequence[torch.nn.Module], specific_m: torch.nn.Module = None, w_gain: float = 1.0, sc_std: float = 0.01, dm_std: float = 1.0, noise_range: Sequence[float] = [0.1, 0.2]) -> janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel
+
+      Generates a subject model for a particular subject.
+
+      Args:
+
+          s_i: The index of the subject to generate a subject model for.
+
+          specific_s: specific_s[h] is the module to be applied to the output group h values after they have been
+          projected back into the high-dimensional space (i.e., multiplied by u_h).
+
+          specific_m: An optional module which can apply subject specific transformations to the low-dimensional
+          projections of the input data before passing it to the shared portion of the m-module. This can be useful,
+          for example, if wanting to account for scales and shifts in the projected data among subjects. This should
+          be a module which accepts a sequence of tensors, each tensor corresponding to the projected data from one
+          output group and outputs a sequence of tensors, each tensor corresponding to the transformed data for one
+          output group.  If this is None, no subject specific transformation will be included.
+
+          w_gain, sc_std, dm_std, noise_range: Value to provide to SharedLatentRegModel.  See documentation for
+          that object.
+
+      Returns:
+
+          mdl: The requested subject model
+
+
+   .. py:method:: gen_linear_specific_m(self, scale_mn=0.001, scale_std=1e-05, offset_mn=0.0, offset_std=1e-05) -> torch.nn.Module
+
+      Generates a subject-specific component of the m-module for non-negative scales and offsets.
+
+      Args:
+          scale_mn, scale_std, offset_mn, offset_std: the mean and standard deviaton of the normal distribution when
+          drawing random initial values for the scale and offset.
+
+      Returns:
+          m: The subject-specific component.
+
+
+
+   .. py:method:: gen_linear_specific_s(self, s_i: int, scale_mn=1.0, scale_std=0.01, offset_mn=0.0, offset_std=1e-06) -> List[torch.nn.Module]
+
+      Generates subject-specific sequence of s-modules which apply an element-wise non-negative scale and bias.
+
+      Args:
+
+          s_i: The subject to generate the s-modules for.
+
+          scale_mn, scale_std, offset_mn, offset_std: the mean and standard deviaton of the normal distribution when
+          drawing random initial values for the scale and offset.
+
+
+
+.. py:function:: calc_projs_given_post_modes(s_vi_collection: janelia_core.ml.latent_regression.vi.SubjectVICollection, input_modules: torch.nn.ModuleList, data: Sequence[janelia_core.ml.datasets.TimeSeriesBatch], apply_subj_specific_m: bool = False) -> Tuple[Sequence, Sequence]
+
+   Calculates values of projected data, given posterior distributions, over a model's modes.
+
+   This function will project data using the means of posterior distributions over modes and will calculate
+   projected values immediately after they are projected to the low-d space.
+
+   Args:
+
+       s_vi_collection: The vi collection to produce projections for
+
+       data: Data to project. x[g] is input data for group g
+
+       input_modules: Input modules to apply to input before projecting
+
+       apply_subj_specific_m: True if subject-specific m components of the m-module should be applied after the
+       projections
+
+   Returns:
+
+       p_projs: The projections onto the p-modes (potentially after the subject-specific m module has been applied)
+
+       u_projs: The projections after having been transformed through the m-module.
+
+
+

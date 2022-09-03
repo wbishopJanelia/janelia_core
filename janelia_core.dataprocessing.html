@@ -1,0 +1,391 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>janelia_core.dataprocessing package &#8212; janelia_core 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="janelia-core-dataprocessing-package">
+<h1>janelia_core.dataprocessing package<a class="headerlink" href="#janelia-core-dataprocessing-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-janelia_core.dataprocessing.dataset">
+<span id="janelia-core-dataprocessing-dataset-module"></span><h2>janelia_core.dataprocessing.dataset module<a class="headerlink" href="#module-janelia_core.dataprocessing.dataset" title="Permalink to this headline">¶</a></h2>
+<p>Tools for working with imaging datasets.</p>
+<p>William Bishop
+<a class="reference external" href="mailto:bishopw&#37;&#52;&#48;hhmi&#46;org">bishopw<span>&#64;</span>hhmi<span>&#46;</span>org</a></p>
+<dl class="py class">
+<dt id="janelia_core.dataprocessing.dataset.DataSet">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.dataprocessing.dataset.</code><code class="sig-name descname">DataSet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ts_data</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">metadata</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#DataSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.DataSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A class for holding a basic data set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ts_data</strong> – <p>A dictionary of time series data.  Each entry in the dictionary is one set of data (with a user
+specified key).  Each set of data is itself stored in a dictionary with two entries.  The fist with
+the key ‘ts’ is a 1-d numpy.ndarray with timestamps.  The second ‘vls’ can be:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>A list, with one entry per time point</p></li>
+<li><p>A numpy array of data, with the first dimension corresponding to time</p></li>
+<li><p>A janelia_core.fileio.data_handlers.NDArrayHandler object</p></li>
+</ol>
+</div></blockquote>
+</p></li>
+<li><p><strong>data is none the data attribute of the created object will be an empty dictionary.</strong> (<em>If</em>) – </p></li>
+<li><p><strong>metadata</strong> – A dictionary of metadata. If meta_data is None, the meta_data attribute of the created object will be
+a empty dictionary.</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments that will be added as attributes of the object.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.DataSet.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#DataSet.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.DataSet.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new Dataset object from a dictioary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>d</strong> – A dictionary with the keys ‘ts_data’ and ‘metadata’</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new DataSet object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.DataSet.has_ts_data">
+<code class="sig-name descname">has_ts_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#DataSet.has_ts_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.DataSet.has_ts_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if any time series data has non-zero data points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.DataSet.select_time_range">
+<code class="sig-name descname">select_time_range</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start_time</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">end_time</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#DataSet.select_time_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.DataSet.select_time_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Down selects data in a time range.</p>
+<p>The start and end times are inclusive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_time</strong> – The start time of the selection.</p></li>
+<li><p><strong>end_time</strong> – The end time of the selection.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.DataSet.select_ts_data">
+<code class="sig-name descname">select_ts_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">sel_inds</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#DataSet.select_ts_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.DataSet.select_ts_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects data by index in a given dictionary of ts_data.</p>
+<p>This function will allow selection to work seamlessly no matter the
+type of ‘vls’ in the dictionary data is being pulled from.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> – The key of the ts_data to select data from.</p></li>
+<li><p><strong>sel_inds</strong> – A numpy array of indices to select.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new dictionary with the selected data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.DataSet.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#DataSet.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.DataSet.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a dictionary from a Dataset object.</p>
+<p>This is useful for saving the object in a manner which will still allow it to be loaded in the future should
+the class definition of Dataset change.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dictionary with the object data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>d</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.DataSet.update_image_folder">
+<em class="property">static </em><code class="sig-name descname">update_image_folder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset</span></em>, <em class="sig-param"><span class="n">img_field</span></em>, <em class="sig-param"><span class="n">new_base</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#DataSet.update_image_folder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.DataSet.update_image_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the folder images are stored in the path information for image folder.</p>
+<p>When images are stored as paths in a ts_data dictionary, this function can be used to
+update the part of the path specifying the folder they are stored in.  This is useful
+when using a dataset across computers/operating systems where we need to specify that
+images are stored in difference locations.</p>
+<p>This function expects images to be saved in dataset.ts_data[img_field][‘vls’] with one
+dictionary per image.  Each dictionary should have a ‘file’ field with the path to each
+image.  This is the field that will be udpated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> – The dataset to update</p></li>
+<li><p><strong>img_field</strong> – The ts_data entry with the image information stored.</p></li>
+<li><p><strong>new_base</strong> – The folder the images are stored in.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.dataprocessing.dataset.PointDataset">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.dataprocessing.dataset.</code><code class="sig-name descname">PointDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ts_data</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">metadata</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">point_groups</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#PointDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.PointDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.dataprocessing.dataset.DataSet" title="janelia_core.dataprocessing.dataset.DataSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">janelia_core.dataprocessing.dataset.DataSet</span></code></a></p>
+<p>A dataset object for holding datasets with timeseries information associated with points in space.</p>
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.PointDataset.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#PointDataset.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.PointDataset.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new PointDataset object from a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>d</strong> – A dictionary with the keys ‘ts_data’, ‘metadata’, ‘roi_groups’ and other attributes to add to the object</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new PointDataset object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.PointDataset.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#PointDataset.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.PointDataset.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a dictionary from a Dataset object.</p>
+<p>This is useful for saving the object in a manner which will still allow for it to be loaded in the
+future should the class definition change.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dictionary with the object data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>d</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.dataprocessing.dataset.ROIDataset">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.dataprocessing.dataset.</code><code class="sig-name descname">ROIDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ts_data</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">metadata</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">roi_groups</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#ROIDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.ROIDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.dataprocessing.dataset.DataSet" title="janelia_core.dataprocessing.dataset.DataSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">janelia_core.dataprocessing.dataset.DataSet</span></code></a></p>
+<p>A dataset object for holding datasets which include roi information.</p>
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.ROIDataset.down_select_rois">
+<code class="sig-name descname">down_select_rois</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">roi_groups</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">roi_inds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#ROIDataset.down_select_rois"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.ROIDataset.down_select_rois" title="Permalink to this definition">¶</a></dt>
+<dd><p>Down select the rois in a dataset.</p>
+<p>ROIs will be removed from dataset.rois and any data for the removed ROIS will
+also be removed from the appropriate ts_data entries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>roi_groups</strong> – The roi groups of the rois to extract.  Typically, this will only be a single</p></li>
+<li><p><strong>However</strong><strong>, </strong><strong>sometimes the same rois might be represented twice in the dataset</strong><strong> (</strong><strong>e.g.</strong><strong>, </strong><strong>rois</strong> (<em>group.</em>) – </p></li>
+<li><p><strong>and after registration</strong><strong>)</strong><strong>, </strong><strong>and we want to remove both representations.</strong> (<em>before</em>) – </p></li>
+<li><p><strong>roi_inds</strong> – The indices in dataset.roi_groups[roi_group].rois to keep.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.ROIDataset.extract_rois">
+<code class="sig-name descname">extract_rois</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">roi_group</span></em>, <em class="sig-param"><span class="n">roi_inds</span></em>, <em class="sig-param"><span class="n">labels</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#ROIDataset.extract_rois"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.ROIDataset.extract_rois" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts rois from a dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>roi_group</strong> – The roi group of the rois to extract</p></li>
+<li><p><strong>roi_inds</strong> – The indices of the dataset.rois to extract</p></li>
+<li><p><strong>labels</strong> – A list of labels of tsdata for the rois to pull out.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of the extracted rois.  Each entry as an ROI object.
+These objects will have fields added holding the ts_data for that ROI.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>rois</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.ROIDataset.form_composite_rois">
+<code class="sig-name descname">form_composite_rois</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">roi_groups</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em>, <em class="sig-param"><span class="n">roi_weights</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em><span class="sig-paren">)</span> &#x2192; janelia_core.dataprocessing.roi.ROI<a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#ROIDataset.form_composite_rois"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.ROIDataset.form_composite_rois" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forms composite rois as linear combinations of rois in a dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>roi_groups</strong> – A list of roi groups to use in forming the composite roi.</p></li>
+<li><p><strong>roi_weights</strong> – a list of weights.  roi_weights[i] is a np.ndarray of weights for</p></li>
+<li><p><strong>rois in roi_groups</strong><strong>[</strong><strong>i</strong><strong>]</strong><strong>  Weights should be listed in the same order as rois in the group</strong> (<em>the</em>) – </p></li>
+<li><p><strong>are for.</strong> (<em>they</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The composite roi</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>comp_roi</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.ROIDataset.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#ROIDataset.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.ROIDataset.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new ROIDataset object from a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>d</strong> – A dictionary with the keys ‘ts_data’, ‘metadata’, ‘roi_groups’ and other attributes to add to the object</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new ROIDataset object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.ROIDataset.get_rois_center_of_mass">
+<code class="sig-name descname">get_rois_center_of_mass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">roi_group</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">roi_inds</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#ROIDataset.get_rois_center_of_mass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.ROIDataset.get_rois_center_of_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the center of mass of requested rois.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>roi_group</strong> – The roi group to calculate centers for</p></li>
+<li><p><strong>roi_inds</strong> – The indices in dataset.roi_groups[roi_group].rois of the rois to calculate</p></li>
+<li><p><strong>for.</strong> (<em>centers</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The centers.  ctrs[i,:] is the center for the roi specified by roi_inds[i] in the input.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ctrs</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.dataprocessing.dataset.ROIDataset.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><a class="reference internal" href="_modules/janelia_core/dataprocessing/dataset.html#ROIDataset.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.dataset.ROIDataset.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a dictionary from a Dataset object.</p>
+<p>This is useful for saving the object in a manner which will still allow it to be loaded in the future should
+the class definition of Dataset change.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dictionary with the object data.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>d</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-janelia_core.dataprocessing">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-janelia_core.dataprocessing" title="Permalink to this headline">¶</a></h2>
+<p>Basic classes and functions for processing large datasets.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">janelia_core</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, William Bishop.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/janelia_core.dataprocessing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

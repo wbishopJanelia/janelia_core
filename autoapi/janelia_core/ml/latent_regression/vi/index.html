@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.latent_regression.vi &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+        <script src="../../../../../_static/jquery.js"></script>
+        <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/doctools.js"></script>
+        <script src="../../../../../_static/language_data.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.latent_regression.vi</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../_sources/autoapi/janelia_core/ml/latent_regression/vi/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.latent_regression.vi">
+<span id="janelia-core-ml-latent-regression-vi"></span><h1><a class="reference internal" href="#module-janelia_core.ml.latent_regression.vi" title="janelia_core.ml.latent_regression.vi"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.latent_regression.vi</span></code></a><a class="headerlink" href="#module-janelia_core.ml.latent_regression.vi" title="Permalink to this headline"></a></h1>
+<p>Tools for fitting latent regression models with variational inference.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.vi.PriorCollection" title="janelia_core.ml.latent_regression.vi.PriorCollection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PriorCollection</span></code></a></p></td>
+<td><p>Holds prior distributions when fitting models with variational inference.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.vi.SubjectVICollection" title="janelia_core.ml.latent_regression.vi.SubjectVICollection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SubjectVICollection</span></code></a></p></td>
+<td><p>Holds data, likelihood models and posteriors for fitting data to a single subject with variational inference.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter" title="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiSubjectVIFitter</span></code></a></p></td>
+<td><p>Object for fitting a collection of latent regression models with variational inference.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.vi.format_output_list" title="janelia_core.ml.latent_regression.vi.format_output_list"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_output_list</span></code></a>(base_str: str, it_str: str, vls: Sequence[float], inds: Sequence[int])</p></td>
+<td><p>Produces a string to display a list of outputs.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.vi.concatenate_check_points" title="janelia_core.ml.latent_regression.vi.concatenate_check_points"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concatenate_check_points</span></code></a>(check_points: Sequence[dict], params: Sequence[dict]) → List</p></td>
+<td><p>Concatenates lists of checkpoints and computes total epochs to each checkpoint from multiple rounds of fitting.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.vi.eval_fits" title="janelia_core.ml.latent_regression.vi.eval_fits"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eval_fits</span></code></a>(s_collections: Sequence[SubjectVICollection], input_modules: Sequence[torch.nn.ModuleList], data: janelia_core.ml.datasets.TimeSeriesBatch, batch_size: int = 100, metric: Callable = None, return_preds: bool = True, sample: bool = False) → List</p></td>
+<td><p>Measures model fits on a given set of data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.vi.predict" title="janelia_core.ml.latent_regression.vi.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a>(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleList, data: janelia_core.ml.datasets.TimeSeriesBatch, batch_size: int = 100, sample: bool = False) → List[numpy.ndarray]</p></td>
+<td><p>Predicts output given input from a model with posterior distributions over parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.vi.predict_with_truth" title="janelia_core.ml.latent_regression.vi.predict_with_truth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_with_truth</span></code></a>(s_collection: SubjectVICollection, input_modules: torch.nn.ModuleList, data: janelia_core.ml.datasets.TimeSeriesBatch, batch_size: int = 100, time_grp: int = None, sample: bool = False)</p></td>
+<td><p>Predicts output for a model, using posterior over modes, and including true data in output for reference.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.vi.format_output_list">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.vi.</code><code class="sig-name descname">format_output_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base_str</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">it_str</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">vls</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#format_output_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.format_output_list" title="Permalink to this definition"></a></dt>
+<dd><p>Produces a string to display a list of outputs.</p>
+<p>String will be of the format:</p>
+<blockquote>
+<div><p>base_str + ‘ ‘ + it_str+inds[0] + ‘: ‘ + str(vls[0]) + ‘, ‘ + it_str+inds[1] + ‘: ‘ + str(vls[1]) + …</p>
+</div></blockquote>
+<dl>
+<dt>Args:</dt><dd><p>base_str: The base string that preceeds everything else on the string</p>
+<p>it_str: The string that should come befor each printed value</p>
+<p>vls: The values that should be printed</p>
+<p>inds: The indices to associate with each printed value</p>
+</dd>
+<dt>Returns:</dt><dd><p>f_str: The formatted string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.vi.concatenate_check_points">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.vi.</code><code class="sig-name descname">concatenate_check_points</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">check_points</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; List<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#concatenate_check_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.concatenate_check_points" title="Permalink to this definition"></a></dt>
+<dd><p>Concatenates lists of checkpoints and computes total epochs to each checkpoint from multiple rounds of fitting.</p>
+<dl>
+<dt>Args:</dt><dd><p>check_points: check_points[i] is a sequence of check points produced by a call to
+MultiSubjectVIFitter.fit().  It is assumed that entries in check_points match the order they were produced
+in the actual fitting.</p>
+<p>params: params[i] is a dictionary for the call to MultiSubjectVIFitter.fit() that produced the checkpoints
+in check_points[i].  Is should have the fields:</p>
+<blockquote>
+<div><p>cp_epochs: For the epochs that the checkpoints were created at
+n_epochs: For the total number of epochs that fitting was run for</p>
+</div></blockquote>
+</dd>
+</dl>
+<p>Returns:</p>
+<blockquote>
+<div><p>conc_check_points: The concatenated list of check points</p>
+<p>cp_epochs: The total accumulated epochs that were run to get to each check point.</p>
+<dl class="simple">
+<dt>orig_cp_fits: orig_cp_fits[0,i] is the index of the fit for the i^th concatenated checkpoint and</dt><dd><p>orig_cp_fits[1,i] is the index of this check point in the logs for that fit.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.vi.PriorCollection">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.vi.</code><code class="sig-name descname">PriorCollection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p_dists</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">u_dists</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">psi_dists</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">scale_dists</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">offset_dists</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">direct_mapping_dists</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#PriorCollection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.PriorCollection" title="Permalink to this definition"></a></dt>
+<dd><p>Holds prior distributions when fitting models with variational inference.</p>
+<p>This object offers convenience functions for getting all the parameters for the priors as well as moving the
+distributions to different devices.</p>
+<p>Creates a new PriorCollection object.</p>
+<p>When specifying a prior distribution over a parameter, the user can specify either a CondVAEDistribution object,
+which will be used if posterior distributions are fit over the parameter.  Alternatively, if point estimates
+will be fit over the parameter, the user can provide the value None.  E.g., if a distribution will be fit over
+the first input group modes but not the second p_dists would be set to [d, None], where d is a
+CondVAEDistribution object.</p>
+<dl>
+<dt>Args:</dt><dd><p>p_dists: Prior distributions over p modes.</p>
+<p>u_dists: Prior distributions over u modes.</p>
+<p>psi_dists: Prior distributions over variance parameters.</p>
+<p>scale_dists: Prior distributions over scale parameters.  If scale parameters are not used in subject
+models, set this to None.</p>
+<p>offset_dists: Prior distributions over offset parameters.  If offset parameters are not use in subject
+models, set this to None.</p>
+<p>direct_mapping_dists: Prior distributions over direct mappings.  direct_mapping_dists[i] should be the
+prior over the direct mappings in direct_pairs[i] in subject  models.  If direct mappings are not used,
+set this to None.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.PriorCollection.get_used_devices">
+<code class="sig-name descname">get_used_devices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#PriorCollection.get_used_devices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.PriorCollection.get_used_devices" title="Permalink to this definition"></a></dt>
+<dd><p>Returns all devices that priors are on.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.PriorCollection.r_params">
+<code class="sig-name descname">r_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>torch.nn.parameter.Parameter<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#PriorCollection.r_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.PriorCollection.r_params" title="Permalink to this definition"></a></dt>
+<dd><p>Gets parameters of all modules for which gradients can be estimated with the reparameterization trick.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.PriorCollection.s_params">
+<code class="sig-name descname">s_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>torch.nn.parameter.Parameter<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#PriorCollection.s_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.PriorCollection.s_params" title="Permalink to this definition"></a></dt>
+<dd><p>Gets parameters of all modules for which gradients can be estimated with the score method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.PriorCollection.to">
+<code class="sig-name descname">to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.device<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#PriorCollection.to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.PriorCollection.to" title="Permalink to this definition"></a></dt>
+<dd><p>Moves all distributions in the collection to a specified device.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.vi.SubjectVICollection">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.vi.</code><code class="sig-name descname">SubjectVICollection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s_mdl</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel" title="janelia_core.ml.latent_regression.subject_models.LatentRegModel">janelia_core.ml.latent_regression.subject_models.LatentRegModel</a></span></em>, <em class="sig-param"><span class="n">p_dists</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">u_dists</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">psi_dists</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../datasets/index.html#janelia_core.ml.datasets.TimeSeriesBatch" title="janelia_core.ml.datasets.TimeSeriesBatch">janelia_core.ml.datasets.TimeSeriesBatch</a></span></em>, <em class="sig-param"><span class="n">input_grps</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">output_grps</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">props</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">p_props</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">u_props</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">psi_props</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">scale_dists</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">offset_dists</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">direct_mappings_dists</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">scale_props</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">offset_props</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">direct_mapping_props</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">min_var</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#SubjectVICollection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.SubjectVICollection" title="Permalink to this definition"></a></dt>
+<dd><p>Holds data, likelihood models and posteriors for fitting data to a single subject with variational inference.</p>
+<p>This object offers convenience functions to get all the trainable parameters for a subject model and its posteriors
+as well as moving everything needed for fitting for that subject to different devices.</p>
+<p>Creates a new SubjectVICollection object.</p>
+<p>When specify the distribution over a parameter of the model, the user can specify either (1) a
+janelia_core.ml.torch_distributions.CondVAEDistribution object or (2) None.  Specifying a distribution
+means that distribution will be used as the posterior distribution over the parameter for fitting.  Specifying
+None, means that a distribution won’t be fit for that parameter.  Instead, a point estimate will be fit by
+directly optimizing the value of the parameter in the subject model.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_mdl: The likelihood model for the subject.</p>
+<p>p_dists: The posterior distributions for the p modes.</p>
+<p>u_dists: The posterior distributions for the u modes.</p>
+<p>psi_dists: The posterior distributions for psi parameters.</p>
+<p>data: Data for the subject.</p>
+<p>input_grps: input_grps[g] is the index into data.data for the g^th input group</p>
+<p>output_grps: output_grps[h] is the index into data.data for the h^th output group</p>
+<p>props: props[i] is a tensor of properties.  If there are no properties, this should be None.</p>
+<p>p_props: p_props[g] is the index into props for the properties for the modes for the g^th input group.  If
+there are no distributions over the modes for this group, p_props[g] should be None. p_props[g] should also
+be None if there are distributions for these modes but they are not conditioned on anything.</p>
+<p>u_props:  p_props[h] is the index into props for the properties for the modes for the h^th output group,
+same format as u_props.</p>
+<p>psi_props:  psi_props[h] is the index into props for the properties for the variances for the h^th output
+group, same format as u_props.</p>
+<p>scale_dists: The posterior distributions for scale parameters. If scales are not used in the model,
+set to None.</p>
+<p>offset_dists: The posterior distributions for offset parameters, same form as scale_dists.</p>
+<p>direct_mappings_dists: Distributions over direct mappings.  If there are no direct mappings in the model,
+this should be None.  If there are direct mappings, direct_mapping_dists[i] is the distribution over
+s_mdl.direct_mappings[i].</p>
+<p>scale_props:  scale_props[h] is the index into props for the properties for the scales for the h^th output
+group, same format as u_props.</p>
+<p>offset_props:  offset_props[h] is the index into props for the properties for the offsets for the h^th output
+group, same format as u_props.</p>
+<p>direct_mapping_props: direct_mapping_props[i] is the index into props for the properties for the i^th
+direct mapping, same format as u_props</p>
+<p>min_var: min_var[h] is the minimum variance for the additive noise variables for output group h. If
+set to None, min_var for all output groups will be set to .01.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.SubjectVICollection.trainable_parameters">
+<code class="sig-name descname">trainable_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>torch.nn.parameter.Parameter<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#SubjectVICollection.trainable_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.SubjectVICollection.trainable_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Returns all trainable parameters for the collection.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>params: The list of parameters.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.SubjectVICollection.to">
+<code class="sig-name descname">to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.device<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">distribute_data</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#SubjectVICollection.to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.SubjectVICollection.to" title="Permalink to this definition"></a></dt>
+<dd><p>Moves all relevant attributes of the collection to the specified device.</p>
+<p>Note that by default fitting data will not be moved to the device.</p>
+<dl>
+<dt>Args:</dt><dd><p>device: The device to move attributes to.</p>
+<p>distribute_data: True if fitting data should be moved to the device as well</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.vi.</code><code class="sig-name descname">MultiSubjectVIFitter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s_collections</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#janelia_core.ml.latent_regression.vi.SubjectVICollection" title="janelia_core.ml.latent_regression.vi.SubjectVICollection">SubjectVICollection</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">prior_collection</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#janelia_core.ml.latent_regression.vi.PriorCollection" title="janelia_core.ml.latent_regression.vi.PriorCollection">PriorCollection</a></span></em>, <em class="sig-param"><span class="n">input_modules</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.nn.ModuleList<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">penalizers</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Sequence<span class="p">[</span><a class="reference internal" href="../../torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer" title="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer">janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer</a><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter" title="Permalink to this definition"></a></dt>
+<dd><p>Object for fitting a collection of latent regression models with variational inference.</p>
+<p>Creates a new MultiSubjectVIFitter object.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_collections: A set of SubjectVICollections to use when fitting data.</p>
+<p>prior_collection: The prior collection to use when fitting data.</p>
+<p>input_modules: Contains modules to apply to inputs before they are passed to subject models.  If None,
+no input modules will be used.  If a list, the g^th module is the module to apply to the input for
+input group g.  If no module should be applied to a group, the entry for that group should be None.</p>
+<p>penalizers: Parameter penalizers that will be used when fitting.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.create_check_point">
+<code class="sig-name descname">create_check_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">inc_penalizers</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter.create_check_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.create_check_point" title="Permalink to this definition"></a></dt>
+<dd><p>Returns copies of subject vi collections, priors as well as (optionally) penalizer parameters.</p>
+<dl>
+<dt>Args:</dt><dd><p>inc_penalizers: True if copies of penalizer parameters should be returned.</p>
+</dd>
+<dt>Returns:</dt><dd><p>cp_dict: A dictionary with the following keys:</p>
+<blockquote>
+<div><p>s_collections: Copies of the subject collections, with data and properties removed</p>
+<p>prior_collection: Copy of the prior collection</p>
+<p>input_modules: Copy of input modules.</p>
+<p>parameter_penalizer_dicts: If penalizer parameters are requested, then parameter_penalizer_dicts[i] is
+the dictionary witch check point parameters for the i^th parameter penalizer, where the ordering of
+penalizers is the same as when parameter penalizers were provided at the time of the creation of the
+Fitter object.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.distribute">
+<code class="sig-name descname">distribute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">devices</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Union<span class="p">[</span>torch.device<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">s_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">distribute_data</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter.distribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.distribute" title="Permalink to this definition"></a></dt>
+<dd><p>Distributes priors, subject collections and penalizers across devices.</p>
+<dl>
+<dt>Args:</dt><dd><p>devices: Devices that priors and subject collections should be distributed across.</p>
+<p>s_inds: Indices into self.s_collections for subject models which should be distributed across devices.
+If none, all subject models will be distributed.</p>
+<p>distribute_data: True if all training data should be distributed to devices.  If there is enough
+device memory, this can speed up fitting.  If not, set this to false, and batches of data will
+be sent to the device for each training iteration.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.trainable_parameters">
+<code class="sig-name descname">trainable_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">s_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">get_prior_params</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; <span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter.trainable_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.trainable_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Gets all trainable parameters for fitting.</p>
+<p>This function returns separate parameters for penalizer parameters and all other parameters, to faciltate
+applying different learning rates to the penalizer parameters.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_inds: Specifies the indices of subjects that will be fit.  Subject indices correspond to their
+original order in s_collections when the fitter was created. If None, all subjects used.</p>
+<p>get_prior_params: True if parameters of priors should be included in the set of returned parameters</p>
+</dd>
+<dt>Returns:</dt><dd><p>base_params: Parameters of priors, posteriors, input modules and subject models</p>
+<p>penalizer_params: Parameters of any penalizers</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.get_penalizer_params">
+<code class="sig-name descname">get_penalizer_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">keys</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter.get_penalizer_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.get_penalizer_params" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of penalizer parameters, optionally filtering by key.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>keys: If provided, either a string of a single key that returned parameters should match or a
+sequence of keys parameters can match.  Any parameters not matching the requested key(s), will
+not be returned.  If keys is None, all penalizer parameters will be returned.</p>
+</dd>
+<dt>Returns:</dt><dd><p>params: A list of the requested parameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.generate_batch_smp_inds">
+<code class="sig-name descname">generate_batch_smp_inds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">n_batches</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">s_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>List<span class="p">[</span>numpy.ndarray<span class="p">]</span><span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter.generate_batch_smp_inds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.generate_batch_smp_inds" title="Permalink to this definition"></a></dt>
+<dd><p>Generates indices of random mini-batches of samples for each subject.</p>
+<dl>
+<dt>Args:</dt><dd><p>n_batches: The number of batches to break the data up for each subject into.</p>
+<p>s_inds: Specifies the indices of subjects that will be fit.  Subject indices correspond to their
+original order in s_collections when the fitter was created. If None, s_inds = range(n_subjects).</p>
+</dd>
+<dt>Returns:</dt><dd><p>batch_smp_inds: batch_smp_inds[i][j] is the sample indices for the j^th batch for subject s_inds[i]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.get_used_devices">
+<code class="sig-name descname">get_used_devices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter.get_used_devices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.get_used_devices" title="Permalink to this definition"></a></dt>
+<dd><p>Lists any device currently used for fitting.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>devices: The list of devices parameters are on in.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">n_epochs</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">n_batches</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">learning_rates</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">adam_params</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">s_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fix_priors</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">enforce_priors</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">update_int</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">print_opts</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cp_epochs</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cp_penalizers</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; <span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><span class="p">, </span>Union<span class="p">[</span>List<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.fit" title="Permalink to this definition"></a></dt>
+<dd><p>Args:</p>
+<blockquote>
+<div><p>n_epochs: The number of epochs to run fitting for.</p>
+<p>n_batches: The number of batches to break the training data up into per epoch.  When multiple subjects have
+different numbers of total training samples, the batch size for each subject will be selected so we go
+through the entire training set for each subject after processing n_batches each epoch.</p>
+<p>learning_rates: If a single number, this is the learning rate to use for all epochs and parameters.
+Alternatively, this can be a list of tuples.  Each tuple is of the form
+(epoch, base_lr, penalizer_lr_opts), where epoch is the epoch the learning rates come into effect on,
+base_lr is the learning rate for all parameters other than the penalizer parameters and penalizer_lr_opts
+is a dictionary with keys specifying penalizer parameter keys and values giving the learning rate
+for those parameters. Multiple tuples can be provided to give a schedule of learning rates.  Here is an
+example learning_rates: [(0, .001, {‘fast’: 1, ‘slow’, .1}), (100, .0001, {‘fast’: .1, ‘slow’, .01}] that
+starts with a base learning rates of .001, a learning rate of 1 for parameters of the penalizers that
+should be assigned a fast learning rate and a learning rate of .1 for parameter of the penalizers that
+should be assigned a slow learning rate.  At epoch 100, the learning rates are divided by 10 in this
+example.</p>
+<p>adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object.
+Note that if learning rate is specified here <em>it will be ignored.</em> (Use the learning_rates option instead).
+The options specified here will be applied to all parameters at all iterations.</p>
+<p>s_inds: Specifies the indices of subjects to fit to.  Subject indices correspond to their
+original order in s_collections when the fitter was created. If None, all subjects used.</p>
+<p>fix_priors: True if priors should be fixed and not changed during fitting</p>
+<p>enforce_priors: True if we should calculate kl divergences between priors and posteriors and include
+this in the objective.</p>
+<p>update_int: Fitting status will be printed to screen every update_int number of epochs</p>
+<p>print_opts: Options controlling what is printed to screen.  See _print_fitting_status()</p>
+<p>cp_epochs: A sequence of epochs after which a check point of the models (as well as optionally the
+penalizers will be made).  If no check points should be made, set this to None.</p>
+<p>cp_penalizers: True if penalizers should be included in the check points.</p>
+</div></blockquote>
+<dl>
+<dt>Return:</dt><dd><p>log: A dictionary with the following entries:</p>
+<blockquote>
+<div><p>‘elapsed_time’: A numpy array of the elapsed time for completion of each epoch</p>
+<p>‘mdl_nll’: mdl_nll[e, i] is the negative log likelihood for the subject model s_inds[i] at the start
+of epoch e (that is when the objective has been calculated but before parameters have been updated)</p>
+<p>‘sub_p_kl’: sub_p_kl[e,i] is the kl divergence between the posterior and conditional prior for the p
+modes for subject i at the start of epoch e.</p>
+<p>‘sub_u_kl’: sub_u_kl[e,i] is the kl divergence between the posterior and conditional prior the u modes
+for subject i at the start of epoch e.</p>
+<p>‘p_prior_penalties’: p_prior_penalties[e, :] is the penalty calculated for each group of p priors at the
+start of epoch e.</p>
+<p>‘u_prior_penalties’: u_prior_penalties[e, :] is the penalty calculated for each group of u priors at the
+start of epoch e.</p>
+<p>parameter_penalties: parameter_penalties[e, :] is the penalty calculated for each parameter penalizer,
+with the order of entries in each row corresponding to the order penalizers were provided when creating
+the Fitter object.</p>
+<p>obj: obj[e] contains the objective value at the start of epoch e.  This is the negative evidence lower
+bound + weight penalties.</p>
+</div></blockquote>
+<p>check_points: check_points[i] are model parameters for the i^th requested checkpoint. If no check points
+were requested this will be None.</p>
+</dd>
+<dt>Raises:</dt><dd><p>RuntimeError: If distribute() has not been called before fitting.
+ValueError: If sample_posteriors is False but enforce_priors is True.
+ValueError: If weight_penalty_type is not ‘l1’ or ‘l2’.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.plot_log">
+<em class="property">classmethod </em><code class="sig-name descname">plot_log</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cls</span></em>, <em class="sig-param"><span class="n">log</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em>, <em class="sig-param"><span class="n">show_obj</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">show_mdl_nll</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">show_p_kl</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">show_u_kl</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">show_psi_kl</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">show_scales_kl</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">show_offsets_kl</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">show_direct_mappings_kl</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">show_penalties</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter.plot_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.plot_log" title="Permalink to this definition"></a></dt>
+<dd><p>Produces a figure of the values in a log produced by fit().</p>
+<dl>
+<dt>Args:</dt><dd><p>log: The log to plot.</p>
+<p>show_obj: True if the objective should be plotted through time</p>
+<p>show_mdl_nll: True if model negative log likelihood should be plotted through time</p>
+<dl class="simple">
+<dt>show_p_kl: True if the kl divergences between prior and posterior distributions for p modes should be</dt><dd><p>plotted through time.</p>
+</dd>
+<dt>show_u_kl: True if the kl divergences between prior and posterior distributions for u modes should be</dt><dd><p>plotted through time.</p>
+</dd>
+<dt>show_psi_kl: True if the kl divergences between prior and posterior distributions for psi parameters should</dt><dd><p>be plotted through time.</p>
+</dd>
+<dt>show_scales_kl: True if the kl divergences between prior and posterior distributions for scale parameters</dt><dd><p>should be plotted through time.</p>
+</dd>
+<dt>show_offsets_kl: True if the kl divergences between prior and posterior distributions for offset parameters</dt><dd><p>should be plotted through time.</p>
+</dd>
+<dt>show_direct_mappings_kl: True if the kl divergences between prior and posterior distributions for</dt><dd><p>direct mapping parameters should be plotted through time.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.to">
+<code class="sig-name descname">to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">torch.device</span></em>, <em class="sig-param"><span class="n">distribute_data</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter.to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter.to" title="Permalink to this definition"></a></dt>
+<dd><p>Move everything in the fitter to a specified device.</p>
+<p>This is most useful when wanting to clean up after fitting and you need to move models to CPU.</p>
+<dl>
+<dt>Args:</dt><dd><p>device: The device to move everything to (e.g., torch.device(‘cpu’))</p>
+<p>distribute_data: True if data should be moved as well.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter._calc_kl_and_backward">
+<em class="property">static </em><code class="sig-name descname">_calc_kl_and_backward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dists0</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">dists1</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Union<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">props</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">prop_inds</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Union<span class="p">[</span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">smps</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Union<span class="p">[</span>torch.Tensor<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter._calc_kl_and_backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter._calc_kl_and_backward" title="Permalink to this definition"></a></dt>
+<dd><p>Helper function for computing KL divergence between posterior and prior distributions and calling backwards.</p>
+<p>This functions handles the case when distributions and/or properties are not provided.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>dists0: Posterior distributions.  If a None value is provided in the list, this serves as a placeholder
+indicating no calculations should be done.</p>
+<p>dist1: Prior distributions.</p>
+<p>props: List of properties</p>
+<p>prop_inds: props_inds[i] is the index in props that dists0[i] and dists[1] i should be conditioned on.</p>
+<p>smps: smps[i] is a set of samples to use for computing kl divergence.  Can be None if the kl calculation
+for a distribution type is known analytically.</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>kl: The computed kl divergence</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter._move_dists">
+<em class="property">static </em><code class="sig-name descname">_move_dists</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dists</span><span class="p">:</span> <span class="n">List</span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">torch.device</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter._move_dists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter._move_dists" title="Permalink to this definition"></a></dt>
+<dd><p>Moves distributions to a device, avoiding calling .to() on None entries in a list.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter._print_fitting_status">
+<em class="property">static </em><code class="sig-name descname">_print_fitting_status</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">e_i</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">elapsed_time</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">batch_obj</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">cur_learning_rates</span></em>, <em class="sig-param"><span class="n">s_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">batch_nll</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">batch_sub_p_kl</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">batch_sub_u_kl</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">batch_sub_psi_kl</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">batch_sub_scales_kl</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">batch_sub_offsets_kl</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">batch_sub_direct_mappings_kl</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">batch_penalties</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">penalizers</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="../../torch_parameter_penalizers/index.html#janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer" title="janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer">janelia_core.ml.torch_parameter_penalizers.ParameterPenalizer</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">devices</span><span class="p">:</span> <span class="n">List<span class="p">[</span>torch.device<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">print_opts</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter._print_fitting_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter._print_fitting_status" title="Permalink to this definition"></a></dt>
+<dd><p>Helper function for printing updates on fitting process.</p>
+<dl>
+<dt>Args:</dt><dd><p>e_i: The epoch index</p>
+<p>elapsed_time: Elapsed fitting time</p>
+<p>batch_obj: The objective value for the a batch of data (This will typically be the last batch of data
+for the epoch)</p>
+<p>cur_learning_rates: The current learning rates</p>
+<p>s_inds: The indices of the subjects that are being fit</p>
+<p>batch_nll: The negative log-likelihoods for the batch for each fit subject model
+(should correspond to s_inds)</p>
+<p>batch_sub_p_kl: The kl divergences for the p-mode distributions for each subject for the batch.</p>
+<p>batch_sub_u_kl: The kl divergences for the u-mode distributions for each subject for the batch.</p>
+<p>batch_sub_psi_kl: The kl divergences for the psi parameter distributions for each subject for the batch.</p>
+<p>batch_sub_scales_kl: The kl divergences for the scale parameter distributions for each subject for the
+batch.</p>
+<p>batch_sub_offsets_kl: The kl divergences for the offset parameter distributions for each subject for the
+batch.</p>
+<p>batch_sub_direct_mappings_kl: The kl divergences for the direct mapping parameter distributions for each
+subject for the batch.</p>
+<p>batch_penalties: The penalties each penalizer produced for the batch.</p>
+<p>penalizers: The penalizers used in fitting.</p>
+<p>devices: List of devices to print memory stats for.</p>
+<p>print_opts: A dictionary with fields with boolean values indicating which information should be shown.
+The fields are: mdl_nll, sub_kls, penalties, memory_usage.  Any fields that are not provided will be
+assumed to be false.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter._sample_posteriors">
+<em class="property">static </em><code class="sig-name descname">_sample_posteriors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dists</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondVAEDistribution" title="janelia_core.ml.torch_distributions.CondVAEDistribution">janelia_core.ml.torch_distributions.CondVAEDistribution</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">all_props</span><span class="p">:</span> <span class="n">List<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">prop_inds</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">squeeze_std_smp</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#MultiSubjectVIFitter._sample_posteriors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.MultiSubjectVIFitter._sample_posteriors" title="Permalink to this definition"></a></dt>
+<dd><p>Samples posteriors, returning samples in compact and standard form.</p>
+<dl>
+<dt>Args:</dt><dd><p>dists: List of distributions to sample.  Entries can be None (allowing for placeholders)</p>
+<p>all_props: List of property tensors.</p>
+<p>prop_inds: prop_inds[i] contains is the index in all_props for dists[i].  If prop_inds[i] is None,
+then sampling is done without conditioning on properties.</p>
+</dd>
+</dl>
+<p>Returns:</p>
+<blockquote>
+<div><p>smps: smps[i] is the compact samples for dists[i].  If dists[i] was none, smps[i] will ne none.</p>
+<p>std_smps: std_smps[i] is smps[i] in standard form.  If dists[i] was none, std_smps[i] will be none.</p>
+<p>squeeze_std_sample: True if standard sample should be squeezed before returning.</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.vi.eval_fits">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.vi.</code><code class="sig-name descname">eval_fits</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s_collections</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#janelia_core.ml.latent_regression.vi.SubjectVICollection" title="janelia_core.ml.latent_regression.vi.SubjectVICollection">SubjectVICollection</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">input_modules</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.nn.ModuleList<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../datasets/index.html#janelia_core.ml.datasets.TimeSeriesBatch" title="janelia_core.ml.datasets.TimeSeriesBatch">janelia_core.ml.datasets.TimeSeriesBatch</a></span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="n">metric</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">return_preds</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sample</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; List<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#eval_fits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.eval_fits" title="Permalink to this definition"></a></dt>
+<dd><p>Measures model fits on a given set of data.</p>
+<p>This function generates predictions for each model using the posterior means of modes. It then evaluates these
+predictions using negative log-likelihood by default but the user can specify other metrics for measuring
+prediction quality.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_collections: A sequence of VI collections we want to evaluate.</p>
+<p>input_modules: A sequence of input modules, corresponding to the input modules that should be used
+to preprocess the input for each collection in s_collections.</p>
+<p>data: The data to use for evaluation</p>
+<p>batch_size: The number of samples to send to GPU at one time for evaluation; can be useful if working with
+low-memory GPUs.</p>
+<p>metric: A function which computes fit quality given the output of predict_with_truth</p>
+<p>return_preds: True if predictions should be returned</p>
+<p>sample: True if when forming model parameters, instead of using means of posteriors, samples from the
+posteriors should be used instead.</p>
+</dd>
+<dt>Returns:</dt><dd><p>metrics: metrics[i] is the fit quality for s_collections[i].  Note that if no metric is supplied, this will
+just be a list of negative log-likelihood values, but custom metric functions can return arbitrary objects.</p>
+<p>preds_with_truth: preds_with_truth[i] are the predictions for s_collections[i] produced with the function
+predict_with_turth. This will only be returned in return_preds is true.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.vi.predict">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.vi.</code><code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s_collection</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#janelia_core.ml.latent_regression.vi.SubjectVICollection" title="janelia_core.ml.latent_regression.vi.SubjectVICollection">SubjectVICollection</a></span></em>, <em class="sig-param"><span class="n">input_modules</span><span class="p">:</span> <span class="n">torch.nn.ModuleList</span></em>, <em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../datasets/index.html#janelia_core.ml.datasets.TimeSeriesBatch" title="janelia_core.ml.datasets.TimeSeriesBatch">janelia_core.ml.datasets.TimeSeriesBatch</a></span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="n">sample</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>numpy.ndarray<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.predict" title="Permalink to this definition"></a></dt>
+<dd><p>Predicts output given input from a model with posterior distributions over parameters.</p>
+<p>If posterior distributions for a parameter are present, predictions are based on the posterior mean by
+default (but see sample input for using samples instead).  If posterior distributions for a parameter are not
+present, the parameter value in the subject model will be used.</p>
+<p>Note: All predictions will be returned on host (cpu) memory as numpy arrays.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_collection: The collection for the subject.   Any data in the collection will be ignored.</p>
+<p>input_modules: Input modules for preprocessing data.</p>
+<p>data: The data to predict with.</p>
+<p>batch_size: The number of samples we predict on at a time.  This is helpful if using a GPU
+with limited memory.</p>
+<p>sample: If true, instead of using posterior means for model parameters when forming predictions,
+the posteriors will be sampled and these samples will be used for model parameters.</p>
+</dd>
+<dt>Returns:</dt><dd><p>pred_mn: The predicted means given the input.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.vi.predict_with_truth">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.vi.</code><code class="sig-name descname">predict_with_truth</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s_collection</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#janelia_core.ml.latent_regression.vi.SubjectVICollection" title="janelia_core.ml.latent_regression.vi.SubjectVICollection">SubjectVICollection</a></span></em>, <em class="sig-param"><span class="n">input_modules</span><span class="p">:</span> <span class="n">torch.nn.ModuleList</span></em>, <em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../datasets/index.html#janelia_core.ml.datasets.TimeSeriesBatch" title="janelia_core.ml.datasets.TimeSeriesBatch">janelia_core.ml.datasets.TimeSeriesBatch</a></span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="n">time_grp</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sample</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/vi.html#predict_with_truth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.vi.predict_with_truth" title="Permalink to this definition"></a></dt>
+<dd><p>Predicts output for a model, using posterior over modes, and including true data in output for reference.</p>
+<p>This is a wrapper function around predict for convenience.</p>
+<p>Note: All predictions will be returned on host (cpu) memory as numpy arrays.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_collection: The collection for the subject.   Any data in the collection will be ignored.</p>
+<p>input_modules: Input modules for preprocessing input.</p>
+<p>data: The data to predict with.</p>
+<p>batch_size: The number of samples we predict on at a time.  This is helpful if using a GPU
+with limited memory.</p>
+<p>time_grp: The index of the group in data with time stamps.  If None, no time stamps will be returned.</p>
+<p>sample: True if instead of using posterior means for model parameters when making predictions, samples from
+each distribution should be used instead.</p>
+</dd>
+</dl>
+<p>Returns:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>predictions: A dictionary with the following keys:</dt><dd><p>pred: predictions. pred[h] is the prediction for the h^th output group of the model
+truth: Corresponding true values for those in pred
+time: It time_grp is not None, the time indices for each point in pred and truth. Otherwise, time will be
+None.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

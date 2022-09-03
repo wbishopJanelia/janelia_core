@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.latent_regression.scenarios &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+        <script src="../../../../../_static/jquery.js"></script>
+        <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/doctools.js"></script>
+        <script src="../../../../../_static/language_data.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.latent_regression.scenarios</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../_sources/autoapi/janelia_core/ml/latent_regression/scenarios/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.latent_regression.scenarios">
+<span id="janelia-core-ml-latent-regression-scenarios"></span><h1><a class="reference internal" href="#module-janelia_core.ml.latent_regression.scenarios" title="janelia_core.ml.latent_regression.scenarios"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.latent_regression.scenarios</span></code></a><a class="headerlink" href="#module-janelia_core.ml.latent_regression.scenarios" title="Permalink to this headline"></a></h1>
+<p>Tools for generating simulated latent regression models.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.scenarios.GaussianBumpFcn" title="janelia_core.ml.latent_regression.scenarios.GaussianBumpFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GaussianBumpFcn</span></code></a></p></td>
+<td><p>A Gaussian bump function with fixed parameters.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.scenarios.ConstantFcn" title="janelia_core.ml.latent_regression.scenarios.ConstantFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConstantFcn</span></code></a></p></td>
+<td><p>Represents a function which is constant everywhere with fixed parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.scenarios.IdentityS" title="janelia_core.ml.latent_regression.scenarios.IdentityS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IdentityS</span></code></a></p></td>
+<td><p>Module which just passes through input.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario" title="janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BumpInputWithRecursiveDynamicsScenario</span></code></a></p></td>
+<td><p>Objects for generating models and data where we record neurons from multiple subjects receiving stimuli.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario" title="janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SplitPropertiesScenario</span></code></a></p></td>
+<td><p>An object for simulating a scenario where neuron couplings depend on two or more sets of properties.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.scenarios.plot_single_2d_conditional_prior" title="janelia_core.ml.latent_regression.scenarios.plot_single_2d_conditional_prior"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_single_2d_conditional_prior</span></code></a>(priors: janelia_core.ml.torch_distributions.CondMatrixProductDistribution, mode: int, dim_sampling: Sequence[Sequence] = [[0, 1, 0.01], [0, 1, 0.01]], range: float = None, plot_mn: bool = True, t: numpy.ndarray = None)</p></td>
+<td><p>Plots a prior distribution of a neuron’s loading given neuron’s location in a 2-d space for a single mode.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.scenarios.plot_2d_conditional_prior" title="janelia_core.ml.latent_regression.scenarios.plot_2d_conditional_prior"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_2d_conditional_prior</span></code></a>(priors: janelia_core.ml.torch_distributions.CondMatrixProductDistribution, dim_sampling: Sequence[Sequence] = [[0, 1, 0.01], [0, 1, 0.01]], mn_range: float = None, std_range: float = None)</p></td>
+<td><p>Plots a conditional prior distribution of a neuron’s loading given neurons location in a 2-d space.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.scenarios.plot_single_2d_mode" title="janelia_core.ml.latent_regression.scenarios.plot_single_2d_mode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_single_2d_mode</span></code></a>(mode: numpy.ndarray, neuron_p: numpy.ndarray, vl_range: float = None, dim_range: Sequence[Sequence] = [[0, 1], [0, 1]], plot_axes: matplotlib.axes = None, plot_color_bar: bool = True)</p></td>
+<td><p>Plots the mode loadings for a single mode for neurons positioned in 2-d space.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.scenarios.plot_single_2d_mode_posterior" title="janelia_core.ml.latent_regression.scenarios.plot_single_2d_mode_posterior"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_single_2d_mode_posterior</span></code></a>(post: janelia_core.ml.torch_distributions.CondMatrixProductDistribution, mode: int, neuron_p: numpy.ndarray, vl_range: float = None, dim_range: Sequence[Sequence] = [[0, 1], [0, 1]], plot_axes: matplotlib.axes = None, plot_mn: bool = True, t: numpy.ndarray = None, plot_color_bar: bool = True)</p></td>
+<td><p>Plots the mean or standard deviation of mode loadings for a single mode for neurons positioned in 2-d space.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.scenarios.plot_2d_modes" title="janelia_core.ml.latent_regression.scenarios.plot_2d_modes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_2d_modes</span></code></a>(modes: numpy.ndarray, neuron_p: numpy.ndarray, vl_range: float = None, dim_range: Sequence[Sequence] = [[0, 1], [0, 1]])</p></td>
+<td><p>Plots the mode loadings for neurons positioned in a 2-d space.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.scenarios.learn_prior_transformation" title="janelia_core.ml.latent_regression.scenarios.learn_prior_transformation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">learn_prior_transformation</span></code></a>(d0, d1, dim_sampling: Sequence[Sequence] = [[0, 1, 0.01], [0, 1, 0.01]], d0_slice: slice = None, d1_slice: slice = None)</p></td>
+<td><p>Learns a transformation between two the means of two prior distributions.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.scenarios.GaussianBumpFcn">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.scenarios.</code><code class="sig-name descname">GaussianBumpFcn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ctr</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">std</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">peak_vl</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#GaussianBumpFcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.GaussianBumpFcn" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A Gaussian bump function with fixed parameters.</p>
+<p>The bump function will be axis-aligned but can have different standard deviations along each axis.</p>
+<p>Creates a new GaussianBump module.</p>
+<dl>
+<dt>Args:</dt><dd><p>ctr: A 1-d tensor giving the center location of the bump.</p>
+<p>std: A 1-d tensor giving the standard deviation of the bump along each axis.</p>
+<p>peak_vl: The value at the peak of the bump.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.GaussianBumpFcn.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#GaussianBumpFcn.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.GaussianBumpFcn.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes input from output.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input.  Each row is a sample.</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output.  Each row corresponds to a transformed input sample.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.scenarios.ConstantFcn">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.scenarios.</code><code class="sig-name descname">ConstantFcn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">c</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#ConstantFcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.ConstantFcn" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Represents a function which is constant everywhere with fixed parameters.</p>
+<p>Creates a ConstantFcn object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>c: Constant value of function.  A 1-d array with length equal to dimensionality of output.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.ConstantFcn.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#ConstantFcn.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.ConstantFcn.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output from input.</p>
+<dl>
+<dt>Args:</dt><dd><p>x: Input of shape n_smps*d_x</p>
+<p>y: Output of shape n_smps*d_y.  (Each row will be equal to the constant value of the function.)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.scenarios.IdentityS">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.scenarios.</code><code class="sig-name descname">IdentityS</code><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#IdentityS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.IdentityS" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Module which just passes through input.</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.IdentityS.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#IdentityS.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.IdentityS.forward" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.scenarios.</code><code class="sig-name descname">BumpInputWithRecursiveDynamicsScenario</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_subjects</span></em>, <em class="sig-param"><span class="n">n_modes</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">n_neuron_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">prior_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.02</span></em>, <em class="sig-param"><span class="n">bump_max_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[0.09, 0.2]</span></em>, <em class="sig-param"><span class="n">bump_std_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[0.2, 0.4]</span></em>, <em class="sig-param"><span class="n">noise_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[0.1, 0.2]</span></em>, <em class="sig-param"><span class="n">n_dims</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">2</span></em>, <em class="sig-param"><span class="n">pos_neg_modes</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">input_bump_ctrs</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">input_bump_stds</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">input_bump_gains</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">int_bump_ctrs</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">int_bump_stds</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">int_bump_gains</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#BumpInputWithRecursiveDynamicsScenario"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario" title="Permalink to this definition"></a></dt>
+<dd><p>Objects for generating models and data where we record neurons from multiple subjects receiving stimuli.</p>
+<p>We simulate recording neural activity from multiple subjects while they are presented stimuli.  There are a set of
+inputs that drive different patterns of activity across the population.  Activity across the population is then read
+out and in turn drive other sets of patterns (internal dynamics).</p>
+<p>Neurons are characterized by their position in a unit hypercube (number of dimensions is user set).</p>
+<p>The patterns of activity that is driven be each stimulus are determined by the loadings of a set of modes, one mode
+for each stimulus.  The loadings for neurons for each mode is a probabilistic function of their position.
+Specifically, we select loadings for modes for each subject from bump shaped priors.  Similarly, the modes which
+determine the internal dynamics of the population also come from bump shaped priors.</p>
+<p>By “bump shaped prior” we mean that the conditional distribution for a neuron’s loading in a particular mode
+given it’s position in space is Gaussian with a conditional mean which is shaped like a bump in space. In this
+simple scenario, we assume the standard deviation of the conditional distributions is the same irrespective of a
+neuron’s location in space.</p>
+<p>We select the p modes of the internal dynamics to be roughly aligned with the u modes of the stimuli, to ensure
+that stimulus activity is propagated into the internal dynamics of the population.</p>
+<p>The logic for using this object is as follows:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Initialize a scenario - this creates the priors and the subject models</p></li>
+<li><p>Simulate data for the scenario using the generate_data function</p></li>
+</ol>
+</div></blockquote>
+<p>Creates a new BumpInputWithRecursiveDynamicsScenario object.</p>
+<dl>
+<dt>Args:</dt><dd><p>n_subjects: The number of subject models to generate.</p>
+<p>n_modes: The number of modes each model should have.  There will be 2*n_modes p and u modes per subject.</p>
+<p>n_neuron_range: The number of neurons each subject has will be pulled uniformly from this range.</p>
+<p>prior_std: The standard deviation of each prior conditional distribution.</p>
+<p>bump_gain_range: We use a Gaussian kernel for the bump functions which form the conditional means for each
+mode. Each bump has a randomly chosen peak value magnitude.  These peak values are pulled uniformly from the
+interval specified by bump_gain_range. See pos_neg_modes below about how the signs of these peaks are
+chosen.</p>
+<p>bump_std_range: The Gaussian kernel functions for the conditional means will be axis aligned with a certain
+standard deviation along each axis.  The standard deviation values along each axis will be pulled uniformly
+from this range.</p>
+<p>noise_range: Range of values to pull psi values from when generating latent regression models</p>
+<p>n_dims: The number of spatial dimensions neurons are arranged in.</p>
+<p>pos_neg_modes: If true, the sign of the peak of modes can be either positive or negative (with 50%
+probability)</p>
+<p>input_bump_ctrs: If not None, the parameters of the bump function forming the means for the input mode
+couplings (and internal p couplings) will not be randomly generated but will instead be specified by the
+user.  input_bump_ctrs[:, i] gives the center for the bump function for the i^th mode.</p>
+<p>input_bump_stds: If not randomly generating parameters for the input mean functions, input_bump_stds[:, i]
+gives the dimension standard deviations for the i^th mode.</p>
+<p>input_bump_gains: If not randomly generating parameters for the input mean functions, input_bump_gains[i]
+gives the gain for the i^th mode.</p>
+<p>int_bump_ctrs, int_bump_stds, int_bump_gains: Analagous to the same for the input modes but specifying the
+parameters of the mean functions for the internal u modes.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_training_subject_mdl">
+<code class="sig-name descname">generate_training_subject_mdl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">s_i</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">assign_p_u</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="../subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel" title="janelia_core.ml.latent_regression.subject_models.LatentRegModel">janelia_core.ml.latent_regression.subject_models.LatentRegModel</a><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#BumpInputWithRecursiveDynamicsScenario.generate_training_subject_mdl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_training_subject_mdl" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a new subject model with random parameters which can be fit to
+data generated from the scenario.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_i: The subject to generate a model for</p>
+<p>assign_p_u: True if p and u tensors should be created for the model.  Setting this to false
+saves memory if the model will be fit with priors over the modes (in which case the p and u
+modes in the subject model object are ignored.)</p>
+</dd>
+<dt>Returns:</dt><dd><p>mdl: The generated subject model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_training_collection">
+<code class="sig-name descname">generate_training_collection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">s_i</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../datasets/index.html#janelia_core.ml.datasets.TimeSeriesDataset" title="janelia_core.ml.datasets.TimeSeriesDataset">janelia_core.ml.datasets.TimeSeriesDataset</a></span></em>, <em class="sig-param"><span class="n">mn_init_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">mn_init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">std_init_vl</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">post_dists</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="../vi/index.html#janelia_core.ml.latent_regression.vi.SubjectVICollection" title="janelia_core.ml.latent_regression.vi.SubjectVICollection">janelia_core.ml.latent_regression.vi.SubjectVICollection</a><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#BumpInputWithRecursiveDynamicsScenario.generate_training_collection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_training_collection" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a SubjectVICollection for fitting data to a given subject in the scenario.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_i: The index of the subject to fit to.</p>
+<p>data: The training data for the subject, as a TimeSeriesDataset in the same convention as returned by
+generate_data()</p>
+<p>mn_init_mn, mn_init_std, std_init_vl: Values for initializing distributions on modes.  See
+generate_training_subject_posteriors for more information.</p>
+<p>post_dists: If provided, these are the posterior distributions to use for this subject.  If not,
+posterior distributions will be generated by self.generate_training_subject_posteriors. If provided,
+post_dists[0] are the distributions for the p modes and post_dists[1] are the distributions for</p>
+</dd>
+<dt>Returns:</dt><dd><p>collection: The generated collection.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_shared_posteriors">
+<code class="sig-name descname">generate_shared_posteriors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">n_divisions_per_dim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">50</span></em>, <em class="sig-param"><span class="n">n_div_per_hc_side_per_dim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">3</span></em>, <em class="sig-param"><span class="n">init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">min_std</span><span class="o">=</span><span class="default_value">1e-05</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#BumpInputWithRecursiveDynamicsScenario.generate_shared_posteriors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_shared_posteriors" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a shared posterior for fitting across models.</p>
+<p>Posteriors are based on hypercube mean and standard deviation functions.</p>
+<dl>
+<dt>Args:</dt><dd><p>n_divisions_per_dim: The number of divisons per dimension to use when generating hypercube functions.  There
+will be the same number of divisions for each dimension.</p>
+<p>n_div_per_hc_side_per_dim: The number of divisions per hypercube per dimension to use when generating
+hypercube functions.  This will be the same for all dimensions.</p>
+<p>init_std: The initial standard deviation for the conditional distribution for each mode.  The standard
+deviation will take on this value everywhere.</p>
+<p>min_std: The minimum standard deviation the posterior distributions can take on.</p>
+</dd>
+</dl>
+<p>Note: Because input p modes are assumed fixed and know, a posterior is not generated for these nodes.
+Instead a fixed tensor will be generated.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>dists: dists[0] are the posterior distributions for the p modes.  dists[0][0] is a tensor for the input
+p modes and dists[0][1] is a conditional distribution for the internal p modes. dists[1][0] is a
+conditional distribution for the u modes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_training_subject_posteriors">
+<code class="sig-name descname">generate_training_subject_posteriors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">s_i</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">mn_init_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">mn_init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">std_init_vl</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em><span class="sig-paren">)</span> &#x2192; Sequence<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#BumpInputWithRecursiveDynamicsScenario.generate_training_subject_posteriors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_training_subject_posteriors" title="Permalink to this definition"></a></dt>
+<dd><p>Generates the posterior distributions for a given subject for variational inference.</p>
+<p>Because the input p modes are assumed fixed and known, a tensor is returned in place of a distribution
+for these modes.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_i: The subject to generate posteriors for</p>
+<p>mn_init_mn, mn_init_std: The mean and standard deviation of the normal distribution the initial mean values
+for each mode distribution are sampled from.</p>
+<p>std_init_vl: The initial standard deviation for each mode distribution.  The standard deviation of each
+conditional distribution is initially the same for all neuron positions.</p>
+</dd>
+<dt>Returns:</dt><dd><p>dists: dists[0] are the posterior distributions for the p modes.  dists[0][0] is a tensor for the input
+p modes and dists[0][1] is a conditional distribution for the internal p modes. dists[1][0] is a
+conditional distribution for the u modes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_fitting_priors">
+<code class="sig-name descname">generate_fitting_priors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">n_divisions_per_dim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">50</span></em>, <em class="sig-param"><span class="n">n_div_per_hc_side_per_dim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">3</span></em>, <em class="sig-param"><span class="n">init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">min_std</span><span class="o">=</span><span class="default_value">1e-05</span></em><span class="sig-paren">)</span> &#x2192; Sequence<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#BumpInputWithRecursiveDynamicsScenario.generate_fitting_priors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_fitting_priors" title="Permalink to this definition"></a></dt>
+<dd><p>Generates priors for fitting multiple models with variational inference.</p>
+<p>Note: Because the input p modes are assumed fixed and known, a prior is not generate for these
+modes and the value None is returned in its place (see below).</p>
+<dl>
+<dt>Args:</dt><dd><p>n_divisions_per_dim: The number of divisons per dimension to use when generating hypercube functions.  There
+will be the same number of divisions for each dimension.</p>
+<p>n_div_per_hc_side_per_dim: The number of divisions per hypercube per dimension to use when generating
+hypercube functions.  This will be the same for all dimensions.</p>
+<p>init_std: The initial standard deviation for the conditional distribution for each mode.  The standard
+deviation will take on this value everywhere.</p>
+<p>min_std: The minimum standard deviation the prior distributions can take on.</p>
+</dd>
+<dt>Returns:</dt><dd><p>dists: dists[0] is the distributions for the p modes.  dists[0][0] is None to indicate there is no
+prior distribution over the input p modes and dists[0][1] is the distribution over the internal p modes.
+dists[1][0] is the distribution over the u modes.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If min_std or init_std is less than 0
+ValueError: If init_std is less than min_std</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_data">
+<code class="sig-name descname">generate_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">stimuli</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Sequence<span class="p">[</span>Sequence<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#BumpInputWithRecursiveDynamicsScenario.generate_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_data" title="Permalink to this definition"></a></dt>
+<dd><p>Generates data from subject models given time series of input to each model.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>stimuli: stimuli[i] contains the input tensor for subject model i.</p>
+</dd>
+<dt>Returns:</dt><dd><p>data: data[i] contains data for subject i as a TimeSeriesDataset. The first tensor in
+each dataset will be input stimulus and the second will be neural data.  Data are
+“time locked” that is the t^th point in the returned stimulus and the t^th point in
+the returned neural data is the data that generated the (t+1)^th data point in the neural
+data.  This requires discarding the first point in the provided stimulus, so there will
+only by T-1 data points in the returned dataset.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_random_input_data">
+<code class="sig-name descname">generate_random_input_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">n_smps_per_subject</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">input_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span> &#x2192; Sequence<span class="p">[</span>Sequence<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#BumpInputWithRecursiveDynamicsScenario.generate_random_input_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_random_input_data" title="Permalink to this definition"></a></dt>
+<dd><p>Generates data from each subject model as they receive random input.</p>
+<p>Data for each input is generated iid from a N(0, input_std^2) distribution.</p>
+<dl>
+<dt>Args:</dt><dd><p>n_smps_per_subject: n_smps_per_subject[i] is the number of random input samples to generate from subject
+i.</p>
+<p>input_std: The standard deviation of the input signals.</p>
+</dd>
+<dt>Returns:</dt><dd><p>data: data[i] is the data for subject i, the formatted described in generate_data()</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_one_input_mode_random_input_data">
+<code class="sig-name descname">generate_one_input_mode_random_input_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">n_smps_per_subject</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">input_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span> &#x2192; Sequence<span class="p">[</span>Sequence<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#BumpInputWithRecursiveDynamicsScenario.generate_one_input_mode_random_input_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.BumpInputWithRecursiveDynamicsScenario.generate_one_input_mode_random_input_data" title="Permalink to this definition"></a></dt>
+<dd><p>Generates data where only one input mode is excited with random input per subject.</p>
+<dl>
+<dt>Args:</dt><dd><p>n_smps_per_subject: n_smps_per_subject[i] is the number of random input samples to generate from subject
+i.</p>
+<p>input_std: The standard deviation of the input signals.</p>
+</dd>
+<dt>Returns:</dt><dd><p>data: data[i] is the data for subject i, the formatted described in generate_data()</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.scenarios.</code><code class="sig-name descname">SplitPropertiesScenario</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_neurons</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">bump_k</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">bump_centers</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">bump_stds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>numpy.ndarray<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">coupling_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span></em>, <em class="sig-param"><span class="n">psi_noise_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#SplitPropertiesScenario"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario" title="Permalink to this definition"></a></dt>
+<dd><p>An object for simulating a scenario where neuron couplings depend on two or more sets of properties.</p>
+<p>For simplicity, we simulate neuron properties as distributed uniformly in a unit hypercube in each property space.</p>
+<p>Other than having neuron properties depend on two or more sets of properties, we try to keep everything
+else in this scenario as simple as possible.  In particular, we simulate a model of neurons driving one
+behavioral variable.  This means we have one p-mode per subject and fixed (scalar) u mode with value 1.  The
+coefficients of the p-mode depend on two sets of properties.  We assume identiy m-module and s-modules.</p>
+<p>To generating a p-mode coupling for a given subject’s neuron , we pull from
+a N(m(p_i^0, p_i^1, …, p_i^J), sigma^2) distribution where m() is of the form:</p>
+<blockquote>
+<div><p>m(p_i^0, p_i^1, …, p_i^J) = k*prod_j^J b_j(p_i^j),</p>
+</div></blockquote>
+<p>where b_j is an axis-aligned Gaussian bump function parameterized by a center and standard deviation along
+each axis.</p>
+<p>Creates a new SplitPropertiesScenario object.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>n_neurons: The length of n_neurons defines the number of subjects in the simulation. n_neurons[i]
+is the number of neurons to simulate for subject i.</p>
+<p>bump_k: The extreme value any coupling can take on.</p>
+<p>bump_centers: bump_centers[j] is where b_j is centered.  The length of bump_centers defines how many
+sets of properties there, and the length of bump_centers[j] implicitly defines the dimensionality of the
+j^th property space.</p>
+<p>bump_stds: Bump functions are axis aligned.  bump_stds[j][i] is the standard deviation of b_j along
+dimension i.</p>
+<p>coupling_std: The standard deviation of the distrubtion on couplings</p>
+<p>psi_noise_range: The range to pull psi values from when generating the latent regression model for
+each subject</p>
+</div></blockquote>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario._bmp_fcn">
+<code class="sig-name descname">_bmp_fcn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x_j</span></em>, <em class="sig-param"><span class="n">j</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#SplitPropertiesScenario._bmp_fcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario._bmp_fcn" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario._m">
+<code class="sig-name descname">_m</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#SplitPropertiesScenario._m"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario._m" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario.generate_data">
+<code class="sig-name descname">generate_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">n_tm_pts</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="../../datasets/index.html#janelia_core.ml.datasets.TimeSeriesDataset" title="janelia_core.ml.datasets.TimeSeriesDataset">janelia_core.ml.datasets.TimeSeriesDataset</a><span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#SplitPropertiesScenario.generate_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario.generate_data" title="Permalink to this definition"></a></dt>
+<dd><p>Generates simulated data for the scenario.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>n_tm_pts: n_tm_pts[i] is the number of time points to generate for subject i</p>
+</dd>
+<dt>Returns:</dt><dd><p>data: data[i] is the data for subject i as a TimeSeriesDataset object.  The first entry in the .data
+attribute of the object will be neural data and the second will be behavioral data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario.generate_training_subject_mdl">
+<code class="sig-name descname">generate_training_subject_mdl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">s_i</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">assign_p_u</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">psi_noise_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[0.1, 0.2]</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="../subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel" title="janelia_core.ml.latent_regression.subject_models.LatentRegModel">janelia_core.ml.latent_regression.subject_models.LatentRegModel</a><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#SplitPropertiesScenario.generate_training_subject_mdl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario.generate_training_subject_mdl" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a new subject model for training.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_i: The subject to generate a model for</p>
+<p>assign_p_u: True if p and u tensors should be created for the model.  Setting this to false
+saves memory if the model will be fit with priors over the modes (in which case the p and u
+modes in the subject model object are ignored.)</p>
+<p>psi_noise_range: The range of values to initialize psi with</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>mdl: The generated subject model</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario.generate_training_subject_posteriors">
+<code class="sig-name descname">generate_training_subject_posteriors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">s_i</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">mn_init_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">mn_init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">std_init_vl</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em><span class="sig-paren">)</span> &#x2192; Sequence<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#SplitPropertiesScenario.generate_training_subject_posteriors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario.generate_training_subject_posteriors" title="Permalink to this definition"></a></dt>
+<dd><p>Generates the posterior distributions for a given subject for variational inference.</p>
+<p>Because the u mode is assumed fixed and known, a tensor is returned in place of a distribution
+for this mode.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_i: The subject to generate posteriors for</p>
+<p>mn_init_mn, mn_init_std: The mean and standard deviation of the normal distribution the initial values
+for the mean of the distribution on the p mode are sampled from.</p>
+<p>std_init_vl: The initial standard deviation for each entry in the p-mode.  The standard deviation is
+initially the same for all neurons.</p>
+</dd>
+<dt>Returns:</dt><dd><p>p_dists: p_dists[0] is the distribtion on the p modes</p>
+<p>u_dists: u_dists[0] is a 1*1 tensor with value 1.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario.generate_training_collection">
+<code class="sig-name descname">generate_training_collection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">s_i</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../datasets/index.html#janelia_core.ml.datasets.TimeSeriesDataset" title="janelia_core.ml.datasets.TimeSeriesDataset">janelia_core.ml.datasets.TimeSeriesDataset</a></span></em>, <em class="sig-param"><span class="n">mn_init_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">mn_init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">std_init_vl</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">post_dists</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="../vi/index.html#janelia_core.ml.latent_regression.vi.SubjectVICollection" title="janelia_core.ml.latent_regression.vi.SubjectVICollection">janelia_core.ml.latent_regression.vi.SubjectVICollection</a><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#SplitPropertiesScenario.generate_training_collection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario.generate_training_collection" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a SubjectVICollection for fitting data to a given subject in the scenario.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_i: The index of the subject to fit to.</p>
+<p>data: The training data for the subject, as a TimeSeriesDataset in the same convention as returned by
+generate_data()</p>
+<p>mn_init_mn, mn_init_std, std_init_vl: Values for initializing distributions on modes.  See
+generate_training_subject_posteriors for more information.</p>
+<p>post_dists: If provided, these are the posterior distributions to use for this subject.  If not,
+posterior distributions will be generated by self.generate_training_subject_posteriors. If provided,
+post_dists[0] are the distributions for the p modes and post_dists[1] are the distributions for</p>
+</dd>
+<dt>Returns:</dt><dd><p>collection: The generated collection.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario.generate_fitting_priors">
+<code class="sig-name descname">generate_fitting_priors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">set_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Sequence<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">n_divisions_per_dim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">50</span></em>, <em class="sig-param"><span class="n">n_div_per_hc_side_per_dim</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">3</span></em>, <em class="sig-param"><span class="n">init_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">init_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">min_std</span><span class="o">=</span><span class="default_value">1e-05</span></em><span class="sig-paren">)</span> &#x2192; Sequence<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#SplitPropertiesScenario.generate_fitting_priors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.SplitPropertiesScenario.generate_fitting_priors" title="Permalink to this definition"></a></dt>
+<dd><p>Generates prior for fitting multiple models with variational inference.</p>
+<p>The only mode to generate a prior for in this scenario is the single p mode.  For neuron i with properties
+p_i^0, … p_i^J, the prior conditioned on properties will be N(m(p_i^0, … p_i^J), s^2(p_i^0, … p_i^J)),
+where m() is of the form:</p>
+<blockquote>
+<div><p>m(p_i^0, … p_i^J) = l*exp(sum_{j=1}^J h_j^m(p_i^j) + d) + o,</p>
+</div></blockquote>
+<p>where each h_j^m is a hypercube function, d is a shift, o is an offset and l is a scale.</p>
+<p>The function s() is of the form:</p>
+<blockquote>
+<div><p>s(p_i^0, … p_i^J) = exp(sum_{j=1}^J h_j^s(p_i^j)) + o_fixed,</p>
+</div></blockquote>
+<p>where each h_j^s is again a hypercube function and o_fixed is a non-learnable parameter with a small
+positive value to ensure the output of s() is strictly positive.</p>
+<p>The priors will assume all of the properties have been concatenated together, and therefore, the
+user has to specify which dimensions of the concatenated properties belong to each set (see set_inds below).</p>
+<p>Note: Because u mode is assumed fixed and known, a prior is not generated for this mode
+and the value None is returned in its place (see below).</p>
+<p>Args:</p>
+<blockquote>
+<div><p>set_inds: Priors are created assuming properties will be provided in a tensor of
+shape n_neurons*n_total_prop_dims.  set_inds[i] gives the columns of the property tensor corresponding
+to the properties for property space i.</p>
+<p>n_divisions_per_dim: The number of divisons per dimension to use when generating hypercube functions.  There
+will be the same number of divisions for each dimension.</p>
+<p>n_div_per_hc_side_per_dim: The number of divisions per hypercube per dimension to use when generating
+hypercube functions.  This will be the same for all dimensions.</p>
+<p>init_mn: The initial mean for the conditional distribution for the p mode.  The mean will take on
+this value everywhere.</p>
+<p>init_std: The initial standard deviation for the conditional distribution for the p mode.  The standard
+deviation will take on this value everywhere.</p>
+<p>min_std: The minimum standard deviation the prior distributions can take on.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Raises:</dt><dd><p>ValueError: If min_std or init_std is less than 0
+ValueError: If init_std is less than min_std</p>
+</dd>
+</dl>
+<p>Returns:</p>
+<blockquote>
+<div><p>p_dists: p_dists[0] is the distribution for the p mode</p>
+<p>u_dists: u_dists[0] is None to signify there is no prior distribution over the u modes</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.scenarios.plot_single_2d_conditional_prior">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.scenarios.</code><code class="sig-name descname">plot_single_2d_conditional_prior</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">priors</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondMatrixProductDistribution" title="janelia_core.ml.torch_distributions.CondMatrixProductDistribution">janelia_core.ml.torch_distributions.CondMatrixProductDistribution</a></span></em>, <em class="sig-param"><span class="n">mode</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">dim_sampling</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Sequence<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[[0, 1, 0.01], [0, 1, 0.01]]</span></em>, <em class="sig-param"><span class="n">range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plot_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">t</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#plot_single_2d_conditional_prior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.plot_single_2d_conditional_prior" title="Permalink to this definition"></a></dt>
+<dd><p>Plots a prior distribution of a neuron’s loading given neuron’s location in a 2-d space for a single mode.</p>
+<dl>
+<dt>Args:</dt><dd><p>priors: The conditional prior distribution over modes.</p>
+<p>mode: The index of the mode for the prior to plot.</p>
+<p>dim_sampling: Each entry of dim_sampling specifies how to sample a dimension in the
+domain of the function.  Each entry is of the form [start, stop, int] where start and
+and stop are the start and stop of the range of values to sample from and int
+is the interval values are sampled from.</p>
+<p>range: If provided, colors for values will saturate at +/- range.  If not provided, this
+is set based on the values to be plotted.</p>
+<p>plot_mn: If true, the mean will be plotted.  If false, the standard deviation is plotted.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.scenarios.plot_2d_conditional_prior">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.scenarios.</code><code class="sig-name descname">plot_2d_conditional_prior</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">priors</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondMatrixProductDistribution" title="janelia_core.ml.torch_distributions.CondMatrixProductDistribution">janelia_core.ml.torch_distributions.CondMatrixProductDistribution</a></span></em>, <em class="sig-param"><span class="n">dim_sampling</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Sequence<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[[0, 1, 0.01], [0, 1, 0.01]]</span></em>, <em class="sig-param"><span class="n">mn_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">std_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#plot_2d_conditional_prior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.plot_2d_conditional_prior" title="Permalink to this definition"></a></dt>
+<dd><p>Plots a conditional prior distribution of a neuron’s loading given neurons location in a 2-d space.</p>
+<p>The spatial means and standard deviations of each mode will be plotted in a 2 by M grid layout - each column
+is a mode with means plotted on top and standard deviations plotted on bottom.</p>
+<dl>
+<dt>Args:</dt><dd><p>priors: The conditional prior distribution over modes.</p>
+<p>dim_sampling: Each entry of dim_sampling specifies how to sample a dimension in the
+domain of the fuction.  Each entry is of the form [start, stop, int] where start and
+and stop are the start and stop of the range of values to sample from and int
+is the interval values are sampled from.</p>
+<p>mn_range: If provided, colors for mean values will saturate at +/- mn_range.  If not provided, this
+is set based on the means to be plotted.</p>
+<p>std_range: If provided, colors for standard deviation values will saturate at std_range.  If not provided,
+this is set based on the standard deviation values to be plotted.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.scenarios.plot_single_2d_mode">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.scenarios.</code><code class="sig-name descname">plot_single_2d_mode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mode</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">neuron_p</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">vl_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dim_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Sequence<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[[0, 1], [0, 1]]</span></em>, <em class="sig-param"><span class="n">plot_axes</span><span class="p">:</span> <span class="n">matplotlib.axes</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plot_color_bar</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#plot_single_2d_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.plot_single_2d_mode" title="Permalink to this definition"></a></dt>
+<dd><p>Plots the mode loadings for a single mode for neurons positioned in 2-d space.</p>
+<dl>
+<dt>Args:</dt><dd><p>mode: The mode to plot as a 1-d array of length n_neurons.</p>
+<p>neuron_p: The position of each neuron.  Shape is n_neurons*2.</p>
+<p>vl_range: The min and max value to clip values at when assigning colors.  If not provided, will be
+assigned based on the values in modes.</p>
+<p>dim_range: The spatial range to generate plots for.</p>
+<p>plot_axes: The axes to plot into.  If none, one will be provided</p>
+<p>plot_color_bar: True if a color bar should be added to the plot.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.scenarios.plot_single_2d_mode_posterior">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.scenarios.</code><code class="sig-name descname">plot_single_2d_mode_posterior</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">post</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../torch_distributions/index.html#janelia_core.ml.torch_distributions.CondMatrixProductDistribution" title="janelia_core.ml.torch_distributions.CondMatrixProductDistribution">janelia_core.ml.torch_distributions.CondMatrixProductDistribution</a></span></em>, <em class="sig-param"><span class="n">mode</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">neuron_p</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">vl_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dim_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Sequence<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[[0, 1], [0, 1]]</span></em>, <em class="sig-param"><span class="n">plot_axes</span><span class="p">:</span> <span class="n">matplotlib.axes</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plot_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">t</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plot_color_bar</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#plot_single_2d_mode_posterior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.plot_single_2d_mode_posterior" title="Permalink to this definition"></a></dt>
+<dd><p>Plots the mean or standard deviation of mode loadings for a single mode for neurons positioned in 2-d space.</p>
+<p>The distribution can be transformed before plotting.</p>
+<dl>
+<dt>Args:</dt><dd><p>post: The posterior distribution over modes.</p>
+<p>mode: The index of the mode to plot the posterior over.</p>
+<p>neuron_p: The position of each neuron.  Shape is n_neurons*2.</p>
+<p>vl_range: The min and max value to clip values at when assigning colors.  If not provided, will be
+assigned based on the values in modes.</p>
+<p>dim_range: The spatial range to generate plots for.</p>
+<p>plot_axes: Axes to plot into.  If None, one will be created.</p>
+<p>plot_mn: If true, the mean is plotted.  If false, the standard deviation is plotted.</p>
+<p>t: The transition matrix to apply to the distribution if it should be transformed before plotting.</p>
+<p>plot_color_bar: True if a color bar should be added to the plot.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.scenarios.plot_2d_modes">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.scenarios.</code><code class="sig-name descname">plot_2d_modes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">modes</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">neuron_p</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">vl_range</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dim_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Sequence<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[[0, 1], [0, 1]]</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#plot_2d_modes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.plot_2d_modes" title="Permalink to this definition"></a></dt>
+<dd><p>Plots the mode loadings for neurons positioned in a 2-d space.</p>
+<p>Modes will be plotted in a row, followed by a colorbar.  All modes will be plotted on the same color scale.</p>
+<dl>
+<dt>Args:</dt><dd><p>modes: The modes to plot as a n_neurons by n_modes array. Each column is a mode.</p>
+<p>neuron_p: The position of each neuron.  Shape is n_neurons*2.</p>
+<p>vl_range: The min and max value to clip values at when assigning colors.  If not provided, will be
+assigned based on the values in modes.</p>
+<p>dim_range: The spatial range to generate plots for.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.scenarios.learn_prior_transformation">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.scenarios.</code><code class="sig-name descname">learn_prior_transformation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d0</span></em>, <em class="sig-param"><span class="n">d1</span></em>, <em class="sig-param"><span class="n">dim_sampling</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Sequence<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[[0, 1, 0.01], [0, 1, 0.01]]</span></em>, <em class="sig-param"><span class="n">d0_slice</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#slice" title="(in Python v3.10)">slice</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">d1_slice</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#slice" title="(in Python v3.10)">slice</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/scenarios.html#learn_prior_transformation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.scenarios.learn_prior_transformation" title="Permalink to this definition"></a></dt>
+<dd><p>Learns a transformation between two the means of two prior distributions.</p>
+<p>The transformation is learned based on sampling both conditional distributions.</p>
+<dl>
+<dt>Args:</dt><dd><p>d0: The distribution to transform <em>to</em></p>
+<p>d1: The distribution to transform <em>from</em></p>
+<p>dim_sampling: Each entry of dim_sampling specifies how to sample the conditional prior.  Each entry is
+of the form [start, stop, int] where start and and stop are the start and stop of the range of values to
+sample from and int is the interval values are sampled from.</p>
+<p>d0_slice: A slice indicating which modes of d0 to learn the transformation to.</p>
+<p>d1_slice: A slice indicating which modes of d1 to learn the transformation from.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

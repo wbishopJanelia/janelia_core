@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.latent_regression.subject_models &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+        <script src="../../../../../_static/jquery.js"></script>
+        <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/doctools.js"></script>
+        <script src="../../../../../_static/language_data.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.latent_regression.subject_models</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../_sources/autoapi/janelia_core/ml/latent_regression/subject_models/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.latent_regression.subject_models">
+<span id="janelia-core-ml-latent-regression-subject-models"></span><h1><a class="reference internal" href="#module-janelia_core.ml.latent_regression.subject_models" title="janelia_core.ml.latent_regression.subject_models"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.latent_regression.subject_models</span></code></a><a class="headerlink" href="#module-janelia_core.ml.latent_regression.subject_models" title="Permalink to this headline"></a></h1>
+<p>Defines the class for single subject latent-regression models.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.subject_models.LatentRegModel" title="janelia_core.ml.latent_regression.subject_models.LatentRegModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LatentRegModel</span></code></a></p></td>
+<td><p>A latent variable regression model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel" title="janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SharedMLatentRegModel</span></code></a></p></td>
+<td><p>A base class for latent regression models with m-modules that are at least partially shared between instances.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.subject_models.LatentRegModel">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.subject_models.</code><code class="sig-name descname">LatentRegModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_in</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">d_out</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">d_proj</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">d_trans</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">m</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em>, <em class="sig-param"><span class="n">s</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.nn.Module<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">use_scales</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">assign_scales</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_offsets</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">assign_offsets</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">direct_pairs</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">assign_direct_pair_mappings</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">assign_p_modes</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">assign_u_modes</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">assign_psi</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">w_gain</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">sc_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">dm_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">noise_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[0.1, 0.2]</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#LatentRegModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.LatentRegModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A latent variable regression model.</p>
+<p>In this model, we have G groups of input variables, x_g in R^{d_in^g} for g = 1, …, G and
+H groups of output variables, y_h in R^{d_out^h} for h = 1, …, H</p>
+<p>We form G groups of “projected” latent variables as proj_g = p_g^T x_g, for proj_g in R^{d_proj^g},
+Note that p_g need not be an orthonormal projection.</p>
+<p>There are also H sets of “transformed” latent variables, tran_1, …, tran_H, with tran_h in R^{d_trans^h}, where
+d_trans^h is the dimensionality of the transformed latent variables for group h.</p>
+<p>Each model is equipped with a mapping, m, from [proj_1, …, proj_G] to [tran_1, …, tran_G].  The mapping m may
+have it’s own parameters.  The function m.forward() should accept a list, [proj_1, …, proj_G], as input where
+proj_g is a tensor of shape n_smps*d_proj^g and should output a list, [tran_1, …, tran_G], where trah_h is a
+tensor of shape n_smps*d_trans^h.</p>
+<p>The transformed latents are mapped to a high-dimensional vector z_h = u_h tran_h, where z_h in R^{d_out^h}.</p>
+<p>A (possibly) non-linear function s_h is applied to form o_h = s_h(z_h) in R^{d_out^h}. s_h can
+again have it’s own parameters. s_h can be a general function mapping from R^{d_out^h} to R^{d_out^h},
+but in many cases, it may be a composite function which just applies the same function element-wise.</p>
+<p>Next, w_h is formed by optionally applying element-wise scales and offsets to o_h. If these scales and offsets are
+not used, w_h = o_h.</p>
+<p>The user can also specify pairs (g, h) when d_in^g = d_out^h, where there is a direct mapping from x_g to a
+vector v_h, v_h = c_{h,g} x_g, where c_{h,g} is a diagonal matrix.  This is most useful when x_g and
+y_g are the same set of variables (e.g, neurons) at times t-1 and t, and in addition to low-rank interactions,
+we want to include interactions between each variable and itself.</p>
+<p>Variables mn_h = w_h + v_h are then formed, and finally, y_h = mn_h + n_h, where n_h ~ N(0, psi_h)
+where psi_h is a diagonal covariance matrix.</p>
+<p>Create a LatentRegModel object.</p>
+<p>When creating the object, the user has the option to “assign” different variables.  This means a (potentiallY)
+learnable parameter will be created for the variable.  A user may select not to assign a variable if the
+model will be fit with a probabilistic framework where distributions over different parameters will be used
+in place of point estimates.  In this case, because the variables stored with this object will not be used,
+the user can chose to save memory by not creating that variable in the first place.  The user has two different
+ways to specify if variables are assigned.  A user can enter a single boolean value (e.g., assign_psi = True),
+in which case psi variables for all output groups will be assigned.  Alternatively, the user can provide a
+sequence of boolean values, indicating which variables for each group should be assigned.</p>
+<p>Once parameters are created, the user can select if they are learnable or not by manipulating the internal
+trainable parameters for the object.  By default, all created parameters are learnable.  However, a user
+might want to set some parameters by hand and then hold them fixed, in which case setting these parameters
+to not be learnable will be useful.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>d_in: d_in[g] gives the input dimensionality for group g of input variables.</p>
+<p>d_out: d_out[h] gives the output dimensionality for group h of output variables.</p>
+<p>d_proj: d_proj[g] gives the dimensionality for the projected latent variables for input group g.</p>
+<p>d_trans: d_trans[h] gives the dimensionality for the transformed latent variables for output group h.</p>
+<p>m: The mapping from [p_1, …, p_G] to [t_h, …, t_h].</p>
+<p>s: s[h] contains module to be applied to z_h (see above).</p>
+<p>use_scales: True if scales should be applied to the o_h values of each output group.</p>
+<p>assign_scales: True if scales should be assigned.  See note above on assigning variables.</p>
+<p>use_offsets: True if offsets should be applied to the o_h values of each output group.</p>
+<p>assign_offsets: True if offsets should be assigned.  See note above on assigning variables.</p>
+<p>direct_pairs: direct_pairs[p] contains a tuple of the form (g, h) giving a pair of input and output groups
+that should have direct connections.</p>
+<p>assign_direct_pair_mappings: True if direct pair mappings should be assigned.  See note above on assigning
+variables.  If indicating which particular direct pair mappings should be assigned, this should be a
+sequence and the i^th entry in the sequence indicates if the i^th pair in direct_pairs has a mapping
+assigned.</p>
+<p>assign_p_modes: True if p modes should be assigned.  See note above on assigning variables.</p>
+<p>assign_u_modes: True if u modes should be assigned.  See note above on assigning variables.</p>
+<p>assign_psi: True if psi variables should be assigned.  See note above on assigning variables.</p>
+<p>w_gain: Gain to apply to projection p and u matrices when initializing their weights.</p>
+<p>sc_std: Standard deviation for initializing scale values.</p>
+<p>dm_std: Standard deviation for initializing direct mappings.</p>
+<p>noise_range: Range of uniform distribution to pull psi values from during initialization.</p>
+</div></blockquote>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.LatentRegModel.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span></em><span class="sig-paren">)</span> &#x2192; Sequence<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#LatentRegModel.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.LatentRegModel.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the predicted mean from the model given input.</p>
+<p>This function assumes all parameters of the model have been assigned.  If this is not the case and you wish
+to provide some of the values for parameters not assigned within the model, see cond_forward().</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of
+shape n_smps*d_in[g]</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: A sequence of outputs. y[h] contains the output for group h.  y[h] will be of shape n_smps*d_out[h]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.LatentRegModel.cond_forward">
+<code class="sig-name descname">cond_forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">List<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>List<span class="p">[</span>Union<span class="p">[</span>torch.Tensor<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">u</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>List<span class="p">[</span>Union<span class="p">[</span>torch.Tensor<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">scales</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>List<span class="p">[</span>Union<span class="p">[</span>torch.Tensor<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">offsets</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>List<span class="p">[</span>Union<span class="p">[</span>torch.Tensor<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">direct_mappings</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>List<span class="p">[</span>Union<span class="p">[</span>torch.Tensor<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#LatentRegModel.cond_forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.LatentRegModel.cond_forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes means given x and different parameter values.</p>
+<p>The user can specify parameter values to override (see arguments below).  When any of these are provided,
+the internal values for this parameter stored with the model are ignored and the user provided values are
+used instead. The user can provide this specification in two ways.  Providing a None value (e.g., p = None),
+specifies all of the paramters for all groups should be used (in this example, p modes in the model for all
+groups would be used).  Alternatively, the user can provide a sequence (e.g, p = [None, t]).  An entry of None
+in the sequence indicates the model’s parameter for that group should be used, while if an entry is a tensor,
+than that tensor will be used in place of the model’s parameters.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of
+shape n_smps*d_in[g]</p>
+<p>p: Values for the p-modes to use.  See note above on how parameters can be specified.</p>
+<p>u: Values for the u-modes to use.  See note above on how parameters can be specified.</p>
+<p>scales: Values for scales to use.  See note above on how parameters can be specified.</p>
+<p>offsets: Values for offsets to use.  See note above on how parameters can be specified.</p>
+<p>direct_mappings: Direct mappings to use.  When specifying a sequence. direct_mappings[i] contains the values
+for the direct mappings in self.direct_pairs[i]</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>y: A sequence of outputs. y[h] contains the means for group h.  y[h] will be of shape n_smps*d_out[h]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.LatentRegModel.generate">
+<code class="sig-name descname">generate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span></em><span class="sig-paren">)</span> &#x2192; Sequence<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#LatentRegModel.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.LatentRegModel.generate" title="Permalink to this definition"></a></dt>
+<dd><p>Generates outputs from the model given inputs.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of
+shape n_smps*d_in[g]</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: A sequence of generated outputs.  y[h] contains the output tensor for group h.  y[h] will be of
+shape n_smps*d_out[h]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.LatentRegModel.p_project">
+<code class="sig-name descname">p_project</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">List<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>List<span class="p">[</span>Union<span class="p">[</span>torch.Tensor<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>torch.Tensor<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#LatentRegModel.p_project"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.LatentRegModel.p_project" title="Permalink to this definition"></a></dt>
+<dd><p>Projects input data onto p-modes.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>p: List of p modes to use.  p[g] are the p modes to use for group g.  If p[g] is None,
+then the internal p modes of the subject model will be used.  If p is None, then all
+the internal p modes of the subject will be used for all groups.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>projs: projs[g] are the projections for input group g.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.LatentRegModel.recursive_generate">
+<code class="sig-name descname">recursive_generate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">r_map</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; Sequence<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#LatentRegModel.recursive_generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.LatentRegModel.recursive_generate" title="Permalink to this definition"></a></dt>
+<dd><p>Recursively generates output for a given number of time steps.</p>
+<p>The concept behind this function is that to simulate T samples from the model, we specify
+T sets of initial conditions (one set for each sample).  If the initial conditions are
+fully specified (no NAN values) then this function is equivalent to generate(). However,
+if some initial conditions are left unspecified for certain time points, then the output
+of the model from the previous time steps will be used as the initial conditions.
+This gives users the flexibility of simulating scenarios where variables in a model may
+be selectively “clamped” at different points in time.</p>
+<dl>
+<dt>Args:</dt><dd><p>x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] is
+of shape [n_smps, d_x], where n_smps is the number of samples we simulate
+output for.  Specifically, x[g][t, :] contains the initial conditions for group g and
+time point t.  Any nan values indicate the initial conditions for that variable should
+be pulled from the output of the model from the previous time step.</p>
+<p>r_map: Specifies which output groups should be mapped to which input groups when
+recursively generating data.  Any input group which does not have output mapped to
+must have all values in it’s entry in x fully specified.  r_map[i] is a tuple of
+the form (h,g) specifying that the output of group h should be recursively mapped
+to the input of group g.</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: A sequence of outputs.  y[h] contains the output for group h.  Will be of shape n_smps*d_y.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If any initial conditions contain nan values.</p>
+<p>ValueError: If any input group which does not recursively receive output does not
+have all of its values in x specified.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.LatentRegModel.s_parameters">
+<code class="sig-name descname">s_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#LatentRegModel.s_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.LatentRegModel.s_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Gets the parameters of the s modules.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>params: params[i] is a list of parameters for the i^th output group</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.LatentRegModel.neg_ll">
+<code class="sig-name descname">neg_ll</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">mn</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">psi</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#LatentRegModel.neg_ll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.LatentRegModel.neg_ll" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the negative log likelihood of outputs given predicted means.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>y: A sequence of outputs.  y[h] contains the output tensor for group h.  y[h] should be of
+shape n_smps*d_out[h]</p>
+<p>mn: A sequence of predicted means.  mns[h] contains the predicted means for group h.  mns[h]
+should be of shape n_smps*d_out[h]</p>
+<p>psi: An optional value of psi to use.  Can be specified in two ways.  If None, then the model’s internal
+parameter for psi for all groups will be used.  If a sequence, then if psi[h] is None, the model’s
+parameter of psi[h] will be used.  However is psi[h] is a tensor, then this value will be used in place
+of the models.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>The calculated negative log-likelihood for the sample</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueErorr: If y and mn are not lists</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.LatentRegModel.trainable_parameters">
+<code class="sig-name descname">trainable_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>torch.nn.parameter.Parameter<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#LatentRegModel.trainable_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.LatentRegModel.trainable_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Gets all trainable parameters of the model.</p>
+<p>Trainable parameters are those in the s and m modules as well as the p modes, u modes, scale, offset, psi and
+direct_mapping parameters which are set to trainable (e.g., self.p_trainable has true entries for the
+groups with trainable p modes).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.LatentRegModel.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">y</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="n">send_size</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">100</span></em>, <em class="sig-param"><span class="n">max_its</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">learning_rates</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">adam_params</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">min_var</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1e-06</span></em>, <em class="sig-param"><span class="n">update_int</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">parameters</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">l1_p_lambda</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">l1_u_lambda</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#LatentRegModel.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.LatentRegModel.fit" title="Permalink to this definition"></a></dt>
+<dd><p>Fits a model to data with maximum likelihood.</p>
+<p>This function performs stochastic optimization with the ADAM algorithm.  The weights of the model
+should be initialized before calling this function.</p>
+<p>Optimization will be perfomed on whatever device the model parameters are on.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of
+shape n_smps*d_in[g]</p>
+<p>y: A sequence of outputs.  y[h] contains the output tensor for group h.  y[h] should be of
+shape n_smps*d_out[h]</p>
+<p>batch_size: The number of samples to train on during each iteration</p>
+<p>send_size: The number of samples to send to the device at a time for calculating batch gradients.  It is
+most efficient to set send_size = batch_size, but if this results in computations exceeding device memory,
+send_size can be set lower.  In this case gradients will accumulated until all samples in the batch are
+sent to the device and then a step will be taken.</p>
+<p>max_its: The maximum number of iterations to run</p>
+<p>learning_rates: If a single number, this is the learning rate to use for all iteration.  Alternatively, this
+can be a list of tuples.  Each tuple is of the form (iteration, learning_rate), which gives the learning rate
+to use from that iteration onwards, until another tuple specifies another learning rate to use at a different
+iteration on.  E.g., learning_rates = [(0, .01), (1000, .001), (10000, .0001)] would specify a learning
+rate of .01 from iteration 0 to 999, .001 from iteration 1000 to 9999 and .0001 from iteration 10000 onwards.</p>
+<p>adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object.
+Note that if learning rate is specified here <em>it will be ignored.</em> (Use the learning_rates option instead).</p>
+<p>min_var: The minumum value any entry of a psi[h] can take on.  After a gradient update, values less than this
+will be clamped to this value.</p>
+<p>update_int: The interval of iterations we update the user on.</p>
+<p>parameters: If provided, only these parameters of the model will be optimized.  If none, all parameters are
+optimized.</p>
+<dl class="simple">
+<dt>l1_p_lambda: The entries in the p parameters are penalized by their l1-norm the form</dt><dd><p>l1_p_lambda[g]*sum(abs(p[g])).  If l1_p_lambda is None, no penalties will be applied.</p>
+</dd>
+</dl>
+<p>l1_u_lambda: Analagous to l1_p_lambda but for the u parameters.</p>
+<dl>
+<dt>Raises:</dt><dd><p>ValueError: If send_size is greater than batch_size.</p>
+</dd>
+<dt>Returns:</dt><dd><p>log: A dictionary logging progress.  Will have the enries:
+‘elapsed_time’: log[‘elapsed_time’][i] contains the elapsed time from the beginning of optimization to
+the end of iteration i</p>
+<p>‘obj’: log[‘obj’][i] contains the objective value at the beginning (before parameters are updated) of iteration i.</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.subject_models.</code><code class="sig-name descname">SharedMLatentRegModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_in</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">d_out</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">d_proj</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">d_trans</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">specific_m</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em>, <em class="sig-param"><span class="n">shared_m</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em>, <em class="sig-param"><span class="n">s</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.nn.Module<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">use_scales</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">assign_scales</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_offsets</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">assign_offsets</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">direct_pairs</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">assign_direct_pair_mappings</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">assign_p_modes</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">assign_u_modes</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">assign_psi</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">w_gain</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">sc_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">dm_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">noise_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[0.1, 0.2]</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#SharedMLatentRegModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.latent_regression.subject_models.LatentRegModel" title="janelia_core.ml.latent_regression.subject_models.LatentRegModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LatentRegModel</span></code></a></p>
+<p>A base class for latent regression models with m-modules that are at least partially shared between instances.</p>
+<p>This class is designed to ease working in scenarios where we fit multiple latent regression models, one to each
+individual, and we want the m-module of these models to have a component that is shared across all of these models.</p>
+<p>The m-module of these instances will be of the form m = torch.nn.Sequential(specific_m, shared_m), where specific_m
+is an module unique to the instance and shared_m is a module shared between instances.</p>
+<p>This class provides convenience methods that facilitate getting the shared and specific portions and parameters of
+the m-module.</p>
+<p>Create a LatentRegModel object.</p>
+<p>When creating the object, the user has the option to “assign” different variables.  This means a (potentiallY)
+learnable parameter will be created for the variable.  A user may select not to assign a variable if the
+model will be fit with a probabilistic framework where distributions over different parameters will be used
+in place of point estimates.  In this case, because the variables stored with this object will not be used,
+the user can chose to save memory by not creating that variable in the first place.  The user has two different
+ways to specify if variables are assigned.  A user can enter a single boolean value (e.g., assign_psi = True),
+in which case psi variables for all output groups will be assigned.  Alternatively, the user can provide a
+sequence of boolean values, indicating which variables for each group should be assigned.</p>
+<p>Once parameters are created, the user can select if they are learnable or not by manipulating the internal
+trainable parameters for the object.  By default, all created parameters are learnable.  However, a user
+might want to set some parameters by hand and then hold them fixed, in which case setting these parameters
+to not be learnable will be useful.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>d_in: d_in[g] gives the input dimensionality for group g of input variables.</p>
+<p>d_out: d_out[h] gives the output dimensionality for group h of output variables.</p>
+<p>d_proj: d_proj[g] gives the dimensionality for the projected latent variables for input group g.</p>
+<p>d_trans: d_trans[h] gives the dimensionality for the transformed latent variables for output group h.</p>
+<p>m: The mapping from [p_1, …, p_G] to [t_h, …, t_h].</p>
+<p>s: s[h] contains module to be applied to z_h (see above).</p>
+<p>use_scales: True if scales should be applied to the o_h values of each output group.</p>
+<p>assign_scales: True if scales should be assigned.  See note above on assigning variables.</p>
+<p>use_offsets: True if offsets should be applied to the o_h values of each output group.</p>
+<p>assign_offsets: True if offsets should be assigned.  See note above on assigning variables.</p>
+<p>direct_pairs: direct_pairs[p] contains a tuple of the form (g, h) giving a pair of input and output groups
+that should have direct connections.</p>
+<p>assign_direct_pair_mappings: True if direct pair mappings should be assigned.  See note above on assigning
+variables.  If indicating which particular direct pair mappings should be assigned, this should be a
+sequence and the i^th entry in the sequence indicates if the i^th pair in direct_pairs has a mapping
+assigned.</p>
+<p>assign_p_modes: True if p modes should be assigned.  See note above on assigning variables.</p>
+<p>assign_u_modes: True if u modes should be assigned.  See note above on assigning variables.</p>
+<p>assign_psi: True if psi variables should be assigned.  See note above on assigning variables.</p>
+<p>w_gain: Gain to apply to projection p and u matrices when initializing their weights.</p>
+<p>sc_std: Standard deviation for initializing scale values.</p>
+<p>dm_std: Standard deviation for initializing direct mappings.</p>
+<p>noise_range: Range of uniform distribution to pull psi values from during initialization.</p>
+</div></blockquote>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.update_shared_m">
+<code class="sig-name descname">update_shared_m</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">new_m_core</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#SharedMLatentRegModel.update_shared_m"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.update_shared_m" title="Permalink to this definition"></a></dt>
+<dd><p>Updates the shared component of the m-module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.specific_m_parameters">
+<code class="sig-name descname">specific_m_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#SharedMLatentRegModel.specific_m_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.specific_m_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Returns subject-specific parameters of the m-module.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>params: A list of parameters.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.shared_m_parameters">
+<code class="sig-name descname">shared_m_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#SharedMLatentRegModel.shared_m_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.shared_m_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Returns shared parameters of the m-module.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>params: A list of parameters.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.parameters">
+<code class="sig-name descname">parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#SharedMLatentRegModel.parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Returns parameters of the model, possibly excluding parameters of the shared component of the m-module.</p>
+<p>The parameters of the shared component of the m-module will not be returned if self.returned_shared_m_params is
+False.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.p_project">
+<code class="sig-name descname">p_project</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">List<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>List<span class="p">[</span>Union<span class="p">[</span>torch.Tensor<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span><span class="p">]</span><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">apply_specific_m</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>torch.Tensor<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/subject_models.html#SharedMLatentRegModel.p_project"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.p_project" title="Permalink to this definition"></a></dt>
+<dd><p>Projects input data onto p-modes.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>p: List of p modes to use.  p[g] are the p modes to use for group g.  If p[g] is None,
+then the internal p modes of the subject model will be used.  If p is None, then all
+the internal p modes of the subject will be used for all groups.</p>
+<p>apply_specific_m: True if subject specific portion of m-module should be applied after projecting
+data</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>projs: projs[g] are the projections for input group g.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

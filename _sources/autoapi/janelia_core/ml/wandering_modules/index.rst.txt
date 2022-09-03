@@ -1,0 +1,227 @@
+:py:mod:`janelia_core.ml.wandering_modules`
+===========================================
+
+.. py:module:: janelia_core.ml.wandering_modules
+
+.. autoapi-nested-parse::
+
+   Contains an experimental set of modules with parameters that can display some drift during fitting.
+
+   Wandering modules are Torch modules which allow for modifications of their parameters and the gradients for their
+   parameters during gradient fitting routines.  They are called wandering because in many cases, small amounts of noise
+   can be added to the the gradients, so these parameters display a random walk when gradients are zero.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.ml.wandering_modules.WanderingModule
+   janelia_core.ml.wandering_modules.BumpFcn
+   janelia_core.ml.wandering_modules.SumOfBumpFcns
+   janelia_core.ml.wandering_modules.SlowSumOfBumpFcns
+
+
+
+
+.. py:class:: WanderingModule
+
+   Bases: :py:obj:`abc.ABC`, :py:obj:`torch.nn.Module`
+
+   Base class for wandering modules.
+
+   Initializes internal Module state, shared by both nn.Module and ScriptModule.
+
+   .. py:method:: bound(self)
+      :abstractmethod:
+
+      Bounds parameters in the module.
+
+      This method takes no arguments, other than self, as the bounds themselves are expected to be saved as attributes
+      of the module.
+
+
+   .. py:method:: pert_grads(self)
+      :abstractmethod:
+
+      Perturbs (or adjusts) gradients of parameters of the module.
+
+      This method takes no arguments, other than self, as any customization of how gradients are perturbed should
+      be controlled through adjusting attributes of the module.  For example, the amount of noise added to gradients
+      could be determined by an attribute.
+
+
+
+.. py:class:: BumpFcn(c: torch.Tensor, w: torch.Tensor, m: float, c_bounds: torch.Tensor = None, w_bounds: torch.Tensor = None, c_grad_std: float = 0.0, w_grad_std: float = 0.0, m_grad_gain: float = 0.0, support_p: float = 0.01)
+
+   Bases: :py:obj:`WanderingModule`
+
+   A function representing a single exponential bump.
+   The bump function is of the form:
+       y = m*exp(-sum(((x - c)/w)**2)),
+   where x is input, c is the center of the bump, w determines the width of the bump and m determines the magnitude of
+   the bump. Note that x can be multi-dimensional, in which case c and w are vectors of the appropriate dimension.
+
+   Creates a new BumpFcn module.
+
+   Args:
+       c: The initial center
+
+       w: The initial weight
+
+       m: The initial magnitude
+
+       c_bounds: Bounds for the center parameter.  First row is lower bounds; second row is upper bounds. If
+       None, the center will not be bounded.
+
+       w_bounds: Bounds for the width parameter.  First row is lower bounds; second row is upper bounds. If
+       None, the width parameters will not be bounded.
+
+       c_grad_std: The standard deviation to use when perturbing gradients for the center parameters with random
+       noise
+
+       w_grad_std: The standard deviation to use when perturbing gradients for the width parameters with random
+       noise
+
+       m_grad_gain: The gain to use when perturbing the gradient for the magnitude.  The gradient is perturbed by
+       subtracting the value m*grad_gain from the gradient for m.
+
+       support_p: The percent of max value in any direction where we define the boundary of support.  This is
+       used for skipping function evaluation for input values that are outside of the support.
+
+   .. py:method:: forward(self, x: torch.Tensor, small_output: bool = False) -> torch.Tensor
+
+      Computes output from input.
+
+      Args:
+          x: Input of shape n_smps*d_in
+
+          small_output: If false, then output is a tensor of length n_smps, where y[i] is the output for x[i,:]. If
+          true, output is a tuple.  The first entry in the tuple is a tuple of indices of points where output is
+          non-zero and the second is a tuple of values for these points.
+
+      Returns:
+          y: Output of shame n_smps
+
+
+   .. py:method:: bound(self)
+
+      Bounds parameters of the module.
+
+
+   .. py:method:: pert_grads(self)
+
+      Perturbs gradients.
+
+
+
+.. py:class:: SumOfBumpFcns(c: torch.Tensor, w: torch.Tensor, m: torch.Tensor, c_bounds: torch.Tensor, w_bounds: torch.Tensor)
+
+   Bases: :py:obj:`WanderingModule`
+
+   A sum of bump functions, each with learnable centers, widths and magnitudes.
+   (See BumpFcn for the functional form of a single bump function).
+
+   Creates a new SumOfBumpFcns modules.
+
+   Currently this module allows for bounding of centers and widths, but does not perturb gradients (which is to say
+   the pert_grads() method does nothing).
+
+   Args:
+       c: Initial centers.  Each column is a center for a bump.
+
+       w: Initial widths.  Each column is the width parameters for a bump.
+
+       m: Initial magnitudes.  Each entry is the magnitude for a bump.
+
+       c_bounds: Bounds for the center parameter.  First column is lower bounds; second column is upper bounds. If
+       None, the center will not be bounded.
+
+       w_bounds: Bounds for the width parameter.  First column is lower bounds; second column is upper bounds. If
+       None, the width parameters will not be bounded.
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes input from output.
+
+      Args:
+          x: Input of shape n_smps*n_dims
+
+      Returns:
+           y: Output of length n_smps
+
+
+   .. py:method:: bound(self)
+
+      Bounds parameters of the module.
+
+
+   .. py:method:: pert_grads(self)
+
+      Currently we don't implement any gradient perturbations.
+
+
+
+.. py:class:: SlowSumOfBumpFcns(c: torch.Tensor, w: torch.Tensor, m: torch.Tensor, c_bounds: torch.Tensor, w_bounds: torch.Tensor, c_grad_std: float = 0.0, w_grad_std: float = 0.0, m_grad_gain: float = 0.0, support_p: float = 0.01)
+
+   Bases: :py:obj:`WanderingModule`
+
+   Implements a sum of bump functions which will be slower in computation on GPU, but may be have memory benefits.
+   (See BumpFcn for the functional form of a single bump function).
+
+   Creates a new SumOfBumpFcns modules.
+
+   This module allows for bounding of centers and widths and perturbing of gradients.
+
+   Args:
+       c: Initial centers.  Each column is a center for a bump.
+
+       w: Initial widths.  Each column is the width parameters for a bump.
+
+       m: Initial magnitudes.  Each entry is the magnitude for a bump.
+
+       c_bounds: Bounds for the center parameter.  First column is lower bounds; second column is upper bounds. If
+       None, the center will not be bounded.
+
+       w_bounds: Bounds for the width parameter.  First column is lower bounds; second column is upper bounds. If
+       None, the width parameters will not be bounded.
+
+       c_grad_std: The standard deviation to use when perturbing gradients for the center parameters with random
+       noise
+
+       w_grad_std: The standard deviation to use when perturbing gradients for the width parameters with random
+       noise
+
+       m_grad_gain: The gain to use when perturbing the gradient for the magnitude.  The gradient is perturbed by
+       subtracting the value m*grad_gain from the gradient for m.
+
+       support_p: The percent of max value in any direction where we define the boundary of support.  This is
+       used for skipping function evaluation for input values that are outside of the support.
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Computes output from input.
+
+      Args:
+          x: input of shape n_smps*d_in
+
+      Returns:
+          y: output of length n_smps
+
+
+   .. py:method:: bound(self)
+
+      Bounds parameters of the module.
+
+
+   .. py:method:: pert_grads(self)
+
+      Perturbs gradients.
+
+
+

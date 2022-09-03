@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.latent_regression.subject_models &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Setting up the core library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html#dependencies">Dependencies</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../autoapi/janelia_core/index.html">janelia_core</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.ml.latent_regression.subject_models</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.ml.latent_regression.subject_models</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; Defines the class for single subject latent-regression models. &quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">from</span> <span class="nn">janelia_core.ml.utils</span> <span class="kn">import</span> <span class="n">format_and_check_learning_rates</span>
+
+
+<div class="viewcode-block" id="LatentRegModel"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel">[docs]</a><span class="k">class</span> <span class="nc">LatentRegModel</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A latent variable regression model.</span>
+
+<span class="sd">    In this model, we have G groups of input variables, x_g \in R^{d_in^g} for g = 1, ..., G and</span>
+<span class="sd">    H groups of output variables, y_h \in R^{d_out^h} for h = 1, ..., H</span>
+
+<span class="sd">    We form G groups of &quot;projected&quot; latent variables as proj_g = p_g^T x_g, for proj_g \in R^{d_proj^g},</span>
+<span class="sd">    Note that p_g need not be an orthonormal projection.</span>
+
+<span class="sd">    There are also H sets of &quot;transformed&quot; latent variables, tran_1, ..., tran_H, with tran_h \in R^{d_trans^h}, where</span>
+<span class="sd">    d_trans^h is the dimensionality of the transformed latent variables for group h.</span>
+
+<span class="sd">    Each model is equipped with a mapping, m, from [proj_1, ..., proj_G] to [tran_1, ..., tran_G].  The mapping m may</span>
+<span class="sd">    have it&#39;s own parameters.  The function m.forward() should accept a list, [proj_1, ..., proj_G], as input where</span>
+<span class="sd">    proj_g is a tensor of shape n_smps*d_proj^g and should output a list, [tran_1, ..., tran_G], where trah_h is a</span>
+<span class="sd">    tensor of shape n_smps*d_trans^h.</span>
+
+<span class="sd">    The transformed latents are mapped to a high-dimensional vector z_h = u_h tran_h, where z_h \in R^{d_out^h}.</span>
+
+<span class="sd">    A (possibly) non-linear function s_h is applied to form o_h = s_h(z_h) \in R^{d_out^h}. s_h can</span>
+<span class="sd">    again have it&#39;s own parameters. s_h can be a general function mapping from R^{d_out^h} to R^{d_out^h},</span>
+<span class="sd">    but in many cases, it may be a composite function which just applies the same function element-wise.</span>
+
+<span class="sd">    Next, w_h is formed by optionally applying element-wise scales and offsets to o_h. If these scales and offsets are</span>
+<span class="sd">    not used, w_h = o_h.</span>
+
+<span class="sd">    The user can also specify pairs (g, h) when d_in^g = d_out^h, where there is a direct mapping from x_g to a</span>
+<span class="sd">    vector v_h, v_h = c_{h,g} x_g, where c_{h,g} is a diagonal matrix.  This is most useful when x_g and</span>
+<span class="sd">    y_g are the same set of variables (e.g, neurons) at times t-1 and t, and in addition to low-rank interactions,</span>
+<span class="sd">    we want to include interactions between each variable and itself.</span>
+
+<span class="sd">    Variables mn_h = w_h + v_h are then formed, and finally, y_h = mn_h + n_h, where n_h ~ N(0, psi_h)</span>
+<span class="sd">    where psi_h is a diagonal covariance matrix.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">d_out</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">d_proj</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">d_trans</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                 <span class="n">m</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">],</span> <span class="n">use_scales</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">assign_scales</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">use_offsets</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">assign_offsets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">direct_pairs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">assign_direct_pair_mappings</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="n">assign_p_modes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">assign_u_modes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="n">assign_psi</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">w_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sc_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">01</span><span class="p">,</span>
+                 <span class="n">dm_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="n">noise_range</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot; Create a LatentRegModel object.</span>
+
+<span class="sd">        When creating the object, the user has the option to &quot;assign&quot; different variables.  This means a (potentiallY)</span>
+<span class="sd">        learnable parameter will be created for the variable.  A user may select not to assign a variable if the</span>
+<span class="sd">        model will be fit with a probabilistic framework where distributions over different parameters will be used</span>
+<span class="sd">        in place of point estimates.  In this case, because the variables stored with this object will not be used,</span>
+<span class="sd">        the user can chose to save memory by not creating that variable in the first place.  The user has two different</span>
+<span class="sd">        ways to specify if variables are assigned.  A user can enter a single boolean value (e.g., assign_psi = True),</span>
+<span class="sd">        in which case psi variables for all output groups will be assigned.  Alternatively, the user can provide a</span>
+<span class="sd">        sequence of boolean values, indicating which variables for each group should be assigned.</span>
+
+<span class="sd">        Once parameters are created, the user can select if they are learnable or not by manipulating the internal</span>
+<span class="sd">        trainable parameters for the object.  By default, all created parameters are learnable.  However, a user</span>
+<span class="sd">        might want to set some parameters by hand and then hold them fixed, in which case setting these parameters</span>
+<span class="sd">        to not be learnable will be useful.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            d_in: d_in[g] gives the input dimensionality for group g of input variables.</span>
+
+<span class="sd">            d_out: d_out[h] gives the output dimensionality for group h of output variables.</span>
+
+<span class="sd">            d_proj: d_proj[g] gives the dimensionality for the projected latent variables for input group g.</span>
+
+<span class="sd">            d_trans: d_trans[h] gives the dimensionality for the transformed latent variables for output group h.</span>
+
+<span class="sd">            m: The mapping from [p_1, ..., p_G] to [t_h, ..., t_h].</span>
+
+<span class="sd">            s: s[h] contains module to be applied to z_h (see above).</span>
+
+<span class="sd">            use_scales: True if scales should be applied to the o_h values of each output group.</span>
+
+<span class="sd">            assign_scales: True if scales should be assigned.  See note above on assigning variables.</span>
+
+<span class="sd">            use_offsets: True if offsets should be applied to the o_h values of each output group.</span>
+
+<span class="sd">            assign_offsets: True if offsets should be assigned.  See note above on assigning variables.</span>
+
+<span class="sd">            direct_pairs: direct_pairs[p] contains a tuple of the form (g, h) giving a pair of input and output groups</span>
+<span class="sd">            that should have direct connections.</span>
+
+<span class="sd">            assign_direct_pair_mappings: True if direct pair mappings should be assigned.  See note above on assigning</span>
+<span class="sd">            variables.  If indicating which particular direct pair mappings should be assigned, this should be a</span>
+<span class="sd">            sequence and the i^th entry in the sequence indicates if the i^th pair in direct_pairs has a mapping</span>
+<span class="sd">            assigned.</span>
+
+<span class="sd">            assign_p_modes: True if p modes should be assigned.  See note above on assigning variables.</span>
+
+<span class="sd">            assign_u_modes: True if u modes should be assigned.  See note above on assigning variables.</span>
+
+<span class="sd">            assign_psi: True if psi variables should be assigned.  See note above on assigning variables.</span>
+
+<span class="sd">            w_gain: Gain to apply to projection p and u matrices when initializing their weights.</span>
+
+<span class="sd">            sc_std: Standard deviation for initializing scale values.</span>
+
+<span class="sd">            dm_std: Standard deviation for initializing direct mappings.</span>
+
+<span class="sd">            noise_range: Range of uniform distribution to pull psi values from during initialization.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Record basic parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_in</span> <span class="o">=</span> <span class="n">d_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_out</span> <span class="o">=</span> <span class="n">d_out</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_proj</span> <span class="o">=</span> <span class="n">d_proj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_trans</span> <span class="o">=</span> <span class="n">d_trans</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_scales</span> <span class="o">=</span> <span class="n">use_scales</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_offsets</span> <span class="o">=</span> <span class="n">use_offsets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">direct_pairs</span> <span class="o">=</span> <span class="n">direct_pairs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_direct_pairs</span> <span class="o">=</span> <span class="n">direct_pairs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="n">n_input_groups</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">d_in</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_input_groups</span> <span class="o">=</span> <span class="n">n_input_groups</span>
+        <span class="n">n_output_groups</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">d_out</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_output_groups</span> <span class="o">=</span> <span class="n">n_output_groups</span>
+
+        <span class="c1"># Put our assignment arguments into a standard form</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">assign_p_modes</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="n">assign_p_modes</span> <span class="o">=</span> <span class="p">[</span><span class="n">assign_p_modes</span><span class="p">]</span><span class="o">*</span><span class="n">n_input_groups</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">assign_u_modes</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="n">assign_u_modes</span> <span class="o">=</span> <span class="p">[</span><span class="n">assign_u_modes</span><span class="p">]</span><span class="o">*</span><span class="n">n_output_groups</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">assign_scales</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="n">assign_scales</span> <span class="o">=</span> <span class="p">[</span><span class="n">assign_scales</span><span class="p">]</span><span class="o">*</span><span class="n">n_output_groups</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">assign_offsets</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="n">assign_offsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">assign_offsets</span><span class="p">]</span><span class="o">*</span><span class="n">n_output_groups</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">assign_direct_pair_mappings</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">direct_pairs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">assign_direct_pair_mappings</span> <span class="o">=</span> <span class="p">[</span><span class="n">assign_direct_pair_mappings</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">direct_pairs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">assign_psi</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="n">assign_psi</span> <span class="o">=</span> <span class="p">[</span><span class="n">assign_psi</span><span class="p">]</span><span class="o">*</span><span class="n">n_output_groups</span>
+
+
+        <span class="c1"># Mapping from projection to transformed latents</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m</span> <span class="o">=</span> <span class="n">m</span>
+
+        <span class="c1"># Mappings from transformed latents to o_h</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+        <span class="c1"># Initialize projection matrices down</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">n_input_groups</span>
+        <span class="k">for</span> <span class="n">g</span><span class="p">,</span> <span class="n">dims</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_proj</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">assign_p_modes</span><span class="p">[</span><span class="n">g</span><span class="p">]:</span>
+                <span class="n">param_name</span> <span class="o">=</span> <span class="s1">&#39;p&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+                <span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_normal_</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">],</span> <span class="n">gain</span><span class="o">=</span><span class="n">w_gain</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_trainable</span> <span class="o">=</span> <span class="n">assign_p_modes</span>  <span class="c1"># All assigned projection matrices are by default trainable</span>
+
+        <span class="c1"># Initialize projection matrices up</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">n_output_groups</span>
+        <span class="k">for</span> <span class="n">h</span><span class="p">,</span> <span class="n">dims</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">d_out</span><span class="p">,</span> <span class="n">d_trans</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">assign_u_modes</span><span class="p">[</span><span class="n">h</span><span class="p">]:</span>
+                <span class="n">param_name</span> <span class="o">=</span> <span class="s1">&#39;u&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+                <span class="n">u</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_normal_</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="n">h</span><span class="p">],</span> <span class="n">gain</span><span class="o">=</span><span class="n">w_gain</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">h</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">u</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_trainable</span> <span class="o">=</span> <span class="n">assign_u_modes</span>  <span class="c1"># All assigned projection matrices are by default trainable</span>
+
+        <span class="c1"># Direct mappings - if there are none, we set direct_mappings to None</span>
+        <span class="k">if</span> <span class="n">direct_pairs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_direct_pairs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">direct_pairs</span><span class="p">)</span>
+            <span class="n">direct_mappings</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_direct_pairs</span>
+            <span class="k">for</span> <span class="n">pair_i</span><span class="p">,</span> <span class="n">pair</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">direct_pairs</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">assign_direct_pair_mappings</span><span class="p">[</span><span class="n">pair_i</span><span class="p">]:</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">d_in</span><span class="p">[</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dm_std</span><span class="p">)</span>
+                    <span class="n">param_name</span> <span class="o">=</span> <span class="s1">&#39;c&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+                    <span class="n">direct_mappings</span><span class="p">[</span><span class="n">pair_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">direct_mappings</span> <span class="o">=</span> <span class="n">direct_mappings</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">direct_mappings_trainable</span> <span class="o">=</span> <span class="n">assign_direct_pair_mappings</span>
+
+        <span class="c1"># Scales</span>
+        <span class="k">if</span> <span class="n">use_scales</span><span class="p">:</span>
+            <span class="n">scales</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">n_output_groups</span>
+            <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_output_groups</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">assign_scales</span><span class="p">[</span><span class="n">h</span><span class="p">]:</span>
+                    <span class="n">sc</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">d_out</span><span class="p">[</span><span class="n">h</span><span class="p">]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">normal_</span><span class="p">(</span><span class="n">sc</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sc_std</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;sc&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">h</span><span class="p">),</span> <span class="n">sc</span><span class="p">)</span>
+                    <span class="n">scales</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">=</span> <span class="n">sc</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scales</span> <span class="o">=</span> <span class="n">scales</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scales_trainable</span> <span class="o">=</span> <span class="n">assign_scales</span>
+
+        <span class="c1"># Offsets</span>
+        <span class="k">if</span> <span class="n">use_offsets</span><span class="p">:</span>
+            <span class="n">offsets</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">n_output_groups</span>
+            <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_output_groups</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">assign_offsets</span><span class="p">[</span><span class="n">h</span><span class="p">]:</span>
+                    <span class="n">o</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d_out</span><span class="p">[</span><span class="n">h</span><span class="p">]),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="s1">&#39;o&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">h</span><span class="p">),</span> <span class="n">o</span><span class="p">)</span>
+                    <span class="n">offsets</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">=</span> <span class="n">o</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">offsets</span> <span class="o">=</span> <span class="n">offsets</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">offsets_trainable</span> <span class="o">=</span> <span class="n">assign_offsets</span>
+
+        <span class="c1"># Variances on output variables</span>
+        <span class="n">psi</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">n_output_groups</span>
+        <span class="k">for</span> <span class="n">h</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">d_out</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">assign_psi</span><span class="p">[</span><span class="n">h</span><span class="p">]:</span>
+                <span class="n">param_name</span> <span class="o">=</span> <span class="s1">&#39;psi&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+                <span class="n">psi</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="n">psi</span><span class="p">[</span><span class="n">h</span><span class="p">],</span> <span class="n">noise_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">noise_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">register_parameter</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="n">psi</span><span class="p">[</span><span class="n">h</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">psi</span> <span class="o">=</span> <span class="n">psi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">psi_trainable</span> <span class="o">=</span> <span class="n">assign_psi</span>
+
+<div class="viewcode-block" id="LatentRegModel.forward"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes the predicted mean from the model given input.</span>
+
+<span class="sd">        This function assumes all parameters of the model have been assigned.  If this is not the case and you wish</span>
+<span class="sd">        to provide some of the values for parameters not assigned within the model, see cond_forward().</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of</span>
+<span class="sd">            shape n_smps*d_in[g]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: A sequence of outputs. y[h] contains the output for group h.  y[h] will be of shape n_smps*d_out[h]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cond_forward</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LatentRegModel.cond_forward"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel.cond_forward">[docs]</a>    <span class="k">def</span> <span class="nf">cond_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+                     <span class="n">p</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="kc">None</span><span class="p">]],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="n">u</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="kc">None</span><span class="p">]],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="n">scales</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="kc">None</span><span class="p">]],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="n">offsets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="kc">None</span><span class="p">]],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="n">direct_mappings</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="kc">None</span><span class="p">]],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes means given x and different parameter values.</span>
+
+<span class="sd">        The user can specify parameter values to override (see arguments below).  When any of these are provided,</span>
+<span class="sd">        the internal values for this parameter stored with the model are ignored and the user provided values are</span>
+<span class="sd">        used instead. The user can provide this specification in two ways.  Providing a None value (e.g., p = None),</span>
+<span class="sd">        specifies all of the paramters for all groups should be used (in this example, p modes in the model for all</span>
+<span class="sd">        groups would be used).  Alternatively, the user can provide a sequence (e.g, p = [None, t]).  An entry of None</span>
+<span class="sd">        in the sequence indicates the model&#39;s parameter for that group should be used, while if an entry is a tensor,</span>
+<span class="sd">        than that tensor will be used in place of the model&#39;s parameters.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of</span>
+<span class="sd">            shape n_smps*d_in[g]</span>
+
+<span class="sd">            p: Values for the p-modes to use.  See note above on how parameters can be specified.</span>
+
+<span class="sd">            u: Values for the u-modes to use.  See note above on how parameters can be specified.</span>
+
+<span class="sd">            scales: Values for scales to use.  See note above on how parameters can be specified.</span>
+
+<span class="sd">            offsets: Values for offsets to use.  See note above on how parameters can be specified.</span>
+
+<span class="sd">            direct_mappings: Direct mappings to use.  When specifying a sequence. direct_mappings[i] contains the values</span>
+<span class="sd">            for the direct mappings in self.direct_pairs[i]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: A sequence of outputs. y[h] contains the means for group h.  y[h] will be of shape n_smps*d_out[h]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_input_groups</span>
+        <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_output_groups</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_scales</span> <span class="ow">and</span> <span class="p">(</span><span class="n">scales</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">scales</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_output_groups</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_offsets</span> <span class="ow">and</span> <span class="p">(</span><span class="n">offsets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">offsets</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_output_groups</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_direct_pairs</span> <span class="ow">and</span> <span class="p">(</span><span class="n">direct_mappings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">direct_mappings</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_output_groups</span>
+
+        <span class="c1"># Now we pull parameters from the model we are using</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_input_groups</span><span class="p">)]</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">if</span> <span class="n">u</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_output_groups</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_scales</span><span class="p">:</span>
+            <span class="n">scales</span> <span class="o">=</span> <span class="p">[</span><span class="n">scales</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">if</span> <span class="n">scales</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_output_groups</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_offsets</span><span class="p">:</span>
+            <span class="n">offsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">offsets</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">if</span> <span class="n">offsets</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">offsets</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_output_groups</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_direct_pairs</span><span class="p">:</span>
+            <span class="n">direct_mappings</span> <span class="o">=</span> <span class="p">[</span><span class="n">direct_mappings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">direct_mappings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                               <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">direct_mappings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">direct_mappings</span><span class="p">))]</span>
+
+        <span class="c1"># Compute output</span>
+        <span class="n">proj</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">x_g</span><span class="p">,</span> <span class="n">p_g</span><span class="p">)</span> <span class="k">for</span> <span class="n">x_g</span><span class="p">,</span> <span class="n">p_g</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">)]</span>
+
+        <span class="n">tran</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">(</span><span class="n">proj</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">t_h</span><span class="p">,</span> <span class="n">u_h</span><span class="o">.</span><span class="n">t</span><span class="p">())</span> <span class="k">for</span> <span class="n">t_h</span><span class="p">,</span> <span class="n">u_h</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tran</span><span class="p">,</span> <span class="n">u</span><span class="p">)]</span>
+
+        <span class="n">o</span> <span class="o">=</span> <span class="p">[</span><span class="n">s_h</span><span class="p">(</span><span class="n">z_h</span><span class="p">)</span> <span class="k">for</span> <span class="n">s_h</span><span class="p">,</span> <span class="n">z_h</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="n">z</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_scales</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="p">[</span><span class="n">sc_h</span><span class="o">*</span><span class="n">o_h</span> <span class="k">for</span> <span class="n">sc_h</span><span class="p">,</span> <span class="n">o_h</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scales</span><span class="p">,</span> <span class="n">o</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="n">o</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_offsets</span><span class="p">:</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="p">[</span><span class="n">off_h</span> <span class="o">+</span> <span class="n">w_h</span> <span class="k">for</span> <span class="n">off_h</span><span class="p">,</span> <span class="n">w_h</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">offsets</span><span class="p">,</span> <span class="n">w</span><span class="p">)]</span>
+
+        <span class="c1"># Add direct mappings</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_direct_pairs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">pair_i</span><span class="p">,</span> <span class="n">pair</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">direct_pairs</span><span class="p">):</span>
+                <span class="n">g</span> <span class="o">=</span> <span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">w</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">+</span> <span class="n">direct_mappings</span><span class="p">[</span><span class="n">pair_i</span><span class="p">]</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">g</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">w</span></div>
+
+<div class="viewcode-block" id="LatentRegModel.generate"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel.generate">[docs]</a>    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Generates outputs from the model given inputs.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of</span>
+<span class="sd">            shape n_smps*d_in[g]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: A sequence of generated outputs.  y[h] contains the output tensor for group h.  y[h] will be of</span>
+<span class="sd">            shape n_smps*d_out[h]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">mns</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_output_groups</span>
+            <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_output_groups</span><span class="p">):</span>
+                <span class="n">noise_h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">mns</span><span class="p">[</span><span class="n">h</span><span class="p">])</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">psi</span><span class="p">[</span><span class="n">h</span><span class="p">])</span>
+                <span class="n">y</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">=</span> <span class="n">mns</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">+</span> <span class="n">noise_h</span>
+
+        <span class="k">return</span> <span class="n">y</span></div>
+
+<div class="viewcode-block" id="LatentRegModel.p_project"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel.p_project">[docs]</a>    <span class="k">def</span> <span class="nf">p_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+                  <span class="n">p</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="kc">None</span><span class="p">]],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; Projects input data onto p-modes.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            p: List of p modes to use.  p[g] are the p modes to use for group g.  If p[g] is None,</span>
+<span class="sd">            then the internal p modes of the subject model will be used.  If p is None, then all</span>
+<span class="sd">            the internal p modes of the subject will be used for all groups.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            projs: projs[g] are the projections for input group g.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Pull p modes if we need to.</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_input_groups</span><span class="p">)]</span>
+
+        <span class="c1"># Compute projections</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">x_g</span><span class="p">,</span> <span class="n">p_g</span><span class="p">)</span> <span class="k">for</span> <span class="n">x_g</span><span class="p">,</span> <span class="n">p_g</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="LatentRegModel.recursive_generate"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel.recursive_generate">[docs]</a>    <span class="k">def</span> <span class="nf">recursive_generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">r_map</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Recursively generates output for a given number of time steps.</span>
+
+<span class="sd">        The concept behind this function is that to simulate T samples from the model, we specify</span>
+<span class="sd">        T sets of initial conditions (one set for each sample).  If the initial conditions are</span>
+<span class="sd">        fully specified (no NAN values) then this function is equivalent to generate(). However,</span>
+<span class="sd">        if some initial conditions are left unspecified for certain time points, then the output</span>
+<span class="sd">        of the model from the previous time steps will be used as the initial conditions.</span>
+<span class="sd">        This gives users the flexibility of simulating scenarios where variables in a model may</span>
+<span class="sd">        be selectively &quot;clamped&quot; at different points in time.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] is</span>
+<span class="sd">            of shape [n_smps, d_x], where n_smps is the number of samples we simulate</span>
+<span class="sd">            output for.  Specifically, x[g][t, :] contains the initial conditions for group g and</span>
+<span class="sd">            time point t.  Any nan values indicate the initial conditions for that variable should</span>
+<span class="sd">            be pulled from the output of the model from the previous time step.</span>
+
+<span class="sd">            r_map: Specifies which output groups should be mapped to which input groups when</span>
+<span class="sd">            recursively generating data.  Any input group which does not have output mapped to</span>
+<span class="sd">            must have all values in it&#39;s entry in x fully specified.  r_map[i] is a tuple of</span>
+<span class="sd">            the form (h,g) specifying that the output of group h should be recursively mapped</span>
+<span class="sd">            to the input of group g.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: A sequence of outputs.  y[h] contains the output for group h.  Will be of shape n_smps*d_y.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If any initial conditions contain nan values.</span>
+
+<span class="sd">            ValueError: If any input group which does not recursively receive output does not</span>
+<span class="sd">            have all of its values in x specified.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Make sure initial conditions are fully specified</span>
+        <span class="k">for</span> <span class="n">x_g</span> <span class="ow">in</span> <span class="n">x</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x_g</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])):</span>
+                <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;First row of each x tensor must not contain any nan values.&#39;</span><span class="p">))</span>
+
+        <span class="c1"># Make sure any input groups which are not recursively generated have all input values specified</span>
+        <span class="n">n_input_grps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_in</span><span class="p">)</span>
+        <span class="n">mapped_input_grps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">m_i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">m_i</span> <span class="ow">in</span> <span class="n">r_map</span><span class="p">])</span>
+        <span class="n">unmapped_input_grps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_input_grps</span><span class="p">))</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">mapped_input_grps</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">unmapped_input_grps</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">g</span><span class="p">])):</span>
+                <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The x tensors for all input groups which do not receive recursively generated &#39;</span> <span class="o">+</span>
+                                  <span class="s1">&#39; output must contain no nan values.&#39;</span><span class="p">))</span>
+
+        <span class="c1"># Recursively generate output</span>
+        <span class="n">n_smps</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_smps</span><span class="p">,</span> <span class="n">d</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_out</span><span class="p">]</span>  <span class="c1"># Add nan to see if we failed to assign values</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_smps</span><span class="p">):</span>
+            <span class="n">cur_x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_g</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">x_g</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+            <span class="c1"># Fill in the values of nan values here</span>
+            <span class="k">for</span> <span class="n">h</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">r_map</span><span class="p">:</span>
+                <span class="n">nan_vars</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">cur_x</span><span class="p">[</span><span class="n">g</span><span class="p">]))</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+                <span class="n">cur_x</span><span class="p">[</span><span class="n">g</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="n">nan_vars</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">h</span><span class="p">][</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">nan_vars</span><span class="p">]</span>
+
+            <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">cur_x</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">h</span><span class="p">,</span> <span class="n">o_h</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">output</span><span class="p">):</span>
+                <span class="n">y</span><span class="p">[</span><span class="n">h</span><span class="p">][</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">o_h</span>
+        <span class="k">return</span> <span class="n">y</span></div>
+
+<div class="viewcode-block" id="LatentRegModel.s_parameters"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel.s_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">s_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Gets the parameters of the s modules.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            params: params[i] is a list of parameters for the i^th output group</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="LatentRegModel.neg_ll"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel.neg_ll">[docs]</a>    <span class="k">def</span> <span class="nf">neg_ll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">mn</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+               <span class="n">psi</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the negative log likelihood of outputs given predicted means.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            y: A sequence of outputs.  y[h] contains the output tensor for group h.  y[h] should be of</span>
+<span class="sd">            shape n_smps*d_out[h]</span>
+
+<span class="sd">            mn: A sequence of predicted means.  mns[h] contains the predicted means for group h.  mns[h]</span>
+<span class="sd">            should be of shape n_smps*d_out[h]</span>
+
+<span class="sd">            psi: An optional value of psi to use.  Can be specified in two ways.  If None, then the model&#39;s internal</span>
+<span class="sd">            parameter for psi for all groups will be used.  If a sequence, then if psi[h] is None, the model&#39;s</span>
+<span class="sd">            parameter of psi[h] will be used.  However is psi[h] is a tensor, then this value will be used in place</span>
+<span class="sd">            of the models.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The calculated negative log-likelihood for the sample</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueErorr: If y and mn are not lists</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;y must be a list&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mn</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">raise</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;mn must be a list&#39;</span><span class="p">))</span>
+
+        <span class="c1"># Put psi argument in standard form</span>
+        <span class="k">if</span> <span class="n">psi</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">psi</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_output_groups</span>
+
+        <span class="c1"># Overwrite psi values for particular groups if we need to</span>
+        <span class="n">psi</span> <span class="o">=</span> <span class="p">[</span><span class="n">psi</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">if</span> <span class="n">psi</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">psi</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_output_groups</span><span class="p">)]</span>
+
+        <span class="c1"># Calculate negative log-likelihood</span>
+        <span class="n">neg_ll</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">n_smps</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">log_2_pi</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">mn_h</span><span class="p">,</span> <span class="n">y_h</span><span class="p">,</span> <span class="n">psi_h</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">mn</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">psi</span><span class="p">):</span>
+            <span class="n">neg_ll</span> <span class="o">+=</span> <span class="o">.</span><span class="mi">5</span><span class="o">*</span><span class="n">mn_h</span><span class="o">.</span><span class="n">nelement</span><span class="p">()</span><span class="o">*</span><span class="n">log_2_pi</span>
+            <span class="n">neg_ll</span> <span class="o">+=</span> <span class="o">.</span><span class="mi">5</span><span class="o">*</span><span class="n">n_smps</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">psi_h</span><span class="p">))</span>
+            <span class="n">neg_ll</span> <span class="o">+=</span> <span class="o">.</span><span class="mi">5</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(((</span><span class="n">y_h</span> <span class="o">-</span> <span class="n">mn_h</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">psi_h</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">neg_ll</span></div>
+
+<div class="viewcode-block" id="LatentRegModel.trainable_parameters"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel.trainable_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">trainable_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">parameter</span><span class="o">.</span><span class="n">Parameter</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; Gets all trainable parameters of the model.</span>
+
+<span class="sd">        Trainable parameters are those in the s and m modules as well as the p modes, u modes, scale, offset, psi and</span>
+<span class="sd">        direct_mapping parameters which are set to trainable (e.g., self.p_trainable has true entries for the</span>
+<span class="sd">        groups with trainable p modes).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">m_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
+        <span class="n">s_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">s_parameters</span><span class="p">()</span>
+
+        <span class="n">p_params</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="k">for</span> <span class="n">g</span><span class="p">,</span> <span class="n">trainable</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p_trainable</span><span class="p">)</span> <span class="k">if</span> <span class="n">trainable</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">u_params</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span><span class="p">,</span> <span class="n">trainable</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u_trainable</span><span class="p">)</span> <span class="k">if</span> <span class="n">trainable</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_scales</span><span class="p">:</span>
+            <span class="n">scale_params</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span><span class="p">,</span> <span class="n">trainable</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scales_trainable</span><span class="p">)</span> <span class="k">if</span> <span class="n">trainable</span>
+                            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">scales</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">scale_params</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_offsets</span><span class="p">:</span>
+            <span class="n">offset_params</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">offsets</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span><span class="p">,</span> <span class="n">trainable</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">offsets_trainable</span><span class="p">)</span> <span class="k">if</span> <span class="n">trainable</span>
+                             <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">offsets</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">offset_params</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_direct_pairs</span><span class="p">:</span>
+            <span class="n">direct_mapping_params</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">direct_mappings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">trainable</span> <span class="ow">in</span>
+                                     <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">direct_mappings_trainable</span><span class="p">)</span> <span class="k">if</span> <span class="n">trainable</span>
+                                     <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">direct_mappings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">direct_mapping_params</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">psi_params</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">psi</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="k">for</span> <span class="n">h</span><span class="p">,</span> <span class="n">trainable</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">psi_trainable</span><span class="p">)</span> <span class="k">if</span> <span class="n">trainable</span>
+                      <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">psi</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">m_params</span><span class="p">,</span> <span class="n">s_params</span><span class="p">,</span> <span class="n">p_params</span><span class="p">,</span> <span class="n">u_params</span><span class="p">,</span> <span class="n">scale_params</span><span class="p">,</span> <span class="n">offset_params</span><span class="p">,</span>
+                                    <span class="n">direct_mapping_params</span><span class="p">,</span> <span class="n">psi_params</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="LatentRegModel.fit"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">y</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+            <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">send_size</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">max_its</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">learning_rates</span><span class="o">=.</span><span class="mi">01</span><span class="p">,</span> <span class="n">adam_params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">min_var</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.000001</span><span class="p">,</span> <span class="n">update_int</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+            <span class="n">parameters</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">l1_p_lambda</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">l1_u_lambda</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot; Fits a model to data with maximum likelihood.</span>
+
+<span class="sd">        This function performs stochastic optimization with the ADAM algorithm.  The weights of the model</span>
+<span class="sd">        should be initialized before calling this function.</span>
+
+<span class="sd">        Optimization will be perfomed on whatever device the model parameters are on.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of</span>
+<span class="sd">            shape n_smps*d_in[g]</span>
+
+<span class="sd">            y: A sequence of outputs.  y[h] contains the output tensor for group h.  y[h] should be of</span>
+<span class="sd">            shape n_smps*d_out[h]</span>
+
+<span class="sd">            batch_size: The number of samples to train on during each iteration</span>
+
+<span class="sd">            send_size: The number of samples to send to the device at a time for calculating batch gradients.  It is</span>
+<span class="sd">            most efficient to set send_size = batch_size, but if this results in computations exceeding device memory,</span>
+<span class="sd">            send_size can be set lower.  In this case gradients will accumulated until all samples in the batch are</span>
+<span class="sd">            sent to the device and then a step will be taken.</span>
+
+<span class="sd">            max_its: The maximum number of iterations to run</span>
+
+<span class="sd">            learning_rates: If a single number, this is the learning rate to use for all iteration.  Alternatively, this</span>
+<span class="sd">            can be a list of tuples.  Each tuple is of the form (iteration, learning_rate), which gives the learning rate</span>
+<span class="sd">            to use from that iteration onwards, until another tuple specifies another learning rate to use at a different</span>
+<span class="sd">            iteration on.  E.g., learning_rates = [(0, .01), (1000, .001), (10000, .0001)] would specify a learning</span>
+<span class="sd">            rate of .01 from iteration 0 to 999, .001 from iteration 1000 to 9999 and .0001 from iteration 10000 onwards.</span>
+
+<span class="sd">            adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object.</span>
+<span class="sd">            Note that if learning rate is specified here *it will be ignored.* (Use the learning_rates option instead).</span>
+
+<span class="sd">            min_var: The minumum value any entry of a psi[h] can take on.  After a gradient update, values less than this</span>
+<span class="sd">            will be clamped to this value.</span>
+
+<span class="sd">            update_int: The interval of iterations we update the user on.</span>
+
+<span class="sd">            parameters: If provided, only these parameters of the model will be optimized.  If none, all parameters are</span>
+<span class="sd">            optimized.</span>
+
+<span class="sd">            l1_p_lambda: The entries in the p parameters are penalized by their l1-norm the form</span>
+<span class="sd">                l1_p_lambda[g]*sum(abs(p[g])).  If l1_p_lambda is None, no penalties will be applied.</span>
+
+<span class="sd">            l1_u_lambda: Analagous to l1_p_lambda but for the u parameters.</span>
+
+<span class="sd">            Raises:</span>
+<span class="sd">                ValueError: If send_size is greater than batch_size.</span>
+
+<span class="sd">            Returns:</span>
+<span class="sd">                log: A dictionary logging progress.  Will have the enries:</span>
+<span class="sd">                &#39;elapsed_time&#39;: log[&#39;elapsed_time&#39;][i] contains the elapsed time from the beginning of optimization to</span>
+<span class="sd">                the end of iteration i</span>
+
+<span class="sd">                &#39;obj&#39;: log[&#39;obj&#39;][i] contains the objective value at the beginning (before parameters are updated) of iteration i.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">send_size</span> <span class="o">&gt;</span> <span class="n">batch_size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;send_size must be less than or equal to batch_size.&#39;</span><span class="p">))</span>
+
+        <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">device</span>
+
+        <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trainable_parameters</span><span class="p">()</span>
+        <span class="c1"># Convert generator to list (since we need to reference parameters multiple times in the code below)</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">]</span>
+
+        <span class="c1"># Format and check learning rates - no matter the input format this outputs learning rates in a standard format</span>
+        <span class="c1"># where the learning rate starting at iteration 0 is guaranteed to be listed first</span>
+        <span class="n">learning_rate_its</span><span class="p">,</span> <span class="n">learning_rate_values</span> <span class="o">=</span> <span class="n">format_and_check_learning_rates</span><span class="p">(</span><span class="n">learning_rates</span><span class="p">)</span>
+
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="n">learning_rate_values</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="n">adam_params</span><span class="p">)</span>
+
+        <span class="n">n_smps</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cur_it</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="n">elapsed_time_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">max_its</span><span class="p">)</span>
+        <span class="n">obj_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">max_its</span><span class="p">)</span>
+        <span class="n">prev_learning_rate</span> <span class="o">=</span> <span class="n">learning_rate_values</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">while</span> <span class="n">cur_it</span> <span class="o">&lt;</span> <span class="n">max_its</span><span class="p">:</span>
+            <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>  <span class="c1"># Record elapsed time here because we measure it from the start of</span>
+            <span class="c1"># each iteration.  This is because we also record the nll value for each iteration before parameters are</span>
+            <span class="c1"># updated.  In this way, the elapsed time is the elapsed time to get to a set of parameters for which we</span>
+            <span class="c1"># report the nll.</span>
+
+            <span class="c1"># Set the learning rate</span>
+            <span class="n">cur_learing_rate_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">learning_rate_its</span> <span class="o">&lt;=</span> <span class="n">cur_it</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">cur_learing_rate_ind</span> <span class="o">=</span> <span class="n">cur_learing_rate_ind</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">cur_learning_rate</span> <span class="o">=</span> <span class="n">learning_rate_values</span><span class="p">[</span><span class="n">cur_learing_rate_ind</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">cur_learning_rate</span> <span class="o">!=</span> <span class="n">prev_learning_rate</span><span class="p">:</span>
+                <span class="c1"># We reset the whole optimizer because ADAM is an adaptive optimizer</span>
+                <span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="n">cur_learning_rate</span><span class="p">,</span> <span class="o">**</span><span class="n">adam_params</span><span class="p">)</span>
+                <span class="n">prev_learning_rate</span> <span class="o">=</span> <span class="n">cur_learning_rate</span>
+
+            <span class="c1"># Chose the samples for this iteration:</span>
+            <span class="n">cur_smps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">n_smps</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">batch_x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_g</span><span class="p">[</span><span class="n">cur_smps</span><span class="p">,</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">x_g</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+            <span class="n">batch_y</span> <span class="o">=</span> <span class="p">[</span><span class="n">y_h</span><span class="p">[</span><span class="n">cur_smps</span><span class="p">,</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">y_h</span> <span class="ow">in</span> <span class="n">y</span><span class="p">]</span>
+
+            <span class="c1"># Perform optimization for this step</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+
+            <span class="c1"># Handle sending data to device in small chunks if needed</span>
+            <span class="n">start_ind</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">end_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">send_size</span><span class="p">])</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">sent_x</span> <span class="o">=</span> <span class="p">[</span><span class="n">batch_x_g</span><span class="p">[</span><span class="n">start_ind</span><span class="p">:</span><span class="n">end_ind</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">batch_x_g</span> <span class="ow">in</span> <span class="n">batch_x</span><span class="p">]</span>
+                <span class="n">sent_y</span> <span class="o">=</span> <span class="p">[</span><span class="n">batch_y_h</span><span class="p">[</span><span class="n">start_ind</span><span class="p">:</span><span class="n">end_ind</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">batch_y_h</span> <span class="ow">in</span> <span class="n">batch_y</span><span class="p">]</span>
+
+                <span class="n">mns</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">sent_x</span><span class="p">)</span>
+                <span class="c1"># Calculate nll - we divide by batch size to get average (over samples) negative log-likelihood</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">neg_ll</span><span class="p">(</span><span class="n">sent_y</span><span class="p">,</span> <span class="n">mns</span><span class="p">)</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">end_ind</span> <span class="o">==</span> <span class="n">batch_size</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+                <span class="n">start_ind</span> <span class="o">=</span> <span class="n">end_ind</span>
+                <span class="n">end_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">start_ind</span> <span class="o">+</span> <span class="n">send_size</span><span class="p">])</span>
+
+            <span class="c1"># Add penalties</span>
+            <span class="k">if</span> <span class="n">l1_p_lambda</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">g</span><span class="p">,</span> <span class="n">lm_g</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">l1_p_lambda</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">lm_g</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">penalty_g</span> <span class="o">=</span> <span class="n">lm_g</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">[</span><span class="n">g</span><span class="p">]))</span>
+                        <span class="n">penalty_g</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                        <span class="n">obj</span> <span class="o">+=</span> <span class="n">penalty_g</span>
+
+            <span class="k">if</span> <span class="n">l1_u_lambda</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">h</span><span class="p">,</span> <span class="n">lm_h</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">l1_u_lambda</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">lm_h</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">penalty_h</span> <span class="o">=</span> <span class="n">lm_h</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="n">h</span><span class="p">]))</span>
+                        <span class="n">penalty_h</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                        <span class="n">obj</span> <span class="o">+=</span> <span class="n">penalty_h</span>
+
+            <span class="c1"># Take a step</span>
+            <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+            <span class="c1"># Correct any noise variances that are too small</span>
+            <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">psi_h</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">psi</span><span class="p">:</span>
+                    <span class="n">small_psi_inds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">psi_h</span> <span class="o">&lt;</span> <span class="n">min_var</span><span class="p">)</span>
+                    <span class="n">psi_h</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">small_psi_inds</span><span class="p">]</span> <span class="o">=</span> <span class="n">min_var</span>
+
+            <span class="c1"># Log our progress</span>
+            <span class="n">elapsed_time_log</span><span class="p">[</span><span class="n">cur_it</span><span class="p">]</span> <span class="o">=</span> <span class="n">elapsed_time</span>
+            <span class="n">obj_vl</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+            <span class="n">obj_log</span><span class="p">[</span><span class="n">cur_it</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj_vl</span>
+
+            <span class="c1"># Provide user with some feedback</span>
+            <span class="k">if</span> <span class="n">cur_it</span> <span class="o">%</span> <span class="n">update_int</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cur_it</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: Elapsed fitting time &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">elapsed_time</span><span class="p">)</span> <span class="o">+</span>
+                      <span class="s1">&#39;, vl: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj_vl</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;, lr: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">cur_learning_rate</span><span class="p">))</span>
+
+            <span class="n">cur_it</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Give final fitting results (if we have not already)</span>
+        <span class="k">if</span> <span class="n">update_int</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cur_it</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: Elapsed fitting time &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">elapsed_time</span><span class="p">)</span> <span class="o">+</span>
+                    <span class="s1">&#39;, vl: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj_vl</span><span class="p">))</span>
+
+        <span class="n">log</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;elapsed_time&#39;</span><span class="p">:</span> <span class="n">elapsed_time_log</span><span class="p">,</span> <span class="s1">&#39;obj&#39;</span><span class="p">:</span> <span class="n">obj_log</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">log</span></div></div>
+
+
+<div class="viewcode-block" id="SharedMLatentRegModel"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel">[docs]</a><span class="k">class</span> <span class="nc">SharedMLatentRegModel</span><span class="p">(</span><span class="n">LatentRegModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A base class for latent regression models with m-modules that are at least partially shared between instances.</span>
+
+<span class="sd">    This class is designed to ease working in scenarios where we fit multiple latent regression models, one to each</span>
+<span class="sd">    individual, and we want the m-module of these models to have a component that is shared across all of these models.</span>
+
+<span class="sd">    The m-module of these instances will be of the form m = torch.nn.Sequential(specific_m, shared_m), where specific_m</span>
+<span class="sd">    is an module unique to the instance and shared_m is a module shared between instances.</span>
+
+<span class="sd">    This class provides convenience methods that facilitate getting the shared and specific portions and parameters of</span>
+<span class="sd">    the m-module.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_in</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">d_out</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">d_proj</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">d_trans</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span>
+                 <span class="n">specific_m</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">shared_m</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">],</span>
+                 <span class="n">use_scales</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">assign_scales</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">use_offsets</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">assign_offsets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">direct_pairs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">assign_direct_pair_mappings</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="n">assign_p_modes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">assign_u_modes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="n">assign_psi</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">w_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sc_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">01</span><span class="p">,</span>
+                 <span class="n">dm_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="n">noise_range</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">]):</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">specific_m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">shared_m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">specific_m</span><span class="p">,</span> <span class="n">shared_m</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">specific_m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">shared_m</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">specific_m</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">d_in</span><span class="o">=</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="o">=</span><span class="n">d_out</span><span class="p">,</span> <span class="n">d_proj</span><span class="o">=</span><span class="n">d_proj</span><span class="p">,</span> <span class="n">d_trans</span><span class="o">=</span><span class="n">d_trans</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">use_scales</span><span class="o">=</span><span class="n">use_scales</span><span class="p">,</span>
+                         <span class="n">assign_scales</span><span class="o">=</span><span class="n">assign_scales</span><span class="p">,</span> <span class="n">use_offsets</span><span class="o">=</span><span class="n">use_offsets</span><span class="p">,</span> <span class="n">assign_offsets</span><span class="o">=</span><span class="n">assign_offsets</span><span class="p">,</span>
+                         <span class="n">direct_pairs</span><span class="o">=</span><span class="n">direct_pairs</span><span class="p">,</span> <span class="n">assign_direct_pair_mappings</span><span class="o">=</span><span class="n">assign_direct_pair_mappings</span><span class="p">,</span>
+                         <span class="n">assign_p_modes</span><span class="o">=</span><span class="n">assign_p_modes</span><span class="p">,</span> <span class="n">assign_u_modes</span><span class="o">=</span><span class="n">assign_u_modes</span><span class="p">,</span> <span class="n">assign_psi</span><span class="o">=</span><span class="n">assign_psi</span><span class="p">,</span>
+                         <span class="n">w_gain</span><span class="o">=</span><span class="n">w_gain</span><span class="p">,</span> <span class="n">sc_std</span><span class="o">=</span><span class="n">sc_std</span><span class="p">,</span> <span class="n">dm_std</span><span class="o">=</span><span class="n">dm_std</span><span class="p">,</span> <span class="n">noise_range</span><span class="o">=</span><span class="n">noise_range</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">specific_m</span> <span class="o">=</span> <span class="n">specific_m</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shared_m</span> <span class="o">=</span> <span class="n">shared_m</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">return_shared_m_params</span> <span class="o">=</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="SharedMLatentRegModel.update_shared_m"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.update_shared_m">[docs]</a>    <span class="k">def</span> <span class="nf">update_shared_m</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_m_core</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Updates the shared component of the m-module. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shared_m</span> <span class="o">=</span> <span class="n">new_m_core</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_m_core</span></div>
+
+<div class="viewcode-block" id="SharedMLatentRegModel.specific_m_parameters"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.specific_m_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">specific_m_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Returns subject-specific parameters of the m-module.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            params: A list of parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">specific_m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">specific_m</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="SharedMLatentRegModel.shared_m_parameters"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.shared_m_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">shared_m_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Returns shared parameters of the m-module.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            params: A list of parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shared_m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shared_m</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="SharedMLatentRegModel.parameters"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.parameters">[docs]</a>    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="c1">#-&gt; Generator[torch.nn.Parameter]:</span>
+        <span class="sd">&quot;&quot;&quot; Returns parameters of the model, possibly excluding parameters of the shared component of the m-module.</span>
+
+<span class="sd">        The parameters of the shared component of the m-module will not be returned if self.returned_shared_m_params is</span>
+<span class="sd">        False.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">full_params</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_shared_m_params</span><span class="p">:</span>
+            <span class="n">return_params</span> <span class="o">=</span> <span class="n">full_params</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">shared_m_params</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shared_m</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+            <span class="n">full_params</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">full_params</span><span class="p">)</span>
+            <span class="n">return_params</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">full_params</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">shared_m_params</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">return_params</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SharedMLatentRegModel.p_project"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/subject_models/index.html#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel.p_project">[docs]</a>    <span class="k">def</span> <span class="nf">p_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+                  <span class="n">p</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="kc">None</span><span class="p">]],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                  <span class="n">apply_specific_m</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; Projects input data onto p-modes.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            p: List of p modes to use.  p[g] are the p modes to use for group g.  If p[g] is None,</span>
+<span class="sd">            then the internal p modes of the subject model will be used.  If p is None, then all</span>
+<span class="sd">            the internal p modes of the subject will be used for all groups.</span>
+
+<span class="sd">            apply_specific_m: True if subject specific portion of m-module should be applied after projecting</span>
+<span class="sd">            data</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            projs: projs[g] are the projections for input group g.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">projs</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">p_project</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">)</span>
+
+        <span class="c1"># Apply subject specific m if we are suppose to</span>
+        <span class="k">if</span> <span class="n">apply_specific_m</span><span class="p">:</span>
+            <span class="n">projs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">specific_m</span><span class="p">(</span><span class="n">projs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">projs</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.latent_regression.group_maps &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+        <script src="../../../../../_static/jquery.js"></script>
+        <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/doctools.js"></script>
+        <script src="../../../../../_static/language_data.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.latent_regression.group_maps</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../_sources/autoapi/janelia_core/ml/latent_regression/group_maps/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.latent_regression.group_maps">
+<span id="janelia-core-ml-latent-regression-group-maps"></span><h1><a class="reference internal" href="#module-janelia_core.ml.latent_regression.group_maps" title="janelia_core.ml.latent_regression.group_maps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.latent_regression.group_maps</span></code></a><a class="headerlink" href="#module-janelia_core.ml.latent_regression.group_maps" title="Permalink to this headline"></a></h1>
+<p>Objects for mapping input groups of variables to output groups of variables.</p>
+<p>The maps contained in this module are intended to serve as mappings in the latent spaces of latent regression
+models.</p>
+<p>William Bishop
+<a class="reference external" href="mailto:bishopw&#37;&#52;&#48;hhmi&#46;org">bishopw<span>&#64;</span>hhmi<span>&#46;</span>org</a></p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.group_maps.LinearMap" title="janelia_core.ml.latent_regression.group_maps.LinearMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearMap</span></code></a></p></td>
+<td><p>Wraps torch.nn.Linear for use with a latent mapping.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.group_maps.NNMap" title="janelia_core.ml.latent_regression.group_maps.NNMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NNMap</span></code></a></p></td>
+<td><p>Wraps a general neural network for use with a latent mapping.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.group_maps.IdentityMap" title="janelia_core.ml.latent_regression.group_maps.IdentityMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IdentityMap</span></code></a></p></td>
+<td><p>Identity latent mapping.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.group_maps.ElementWiseTransformedGroupLatents" title="janelia_core.ml.latent_regression.group_maps.ElementWiseTransformedGroupLatents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ElementWiseTransformedGroupLatents</span></code></a></p></td>
+<td><p>Output is formed by applying a function elementwise to input for each group.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.group_maps.GroupTransform" title="janelia_core.ml.latent_regression.group_maps.GroupTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GroupTransform</span></code></a></p></td>
+<td><p>Applies a different transformation to groups of input, producing output for each group.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.group_maps.GroupLinearTransform" title="janelia_core.ml.latent_regression.group_maps.GroupLinearTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GroupLinearTransform</span></code></a></p></td>
+<td><p>Forms output by multiplying each entry in group input vectors by a separate scalar and adding an offset.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.group_maps.GroupMatrixMultiply" title="janelia_core.ml.latent_regression.group_maps.GroupMatrixMultiply"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GroupMatrixMultiply</span></code></a></p></td>
+<td><p>Mapping which applies a matrix multiply seperately to each input vector to form output vectors.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.group_maps.ConcatenateMap" title="janelia_core.ml.latent_regression.group_maps.ConcatenateMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConcatenateMap</span></code></a></p></td>
+<td><p>Mapping which concatenates input to form output.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.group_maps.ConcatenateAndSelectMap" title="janelia_core.ml.latent_regression.group_maps.ConcatenateAndSelectMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConcatenateAndSelectMap</span></code></a></p></td>
+<td><p>Concatenates input from all input groups and then selects entries of the result for different output groups.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.group_maps.SingleGroupDenseNetMap" title="janelia_core.ml.latent_regression.group_maps.SingleGroupDenseNetMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SingleGroupDenseNetMap</span></code></a></p></td>
+<td><p>Maps from one group of input to one group of output using a dense net.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.group_maps.LinearMap">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.group_maps.</code><code class="sig-name descname">LinearMap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_in</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">d_out</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">bias</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#LinearMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.LinearMap" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Wraps torch.nn.Linear for use with a latent mapping.</p>
+<p>All inputs are concatenated together before being passed through the mapping to form output.</p>
+<p>Creates a LinearMap object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d_in: d_in[g] gives the dimensionality of input group g</p>
+<p>d_out: d_out[g] gives the dimensionality of output group g</p>
+<p>bias: True, if the linear mapping should include a bias.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.group_maps.LinearMap.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#LinearMap.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.LinearMap.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input.  x[g] gives the input for input group g as a tensor of shape n_smps*n_dims</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output.  y[h] gives the output for output group h as a tensor or shape n_smps*n_dims</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.group_maps.NNMap">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.group_maps.</code><code class="sig-name descname">NNMap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_out</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">nn</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#NNMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.NNMap" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Wraps a general neural network for use with a latent mapping.</p>
+<p>All inputs are concatenated together before being passed through the mapping to form output.</p>
+<p>The transformed output can then be partitioned to form different output groups.</p>
+<dl>
+<dt>Args:</dt><dd><p>d_out: d_out[h] gives the dimensionality of output group h.  Outputs are read in the order of groups.  So
+for example, the first d_out[0] outputs will be outputs for group 0, then next d_out[1] outputs for group
+1 and so on…</p>
+<p>nn: The neural network to wrap.  Should accept inputs of size equal to the concatenation of all input
+and produce outputs of the size of all concatenated output.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.group_maps.NNMap.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#NNMap.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.NNMap.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input.  x[g] gives the input for input group g as a tensor of shape n_smps*n_dims</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output.  y[h] gives the output for output group h as a tensor or shape n_smps*n_dims</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.group_maps.IdentityMap">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.group_maps.</code><code class="sig-name descname">IdentityMap</code><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#IdentityMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.IdentityMap" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Identity latent mapping.</p>
+<p>Creates an IdentityMap object.</p>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.group_maps.IdentityMap.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#IdentityMap.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.IdentityMap.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Passes through input as output.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input.  x[g] gives the input for input group g as a tensor of shape n_smps*n_dims</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output.  y[g] gives the output for output group h as a tensor or shape n_smps*n_dims</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.group_maps.ElementWiseTransformedGroupLatents">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.group_maps.</code><code class="sig-name descname">ElementWiseTransformedGroupLatents</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#ElementWiseTransformedGroupLatents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.ElementWiseTransformedGroupLatents" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Output is formed by applying a function elementwise to input for each group.</p>
+<p>Creates an ElementWiseTransformedGroupLatents object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>f: The function to apply to each element of output for each group.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.group_maps.ElementWiseTransformedGroupLatents.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#ElementWiseTransformedGroupLatents.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.ElementWiseTransformedGroupLatents.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output from input.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.group_maps.GroupTransform">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.group_maps.</code><code class="sig-name descname">GroupTransform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">transforms</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.nn.Module<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#GroupTransform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.GroupTransform" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Applies a different transformation to groups of input, producing output for each group.</p>
+<p>Creates a new GroupTransform object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>transforms: A list of transforms to apply. transforms[i] is the transform that will be applied to intut
+group i</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.group_maps.GroupTransform.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#GroupTransform.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.GroupTransform.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes input from output.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.group_maps.GroupLinearTransform">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.group_maps.</code><code class="sig-name descname">GroupLinearTransform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">offsets</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">nonnegative_scale</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">v_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">v_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em>, <em class="sig-param"><span class="n">o_mn</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">o_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#GroupLinearTransform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.GroupLinearTransform" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Forms output by multiplying each entry in group input vectors by a separate scalar and adding an offset.</p>
+<p>Offsets can also optionally be omitted and the absolute value of the scale parameters can be used to enforce that
+scaling is always non-negative.</p>
+<p>Creates a GroupScalarTransform object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d: d[i] gives the dimensionality of group i</p>
+<p>offsets: True if offsets should also be included.</p>
+<p>nonnegative_scale: True if when applying scales, the absolute value of scale parameters should be used.</p>
+<p>v_mn, v_std: The mean and standard deviation for initializing the slope of the linear mappings</p>
+<p>o_mn, o_std: The mean and standard deviations for initializing the offsets of the linear mappings</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.group_maps.GroupLinearTransform.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#GroupLinearTransform.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.GroupLinearTransform.forward" title="Permalink to this definition"></a></dt>
+<dd><p>” Computes output given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input. x[g] gives the input for group g as a tensor of shape n_smps*n_dims</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output. y[g] gives the output for group g as a tensor of shampe n_smps*n_dims</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.group_maps.GroupMatrixMultiply">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.group_maps.</code><code class="sig-name descname">GroupMatrixMultiply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_in</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">d_out</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">w_gain</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#GroupMatrixMultiply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.GroupMatrixMultiply" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Mapping which applies a matrix multiply seperately to each input vector to form output vectors.</p>
+<p>Creates a GroupMatrixMultiply object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d_in: d_in[i] gives the input dimension of group i</p>
+<p>d_out: d_out[i] gives the output dimension of group i</p>
+<p>w_gain: Gain to apply when initializing matrix weights</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.group_maps.GroupMatrixMultiply.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#GroupMatrixMultiply.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.GroupMatrixMultiply.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input. x[g] gives the input for group g as a tensor of shape n_smps*n_dims</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output. y[g] gives the output for group g as a tensor of shampe n_smps*n_dims</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.group_maps.ConcatenateMap">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.group_maps.</code><code class="sig-name descname">ConcatenateMap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">conc_grps</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#ConcatenateMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.ConcatenateMap" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Mapping which concatenates input to form output.</p>
+<p>Concatenation follows the order of input groups.</p>
+<p>Creates a ConcatenateMap object.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>conc_grps: A binary array.  conc_grps[h, :] is a vector indicating which groups of projected
+latents should be concatenated to form output for tran_h.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If dtype of conc_grps is not bool</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.group_maps.ConcatenateMap.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#ConcatenateMap.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.ConcatenateMap.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Concatents input to form output.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.group_maps.ConcatenateAndSelectMap">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.group_maps.</code><code class="sig-name descname">ConcatenateAndSelectMap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_in</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">output_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#ConcatenateAndSelectMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.ConcatenateAndSelectMap" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Concatenates input from all input groups and then selects entries of the result for different output groups.</p>
+<p>Creates a ConcatenateAndSelectMap object.</p>
+<dl>
+<dt>Args:</dt><dd><p>d_in: d_in[g] is the dimensionality of the g^th input group</p>
+<p>output_inds: output_inds[h][g] is a torch tensor of dtype long indicating which entries of
+the g^th input group should be in the h^th output group.  The output of each group will be formed
+by concatenating the included entries for all input groups.  The order of concatenating groups follows
+the order of the input groups. The value None indicates no entries from input g should be selected.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.group_maps.ConcatenateAndSelectMap.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#ConcatenateAndSelectMap.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.ConcatenateAndSelectMap.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forms output from input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: x[g] is the input for the g^th group of shape n_smps*d_g</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: y[h] is the output for the h^th group of shape n_smps*d_h</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.group_maps.SingleGroupDenseNetMap">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.group_maps.</code><code class="sig-name descname">SingleGroupDenseNetMap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d_in</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">d_out</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">n_layers</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">growth_rate</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">bias</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#SingleGroupDenseNetMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.SingleGroupDenseNetMap" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Maps from one group of input to one group of output using a dense net.</p>
+<p>Creates a new SingleGroupDenseNetMap object.</p>
+<p>The dense net will use Tanh non-linearities.</p>
+<dl>
+<dt>Args:</dt><dd><p>d_in: The input dimensionality to the map</p>
+<p>d_out: The output dimensionality to the map</p>
+<p>n_layers: The number of layers in the dense net</p>
+<p>growth_rate: The growth rate of the dense net</p>
+<p>bool: True if the dense net should have bias terms</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.group_maps.SingleGroupDenseNetMap.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>torch.Tensor<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/group_maps.html#SingleGroupDenseNetMap.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.group_maps.SingleGroupDenseNetMap.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes input from output.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: x[0] is the input for the single group of shape n_smps*d_in</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: y[0] is the output of shape n_smps*d_out</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

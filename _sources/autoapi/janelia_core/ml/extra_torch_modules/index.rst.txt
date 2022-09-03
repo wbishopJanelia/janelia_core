@@ -26,6 +26,7 @@ Classes
    janelia_core.ml.extra_torch_modules.DenseLNLNet
    janelia_core.ml.extra_torch_modules.BasicExp
    janelia_core.ml.extra_torch_modules.Exp
+   janelia_core.ml.extra_torch_modules.RBF
    janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn
    janelia_core.ml.extra_torch_modules.FixedOffsetExp
    janelia_core.ml.extra_torch_modules.FixedOffsetAbs
@@ -341,6 +342,28 @@ Attributes
 
       Returns:
           y: Output tensor, same shape as input
+
+
+
+.. py:class:: RBF
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   Applies the transformation e(-x**2) element-wise.
+
+
+   Initializes internal Module state, shared by both nn.Module and ScriptModule.
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+
+      Applies the transformation e(-x**2) element-wise.
+
+      Args:
+          x: Input, of any shape
+
+      Returns:
+
+          y: Output, the same shape as x
 
 
 

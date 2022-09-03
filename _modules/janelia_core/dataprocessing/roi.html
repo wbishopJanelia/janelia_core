@@ -94,15 +94,20 @@
 
 <div class="viewcode-block" id="ROI.from_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Creates a new ROI object from a dictioary.</span>
+        <span class="sd">&quot;&quot;&quot; Creates a new ROI object from a dictionary.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            d: A dictionary with the keys &#39;voxel_inds&#39; and &#39;weights&#39;</span>
+<span class="sd">            d: A dictionary with the keys &#39;voxel_inds&#39; and &#39;weights&#39;  Extra keys in the dictionary will be</span>
+<span class="sd">            added as additional attributes.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A new ROI object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span></div>
+        <span class="n">roi_obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">voxel_inds</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;voxel_inds&#39;</span><span class="p">],</span> <span class="n">weights</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;weights&#39;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">([</span><span class="s1">&#39;voxel_inds&#39;</span><span class="p">,</span> <span class="s1">&#39;weights&#39;</span><span class="p">]):</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">roi_obj</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">roi_obj</span></div>
 
 <div class="viewcode-block" id="ROI.from_array"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI.from_array">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_array</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">start_inds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>

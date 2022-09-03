@@ -1,0 +1,462 @@
+:py:mod:`janelia_core.ml.latent_regression.subject_models`
+==========================================================
+
+.. py:module:: janelia_core.ml.latent_regression.subject_models
+
+.. autoapi-nested-parse::
+
+   Defines the class for single subject latent-regression models.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   janelia_core.ml.latent_regression.subject_models.LatentRegModel
+   janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel
+
+
+
+
+.. py:class:: LatentRegModel(d_in: Sequence[int], d_out: Sequence[int], d_proj: Sequence[int], d_trans: Sequence[int], m: torch.nn.Module, s: Sequence[torch.nn.Module], use_scales: bool = False, assign_scales: Union[bool, Sequence[bool]] = True, use_offsets: bool = False, assign_offsets: Union[bool, Sequence[bool]] = True, direct_pairs: Sequence[tuple] = None, assign_direct_pair_mappings: Union[bool, Sequence[bool]] = True, assign_p_modes: Union[bool, Sequence[bool]] = True, assign_u_modes: Union[bool, Sequence[bool]] = True, assign_psi: Union[bool, Sequence[bool]] = True, w_gain: float = 1, sc_std: float = 0.01, dm_std: float = 0.1, noise_range: Sequence[float] = [0.1, 0.2])
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   A latent variable regression model.
+
+   In this model, we have G groups of input variables, x_g \in R^{d_in^g} for g = 1, ..., G and
+   H groups of output variables, y_h \in R^{d_out^h} for h = 1, ..., H
+
+   We form G groups of "projected" latent variables as proj_g = p_g^T x_g, for proj_g \in R^{d_proj^g},
+   Note that p_g need not be an orthonormal projection.
+
+   There are also H sets of "transformed" latent variables, tran_1, ..., tran_H, with tran_h \in R^{d_trans^h}, where
+   d_trans^h is the dimensionality of the transformed latent variables for group h.
+
+   Each model is equipped with a mapping, m, from [proj_1, ..., proj_G] to [tran_1, ..., tran_G].  The mapping m may
+   have it's own parameters.  The function m.forward() should accept a list, [proj_1, ..., proj_G], as input where
+   proj_g is a tensor of shape n_smps*d_proj^g and should output a list, [tran_1, ..., tran_G], where trah_h is a
+   tensor of shape n_smps*d_trans^h.
+
+   The transformed latents are mapped to a high-dimensional vector z_h = u_h tran_h, where z_h \in R^{d_out^h}.
+
+   A (possibly) non-linear function s_h is applied to form o_h = s_h(z_h) \in R^{d_out^h}. s_h can
+   again have it's own parameters. s_h can be a general function mapping from R^{d_out^h} to R^{d_out^h},
+   but in many cases, it may be a composite function which just applies the same function element-wise.
+
+   Next, w_h is formed by optionally applying element-wise scales and offsets to o_h. If these scales and offsets are
+   not used, w_h = o_h.
+
+   The user can also specify pairs (g, h) when d_in^g = d_out^h, where there is a direct mapping from x_g to a
+   vector v_h, v_h = c_{h,g} x_g, where c_{h,g} is a diagonal matrix.  This is most useful when x_g and
+   y_g are the same set of variables (e.g, neurons) at times t-1 and t, and in addition to low-rank interactions,
+   we want to include interactions between each variable and itself.
+
+   Variables mn_h = w_h + v_h are then formed, and finally, y_h = mn_h + n_h, where n_h ~ N(0, psi_h)
+   where psi_h is a diagonal covariance matrix.
+
+
+   Create a LatentRegModel object.
+
+   When creating the object, the user has the option to "assign" different variables.  This means a (potentiallY)
+   learnable parameter will be created for the variable.  A user may select not to assign a variable if the
+   model will be fit with a probabilistic framework where distributions over different parameters will be used
+   in place of point estimates.  In this case, because the variables stored with this object will not be used,
+   the user can chose to save memory by not creating that variable in the first place.  The user has two different
+   ways to specify if variables are assigned.  A user can enter a single boolean value (e.g., assign_psi = True),
+   in which case psi variables for all output groups will be assigned.  Alternatively, the user can provide a
+   sequence of boolean values, indicating which variables for each group should be assigned.
+
+   Once parameters are created, the user can select if they are learnable or not by manipulating the internal
+   trainable parameters for the object.  By default, all created parameters are learnable.  However, a user
+   might want to set some parameters by hand and then hold them fixed, in which case setting these parameters
+   to not be learnable will be useful.
+
+   Args:
+
+       d_in: d_in[g] gives the input dimensionality for group g of input variables.
+
+       d_out: d_out[h] gives the output dimensionality for group h of output variables.
+
+       d_proj: d_proj[g] gives the dimensionality for the projected latent variables for input group g.
+
+       d_trans: d_trans[h] gives the dimensionality for the transformed latent variables for output group h.
+
+       m: The mapping from [p_1, ..., p_G] to [t_h, ..., t_h].
+
+       s: s[h] contains module to be applied to z_h (see above).
+
+       use_scales: True if scales should be applied to the o_h values of each output group.
+
+       assign_scales: True if scales should be assigned.  See note above on assigning variables.
+
+       use_offsets: True if offsets should be applied to the o_h values of each output group.
+
+       assign_offsets: True if offsets should be assigned.  See note above on assigning variables.
+
+       direct_pairs: direct_pairs[p] contains a tuple of the form (g, h) giving a pair of input and output groups
+       that should have direct connections.
+
+       assign_direct_pair_mappings: True if direct pair mappings should be assigned.  See note above on assigning
+       variables.  If indicating which particular direct pair mappings should be assigned, this should be a
+       sequence and the i^th entry in the sequence indicates if the i^th pair in direct_pairs has a mapping
+       assigned.
+
+       assign_p_modes: True if p modes should be assigned.  See note above on assigning variables.
+
+       assign_u_modes: True if u modes should be assigned.  See note above on assigning variables.
+
+       assign_psi: True if psi variables should be assigned.  See note above on assigning variables.
+
+       w_gain: Gain to apply to projection p and u matrices when initializing their weights.
+
+       sc_std: Standard deviation for initializing scale values.
+
+       dm_std: Standard deviation for initializing direct mappings.
+
+       noise_range: Range of uniform distribution to pull psi values from during initialization.
+
+
+   .. py:method:: forward(self, x: list) -> Sequence
+
+      Computes the predicted mean from the model given input.
+
+      This function assumes all parameters of the model have been assigned.  If this is not the case and you wish
+      to provide some of the values for parameters not assigned within the model, see cond_forward().
+
+      Args:
+          x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of
+          shape n_smps*d_in[g]
+
+      Returns:
+          y: A sequence of outputs. y[h] contains the output for group h.  y[h] will be of shape n_smps*d_out[h]
+
+
+   .. py:method:: cond_forward(self, x: List[torch.Tensor], p: Union[List[Union[torch.Tensor, None]], None] = None, u: Union[List[Union[torch.Tensor, None]], None] = None, scales: Union[List[Union[torch.Tensor, None]], None] = None, offsets: Union[List[Union[torch.Tensor, None]], None] = None, direct_mappings: Union[List[Union[torch.Tensor, None]], None] = None)
+
+      Computes means given x and different parameter values.
+
+      The user can specify parameter values to override (see arguments below).  When any of these are provided,
+      the internal values for this parameter stored with the model are ignored and the user provided values are
+      used instead. The user can provide this specification in two ways.  Providing a None value (e.g., p = None),
+      specifies all of the paramters for all groups should be used (in this example, p modes in the model for all
+      groups would be used).  Alternatively, the user can provide a sequence (e.g, p = [None, t]).  An entry of None
+      in the sequence indicates the model's parameter for that group should be used, while if an entry is a tensor,
+      than that tensor will be used in place of the model's parameters.
+
+      Args:
+
+          x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of
+          shape n_smps*d_in[g]
+
+          p: Values for the p-modes to use.  See note above on how parameters can be specified.
+
+          u: Values for the u-modes to use.  See note above on how parameters can be specified.
+
+          scales: Values for scales to use.  See note above on how parameters can be specified.
+
+          offsets: Values for offsets to use.  See note above on how parameters can be specified.
+
+          direct_mappings: Direct mappings to use.  When specifying a sequence. direct_mappings[i] contains the values
+          for the direct mappings in self.direct_pairs[i]
+
+      Returns:
+          y: A sequence of outputs. y[h] contains the means for group h.  y[h] will be of shape n_smps*d_out[h]
+
+
+
+   .. py:method:: generate(self, x: Sequence) -> Sequence
+
+      Generates outputs from the model given inputs.
+
+      Args:
+          x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of
+          shape n_smps*d_in[g]
+
+      Returns:
+          y: A sequence of generated outputs.  y[h] contains the output tensor for group h.  y[h] will be of
+          shape n_smps*d_out[h]
+
+
+   .. py:method:: p_project(self, x: List[torch.Tensor], p: Union[List[Union[torch.Tensor, None]], None] = None) -> List[torch.Tensor]
+
+      Projects input data onto p-modes.
+
+      Args:
+
+          p: List of p modes to use.  p[g] are the p modes to use for group g.  If p[g] is None,
+          then the internal p modes of the subject model will be used.  If p is None, then all
+          the internal p modes of the subject will be used for all groups.
+
+      Returns:
+          projs: projs[g] are the projections for input group g.
+
+
+   .. py:method:: recursive_generate(self, x: Sequence, r_map: list = None) -> Sequence
+
+      Recursively generates output for a given number of time steps.
+
+      The concept behind this function is that to simulate T samples from the model, we specify
+      T sets of initial conditions (one set for each sample).  If the initial conditions are
+      fully specified (no NAN values) then this function is equivalent to generate(). However,
+      if some initial conditions are left unspecified for certain time points, then the output
+      of the model from the previous time steps will be used as the initial conditions.
+      This gives users the flexibility of simulating scenarios where variables in a model may
+      be selectively "clamped" at different points in time.
+
+      Args:
+          x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] is
+          of shape [n_smps, d_x], where n_smps is the number of samples we simulate
+          output for.  Specifically, x[g][t, :] contains the initial conditions for group g and
+          time point t.  Any nan values indicate the initial conditions for that variable should
+          be pulled from the output of the model from the previous time step.
+
+          r_map: Specifies which output groups should be mapped to which input groups when
+          recursively generating data.  Any input group which does not have output mapped to
+          must have all values in it's entry in x fully specified.  r_map[i] is a tuple of
+          the form (h,g) specifying that the output of group h should be recursively mapped
+          to the input of group g.
+
+      Returns:
+          y: A sequence of outputs.  y[h] contains the output for group h.  Will be of shape n_smps*d_y.
+
+      Raises:
+          ValueError: If any initial conditions contain nan values.
+
+          ValueError: If any input group which does not recursively receive output does not
+          have all of its values in x specified.
+
+
+
+   .. py:method:: s_parameters(self)
+
+      Gets the parameters of the s modules.
+
+      Returns:
+          params: params[i] is a list of parameters for the i^th output group
+
+
+   .. py:method:: neg_ll(self, y: Sequence[torch.Tensor], mn: Sequence[torch.Tensor], psi: Sequence[torch.Tensor] = None) -> torch.Tensor
+
+      Calculates the negative log likelihood of outputs given predicted means.
+
+      Args:
+
+          y: A sequence of outputs.  y[h] contains the output tensor for group h.  y[h] should be of
+          shape n_smps*d_out[h]
+
+          mn: A sequence of predicted means.  mns[h] contains the predicted means for group h.  mns[h]
+          should be of shape n_smps*d_out[h]
+
+          psi: An optional value of psi to use.  Can be specified in two ways.  If None, then the model's internal
+          parameter for psi for all groups will be used.  If a sequence, then if psi[h] is None, the model's
+          parameter of psi[h] will be used.  However is psi[h] is a tensor, then this value will be used in place
+          of the models.
+
+      Returns:
+          The calculated negative log-likelihood for the sample
+
+      Raises:
+          ValueErorr: If y and mn are not lists
+
+
+   .. py:method:: trainable_parameters(self) -> List[torch.nn.parameter.Parameter]
+
+      Gets all trainable parameters of the model.
+
+      Trainable parameters are those in the s and m modules as well as the p modes, u modes, scale, offset, psi and
+      direct_mapping parameters which are set to trainable (e.g., self.p_trainable has true entries for the
+      groups with trainable p modes).
+
+
+   .. py:method:: fit(self, x: Sequence[torch.Tensor], y: Sequence[torch.Tensor], batch_size: int = 100, send_size: int = 100, max_its: int = 10, learning_rates=0.01, adam_params: dict = {}, min_var: float = 1e-06, update_int: int = 1000, parameters: list = None, l1_p_lambda: list = None, l1_u_lambda: list = None)
+
+      Fits a model to data with maximum likelihood.
+
+      This function performs stochastic optimization with the ADAM algorithm.  The weights of the model
+      should be initialized before calling this function.
+
+      Optimization will be perfomed on whatever device the model parameters are on.
+
+      Args:
+
+          x: A sequence of inputs.  x[g] contains the input tensor for group g.  x[g] should be of
+          shape n_smps*d_in[g]
+
+          y: A sequence of outputs.  y[h] contains the output tensor for group h.  y[h] should be of
+          shape n_smps*d_out[h]
+
+          batch_size: The number of samples to train on during each iteration
+
+          send_size: The number of samples to send to the device at a time for calculating batch gradients.  It is
+          most efficient to set send_size = batch_size, but if this results in computations exceeding device memory,
+          send_size can be set lower.  In this case gradients will accumulated until all samples in the batch are
+          sent to the device and then a step will be taken.
+
+          max_its: The maximum number of iterations to run
+
+          learning_rates: If a single number, this is the learning rate to use for all iteration.  Alternatively, this
+          can be a list of tuples.  Each tuple is of the form (iteration, learning_rate), which gives the learning rate
+          to use from that iteration onwards, until another tuple specifies another learning rate to use at a different
+          iteration on.  E.g., learning_rates = [(0, .01), (1000, .001), (10000, .0001)] would specify a learning
+          rate of .01 from iteration 0 to 999, .001 from iteration 1000 to 9999 and .0001 from iteration 10000 onwards.
+
+          adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object.
+          Note that if learning rate is specified here *it will be ignored.* (Use the learning_rates option instead).
+
+          min_var: The minumum value any entry of a psi[h] can take on.  After a gradient update, values less than this
+          will be clamped to this value.
+
+          update_int: The interval of iterations we update the user on.
+
+          parameters: If provided, only these parameters of the model will be optimized.  If none, all parameters are
+          optimized.
+
+          l1_p_lambda: The entries in the p parameters are penalized by their l1-norm the form
+              l1_p_lambda[g]*sum(abs(p[g])).  If l1_p_lambda is None, no penalties will be applied.
+
+          l1_u_lambda: Analagous to l1_p_lambda but for the u parameters.
+
+          Raises:
+              ValueError: If send_size is greater than batch_size.
+
+          Returns:
+              log: A dictionary logging progress.  Will have the enries:
+              'elapsed_time': log['elapsed_time'][i] contains the elapsed time from the beginning of optimization to
+              the end of iteration i
+
+              'obj': log['obj'][i] contains the objective value at the beginning (before parameters are updated) of iteration i.
+
+
+
+
+.. py:class:: SharedMLatentRegModel(d_in: Sequence, d_out: Sequence, d_proj: Sequence, d_trans: Sequence, specific_m: torch.nn.Module, shared_m: torch.nn.Module, s: Sequence[torch.nn.Module], use_scales: bool = False, assign_scales: Union[bool, Sequence[bool]] = True, use_offsets: bool = False, assign_offsets: Union[bool, Sequence[bool]] = True, direct_pairs: Sequence[tuple] = None, assign_direct_pair_mappings: Union[bool, Sequence[bool]] = True, assign_p_modes: Union[bool, Sequence[bool]] = True, assign_u_modes: Union[bool, Sequence[bool]] = True, assign_psi: Union[bool, Sequence[bool]] = True, w_gain: float = 1, sc_std: float = 0.01, dm_std: float = 0.1, noise_range: Sequence[float] = [0.1, 0.2])
+
+   Bases: :py:obj:`LatentRegModel`
+
+   A base class for latent regression models with m-modules that are at least partially shared between instances.
+
+   This class is designed to ease working in scenarios where we fit multiple latent regression models, one to each
+   individual, and we want the m-module of these models to have a component that is shared across all of these models.
+
+   The m-module of these instances will be of the form m = torch.nn.Sequential(specific_m, shared_m), where specific_m
+   is an module unique to the instance and shared_m is a module shared between instances.
+
+   This class provides convenience methods that facilitate getting the shared and specific portions and parameters of
+   the m-module.
+
+
+   Create a LatentRegModel object.
+
+   When creating the object, the user has the option to "assign" different variables.  This means a (potentiallY)
+   learnable parameter will be created for the variable.  A user may select not to assign a variable if the
+   model will be fit with a probabilistic framework where distributions over different parameters will be used
+   in place of point estimates.  In this case, because the variables stored with this object will not be used,
+   the user can chose to save memory by not creating that variable in the first place.  The user has two different
+   ways to specify if variables are assigned.  A user can enter a single boolean value (e.g., assign_psi = True),
+   in which case psi variables for all output groups will be assigned.  Alternatively, the user can provide a
+   sequence of boolean values, indicating which variables for each group should be assigned.
+
+   Once parameters are created, the user can select if they are learnable or not by manipulating the internal
+   trainable parameters for the object.  By default, all created parameters are learnable.  However, a user
+   might want to set some parameters by hand and then hold them fixed, in which case setting these parameters
+   to not be learnable will be useful.
+
+   Args:
+
+       d_in: d_in[g] gives the input dimensionality for group g of input variables.
+
+       d_out: d_out[h] gives the output dimensionality for group h of output variables.
+
+       d_proj: d_proj[g] gives the dimensionality for the projected latent variables for input group g.
+
+       d_trans: d_trans[h] gives the dimensionality for the transformed latent variables for output group h.
+
+       m: The mapping from [p_1, ..., p_G] to [t_h, ..., t_h].
+
+       s: s[h] contains module to be applied to z_h (see above).
+
+       use_scales: True if scales should be applied to the o_h values of each output group.
+
+       assign_scales: True if scales should be assigned.  See note above on assigning variables.
+
+       use_offsets: True if offsets should be applied to the o_h values of each output group.
+
+       assign_offsets: True if offsets should be assigned.  See note above on assigning variables.
+
+       direct_pairs: direct_pairs[p] contains a tuple of the form (g, h) giving a pair of input and output groups
+       that should have direct connections.
+
+       assign_direct_pair_mappings: True if direct pair mappings should be assigned.  See note above on assigning
+       variables.  If indicating which particular direct pair mappings should be assigned, this should be a
+       sequence and the i^th entry in the sequence indicates if the i^th pair in direct_pairs has a mapping
+       assigned.
+
+       assign_p_modes: True if p modes should be assigned.  See note above on assigning variables.
+
+       assign_u_modes: True if u modes should be assigned.  See note above on assigning variables.
+
+       assign_psi: True if psi variables should be assigned.  See note above on assigning variables.
+
+       w_gain: Gain to apply to projection p and u matrices when initializing their weights.
+
+       sc_std: Standard deviation for initializing scale values.
+
+       dm_std: Standard deviation for initializing direct mappings.
+
+       noise_range: Range of uniform distribution to pull psi values from during initialization.
+
+
+   .. py:method:: update_shared_m(self, new_m_core: torch.nn.Module)
+
+      Updates the shared component of the m-module.
+
+
+   .. py:method:: specific_m_parameters(self) -> list
+
+      Returns subject-specific parameters of the m-module.
+
+      Returns:
+          params: A list of parameters.
+
+
+   .. py:method:: shared_m_parameters(self) -> list
+
+      Returns shared parameters of the m-module.
+
+      Returns:
+          params: A list of parameters.
+
+
+   .. py:method:: parameters(self)
+
+      Returns parameters of the model, possibly excluding parameters of the shared component of the m-module.
+
+      The parameters of the shared component of the m-module will not be returned if self.returned_shared_m_params is
+      False.
+
+
+
+   .. py:method:: p_project(self, x: List[torch.Tensor], p: Union[List[Union[torch.Tensor, None]], None] = None, apply_specific_m: bool = True) -> List[torch.Tensor]
+
+      Projects input data onto p-modes.
+
+      Args:
+
+          p: List of p modes to use.  p[g] are the p modes to use for group g.  If p[g] is None,
+          then the internal p modes of the subject model will be used.  If p is None, then all
+          the internal p modes of the subject will be used for all groups.
+
+          apply_specific_m: True if subject specific portion of m-module should be applied after projecting
+          data
+
+      Returns:
+          projs: projs[g] are the projections for input group g.
+
+
+

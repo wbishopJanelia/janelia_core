@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.latent_regression.regression &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+        <script src="../../../../../_static/jquery.js"></script>
+        <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/doctools.js"></script>
+        <script src="../../../../../_static/language_data.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.latent_regression.regression</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../_sources/autoapi/janelia_core/ml/latent_regression/regression/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.latent_regression.regression">
+<span id="janelia-core-ml-latent-regression-regression"></span><h1><a class="reference internal" href="#module-janelia_core.ml.latent_regression.regression" title="janelia_core.ml.latent_regression.regression"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.latent_regression.regression</span></code></a><a class="headerlink" href="#module-janelia_core.ml.latent_regression.regression" title="Permalink to this headline"></a></h1>
+<p>Tools for working with latent regression models where we use point estimates of modes instead of distributions.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.regression.SubjectRegressionCollection" title="janelia_core.ml.latent_regression.regression.SubjectRegressionCollection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SubjectRegressionCollection</span></code></a></p></td>
+<td><p>An object which holds subject data, properties and likelihood model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter" title="janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiSubjectRegressionFitter</span></code></a></p></td>
+<td><p>Object for fitting a collection of latent regression models with point estimates for modes.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.regression.format_output_list" title="janelia_core.ml.latent_regression.regression.format_output_list"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_output_list</span></code></a>(base_str: str, it_str: str, vls: Sequence[float], inds: Sequence[int])</p></td>
+<td><p>Produces a string to display a list of outputs.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.regression.predict" title="janelia_core.ml.latent_regression.regression.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a>(s_collection: SubjectRegressionCollection, data: janelia_core.ml.datasets.TimeSeriesBatch, batch_size: int = 100) → List[numpy.ndarray]</p></td>
+<td><p>Predicts output given input from a model with predictions over modes.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.regression.format_output_list">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.regression.</code><code class="sig-name descname">format_output_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base_str</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">it_str</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)">str</a></span></em>, <em class="sig-param"><span class="n">vls</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/regression.html#format_output_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.regression.format_output_list" title="Permalink to this definition"></a></dt>
+<dd><p>Produces a string to display a list of outputs.</p>
+<p>String will be of the format:</p>
+<blockquote>
+<div><p>base_str + ‘ ‘ + it_str+ints[0] + ‘: ‘ + str(vls[0]) + ‘, ‘ + it_str+inds[1] + ‘: ‘ + str(vls[1]) + …</p>
+</div></blockquote>
+<dl>
+<dt>Args:</dt><dd><p>base_str: The base string that preceeds everything else on the string</p>
+<p>it_str: The string that should come befor each printed value</p>
+<p>vls: The values that should be printed</p>
+<p>inds: The indices to associate with each printed value</p>
+</dd>
+<dt>Returns:</dt><dd><p>f_str: The formatted string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.regression.SubjectRegressionCollection">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.regression.</code><code class="sig-name descname">SubjectRegressionCollection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s_mdl</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../subject_models/index.html#janelia_core.ml.latent_regression.subject_models.LatentRegModel" title="janelia_core.ml.latent_regression.subject_models.LatentRegModel">janelia_core.ml.latent_regression.subject_models.LatentRegModel</a></span></em>, <em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../datasets/index.html#janelia_core.ml.datasets.TimeSeriesBatch" title="janelia_core.ml.datasets.TimeSeriesBatch">janelia_core.ml.datasets.TimeSeriesBatch</a></span></em>, <em class="sig-param"><span class="n">input_grps</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">output_grps</span><span class="p">:</span> <span class="n">Sequence</span></em>, <em class="sig-param"><span class="n">props</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.Tensor<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">input_props</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">output_props</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">p_preds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Union<span class="p">[</span>torch.nn.Module<span class="p">, </span>torch.Tensor<span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">u_preds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Union<span class="p">[</span>torch.nn.Module<span class="p">, </span>torch.Tensor<span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/regression.html#SubjectRegressionCollection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.regression.SubjectRegressionCollection" title="Permalink to this definition"></a></dt>
+<dd><p>An object which holds subject data, properties and likelihood model.</p>
+<p>Creates a new SubjectVICollection object.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_mdl: The likelihood model for the subject.</p>
+<p>data: Data for the subject.</p>
+<p>input_grps: input_grps[g] is the index into data.data for the g^th input group</p>
+<p>output_grps: output_grps[h] is the index into data.data for the h^th output group</p>
+<p>props: props[i] is a tensor of properties for one or more input or output groups of variables</p>
+<p>input_props: input_props[g] is the index into props for the properties for the g^th input group.  If
+the modes for the g^th input group are fixed, then input_props[g] should be None.</p>
+<p>output_props: output_props[h[ is the index into props for the properties of the g^th output group.  If
+the modes for the h^th output group are fixed, then outpout_props[h] should be None.</p>
+<p>p_preds: p_pred[g] is the predictor to use for the modes of the g^th input group.  If the modes for this
+input group are fixed, then g should be a tensor with the fixed values.</p>
+<p>u_preds: u_preds are the predictors for the modes for the output groups, same format as p_preds.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.regression.SubjectRegressionCollection.trainable_parameters">
+<code class="sig-name descname">trainable_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; Sequence<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/regression.html#SubjectRegressionCollection.trainable_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.regression.SubjectRegressionCollection.trainable_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Returns all trainable parameters for the collection.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>params: The list of parameters.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.regression.SubjectRegressionCollection.to">
+<code class="sig-name descname">to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>torch.device<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">distribute_data</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/regression.html#SubjectRegressionCollection.to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.regression.SubjectRegressionCollection.to" title="Permalink to this definition"></a></dt>
+<dd><p>Moves all relevant attributes of the collection to the specified device.</p>
+<p>This will move the subject model and properties to the device as well as predictors.</p>
+<p>Note that by default fitting data will not be moved to the device.</p>
+<dl>
+<dt>Args:</dt><dd><p>device: The device to move attributes to.</p>
+<p>distribute_data: True if fitting data should be moved to the device as well</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.regression.</code><code class="sig-name descname">MultiSubjectRegressionFitter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s_collections</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#janelia_core.ml.latent_regression.regression.SubjectRegressionCollection" title="janelia_core.ml.latent_regression.regression.SubjectRegressionCollection">SubjectRegressionCollection</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">min_var</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/regression.html#MultiSubjectRegressionFitter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter" title="Permalink to this definition"></a></dt>
+<dd><p>Object for fitting a collection of latent regression models with point estimates for modes.</p>
+<p>Creates a new MultiSubjectRegressionFitter object.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_collections: A set of SubjectRegressionCollections to use when fitting data.</p>
+<p>min_var: The minimum variance to enforce on the final noise distributions of output variables.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.create_check_point">
+<code class="sig-name descname">create_check_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">copy_data</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">copy_props</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">subj_specific_preds</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/regression.html#MultiSubjectRegressionFitter.create_check_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.create_check_point" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a check point of everything in the subject collections.</p>
+<p>By default, data and properties will not be copied for each subject.</p>
+<p>Be default, the check point assumes the predictors for each subject are the same.  In this case, to save
+memory, instead of making separate copies of the predictors for each subject, all subject collections will
+reference the same set of predictors. If this is not the case, the user can specify that subjects have
+their own predictors, (see subj_specific_preds input below) in which case separate copies of the predictors
+in each subject collection will be created.</p>
+<dl>
+<dt>Args:</dt><dd><p>copy_data: True if data should be included in each subject collection.</p>
+<p>copy_props: True if properties should be included in each subject collection.</p>
+<p>subj_specific_preds: False if all subjects use the same predictors.  True if subjects have their own
+unique predictors.</p>
+</dd>
+<dt>Returns:</dt><dd><p>check_point: A dictionary, currently with a single key ‘s_collections’ that contains copies
+of the s_collections.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.distribute">
+<code class="sig-name descname">distribute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">devices</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>Union<span class="p">[</span>torch.device<span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">s_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">distribute_data</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/regression.html#MultiSubjectRegressionFitter.distribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.distribute" title="Permalink to this definition"></a></dt>
+<dd><p>Distributes subject regression collections across devices.</p>
+<dl>
+<dt>Args:</dt><dd><p>devices: Devices that things can be distributed across.</p>
+<p>s_inds: Indices into self.s_collections for subject regression collections which should be distributed
+across devices.  If None, collections for all subjects will be distributed.</p>
+<p>distribute_data: True if all training data should be distributed to devices.  If there is enough
+device memory, this can speed up fitting.  If not, set this to false, and batches of data will
+be sent to the device for each training iteration.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.trainable_parameters">
+<code class="sig-name descname">trainable_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">s_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)">list</a><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/regression.html#MultiSubjectRegressionFitter.trainable_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.trainable_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Gets all trainable parameters for fitting predictors and a set of subjects.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>s_inds: Specifies the indices of subjects that will be fit.  Subject indices correspond to their
+original order in s_collections when the fitter was created. If None, all subjects used.</p>
+</dd>
+<dt>Returns:</dt><dd><p>params: Parameters of mode predictors and subject models</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.generate_batch_smp_inds">
+<code class="sig-name descname">generate_batch_smp_inds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">n_batches</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">s_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/regression.html#MultiSubjectRegressionFitter.generate_batch_smp_inds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.generate_batch_smp_inds" title="Permalink to this definition"></a></dt>
+<dd><p>Generates indices of random mini-batches of samples for each subject.</p>
+<dl>
+<dt>Args:</dt><dd><p>n_batches: The number of batches to break the data up for each subject into.</p>
+<p>s_inds: Specifies the indices of subjects that will be fit.  Subject indices correspond to their
+original order in s_collections when the fitter was created. If None, s_inds = range(n_subjects).</p>
+</dd>
+<dt>Returns:</dt><dd><p>batch_smp_inds: batch_smp_inds[i][j] is the sample indices for the j^th batch for subject s_inds[i]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.get_used_devices">
+<code class="sig-name descname">get_used_devices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/regression.html#MultiSubjectRegressionFitter.get_used_devices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.get_used_devices" title="Permalink to this definition"></a></dt>
+<dd><p>Lists the devices the subject models and predictors are on.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>devices: The list of devices subject models and priors are on.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">n_epochs</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">n_batches</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">10</span></em>, <em class="sig-param"><span class="n">learning_rates</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">adam_params</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">s_inds</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">update_int</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">print_mdl_nlls</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">print_memory_usage</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">cp_epochs</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cp_opts</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/regression.html#MultiSubjectRegressionFitter.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.fit" title="Permalink to this definition"></a></dt>
+<dd><p>Args:</p>
+<blockquote>
+<div><p>n_epochs: The number of epochs to run fitting for.</p>
+<p>n_batches: The number of batches to break the training data up into per epoch.  When multiple subjects have
+different numbers of total training samples, the batch size for each subject will be selected so we go
+through the entire training set for each subject after processing n_batches each epoch.</p>
+<p>learning_rates: If a single number, this is the learning rate to use for all epochs and parameters.
+Alternatively, this can be a list of tuples.  Each tuple is of the form
+(epoch,lr), where epoch is the epoch the learning rates come into effect on, lr is the learning rate.
+Multiple tuples can be provided to give a schedule of learning rates.  Here is an example
+learning_rates: [(0, .001), (100, .0001)] that starts with a learning rates of .001, and epoch 100, the
+learning rate goes to .0001.</p>
+<p>adam_params: Dictionary of parameters to pass to the call when creating the Adam Optimizer object.
+Note that <em>if learning rate is specified here it will be ignored.</em> (Use the learning_rates option instead).
+The options specified here will be applied to all parameters at all iterations.</p>
+<p>s_inds: Specifies the indices of subjects to fit to.  Subject indices correspond to their
+original order in s_collections when the fitter was created. If None, all subjects used.</p>
+<p>update_int: Fitting status will be printed to screen every update_int number of epochs</p>
+<p>print_mdl_nlls: If true, when fitting status is printed to screen, the negative log likelihood of each
+evaluated model will be printed to screen.</p>
+<p>print_memory_usage: If true, when fitting status is printed to screen, the memory usage of each
+device will be printed to streen.</p>
+<p>cp_epochs: A sequence of epochs after which a check point of the models will be made.  If no check points
+should be made, set this to None.</p>
+<p>cp_opts: A dictionary with options that can be passed into self.make_check_point when making check points.
+If None, default options are used.</p>
+</div></blockquote>
+<dl>
+<dt>Return:</dt><dd><p>log: A dictionary with the following entries:</p>
+<blockquote>
+<div><p>‘elapsed_time’: A numpy array of the elapsed time for completion of each epoch</p>
+<p>‘mdl_nll’: mdl_nll[e, i] is the negative log likelihood for the subject model s_inds[i] at the start
+of epoch e (that is when the objective has been calculated but before parameters have been updated)</p>
+<p>obj: obj[e] contains the objective value at the start of epoch e.  This is the negative evidence lower
+bound + weight penalties.</p>
+</div></blockquote>
+<p>checkpoints: None if no check points created.  Otherwise, checkpoints[i] is the check point created
+at epoch cp_epochs[i].</p>
+</dd>
+<dt>Raises:</dt><dd><p>RuntimeError: If distribute() has not been called before fitting.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.plot_log">
+<em class="property">classmethod </em><code class="sig-name descname">plot_log</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cls</span></em>, <em class="sig-param"><span class="n">log</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)">dict</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/regression.html#MultiSubjectRegressionFitter.plot_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.regression.MultiSubjectRegressionFitter.plot_log" title="Permalink to this definition"></a></dt>
+<dd><p>Produces a figure of the values in a log produced by fit().</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>log: The log to plot.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.regression.predict">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.regression.</code><code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s_collection</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#janelia_core.ml.latent_regression.regression.SubjectRegressionCollection" title="janelia_core.ml.latent_regression.regression.SubjectRegressionCollection">SubjectRegressionCollection</a></span></em>, <em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../../datasets/index.html#janelia_core.ml.datasets.TimeSeriesBatch" title="janelia_core.ml.datasets.TimeSeriesBatch">janelia_core.ml.datasets.TimeSeriesBatch</a></span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span> <span class="o">=</span> <span class="default_value">100</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>numpy.ndarray<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/regression.html#predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.regression.predict" title="Permalink to this definition"></a></dt>
+<dd><p>Predicts output given input from a model with predictions over modes.</p>
+<p>Note: All predictions will be returned on host (cpu) memory as numpy arrays.</p>
+<dl>
+<dt>Args:</dt><dd><p>s_collection: The collection for the subject.   Any data in the collection will be ignored.</p>
+<p>data: The data to predict with.</p>
+<p>batch_size: The number of samples we predict on at a time.  This is helpful if using a GPU
+with limited memory.</p>
+</dd>
+<dt>Returns:</dt><dd><p>pred_mn: The predicted means given the input.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

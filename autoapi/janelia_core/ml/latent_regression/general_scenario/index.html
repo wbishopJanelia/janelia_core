@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.latent_regression.general_scenario &mdash; janelia_core 0.1 documentation</title><link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+        <script src="../../../../../_static/jquery.js"></script>
+        <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/doctools.js"></script>
+        <script src="../../../../../_static/language_data.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../index.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.latent_regression.general_scenario</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../_sources/autoapi/janelia_core/ml/latent_regression/general_scenario/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="module-janelia_core.ml.latent_regression.general_scenario">
+<span id="janelia-core-ml-latent-regression-general-scenario"></span><h1><a class="reference internal" href="#module-janelia_core.ml.latent_regression.general_scenario" title="janelia_core.ml.latent_regression.general_scenario"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.latent_regression.general_scenario</span></code></a><a class="headerlink" href="#module-janelia_core.ml.latent_regression.general_scenario" title="Permalink to this headline"></a></h1>
+<p>This provides high-level tools for working with latent regression models of multiple groups of input
+driving multiple groups of output.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
+<div class="section" id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario" title="janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GeneralInputOutputScenario</span></code></a></p></td>
+<td><p>Class for working with latent regression models of multiple groups of input and output across multiple subjects.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.latent_regression.general_scenario.calc_projs_given_post_modes" title="janelia_core.ml.latent_regression.general_scenario.calc_projs_given_post_modes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_projs_given_post_modes</span></code></a>(s_vi_collection: janelia_core.ml.latent_regression.vi.SubjectVICollection, input_modules: torch.nn.ModuleList, data: Sequence[janelia_core.ml.datasets.TimeSeriesBatch], apply_subj_specific_m: bool = False) → Tuple[Sequence, Sequence]</p></td>
+<td><p>Calculates values of projected data, given posterior distributions, over a model’s modes.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt id="janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.latent_regression.general_scenario.</code><code class="sig-name descname">GeneralInputOutputScenario</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_dims</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">output_dims</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">n_input_modes</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">n_output_modes</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">shared_m_core</span><span class="p">:</span> <span class="n">torch.nn.Module</span></em>, <em class="sig-param"><span class="n">use_scales</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">use_offsets</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">direct_pairs</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">p_mode_point_ests</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">u_mode_point_ests</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">scales_point_ests</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">offsets_point_ests</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">direct_mappings_point_ests</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">psi_point_ests</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">fixed_p_modes</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fixed_u_modes</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fixed_scales</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fixed_offsets</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fixed_direct_mappings</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fixed_psi</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)">None</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.10)">tuple</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/general_scenario.html#GeneralInputOutputScenario"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario" title="Permalink to this definition"></a></dt>
+<dd><p>Class for working with latent regression models of multiple groups of input and output across multiple subjects.</p>
+<p>In particular, we assume all subjects:</p>
+<blockquote>
+<div><p>1) Have the same input groups (but the number of variables in each group can vary from subject to
+subject)</p>
+<p>2) Have the same output groups (but again, the number of variables in each group can vary from subject to
+subject).</p>
+<p>3) We also assume that m-module (the mapping from low-dimenaional input to low-dimensional output) has two
+components for each subject: a component that is shared between all subjects and a component that is unique to
+each subject, where the subject-unique component is applied to the low-dimensioanal projections of inputs and
+it’s output is passed to the shared-component.</p>
+</div></blockquote>
+<p>Note: When creating the initial scenario, subjects are entered in a particular order. (e.g., the number of variables
+in input and output groups for each subject).  This ordering corresponds to their index, s_i, which is used in
+multiple functions.</p>
+<p>Creates a GenInputOutputScenario object.</p>
+<p>The user had the option estimate point estimates over parameters or full posterior distributions. For a given
+parameter, the user can specify what he or she would like to do by using the appropriate ‘<a href="#id1"><span class="problematic" id="id2">*</span></a>_point_ests’
+argument. This argument can be specified in two ways.  Providing a single boolean value indicates point
+estimates should or should not be used for all groups for that parameter.  Alternatively, the user can specify
+a sequence of boolean values indicatinb which groups point estimates should be used for.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>input_dims: Dimensions of input groups of variables for each subject.  input_dims[s, g] is the number of
+input variables in group g for subject s</p>
+<p>ouput_dims: Dimensions of output groups of variables for each subject.  output_dims[s, h] is the number of
+output variables in group h for subject s</p>
+<p>n_input_modes: n_input_modes[g] is the number of modes for input group g</p>
+<p>n_output_modes: n_output_modes[h] is the number of modes for output group h</p>
+<p>shared_m_core: The portion of the m-module that is shared between subjects.  This should be a module which
+receives input in the form of a sequence the same length as the number of input groups and produces output
+which is also a sequence with a length equal to the number of output groups.  The dimensionality of the
+input and output tensors should match the number of modes of the respective input and output groups.</p>
+<p>use_scales: True if models should including scaling of output</p>
+<p>use_offsets: True if models should include offsets applied to output</p>
+<p>direct_pairs: Pairs of input and output groups which have direction connections.</p>
+<p>p_mode_point_ests: Indicates if point estimtates should be used for the p modes.  See note above on
+specifying the form of this argument.</p>
+<p>u_mode_point_ests: Indicates if point estimtates should be used for the u modes.  See note above on
+specifying the form of this argument.</p>
+<p>scales_point_ests: Indicates if point estimtates should be used for the scales.  See note above on
+specifying the form of this argument.</p>
+<p>offsets_point_ests: Indicates if point estimtates should be used for the offsets.  See note above on
+specifying the form of this argument.</p>
+<p>direct_mappings_point_ests: Indicates if point estimtates should be used for the direct mappings.
+If provided as a list, the i^th entry indicates if the the direct mapping for the i^th entry in
+direct_pairs should be estimated with a point estimate.</p>
+<p>psi_point_ests: Indicates if point estimtates should be used for the psi parameters.  See note above on
+specifying the form of this argument.</p>
+<p>fixed_p_modes: A sequence of tuples of the form (g, p_g) where g is the index of an input group and
+p_g is a tensor that should be used as fixed (non-learnable) modes for this input group across all subjects.</p>
+<p>fixed_u_modes: A sequence of tuples specifying fixed output modes in the same manner as
+fixed_p_modes.</p>
+<p>fixed_scales: A sequence of scales of the form (h, t_h) where h is the index of an output group and
+t_h is a tensor of scales that should be used as fixed (non-learnable) scale parameter for that output
+group across all subjects.</p>
+<p>fixed_offsets: A sequence of tuples specifying fixed offset parameters, in the same form as fixed_scales.</p>
+<p>fixed_direct_mappings: A sequence of tuples specifying fixed direct pair mappings of the form (i, t_i)
+where i is the index into direct pairs giving the pair the mapping is for and t_i is the fixed mapping
+that should be used.</p>
+<p>fixed_psi: A sequence of tuples specifying fixed psi parameters, in the same form as fixed scales.</p>
+</div></blockquote>
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario.gen_subj_mdl">
+<code class="sig-name descname">gen_subj_mdl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">s_i</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">specific_s</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>torch.nn.Module<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">specific_m</span><span class="p">:</span> <span class="n">torch.nn.Module</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">w_gain</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">sc_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">dm_std</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">noise_range</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)">float</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[0.1, 0.2]</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="../subject_models/index.html#janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel" title="janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel">janelia_core.ml.latent_regression.subject_models.SharedMLatentRegModel</a><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/general_scenario.html#GeneralInputOutputScenario.gen_subj_mdl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario.gen_subj_mdl" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a subject model for a particular subject.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>s_i: The index of the subject to generate a subject model for.</p>
+<p>specific_s: specific_s[h] is the module to be applied to the output group h values after they have been
+projected back into the high-dimensional space (i.e., multiplied by u_h).</p>
+<p>specific_m: An optional module which can apply subject specific transformations to the low-dimensional
+projections of the input data before passing it to the shared portion of the m-module. This can be useful,
+for example, if wanting to account for scales and shifts in the projected data among subjects. This should
+be a module which accepts a sequence of tensors, each tensor corresponding to the projected data from one
+output group and outputs a sequence of tensors, each tensor corresponding to the transformed data for one
+output group.  If this is None, no subject specific transformation will be included.</p>
+<p>w_gain, sc_std, dm_std, noise_range: Value to provide to SharedLatentRegModel.  See documentation for
+that object.</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>mdl: The requested subject model</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario.gen_linear_specific_m">
+<code class="sig-name descname">gen_linear_specific_m</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">scale_mn</span><span class="o">=</span><span class="default_value">0.001</span></em>, <em class="sig-param"><span class="n">scale_std</span><span class="o">=</span><span class="default_value">1e-05</span></em>, <em class="sig-param"><span class="n">offset_mn</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">offset_std</span><span class="o">=</span><span class="default_value">1e-05</span></em><span class="sig-paren">)</span> &#x2192; torch.nn.Module<a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/general_scenario.html#GeneralInputOutputScenario.gen_linear_specific_m"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario.gen_linear_specific_m" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a subject-specific component of the m-module for non-negative scales and offsets.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>scale_mn, scale_std, offset_mn, offset_std: the mean and standard deviaton of the normal distribution when
+drawing random initial values for the scale and offset.</p>
+</dd>
+<dt>Returns:</dt><dd><p>m: The subject-specific component.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario.gen_linear_specific_s">
+<code class="sig-name descname">gen_linear_specific_s</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">s_i</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a></span></em>, <em class="sig-param"><span class="n">scale_mn</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">scale_std</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">offset_mn</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">offset_std</span><span class="o">=</span><span class="default_value">1e-06</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>torch.nn.Module<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/general_scenario.html#GeneralInputOutputScenario.gen_linear_specific_s"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario.gen_linear_specific_s" title="Permalink to this definition"></a></dt>
+<dd><p>Generates subject-specific sequence of s-modules which apply an element-wise non-negative scale and bias.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>s_i: The subject to generate the s-modules for.</p>
+<p>scale_mn, scale_std, offset_mn, offset_std: the mean and standard deviaton of the normal distribution when
+drawing random initial values for the scale and offset.</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="janelia_core.ml.latent_regression.general_scenario.calc_projs_given_post_modes">
+<code class="sig-prename descclassname">janelia_core.ml.latent_regression.general_scenario.</code><code class="sig-name descname">calc_projs_given_post_modes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s_vi_collection</span><span class="p">:</span> <span class="n"><a class="reference internal" href="../vi/index.html#janelia_core.ml.latent_regression.vi.SubjectVICollection" title="janelia_core.ml.latent_regression.vi.SubjectVICollection">janelia_core.ml.latent_regression.vi.SubjectVICollection</a></span></em>, <em class="sig-param"><span class="n">input_modules</span><span class="p">:</span> <span class="n">torch.nn.ModuleList</span></em>, <em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="../../datasets/index.html#janelia_core.ml.datasets.TimeSeriesBatch" title="janelia_core.ml.datasets.TimeSeriesBatch">janelia_core.ml.datasets.TimeSeriesBatch</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">apply_subj_specific_m</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>Sequence<span class="p">, </span>Sequence<span class="p">]</span><a class="reference internal" href="../../../../../_modules/janelia_core/ml/latent_regression/general_scenario.html#calc_projs_given_post_modes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.latent_regression.general_scenario.calc_projs_given_post_modes" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates values of projected data, given posterior distributions, over a model’s modes.</p>
+<p>This function will project data using the means of posterior distributions over modes and will calculate
+projected values immediately after they are projected to the low-d space.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>s_vi_collection: The vi collection to produce projections for</p>
+<p>data: Data to project. x[g] is input data for group g</p>
+<p>input_modules: Input modules to apply to input before projecting</p>
+<p>apply_subj_specific_m: True if subject-specific m components of the m-module should be applied after the
+projections</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>p_projs: The projections onto the p-modes (potentially after the subject-specific m module has been applied)</p>
+<p>u_projs: The projections after having been transformed through the m-module.</p>
+</div></blockquote>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

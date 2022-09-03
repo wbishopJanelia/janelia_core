@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>janelia_core.ml.latent_regression.general_scenario &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> janelia_core
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Installation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Setting up the core library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html#dependencies">Dependencies</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../autoapi/janelia_core/index.html">janelia_core</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">janelia_core</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      <li>janelia_core.ml.latent_regression.general_scenario</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for janelia_core.ml.latent_regression.general_scenario</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; This provides high-level tools for working with latent regression models of multiple groups of input</span>
+<span class="sd">driving multiple groups of output.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span>
+
+<span class="kn">from</span> <span class="nn">janelia_core.ml.datasets</span> <span class="kn">import</span> <span class="n">TimeSeriesBatch</span>
+<span class="kn">from</span> <span class="nn">janelia_core.ml.extra_torch_modules</span> <span class="kn">import</span> <span class="n">BiasAndPositiveScale</span>
+<span class="kn">from</span> <span class="nn">janelia_core.ml.latent_regression.group_maps</span> <span class="kn">import</span> <span class="n">GroupLinearTransform</span>
+<span class="kn">from</span> <span class="nn">janelia_core.ml.latent_regression.subject_models</span> <span class="kn">import</span> <span class="n">SharedMLatentRegModel</span>
+<span class="kn">from</span> <span class="nn">janelia_core.ml.latent_regression.vi</span> <span class="kn">import</span> <span class="n">SubjectVICollection</span>
+
+
+<div class="viewcode-block" id="GeneralInputOutputScenario"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/general_scenario/index.html#janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario">[docs]</a><span class="k">class</span> <span class="nc">GeneralInputOutputScenario</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Class for working with latent regression models of multiple groups of input and output across multiple subjects.</span>
+
+<span class="sd">    In particular, we assume all subjects:</span>
+
+<span class="sd">        1) Have the same input groups (but the number of variables in each group can vary from subject to</span>
+<span class="sd">        subject)</span>
+
+<span class="sd">        2) Have the same output groups (but again, the number of variables in each group can vary from subject to</span>
+<span class="sd">        subject).</span>
+
+<span class="sd">        3) We also assume that m-module (the mapping from low-dimenaional input to low-dimensional output) has two</span>
+<span class="sd">        components for each subject: a component that is shared between all subjects and a component that is unique to</span>
+<span class="sd">        each subject, where the subject-unique component is applied to the low-dimensioanal projections of inputs and</span>
+<span class="sd">        it&#39;s output is passed to the shared-component.</span>
+
+<span class="sd">    Note: When creating the initial scenario, subjects are entered in a particular order. (e.g., the number of variables</span>
+<span class="sd">    in input and output groups for each subject).  This ordering corresponds to their index, s_i, which is used in</span>
+<span class="sd">    multiple functions.</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dims</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">output_dims</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_input_modes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                 <span class="n">n_output_modes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">shared_m_core</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+                 <span class="n">use_scales</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">use_offsets</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">direct_pairs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">p_mode_point_ests</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">u_mode_point_ests</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span><span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">scales_point_ests</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">offsets_point_ests</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">direct_mappings_point_ests</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">psi_point_ests</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                 <span class="n">fixed_p_modes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">fixed_u_modes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">fixed_scales</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">fixed_offsets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">fixed_direct_mappings</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">fixed_psi</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot; Creates a GenInputOutputScenario object.</span>
+
+<span class="sd">        The user had the option estimate point estimates over parameters or full posterior distributions. For a given</span>
+<span class="sd">        parameter, the user can specify what he or she would like to do by using the appropriate &#39;*_point_ests&#39;</span>
+<span class="sd">        argument. This argument can be specified in two ways.  Providing a single boolean value indicates point</span>
+<span class="sd">        estimates should or should not be used for all groups for that parameter.  Alternatively, the user can specify</span>
+<span class="sd">        a sequence of boolean values indicatinb which groups point estimates should be used for.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            input_dims: Dimensions of input groups of variables for each subject.  input_dims[s, g] is the number of</span>
+<span class="sd">            input variables in group g for subject s</span>
+
+<span class="sd">            ouput_dims: Dimensions of output groups of variables for each subject.  output_dims[s, h] is the number of</span>
+<span class="sd">            output variables in group h for subject s</span>
+
+<span class="sd">            n_input_modes: n_input_modes[g] is the number of modes for input group g</span>
+
+<span class="sd">            n_output_modes: n_output_modes[h] is the number of modes for output group h</span>
+
+<span class="sd">            shared_m_core: The portion of the m-module that is shared between subjects.  This should be a module which</span>
+<span class="sd">            receives input in the form of a sequence the same length as the number of input groups and produces output</span>
+<span class="sd">            which is also a sequence with a length equal to the number of output groups.  The dimensionality of the</span>
+<span class="sd">            input and output tensors should match the number of modes of the respective input and output groups.</span>
+
+<span class="sd">            use_scales: True if models should including scaling of output</span>
+
+<span class="sd">            use_offsets: True if models should include offsets applied to output</span>
+
+<span class="sd">            direct_pairs: Pairs of input and output groups which have direction connections.</span>
+
+<span class="sd">            p_mode_point_ests: Indicates if point estimtates should be used for the p modes.  See note above on</span>
+<span class="sd">            specifying the form of this argument.</span>
+
+<span class="sd">            u_mode_point_ests: Indicates if point estimtates should be used for the u modes.  See note above on</span>
+<span class="sd">            specifying the form of this argument.</span>
+
+<span class="sd">            scales_point_ests: Indicates if point estimtates should be used for the scales.  See note above on</span>
+<span class="sd">            specifying the form of this argument.</span>
+
+<span class="sd">            offsets_point_ests: Indicates if point estimtates should be used for the offsets.  See note above on</span>
+<span class="sd">            specifying the form of this argument.</span>
+
+<span class="sd">            direct_mappings_point_ests: Indicates if point estimtates should be used for the direct mappings.</span>
+<span class="sd">            If provided as a list, the i^th entry indicates if the the direct mapping for the i^th entry in</span>
+<span class="sd">            direct_pairs should be estimated with a point estimate.</span>
+
+<span class="sd">            psi_point_ests: Indicates if point estimtates should be used for the psi parameters.  See note above on</span>
+<span class="sd">            specifying the form of this argument.</span>
+
+<span class="sd">            fixed_p_modes: A sequence of tuples of the form (g, p_g) where g is the index of an input group and</span>
+<span class="sd">            p_g is a tensor that should be used as fixed (non-learnable) modes for this input group across all subjects.</span>
+
+<span class="sd">            fixed_u_modes: A sequence of tuples specifying fixed output modes in the same manner as</span>
+<span class="sd">            fixed_p_modes.</span>
+
+<span class="sd">            fixed_scales: A sequence of scales of the form (h, t_h) where h is the index of an output group and</span>
+<span class="sd">            t_h is a tensor of scales that should be used as fixed (non-learnable) scale parameter for that output</span>
+<span class="sd">            group across all subjects.</span>
+
+<span class="sd">            fixed_offsets: A sequence of tuples specifying fixed offset parameters, in the same form as fixed_scales.</span>
+
+<span class="sd">            fixed_direct_mappings: A sequence of tuples specifying fixed direct pair mappings of the form (i, t_i)</span>
+<span class="sd">            where i is the index into direct pairs giving the pair the mapping is for and t_i is the fixed mapping</span>
+<span class="sd">            that should be used.</span>
+
+<span class="sd">            fixed_psi: A sequence of tuples specifying fixed psi parameters, in the same form as fixed scales.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_format_pe</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">n_grps</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">vl</span><span class="p">]</span><span class="o">*</span><span class="n">n_grps</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">vl</span>
+
+        <span class="n">n_input_grps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">n_input_modes</span><span class="p">)</span>
+        <span class="n">n_output_grps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">n_output_modes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_input_grps</span> <span class="o">=</span> <span class="n">n_input_grps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_output_grps</span> <span class="o">=</span> <span class="n">n_output_grps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span> <span class="o">=</span> <span class="n">input_dims</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span> <span class="o">=</span> <span class="n">output_dims</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_input_modes</span> <span class="o">=</span> <span class="n">n_input_modes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_output_modes</span> <span class="o">=</span> <span class="n">n_output_modes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shared_m_core</span> <span class="o">=</span> <span class="n">shared_m_core</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_scales</span> <span class="o">=</span> <span class="n">use_scales</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_offsets</span> <span class="o">=</span> <span class="n">use_offsets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">direct_pairs</span> <span class="o">=</span> <span class="n">direct_pairs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_mode_points_ests</span> <span class="o">=</span> <span class="n">_format_pe</span><span class="p">(</span><span class="n">p_mode_point_ests</span><span class="p">,</span> <span class="n">n_input_grps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_mode_points_ests</span> <span class="o">=</span> <span class="n">_format_pe</span><span class="p">(</span><span class="n">u_mode_point_ests</span><span class="p">,</span> <span class="n">n_output_grps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scales_points_ests</span> <span class="o">=</span> <span class="n">_format_pe</span><span class="p">(</span><span class="n">scales_point_ests</span><span class="p">,</span> <span class="n">n_output_grps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offsets_points_ests</span> <span class="o">=</span> <span class="n">_format_pe</span><span class="p">(</span><span class="n">offsets_point_ests</span><span class="p">,</span> <span class="n">n_output_grps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">direct_mappings_points_ests</span> <span class="o">=</span> <span class="n">_format_pe</span><span class="p">(</span><span class="n">direct_mappings_point_ests</span><span class="p">,</span> <span class="n">n_output_grps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">psi_points_ests</span> <span class="o">=</span> <span class="n">_format_pe</span><span class="p">(</span><span class="n">psi_point_ests</span><span class="p">,</span> <span class="n">n_output_grps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixed_p_modes</span> <span class="o">=</span> <span class="n">fixed_p_modes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixed_u_modes</span> <span class="o">=</span> <span class="n">fixed_u_modes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixed_scales</span> <span class="o">=</span> <span class="n">fixed_scales</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixed_offsets</span> <span class="o">=</span> <span class="n">fixed_offsets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixed_direct_mappings</span> <span class="o">=</span> <span class="n">fixed_direct_mappings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixed_psi</span> <span class="o">=</span> <span class="n">fixed_psi</span>
+
+<div class="viewcode-block" id="GeneralInputOutputScenario.gen_subj_mdl"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/general_scenario/index.html#janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario.gen_subj_mdl">[docs]</a>    <span class="k">def</span> <span class="nf">gen_subj_mdl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s_i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">specific_s</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">],</span>
+                     <span class="n">specific_m</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">w_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">sc_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">01</span><span class="p">,</span> <span class="n">dm_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+                     <span class="n">noise_range</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="o">.</span><span class="mi">2</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">SharedMLatentRegModel</span><span class="p">:</span>
+
+        <span class="sd">&quot;&quot;&quot; Generates a subject model for a particular subject.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            s_i: The index of the subject to generate a subject model for.</span>
+
+<span class="sd">            specific_s: specific_s[h] is the module to be applied to the output group h values after they have been</span>
+<span class="sd">            projected back into the high-dimensional space (i.e., multiplied by u_h).</span>
+
+<span class="sd">            specific_m: An optional module which can apply subject specific transformations to the low-dimensional</span>
+<span class="sd">            projections of the input data before passing it to the shared portion of the m-module. This can be useful,</span>
+<span class="sd">            for example, if wanting to account for scales and shifts in the projected data among subjects. This should</span>
+<span class="sd">            be a module which accepts a sequence of tensors, each tensor corresponding to the projected data from one</span>
+<span class="sd">            output group and outputs a sequence of tensors, each tensor corresponding to the transformed data for one</span>
+<span class="sd">            output group.  If this is None, no subject specific transformation will be included.</span>
+
+<span class="sd">            w_gain, sc_std, dm_std, noise_range: Value to provide to SharedLatentRegModel.  See documentation for</span>
+<span class="sd">            that object.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            mdl: The requested subject model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_gen_assign_vls</span><span class="p">(</span><span class="n">used</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">point_estimates</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span>
+                            <span class="n">fixed_tuples</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">used</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># We need to assign values either because we are using point estimates for a parameter of they are</span>
+                <span class="c1"># fixed</span>
+                <span class="n">assign_vls</span> <span class="o">=</span> <span class="n">point_estimates</span>
+                <span class="k">if</span> <span class="n">fixed_tuples</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">g</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">fixed_tuples</span><span class="p">:</span>
+                        <span class="n">assign_vls</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">return</span> <span class="n">assign_vls</span>
+
+        <span class="n">assign_scales</span> <span class="o">=</span> <span class="n">_gen_assign_vls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">use_scales</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scales_points_ests</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_scales</span><span class="p">)</span>
+        <span class="n">assign_offsets</span> <span class="o">=</span> <span class="n">_gen_assign_vls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">use_offsets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">offsets_points_ests</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_offsets</span><span class="p">)</span>
+        <span class="n">assign_direct_mappings</span> <span class="o">=</span> <span class="n">_gen_assign_vls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">direct_pairs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">direct_mappings_points_ests</span><span class="p">,</span>
+                                                 <span class="bp">self</span><span class="o">.</span><span class="n">fixed_direct_mappings</span><span class="p">)</span>
+        <span class="n">assign_p_modes</span> <span class="o">=</span> <span class="n">_gen_assign_vls</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_mode_points_ests</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_p_modes</span><span class="p">)</span>
+        <span class="n">assign_u_modes</span> <span class="o">=</span> <span class="n">_gen_assign_vls</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">u_mode_points_ests</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_u_modes</span><span class="p">)</span>
+        <span class="n">assign_psi</span> <span class="o">=</span> <span class="n">_gen_assign_vls</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">psi_points_ests</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_psi</span><span class="p">)</span>
+
+        <span class="n">mdl</span> <span class="o">=</span> <span class="n">SharedMLatentRegModel</span><span class="p">(</span><span class="n">d_in</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dims</span><span class="p">[</span><span class="n">s_i</span><span class="p">,</span> <span class="p">:],</span> <span class="n">d_out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">[</span><span class="n">s_i</span><span class="p">,</span> <span class="p">:],</span>
+                                    <span class="n">d_proj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_input_modes</span><span class="p">,</span> <span class="n">d_trans</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_output_modes</span><span class="p">,</span>
+                                    <span class="n">specific_m</span><span class="o">=</span><span class="n">specific_m</span><span class="p">,</span> <span class="n">shared_m</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">shared_m_core</span><span class="p">,</span>
+                                    <span class="n">s</span><span class="o">=</span><span class="n">specific_s</span><span class="p">,</span> <span class="n">use_scales</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_scales</span><span class="p">,</span> <span class="n">assign_scales</span><span class="o">=</span><span class="n">assign_scales</span><span class="p">,</span>
+                                    <span class="n">use_offsets</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_offsets</span><span class="p">,</span> <span class="n">assign_offsets</span><span class="o">=</span><span class="n">assign_offsets</span><span class="p">,</span>
+                                    <span class="n">direct_pairs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">direct_pairs</span><span class="p">,</span>
+                                    <span class="n">assign_direct_pair_mappings</span><span class="o">=</span><span class="n">assign_direct_mappings</span><span class="p">,</span>
+                                    <span class="n">assign_p_modes</span><span class="o">=</span><span class="n">assign_p_modes</span><span class="p">,</span> <span class="n">assign_u_modes</span><span class="o">=</span><span class="n">assign_u_modes</span><span class="p">,</span>
+                                    <span class="n">assign_psi</span><span class="o">=</span><span class="n">assign_psi</span><span class="p">,</span> <span class="n">w_gain</span><span class="o">=</span><span class="n">w_gain</span><span class="p">,</span> <span class="n">sc_std</span><span class="o">=</span><span class="n">sc_std</span><span class="p">,</span> <span class="n">dm_std</span><span class="o">=</span><span class="n">dm_std</span><span class="p">,</span>
+                                    <span class="n">noise_range</span><span class="o">=</span><span class="n">noise_range</span><span class="p">)</span>
+
+        <span class="c1"># Set fixed values if we need to</span>
+        <span class="k">def</span> <span class="nf">_set_fixed_vls</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">trainable</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="n">fixed_vls</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">fixed_vls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t_i</span> <span class="ow">in</span> <span class="n">fixed_vls</span><span class="p">:</span>
+                    <span class="n">params</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">t_i</span>
+                    <span class="n">trainable</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">_set_fixed_vls</span><span class="p">(</span><span class="n">mdl</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">mdl</span><span class="o">.</span><span class="n">p_trainable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_p_modes</span><span class="p">)</span>
+        <span class="n">_set_fixed_vls</span><span class="p">(</span><span class="n">mdl</span><span class="o">.</span><span class="n">u</span><span class="p">,</span> <span class="n">mdl</span><span class="o">.</span><span class="n">u_trainable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_u_modes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_scales</span><span class="p">:</span>
+            <span class="n">_set_fixed_vls</span><span class="p">(</span><span class="n">mdl</span><span class="o">.</span><span class="n">scales</span><span class="p">,</span> <span class="n">mdl</span><span class="o">.</span><span class="n">scales_trainable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_scales</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_offsets</span><span class="p">:</span>
+            <span class="n">_set_fixed_vls</span><span class="p">(</span><span class="n">mdl</span><span class="o">.</span><span class="n">offsets</span><span class="p">,</span> <span class="n">mdl</span><span class="o">.</span><span class="n">offsets_trainable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_offsets</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">direct_pairs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_set_fixed_vls</span><span class="p">(</span><span class="n">mdl</span><span class="o">.</span><span class="n">direct_mappings</span><span class="p">,</span> <span class="n">mdl</span><span class="o">.</span><span class="n">direct_mappings_trainable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_direct_mappings</span><span class="p">)</span>
+        <span class="n">_set_fixed_vls</span><span class="p">(</span><span class="n">mdl</span><span class="o">.</span><span class="n">psi</span><span class="p">,</span> <span class="n">mdl</span><span class="o">.</span><span class="n">psi_trainable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed_psi</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">mdl</span></div>
+
+<div class="viewcode-block" id="GeneralInputOutputScenario.gen_linear_specific_m"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/general_scenario/index.html#janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario.gen_linear_specific_m">[docs]</a>    <span class="k">def</span> <span class="nf">gen_linear_specific_m</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_mn</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">scale_std</span><span class="o">=.</span><span class="mi">00001</span><span class="p">,</span>
+                                   <span class="n">offset_mn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">offset_std</span><span class="o">=.</span><span class="mi">00001</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Generates a subject-specific component of the m-module for non-negative scales and offsets.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            scale_mn, scale_std, offset_mn, offset_std: the mean and standard deviaton of the normal distribution when</span>
+<span class="sd">            drawing random initial values for the scale and offset.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            m: The subject-specific component.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">GroupLinearTransform</span><span class="p">(</span><span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_input_modes</span><span class="p">,</span> <span class="n">nonnegative_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">v_mn</span><span class="o">=</span><span class="n">scale_mn</span><span class="p">,</span> <span class="n">v_std</span><span class="o">=</span><span class="n">scale_std</span><span class="p">,</span>
+                                    <span class="n">o_mn</span><span class="o">=</span><span class="n">offset_mn</span><span class="p">,</span> <span class="n">o_std</span><span class="o">=</span><span class="n">offset_std</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GeneralInputOutputScenario.gen_linear_specific_s"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/general_scenario/index.html#janelia_core.ml.latent_regression.general_scenario.GeneralInputOutputScenario.gen_linear_specific_s">[docs]</a>    <span class="k">def</span> <span class="nf">gen_linear_specific_s</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s_i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">scale_mn</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale_std</span><span class="o">=.</span><span class="mi">01</span><span class="p">,</span> <span class="n">offset_mn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                   <span class="n">offset_std</span><span class="o">=.</span><span class="mi">000001</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; Generates subject-specific sequence of s-modules which apply an element-wise non-negative scale and bias.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            s_i: The subject to generate the s-modules for.</span>
+
+<span class="sd">            scale_mn, scale_std, offset_mn, offset_std: the mean and standard deviaton of the normal distribution when</span>
+<span class="sd">            drawing random initial values for the scale and offset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">BiasAndPositiveScale</span><span class="p">(</span><span class="n">d</span><span class="o">=</span><span class="n">d_h</span><span class="p">,</span> <span class="n">o_init_mn</span><span class="o">=</span><span class="n">offset_mn</span><span class="p">,</span> <span class="n">o_init_std</span><span class="o">=</span><span class="n">offset_std</span><span class="p">,</span>
+                                     <span class="n">w_init_mn</span><span class="o">=</span><span class="n">scale_mn</span><span class="p">,</span> <span class="n">w_init_std</span><span class="o">=</span><span class="n">scale_std</span><span class="p">)</span> <span class="k">for</span> <span class="n">d_h</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dims</span><span class="p">[</span><span class="n">s_i</span><span class="p">,</span> <span class="p">:]]</span></div></div>
+
+
+<div class="viewcode-block" id="calc_projs_given_post_modes"><a class="viewcode-back" href="../../../../autoapi/janelia_core/ml/latent_regression/general_scenario/index.html#janelia_core.ml.latent_regression.general_scenario.calc_projs_given_post_modes">[docs]</a><span class="k">def</span> <span class="nf">calc_projs_given_post_modes</span><span class="p">(</span><span class="n">s_vi_collection</span><span class="p">:</span> <span class="n">SubjectVICollection</span><span class="p">,</span> <span class="n">input_modules</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">,</span>
+                                <span class="n">data</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">TimeSeriesBatch</span><span class="p">],</span>
+                                <span class="n">apply_subj_specific_m</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Sequence</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot; Calculates values of projected data, given posterior distributions, over a model&#39;s modes.</span>
+
+<span class="sd">    This function will project data using the means of posterior distributions over modes and will calculate</span>
+<span class="sd">    projected values immediately after they are projected to the low-d space.</span>
+
+<span class="sd">    Args:</span>
+
+<span class="sd">        s_vi_collection: The vi collection to produce projections for</span>
+
+<span class="sd">        data: Data to project. x[g] is input data for group g</span>
+
+<span class="sd">        input_modules: Input modules to apply to input before projecting</span>
+
+<span class="sd">        apply_subj_specific_m: True if subject-specific m components of the m-module should be applied after the</span>
+<span class="sd">        projections</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        p_projs: The projections onto the p-modes (potentially after the subject-specific m module has been applied)</span>
+
+<span class="sd">        u_projs: The projections after having been transformed through the m-module.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i_g</span><span class="p">][</span><span class="n">data</span><span class="o">.</span><span class="n">i_x</span><span class="p">,</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">i_g</span> <span class="ow">in</span> <span class="n">s_vi_collection</span><span class="o">.</span><span class="n">input_grps</span><span class="p">]</span>
+
+    <span class="c1"># Apply input modules</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_g</span> <span class="k">if</span> <span class="n">i_m</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">i_m</span><span class="p">(</span><span class="n">x_g</span><span class="p">)</span> <span class="k">for</span> <span class="n">i_m</span><span class="p">,</span> <span class="n">x_g</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">input_modules</span><span class="p">,</span> <span class="n">data</span><span class="p">)]</span>
+
+    <span class="c1"># Get the posterior p modes</span>
+    <span class="k">if</span> <span class="n">s_vi_collection</span><span class="o">.</span><span class="n">p_dists</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">q_p_modes</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">q_p_modes</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">(</span><span class="n">s_vi_collection</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="n">s_vi_collection</span><span class="o">.</span><span class="n">p_props</span><span class="p">[</span><span class="n">g</span><span class="p">]])</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                     <span class="k">else</span> <span class="kc">None</span>
+                     <span class="k">for</span> <span class="n">g</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s_vi_collection</span><span class="o">.</span><span class="n">p_dists</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="n">apply_subj_specific_m</span><span class="p">:</span>
+        <span class="n">p_projs</span> <span class="o">=</span> <span class="n">s_vi_collection</span><span class="o">.</span><span class="n">s_mdl</span><span class="o">.</span><span class="n">p_project</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">q_p_modes</span><span class="p">,</span> <span class="n">apply_specific_m</span><span class="o">=</span><span class="n">apply_subj_specific_m</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">p_projs</span> <span class="o">=</span> <span class="n">s_vi_collection</span><span class="o">.</span><span class="n">s_mdl</span><span class="o">.</span><span class="n">p_project</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">q_p_modes</span><span class="p">)</span>
+
+    <span class="n">u_projs</span> <span class="o">=</span> <span class="n">s_vi_collection</span><span class="o">.</span><span class="n">s_mdl</span><span class="o">.</span><span class="n">m</span><span class="p">(</span><span class="n">s_vi_collection</span><span class="o">.</span><span class="n">s_mdl</span><span class="o">.</span><span class="n">p_project</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">q_p_modes</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">p_projs</span><span class="p">,</span> <span class="n">u_projs</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, William Bishop.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
