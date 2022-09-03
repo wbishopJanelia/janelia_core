@@ -377,6 +377,26 @@ class Exp(torch.nn.ModuleList):
         return torch.exp(self.g*x + self.s) + self.o
 
 
+class RBF(torch.nn.Module):
+    """ Applies the transformation e(-x**2) element-wise.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """ Applies the transformation e(-x**2) element-wise.
+
+        Args:
+            x: Input, of any shape
+
+        Returns:
+
+            y: Output, the same shape as x
+        """
+        return torch.exp(-1*(x**2))
+
+
 class FirstAndSecondOrderFcn(torch.nn.Module):
     """ A function f(x[i]) = o[i] + sum_j a[j]*x[j] + sum_{j,k} b_[j,k]*x[j]*x[k], where o, a and b are parameters.
     """
