@@ -71,9 +71,10 @@
   <h1>Source code for janelia_core.ml.wandering_modules</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot; Contains an experimental set of modules with parameters that can display some drift during fitting.</span>
 
-<span class="sd">Wandering modules are Torch modules which allow for modifications of their parameters and the gradients for their</span>
-<span class="sd">parameters during gradient fitting routines.  They are called wandering because in many cases, small amounts of noise</span>
-<span class="sd">can be added to the the gradients, so these parameters display a random walk when gradients are zero.</span>
+<span class="sd">Wandering modules are Torch modules which allow for modifications of their parameters and the gradients</span>
+<span class="sd">for their parameters during gradient fitting routines. They are called wandering because in many cases,</span>
+<span class="sd">small amounts of noise can be added to the the gradients, so these parameters display a random walk when</span>
+<span class="sd">gradients are zero.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
@@ -109,7 +110,7 @@
     <span class="sd">&quot;&quot;&quot; A function representing a single exponential bump.</span>
 <span class="sd">    The bump function is of the form:</span>
 <span class="sd">        y = m*exp(-sum(((x - c)/w)**2)),</span>
-<span class="sd">    where x is input, c is the center of the bump, w determines the width of the bump and m determines the magnitude of</span>
+<span class="sd">    where x is input, c is the center of the bump, w determines the width of the bump and mm determines the magnitude of</span>
 <span class="sd">    the bump. Note that x can be multi-dimensional, in which case c and w are vectors of the appropriate dimension.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -169,6 +170,7 @@
 <span class="sd">            non-zero and the second is a tuple of values for these points.</span>
 
 <span class="sd">        Returns:</span>
+
 <span class="sd">            y: Output of shame n_smps</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -223,6 +225,7 @@
 
 <div class="viewcode-block" id="SumOfBumpFcns"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/wandering_modules/index.html#janelia_core.ml.wandering_modules.SumOfBumpFcns">[docs]</a><span class="k">class</span> <span class="nc">SumOfBumpFcns</span><span class="p">(</span><span class="n">WanderingModule</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; A sum of bump functions, each with learnable centers, widths and magnitudes.</span>
+
 <span class="sd">    (See BumpFcn for the functional form of a single bump function).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -271,7 +274,6 @@
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">dist_sq</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SumOfBumpFcns.bound"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/wandering_modules/index.html#janelia_core.ml.wandering_modules.SumOfBumpFcns.bound">[docs]</a>    <span class="k">def</span> <span class="nf">bound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Bounds parameters of the module. &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">expanded_small_c_bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">c_bounds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">expand</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_bumps</span><span class="p">])</span>
@@ -298,6 +300,7 @@
 
 <div class="viewcode-block" id="SlowSumOfBumpFcns"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/wandering_modules/index.html#janelia_core.ml.wandering_modules.SlowSumOfBumpFcns">[docs]</a><span class="k">class</span> <span class="nc">SlowSumOfBumpFcns</span><span class="p">(</span><span class="n">WanderingModule</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Implements a sum of bump functions which will be slower in computation on GPU, but may be have memory benefits.</span>
+
 <span class="sd">    (See BumpFcn for the functional form of a single bump function).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -305,7 +308,6 @@
                  <span class="n">c_bounds</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">w_bounds</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">c_grad_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">w_grad_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
                  <span class="n">m_grad_gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">support_p</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">01</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Creates a new SumOfBumpFcns modules.</span>
-
 <span class="sd">        This module allows for bounding of centers and widths and perturbing of gradients.</span>
 
 <span class="sd">        Args:</span>
@@ -363,12 +365,10 @@
         <span class="k">return</span> <span class="n">y</span></div>
 
 <div class="viewcode-block" id="SlowSumOfBumpFcns.bound"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/wandering_modules/index.html#janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.bound">[docs]</a>    <span class="k">def</span> <span class="nf">bound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Bounds parameters of the module. &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">b_f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bump_fcns</span><span class="p">:</span>
             <span class="n">b_f</span><span class="o">.</span><span class="n">bound</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="SlowSumOfBumpFcns.pert_grads"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/wandering_modules/index.html#janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.pert_grads">[docs]</a>    <span class="k">def</span> <span class="nf">pert_grads</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Perturbs gradients. &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">b_f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bump_fcns</span><span class="p">:</span>
             <span class="n">b_f</span><span class="o">.</span><span class="n">pert_grads</span><span class="p">()</span></div></div>
 </pre></div>

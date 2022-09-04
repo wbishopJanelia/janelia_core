@@ -7,9 +7,10 @@
 
    Contains an experimental set of modules with parameters that can display some drift during fitting.
 
-   Wandering modules are Torch modules which allow for modifications of their parameters and the gradients for their
-   parameters during gradient fitting routines.  They are called wandering because in many cases, small amounts of noise
-   can be added to the the gradients, so these parameters display a random walk when gradients are zero.
+   Wandering modules are Torch modules which allow for modifications of their parameters and the gradients
+   for their parameters during gradient fitting routines. They are called wandering because in many cases,
+   small amounts of noise can be added to the the gradients, so these parameters display a random walk when
+   gradients are zero.
 
 
 
@@ -64,7 +65,7 @@ Classes
    A function representing a single exponential bump.
    The bump function is of the form:
        y = m*exp(-sum(((x - c)/w)**2)),
-   where x is input, c is the center of the bump, w determines the width of the bump and m determines the magnitude of
+   where x is input, c is the center of the bump, w determines the width of the bump and mm determines the magnitude of
    the bump. Note that x can be multi-dimensional, in which case c and w are vectors of the appropriate dimension.
 
    Creates a new BumpFcn module.
@@ -106,6 +107,7 @@ Classes
           non-zero and the second is a tuple of values for these points.
 
       Returns:
+
           y: Output of shame n_smps
 
 
@@ -125,6 +127,7 @@ Classes
    Bases: :py:obj:`WanderingModule`
 
    A sum of bump functions, each with learnable centers, widths and magnitudes.
+
    (See BumpFcn for the functional form of a single bump function).
 
    Creates a new SumOfBumpFcns modules.
@@ -158,7 +161,10 @@ Classes
 
    .. py:method:: bound(self)
 
-      Bounds parameters of the module.
+      Bounds parameters in the module.
+
+      This method takes no arguments, other than self, as the bounds themselves are expected to be saved as attributes
+      of the module.
 
 
    .. py:method:: pert_grads(self)
@@ -172,10 +178,10 @@ Classes
    Bases: :py:obj:`WanderingModule`
 
    Implements a sum of bump functions which will be slower in computation on GPU, but may be have memory benefits.
+
    (See BumpFcn for the functional form of a single bump function).
 
    Creates a new SumOfBumpFcns modules.
-
    This module allows for bounding of centers and widths and perturbing of gradients.
 
    Args:
@@ -216,12 +222,19 @@ Classes
 
    .. py:method:: bound(self)
 
-      Bounds parameters of the module.
+      Bounds parameters in the module.
+
+      This method takes no arguments, other than self, as the bounds themselves are expected to be saved as attributes
+      of the module.
 
 
    .. py:method:: pert_grads(self)
 
-      Perturbs gradients.
+      Perturbs (or adjusts) gradients of parameters of the module.
+
+      This method takes no arguments, other than self, as any customization of how gradients are perturbed should
+      be controlled through adjusting attributes of the module.  For example, the amount of noise added to gradients
+      could be determined by an attribute.
 
 
 

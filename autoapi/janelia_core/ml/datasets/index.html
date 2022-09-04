@@ -146,7 +146,7 @@
 
 <dl class="py method">
 <dt id="janelia_core.ml.datasets.TimeSeriesBatch.to">
-<code class="sig-name descname">to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">torch.device</span></em>, <em class="sig-param"><span class="n">move_i_orig</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">non_blocking</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesBatch.to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesBatch.to" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname">to</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">device</span><span class="p">:</span> <span class="n">torch.device</span></em>, <em class="sig-param"><span class="n">move_i_orig</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">non_blocking</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesBatch.to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesBatch.to" title="Permalink to this definition"></a></dt>
 <dd><p>Moves data to the specified device.</p>
 <dl>
 <dt>Args:</dt><dd><p>device: The device to move the data to.</p>
@@ -159,7 +159,7 @@ moved to the device.</p>
 
 <dl class="py method">
 <dt id="janelia_core.ml.datasets.TimeSeriesBatch.__len__">
-<code class="sig-name descname">__len__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesBatch.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesBatch.__len__" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname">__len__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesBatch.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesBatch.__len__" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the number of samples in the dataset.</p>
 </dd></dl>
 
@@ -219,7 +219,7 @@ represented along dimension 0.  All ts_data tensors must have the same number of
 </dl>
 <dl class="py method">
 <dt id="janelia_core.ml.datasets.TimeSeriesDataset.__len__">
-<code class="sig-name descname">__len__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)">int</a><a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesDataset.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesDataset.__len__" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname">__len__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span> &#x2192; int<a class="reference internal" href="../../../../_modules/janelia_core/ml/datasets.html#TimeSeriesDataset.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.datasets.TimeSeriesDataset.__len__" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the number of samples in the dataset.</p>
 <p>Note that number of samples in the dataset is 1 less than the number of time points, as samples
 consist of pairs of data points at time t-1 and time t.</p>
