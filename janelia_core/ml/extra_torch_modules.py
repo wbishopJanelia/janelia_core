@@ -343,6 +343,39 @@ class DenseLNLNet(torch.nn.Module):
         return x
 
 
+class ElementWiseTanh(torch.nn.Module):
+    """ A module implementing y = s*tanh(x) + o, where s and o are fixed scalars
+
+     """
+
+    def __init__(self, o: float = 0.0, s: float = 1.0):
+        """ Creates a Tanh module.
+
+        Args:
+            d: The dimensionality of the input and output
+
+            o: Offset value
+
+            s: Scale value
+
+        """
+
+        super().__init__()
+        self.o = o
+        self.s = s
+
+    def forward(self, x: torch.Tensor) -> torch.tensor:
+        """ Computes output given input.
+
+        Args:
+            x: Input tensor, of any shape
+
+        Returns:
+            y: Output tensor, same shape as input
+        """
+        return self.s*torch.tanh(x) + self.o
+
+
 class BasicExp(torch.nn.Module):
     """ Applies the transformation y = exp(x) to the data.  """
 
