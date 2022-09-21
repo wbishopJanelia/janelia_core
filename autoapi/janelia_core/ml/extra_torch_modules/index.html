@@ -123,67 +123,70 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.DenseLNLNet" title="janelia_core.ml.extra_torch_modules.DenseLNLNet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DenseLNLNet</span></code></a></p></td>
 <td><p>A network of densely connected linear, non-linear units.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.BasicExp" title="janelia_core.ml.extra_torch_modules.BasicExp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BasicExp</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.ElementWiseTanh" title="janelia_core.ml.extra_torch_modules.ElementWiseTanh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ElementWiseTanh</span></code></a></p></td>
+<td><p>A module implementing y = s*tanh(x) + o, where s and o are fixed scalars</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.BasicExp" title="janelia_core.ml.extra_torch_modules.BasicExp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BasicExp</span></code></a></p></td>
 <td><p>Applies the transformation y = exp(x) to the data.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.Exp" title="janelia_core.ml.extra_torch_modules.Exp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Exp</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.Exp" title="janelia_core.ml.extra_torch_modules.Exp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Exp</span></code></a></p></td>
 <td><p>Applies a transformation to the data y = o + exp(g*x + s)</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.RBF" title="janelia_core.ml.extra_torch_modules.RBF"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RBF</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.RBF" title="janelia_core.ml.extra_torch_modules.RBF"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RBF</span></code></a></p></td>
 <td><p>Applies the transformation e(-x**2) element-wise.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn" title="janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FirstAndSecondOrderFcn</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn" title="janelia_core.ml.extra_torch_modules.FirstAndSecondOrderFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FirstAndSecondOrderFcn</span></code></a></p></td>
 <td><p>A function f(x[i]) = o[i] + sum_j a[i, j]*x[j] + sum_{j,k} b_[i, j,k]*x[j]*x[k], where o, a and b are parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FixedOffsetExp" title="janelia_core.ml.extra_torch_modules.FixedOffsetExp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedOffsetExp</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FixedOffsetExp" title="janelia_core.ml.extra_torch_modules.FixedOffsetExp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedOffsetExp</span></code></a></p></td>
 <td><p>Computes y = exp(x) + o, where o is a fixed, non-learnable offset.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FixedOffsetAbs" title="janelia_core.ml.extra_torch_modules.FixedOffsetAbs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedOffsetAbs</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FixedOffsetAbs" title="janelia_core.ml.extra_torch_modules.FixedOffsetAbs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedOffsetAbs</span></code></a></p></td>
 <td><p>Computes y = abs(x) + o, for a fixed o.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FixedOffsetTanh" title="janelia_core.ml.extra_torch_modules.FixedOffsetTanh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedOffsetTanh</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FixedOffsetTanh" title="janelia_core.ml.extra_torch_modules.FixedOffsetTanh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FixedOffsetTanh</span></code></a></p></td>
 <td><p>Computes y = abs(s)*(tanh(x) + 1) + m, where s is learnable and m is fixed.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FormMatrixByCols" title="janelia_core.ml.extra_torch_modules.FormMatrixByCols"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FormMatrixByCols</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.FormMatrixByCols" title="janelia_core.ml.extra_torch_modules.FormMatrixByCols"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FormMatrixByCols</span></code></a></p></td>
 <td><p>Forms a matrix output column by column, where each column is calculated from a separate function.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn" title="janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IndSmpConstantBoundedFcn</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn" title="janelia_core.ml.extra_torch_modules.IndSmpConstantBoundedFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IndSmpConstantBoundedFcn</span></code></a></p></td>
 <td><p>For representing a function which assigns different bounded constant scalar values to given samples.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn" title="janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IndSmpConstantRealFcn</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn" title="janelia_core.ml.extra_torch_modules.IndSmpConstantRealFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IndSmpConstantRealFcn</span></code></a></p></td>
 <td><p>For representing a function which assigns different real-valued constant scalar values to given samples.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.LogGaussianBumpFcn" title="janelia_core.ml.extra_torch_modules.LogGaussianBumpFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LogGaussianBumpFcn</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.LogGaussianBumpFcn" title="janelia_core.ml.extra_torch_modules.LogGaussianBumpFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LogGaussianBumpFcn</span></code></a></p></td>
 <td><p>A module representing a log Gaussian “bump” function with trainable parameters of the form:</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.PWLNNFcn" title="janelia_core.ml.extra_torch_modules.PWLNNFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PWLNNFcn</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.PWLNNFcn" title="janelia_core.ml.extra_torch_modules.PWLNNFcn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PWLNNFcn</span></code></a></p></td>
 <td><p>Piecewise-linear nearest neighbor network function.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.QuadSurf" title="janelia_core.ml.extra_torch_modules.QuadSurf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuadSurf</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.QuadSurf" title="janelia_core.ml.extra_torch_modules.QuadSurf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuadSurf</span></code></a></p></td>
 <td><p>A surface defined by: z = a*(x - x_0)^2 + b*(y - y_0)^2</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.Relu" title="janelia_core.ml.extra_torch_modules.Relu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Relu</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.Relu" title="janelia_core.ml.extra_torch_modules.Relu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Relu</span></code></a></p></td>
 <td><p>Applies a rectified linear transformation to the data y = o + relu(x + s)</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SCC" title="janelia_core.ml.extra_torch_modules.SCC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCC</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SCC" title="janelia_core.ml.extra_torch_modules.SCC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCC</span></code></a></p></td>
 <td><p>A module which splits inputs, applies a function to that input (computes) and concatenates the results.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SumAlongDim" title="janelia_core.ml.extra_torch_modules.SumAlongDim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SumAlongDim</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SumAlongDim" title="janelia_core.ml.extra_torch_modules.SumAlongDim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SumAlongDim</span></code></a></p></td>
 <td><p>Performs a sum along a given dimension of input.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns" title="janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SumOfTiledHyperCubeBasisFcns</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns" title="janelia_core.ml.extra_torch_modules.SumOfTiledHyperCubeBasisFcns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SumOfTiledHyperCubeBasisFcns</span></code></a></p></td>
 <td><p>A module to represent a function which is a sum of tiled hypercube basis functions.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SumOfRelus" title="janelia_core.ml.extra_torch_modules.SumOfRelus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SumOfRelus</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SumOfRelus" title="janelia_core.ml.extra_torch_modules.SumOfRelus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SumOfRelus</span></code></a></p></td>
 <td><p>A sum of Relu functions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SwissRole" title="janelia_core.ml.extra_torch_modules.SwissRole"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SwissRole</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.SwissRole" title="janelia_core.ml.extra_torch_modules.SwissRole"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SwissRole</span></code></a></p></td>
 <td><p>Represents a swiss role function.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.Tanh" title="janelia_core.ml.extra_torch_modules.Tanh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Tanh</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.Tanh" title="janelia_core.ml.extra_torch_modules.Tanh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Tanh</span></code></a></p></td>
 <td><p>A module implementing y = s*tanh(x) + o</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.Unsqueeze" title="janelia_core.ml.extra_torch_modules.Unsqueeze"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Unsqueeze</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.ml.extra_torch_modules.Unsqueeze" title="janelia_core.ml.extra_torch_modules.Unsqueeze"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Unsqueeze</span></code></a></p></td>
 <td><p>Wraps the torch.unsqueeze function in a module.</p></td>
 </tr>
 </tbody>
@@ -422,6 +425,32 @@ the network will be: d_in + n_layers*growth_rate.</p>
 <dt>Args:</dt><dd><p>x: Input, of shape n_smps*d_in</p>
 </dd>
 <dt>Returns:</dt><dd><p>y: Output, of shape n_smps*(d_in + n_layers*growth_rate)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="janelia_core.ml.extra_torch_modules.ElementWiseTanh">
+<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.extra_torch_modules.</code><code class="sig-name descname">ElementWiseTanh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">o</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">s</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#ElementWiseTanh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.ElementWiseTanh" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A module implementing y = s*tanh(x) + o, where s and o are fixed scalars</p>
+<p>Creates a Tanh module.</p>
+<dl>
+<dt>Args:</dt><dd><p>d: The dimensionality of the input and output</p>
+<p>o: Offset value</p>
+<p>s: Scale value</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="janelia_core.ml.extra_torch_modules.ElementWiseTanh.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/extra_torch_modules.html#ElementWiseTanh.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.extra_torch_modules.ElementWiseTanh.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Computes output given input.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x: Input tensor, of any shape</p>
+</dd>
+<dt>Returns:</dt><dd><p>y: Output tensor, same shape as input</p>
 </dd>
 </dl>
 </dd></dl>

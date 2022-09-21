@@ -414,6 +414,39 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
+<div class="viewcode-block" id="ElementWiseTanh"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.ElementWiseTanh">[docs]</a><span class="k">class</span> <span class="nc">ElementWiseTanh</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A module implementing y = s*tanh(x) + o, where s and o are fixed scalars</span>
+
+<span class="sd">     &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Creates a Tanh module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d: The dimensionality of the input and output</span>
+
+<span class="sd">            o: Offset value</span>
+
+<span class="sd">            s: Scale value</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">o</span> <span class="o">=</span> <span class="n">o</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">s</span>
+
+<div class="viewcode-block" id="ElementWiseTanh.forward"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.ElementWiseTanh.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Computes output given input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor, of any shape</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            y: Output tensor, same shape as input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span></div></div>
+
+
 <div class="viewcode-block" id="BasicExp"><a class="viewcode-back" href="../../../autoapi/janelia_core/ml/extra_torch_modules/index.html#janelia_core.ml.extra_torch_modules.BasicExp">[docs]</a><span class="k">class</span> <span class="nc">BasicExp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Applies the transformation y = exp(x) to the data.  &quot;&quot;&quot;</span>
 

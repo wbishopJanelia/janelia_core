@@ -24,6 +24,7 @@ Classes
    janelia_core.ml.extra_torch_modules.ConstantRealFcn
    janelia_core.ml.extra_torch_modules.DenseLayer
    janelia_core.ml.extra_torch_modules.DenseLNLNet
+   janelia_core.ml.extra_torch_modules.ElementWiseTanh
    janelia_core.ml.extra_torch_modules.BasicExp
    janelia_core.ml.extra_torch_modules.Exp
    janelia_core.ml.extra_torch_modules.RBF
@@ -292,6 +293,36 @@ Attributes
 
       Returns:
           y: Output, of shape n_smps*(d_in + n_layers*growth_rate)
+
+
+
+.. py:class:: ElementWiseTanh(o: float = 0.0, s: float = 1.0)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+   A module implementing y = s*tanh(x) + o, where s and o are fixed scalars
+
+
+
+   Creates a Tanh module.
+
+   Args:
+       d: The dimensionality of the input and output
+
+       o: Offset value
+
+       s: Scale value
+
+
+   .. py:method:: forward(self, x: torch.Tensor) -> torch.tensor
+
+      Computes output given input.
+
+      Args:
+          x: Input tensor, of any shape
+
+      Returns:
+          y: Output tensor, same shape as input
 
 
 

@@ -177,7 +177,7 @@ Classes
 
    Bases: :py:obj:`WanderingModule`
 
-   Implements a sum of bump functions which will be slower in computation on GPU, but may be have memory benefits.
+   Implements a sum of bump functions which will be slower in computation on GPU, but may have memory benefits.
 
    (See BumpFcn for the functional form of a single bump function).
 
