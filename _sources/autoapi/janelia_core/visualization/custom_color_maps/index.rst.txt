@@ -59,7 +59,7 @@ Functions
        param_vls plus 1, with the last dimension containing rgb values of colors.
 
 
-   .. py:method:: __getitem__(self, param_vls: Sequence[numpy.ndarray]) -> numpy.ndarray
+   .. py:method:: __getitem__(param_vls: Sequence[numpy.ndarray]) -> numpy.ndarray
 
       Returns colors for combinations of parameter values.
 
@@ -74,12 +74,12 @@ Functions
 
 
 
-   .. py:method:: to_dict(self)
+   .. py:method:: to_dict()
 
       Returns the attributes of the colormap as a dictionary for serialization.
 
 
-   .. py:method:: from_dict(cls, d: dict)
+   .. py:method:: from_dict(d: dict)
       :classmethod:
 
       Creates a MultiParamCMap from a dictionary.

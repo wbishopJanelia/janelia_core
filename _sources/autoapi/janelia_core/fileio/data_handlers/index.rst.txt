@@ -42,7 +42,7 @@ Classes
        data: The ndarray with the data for this object. Can be left as None.
 
 
-   .. py:method:: __getitem__(self, sl: slice) -> numpy.ndarray
+   .. py:method:: __getitem__(sl: slice) -> numpy.ndarray
 
       Gets data from the object.
 
@@ -60,7 +60,7 @@ Classes
 
 
 
-   .. py:method:: __setitem__(self, sl: slice, value: numpy.ndarray)
+   .. py:method:: __setitem__(sl: slice, value: numpy.ndarray)
 
       Sets data for a slice of an NDArrayHandler object.
 
@@ -77,7 +77,7 @@ Classes
 
 
 
-   .. py:method:: set_data(self, data: numpy.ndarray)
+   .. py:method:: set_data(data: numpy.ndarray)
 
       Sets the data of the object.
 
@@ -85,7 +85,7 @@ Classes
           data: the data for the object.
 
 
-   .. py:method:: load_data(self)
+   .. py:method:: load_data()
 
       Loads data from file into memory.
 
@@ -93,12 +93,12 @@ Classes
           FileNotFoundError: If the file containing the data is not found.
 
 
-   .. py:method:: save_data(self)
+   .. py:method:: save_data()
 
       Saves the data in a NDArrayObject to disk.
 
 
-   .. py:method:: __getstate__(self)
+   .. py:method:: __getstate__()
 
       Returns a new object for pickling and saves the data of this object to file.
 

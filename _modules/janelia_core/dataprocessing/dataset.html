@@ -3,17 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.dataprocessing.dataset &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <title>janelia_core.dataprocessing.dataset &mdash; janelia_core 1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -34,12 +37,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html">Setting up the core library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html#dependencies">Dependencies</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../autoapi/janelia_core/index.html">janelia_core</a></li>
 </ul>
@@ -57,9 +60,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      <li>janelia_core.dataprocessing.dataset</li>
+      <li><a href="../../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">janelia_core.dataprocessing.dataset</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -82,12 +85,12 @@
 
 
 <div class="viewcode-block" id="DataSet"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet">[docs]</a><span class="k">class</span> <span class="nc">DataSet</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;A class for holding a basic data set.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A class for holding a basic data set.</span>
 
 <span class="sd">   &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts_data</span><span class="p">:</span> <span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Creates a new DataSet object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Creates a new DataSet object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            ts_data: A dictionary of time series data.  Each entry in the dictionary is one set of data (with a user</span>
@@ -120,7 +123,7 @@
 
 <div class="viewcode-block" id="DataSet.from_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Creates a new Dataset object from a dictioary.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Creates a new Dataset object from a dictioary.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            d: A dictionary with the keys &#39;ts_data&#39; and &#39;metadata&#39;</span>
@@ -131,7 +134,7 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">d</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DataSet.to_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Creates a dictionary from a Dataset object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Creates a dictionary from a Dataset object.</span>
 
 <span class="sd">        This is useful for saving the object in a manner which will still allow it to be loaded in the future should</span>
 <span class="sd">        the class definition of Dataset change.</span>
@@ -143,7 +146,7 @@
 
 <div class="viewcode-block" id="DataSet.update_image_folder"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet.update_image_folder">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">update_image_folder</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">img_field</span><span class="p">,</span> <span class="n">new_base</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Updates the folder images are stored under when a dataset holds paths to a time series of images.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Updates the folder images are stored under when a dataset holds paths to a time series of images.</span>
 
 <span class="sd">        When images are stored as paths in a ts_data dictionary, this function can be used to</span>
 <span class="sd">        update the part of the path specifying the folder they are stored in.  This is useful</span>
@@ -170,7 +173,7 @@
             <span class="n">img_dict</span><span class="p">[</span><span class="s1">&#39;file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">new_path</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DataSet.has_ts_data"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet.has_ts_data">[docs]</a>    <span class="k">def</span> <span class="nf">has_ts_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns true if any time series data has non-zero data points.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns true if any time series data has non-zero data points.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ts_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
         <span class="n">has_data</span> <span class="o">=</span> <span class="kc">True</span>
@@ -181,7 +184,7 @@
         <span class="k">return</span> <span class="n">has_data</span></div>
 
 <div class="viewcode-block" id="DataSet.select_time_range"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet.select_time_range">[docs]</a>    <span class="k">def</span> <span class="nf">select_time_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">end_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Down selects data in a time range.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Down selects data in a time range.</span>
 
 <span class="sd">        The start and end times are inclusive.</span>
 
@@ -198,7 +201,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_ts_data</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">sel_inds</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DataSet.select_ts_data"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.DataSet.select_ts_data">[docs]</a>    <span class="k">def</span> <span class="nf">select_ts_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">sel_inds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Selects data by index in a given dictionary of ts_data.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Selects data by index in a given dictionary of ts_data.</span>
 
 <span class="sd">        This function will allow selection to work seamlessly no matter the</span>
 <span class="sd">        type of &#39;vls&#39; in the dictionary data is being pulled from.</span>
@@ -222,11 +225,11 @@
 
 
 <div class="viewcode-block" id="ROIDataset"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset">[docs]</a><span class="k">class</span> <span class="nc">ROIDataset</span><span class="p">(</span><span class="n">DataSet</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; A dataset object for holding datasets which include roi information.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; A dataset object for holding datasets which include roi information.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">roi_groups</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Initializes an ROIDataset object.</span>
 
 <span class="sd">            ROI data is added to the ts_data dictionary.</span>
@@ -264,7 +267,7 @@
 
 <div class="viewcode-block" id="ROIDataset.from_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Creates a new ROIDataset object from a dictionary.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Creates a new ROIDataset object from a dictionary.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            d: A dictionary with the keys &#39;ts_data&#39;, &#39;metadata&#39;, &#39;roi_groups&#39; and other attributes to add to the object</span>
@@ -295,7 +298,7 @@
         <span class="k">return</span> <span class="n">ROIDataset</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;ts_data&#39;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">],</span> <span class="n">new_roi_groups_dict</span><span class="p">,</span> <span class="o">**</span><span class="n">nonstandard_dict</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ROIDataset.to_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Creates a dictionary from a Dataset object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Creates a dictionary from a Dataset object.</span>
 
 <span class="sd">        This is useful for saving the object in a manner which will still allow it to be loaded in the future should</span>
 <span class="sd">        the class definition of Dataset change.</span>
@@ -326,7 +329,7 @@
         <span class="k">return</span> <span class="n">save_dict</span></div>
 
 <div class="viewcode-block" id="ROIDataset.down_select_rois"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset.down_select_rois">[docs]</a>    <span class="k">def</span> <span class="nf">down_select_rois</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">roi_groups</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">roi_inds</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Down select the rois in a dataset.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Down select the rois in a dataset.</span>
 
 <span class="sd">        ROIs will be removed from dataset.rois and any data for the removed ROIS will</span>
 <span class="sd">        also be removed from the appropriate ts_data entries.</span>
@@ -354,7 +357,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">ts_data</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s1">&#39;vls&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_vls</span></div>
 
 <div class="viewcode-block" id="ROIDataset.extract_rois"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset.extract_rois">[docs]</a>    <span class="k">def</span> <span class="nf">extract_rois</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">roi_group</span><span class="p">,</span> <span class="n">roi_inds</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Extracts rois from a dataset.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Extracts rois from a dataset.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            roi_group: The roi group of the rois to extract</span>
@@ -382,7 +385,7 @@
         <span class="k">return</span> <span class="n">rois</span></div>
 
 <div class="viewcode-block" id="ROIDataset.form_composite_rois"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset.form_composite_rois">[docs]</a>    <span class="k">def</span> <span class="nf">form_composite_rois</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">roi_groups</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">roi_weights</span><span class="p">:</span><span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ROI</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Forms composite rois as linear combinations of rois in a dataset.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Forms composite rois as linear combinations of rois in a dataset.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            roi_groups: A list of roi groups to use in forming the composite roi.</span>
@@ -426,7 +429,7 @@
         <span class="k">return</span> <span class="n">ROI</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">comp_roi_array</span><span class="p">,</span> <span class="n">min_bounds</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ROIDataset.get_rois_center_of_mass"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.ROIDataset.get_rois_center_of_mass">[docs]</a>    <span class="k">def</span> <span class="nf">get_rois_center_of_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">roi_group</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">roi_inds</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Gets the center of mass of requested rois.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Gets the center of mass of requested rois.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            roi_group: The roi group to calculate centers for</span>
@@ -442,11 +445,11 @@
 
 
 <div class="viewcode-block" id="PointDataset"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.PointDataset">[docs]</a><span class="k">class</span> <span class="nc">PointDataset</span><span class="p">(</span><span class="n">DataSet</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; A dataset object for holding datasets with timeseries information associated with points in space.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; A dataset object for holding datasets with timeseries information associated with points in space.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">point_groups</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Initializes a PointDataset object.</span>
 
 <span class="sd">        Args:</span>
@@ -481,7 +484,7 @@
             <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
 
 <div class="viewcode-block" id="PointDataset.to_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.PointDataset.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Create a dictionary from a Dataset object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Create a dictionary from a Dataset object.</span>
 
 <span class="sd">        This is useful for saving the object in a manner which will still allow for it to be loaded in the</span>
 <span class="sd">        future should the class definition change.</span>
@@ -513,7 +516,7 @@
 
 <div class="viewcode-block" id="PointDataset.from_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/dataset/index.html#janelia_core.dataprocessing.dataset.PointDataset.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Creates a new PointDataset object from a dictionary.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Creates a new PointDataset object from a dictionary.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            d: A dictionary with the keys &#39;ts_data&#39;, &#39;metadata&#39;, &#39;roi_groups&#39; and other attributes to add to the object</span>

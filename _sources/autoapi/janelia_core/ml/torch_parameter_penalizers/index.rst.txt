@@ -52,7 +52,7 @@ Classes
    Args:
        params: The parameters to penalize over.
 
-   .. py:method:: check_point(self) -> dict
+   .. py:method:: check_point() -> dict
       :abstractmethod:
 
       Returns a dictionary of parameters and values for the penalizer that should be saved in a check point.
@@ -60,7 +60,7 @@ Classes
 
 
 
-   .. py:method:: clone(self, clean: bool = True)
+   .. py:method:: clone(clean: bool = True)
       :abstractmethod:
 
       Returns a copy of self.
@@ -73,7 +73,7 @@ Classes
           obj: The new object
 
 
-   .. py:method:: copy_state_from(self, other)
+   .. py:method:: copy_state_from(other)
       :abstractmethod:
 
       Copies the state of one penalizer to this penalizer.
@@ -85,7 +85,7 @@ Classes
           other: The other penalizer to copy state from
 
 
-   .. py:method:: get_marked_params(self, key: str) -> List[torch.nn.Parameter]
+   .. py:method:: get_marked_params(key: str) -> List[torch.nn.Parameter]
       :abstractmethod:
 
       Returns all learnable parameters marked with the key string.
@@ -96,7 +96,7 @@ Classes
       associated with the requested key.  If no parameters match the key an empty list should be returned.
 
 
-   .. py:method:: list_param_keys(self) -> List[str]
+   .. py:method:: list_param_keys() -> List[str]
       :abstractmethod:
 
       Returns a list of keys associated with internal, learnable parameters.
@@ -105,7 +105,7 @@ Classes
           keys: The list of keys.
 
 
-   .. py:method:: penalize_and_backwards(self, call_backwards: bool) -> float
+   .. py:method:: penalize_and_backwards(call_backwards: bool) -> float
       :abstractmethod:
 
       Calculates a penalty over parameters and calls backwards on the penalty.
@@ -122,7 +122,7 @@ Classes
           been called in this function.
 
 
-   .. py:method:: __str__(self) -> str
+   .. py:method:: __str__() -> str
       :abstractmethod:
 
       Returns a string of the current state of the penalizer.
@@ -157,7 +157,7 @@ Classes
 
        learnable_parameters: True if c should be learnable; false if it should be fixed
 
-   .. py:method:: copy_state_from(self, other)
+   .. py:method:: copy_state_from(other)
 
       Copies the state of another penalizer to this penalizer.
 
@@ -165,7 +165,7 @@ Classes
           other: The other penalizer to copy state form.
 
 
-   .. py:method:: clone(self, clean: bool = True)
+   .. py:method:: clone(clean: bool = True)
 
       Returns a copy of self.
 
@@ -177,7 +177,7 @@ Classes
           obj: The new object
 
 
-   .. py:method:: check_point(self) -> dict
+   .. py:method:: check_point() -> dict
 
       Returns a check point dictionary for the penalizer.
 
@@ -189,7 +189,7 @@ Classes
               last_p: The value of the last penalty that was computed
 
 
-   .. py:method:: get_marked_params(self, key: str) -> List[torch.nn.Parameter]
+   .. py:method:: get_marked_params(key: str) -> List[torch.nn.Parameter]
 
       Returns marked parameters.
 
@@ -199,12 +199,12 @@ Classes
           params: A list.  If the key was fast this will hold the 'c' parameter.  If not, this list will be empty.
 
 
-   .. py:method:: list_param_keys(self) -> List[str]
+   .. py:method:: list_param_keys() -> List[str]
 
       Returns the list of keys associated with internal, learnabke parameters.
 
 
-   .. py:method:: penalize_and_backwards(self, call_backwards: bool = True) -> torch.Tensor
+   .. py:method:: penalize_and_backwards(call_backwards: bool = True) -> torch.Tensor
 
       Computes the penalty over the parameters and then calls backwards.
 
@@ -215,7 +215,7 @@ Classes
           penalty: The calculated penalty
 
 
-   .. py:method:: __str__(self)
+   .. py:method:: __str__()
 
       Returns a string with the state of the penalizer.
 
@@ -246,7 +246,7 @@ Classes
 
        description: A short description identifying the penalizer.
 
-   .. py:method:: copy_state_from(self, other)
+   .. py:method:: copy_state_from(other)
 
       Copies the state of another penalizer to this penalizer.
 
@@ -254,7 +254,7 @@ Classes
           other: The other penalizer to copy state form.
 
 
-   .. py:method:: clone(self, clean: bool = True)
+   .. py:method:: clone(clean: bool = True)
 
       Returns a copy of self.
 
@@ -266,7 +266,7 @@ Classes
           obj: The new object
 
 
-   .. py:method:: check_point(self) -> dict
+   .. py:method:: check_point() -> dict
 
       Returns a check point dictionary for the penalizer.
 
@@ -276,7 +276,7 @@ Classes
               last_p: The value of the last penalty that was computed
 
 
-   .. py:method:: get_marked_params(self, key: str) -> List[torch.nn.Parameter]
+   .. py:method:: get_marked_params(key: str) -> List[torch.nn.Parameter]
 
       Returns marked parameters.
 
@@ -286,14 +286,14 @@ Classes
           params: A list. This will always be empty.
 
 
-   .. py:method:: list_param_keys(self) -> List[str]
+   .. py:method:: list_param_keys() -> List[str]
 
       Returns the list of keys associated with internal, learnable parameters.
 
       Because there are no learnable parameters for this penalizer, an empty list will be returned.
 
 
-   .. py:method:: penalize_and_backwards(self, call_backwards: bool = True) -> torch.Tensor
+   .. py:method:: penalize_and_backwards(call_backwards: bool = True) -> torch.Tensor
 
       Computes the penalty over the parameters and then calls backwards.
 
@@ -304,7 +304,7 @@ Classes
           penalty: The calculated penalty
 
 
-   .. py:method:: __str__(self)
+   .. py:method:: __str__()
 
       Returns a string with the state of the penalizer.
 
@@ -325,7 +325,7 @@ Classes
 
    See __init__ of parent for more information.
 
-   .. py:method:: penalize_and_backwards(self, call_backwards: bool = True)
+   .. py:method:: penalize_and_backwards(call_backwards: bool = True)
 
       Computes the penalty over the parameters and then calls backwards.
 
@@ -365,7 +365,7 @@ Classes
 
        learnable_parameters: True if c should be learnable; false if it should be fixed
 
-   .. py:method:: copy_state_from(self, other)
+   .. py:method:: copy_state_from(other)
 
       Copies the state of another penalizer to this penalizer.
 
@@ -373,7 +373,7 @@ Classes
           other: The other penalizer to copy state form.
 
 
-   .. py:method:: clone(self, clean: bool = True)
+   .. py:method:: clone(clean: bool = True)
 
       Returns a copy of self.
 
@@ -385,7 +385,7 @@ Classes
           obj: The new object
 
 
-   .. py:method:: check_point(self) -> dict
+   .. py:method:: check_point() -> dict
 
       Returns a check point dictionary for the penalizer.
 
@@ -397,7 +397,7 @@ Classes
               last_p: The value of the last penalty that was computed
 
 
-   .. py:method:: get_marked_params(self, key: str) -> List[torch.nn.Parameter]
+   .. py:method:: get_marked_params(key: str) -> List[torch.nn.Parameter]
 
       Returns marked parameters.
 
@@ -407,12 +407,12 @@ Classes
           params: A list.  If the key was fast this will hold the 'c' parameter.  If not, this list will be empty.
 
 
-   .. py:method:: list_param_keys(self) -> List[str]
+   .. py:method:: list_param_keys() -> List[str]
 
       Returns the list of keys associated with internal, learnable parameters.
 
 
-   .. py:method:: penalize_and_backwards(self, call_backwards: bool = True) -> torch.Tensor
+   .. py:method:: penalize_and_backwards(call_backwards: bool = True) -> torch.Tensor
 
       Computes the penalty over the parameters and then calls backwards.
 
@@ -423,7 +423,7 @@ Classes
           penalty: The calculated penalty
 
 
-   .. py:method:: __str__(self)
+   .. py:method:: __str__()
 
       Returns a string with the state of the penalizer.
 
@@ -446,7 +446,7 @@ Classes
 
    See __init__() of paraent for more information.
 
-   .. py:method:: penalize_and_backwards(self, call_backwards: bool = True) -> torch.Tensor
+   .. py:method:: penalize_and_backwards(call_backwards: bool = True) -> torch.Tensor
 
       Computes the penalty over the parameters and then calls backwards.
 

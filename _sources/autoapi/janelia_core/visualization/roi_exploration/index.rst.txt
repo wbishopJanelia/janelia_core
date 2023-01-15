@@ -72,23 +72,23 @@ Attributes
 
       Signal for key press events.
 
-   .. py:method:: process_key_press(self, ev)
+   .. py:method:: process_key_press(ev)
 
       Responds to key press events.
 
 
-   .. py:method:: init_ui(self)
+   .. py:method:: init_ui()
 
       Initializes the user interface.
 
 
 
-   .. py:method:: keyPressEvent(self, ev)
+   .. py:method:: keyPressEvent(ev)
 
       Overrides keyPressEvent of base class, so that we signal to this object that a key has been pressed.
 
 
-   .. py:method:: set_plane(self, p)
+   .. py:method:: set_plane(p)
 
       Sets the plane of the viewer shows.
 
@@ -124,7 +124,7 @@ Attributes
 
       Signal for when time is changed.
 
-   .. py:method:: init_ui(self)
+   .. py:method:: init_ui()
 
       Initializes the user interface.
 
@@ -165,12 +165,12 @@ Attributes
 
       Signal for when key is pressed.
 
-   .. py:method:: init_ui(self)
+   .. py:method:: init_ui()
 
       Initializes and shows the interface for the ROIViewer.
 
 
-   .. py:method:: set_value(self, idx)
+   .. py:method:: set_value(idx)
 
       Sets the index of the time point the ROI viewer shows.
 
@@ -178,7 +178,7 @@ Attributes
           idx - the index to show.
 
 
-   .. py:method:: _gen_roi_image(self, roi_ind, clr) -> pyqtgraph.ImageItem
+   .. py:method:: _gen_roi_image(roi_ind, clr) -> pyqtgraph.ImageItem
 
       Generates an ROI image that can be overlayed the base image.
 
@@ -192,7 +192,7 @@ Attributes
           roi_image_item - the image item for the roi
 
 
-   .. py:method:: keyPressEvent(self, ev)
+   .. py:method:: keyPressEvent(ev)
 
       Overrides keyPressEvent of base class, so that we signal to this object that a key has been pressed.
 
@@ -238,7 +238,7 @@ Attributes
 
 
 
-   .. py:method:: init_ui(self)
+   .. py:method:: init_ui()
 
       Initializes the UI.
 

@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Setting up the core library &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <title>Setting up the core library &mdash; janelia_core 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -36,12 +40,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Setting up the core library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#dependencies">Dependencies</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="autoapi/janelia_core/index.html">janelia_core</a></li>
 </ul>
@@ -59,8 +63,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Setting up the core library</li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Setting up the core library</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/install.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -70,8 +74,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="setting-up-the-core-library">
-<h1>Setting up the core library<a class="headerlink" href="#setting-up-the-core-library" title="Permalink to this headline"></a></h1>
+  <section id="setting-up-the-core-library">
+<h1>Setting up the core library<a class="headerlink" href="#setting-up-the-core-library" title="Permalink to this heading"></a></h1>
 <p>To install the janelia_core library, follow these steps:</p>
 <ol class="arabic">
 <li><p>Download the code available <a class="reference external" href="https://github.com/wbishopJanelia/janelia_core">here</a>.</p></li>
@@ -92,16 +96,25 @@
 </div></blockquote>
 </li>
 </ol>
-</div>
-<div class="section" id="dependencies">
-<h1>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline"></a></h1>
+</section>
+<section id="dependencies">
+<h1>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this heading"></a></h1>
 <p>Most dependencies will be installed by the setup script referenced above. However, there are two additional
 dependencies that must be installed separately:</p>
-<ol class="arabic simple">
+<ol class="arabic">
 <li><p>PyTorch must be installed, following directions <a class="reference external" href="https://pytorch.org/">here</a>.</p></li>
 <li><p>If you will be working with <a class="reference external" href="https://bitbucket.org/fernandoamat/keller-lab-block-filetype">klb files</a>, you will need to install pyklb which is available from <a class="reference external" href="https://github.com/bhoeckendorf/pyklb">https://github.com/bhoeckendorf/pyklb</a>. Follow the instructions there to install it.  If you are not working with klb files, you can skip this.</p></li>
+<li><p>If you want to modify and generate documentation, you will need sphinx.  Run the following commands to install the required packages:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>pip install sphinx</p></li>
+<li><p>pip install sphinx-autoapi</p></li>
+<li><p>pip install sphinx-rtd-theme</p></li>
+</ul>
+</div></blockquote>
+</li>
 </ol>
-</div>
+</section>
 
 
            </div>

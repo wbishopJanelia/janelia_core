@@ -48,7 +48,7 @@ Classes
    Args:
        n_vars: The number of variables we will be calculating p-values for.
 
-   .. py:method:: injest(self, smp: numpy.ndarray)
+   .. py:method:: injest(smp: numpy.ndarray)
 
       Takes in a new sample of data, which will update calculated p-values.
 
@@ -61,7 +61,7 @@ Classes
           ValueError: If smp is not a 2-d array
 
 
-   .. py:method:: p_vls(self)
+   .. py:method:: p_vls()
 
       Calculates p-values given data injested to date.
 

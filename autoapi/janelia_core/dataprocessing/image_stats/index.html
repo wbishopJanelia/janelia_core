@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.dataprocessing.image_stats &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <title>janelia_core.dataprocessing.image_stats &mdash; janelia_core 1.0 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
         <script src="../../../../_static/jquery.js"></script>
         <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/language_data.js"></script>
+        <script src="../../../../_static/sphinx_highlight.js"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
@@ -36,12 +40,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Setting up the core library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../install.html#dependencies">Dependencies</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../../index.html">janelia_core</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../index.html#subpackages">Subpackages</a><ul class="current">
@@ -76,10 +80,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core</span></code></a> &raquo;</li>
-          <li><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing</span></code></a> &raquo;</li>
-      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing.image_stats</span></code></li>
+      <li><a href="../../../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core</span></code></a></li>
+          <li class="breadcrumb-item"><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing</span></code></a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing.image_stats</span></code></li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../../../_sources/autoapi/janelia_core/dataprocessing/image_stats/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -89,42 +93,42 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="module-janelia_core.dataprocessing.image_stats">
-<span id="janelia-core-dataprocessing-image-stats"></span><h1><a class="reference internal" href="#module-janelia_core.dataprocessing.image_stats" title="janelia_core.dataprocessing.image_stats"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing.image_stats</span></code></a><a class="headerlink" href="#module-janelia_core.dataprocessing.image_stats" title="Permalink to this headline"></a></h1>
+  <section id="module-janelia_core.dataprocessing.image_stats">
+<span id="janelia-core-dataprocessing-image-stats"></span><h1><a class="reference internal" href="#module-janelia_core.dataprocessing.image_stats" title="janelia_core.dataprocessing.image_stats"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.dataprocessing.image_stats</span></code></a><a class="headerlink" href="#module-janelia_core.dataprocessing.image_stats" title="Permalink to this heading"></a></h1>
 <p>Tools for efficiently calculating statistics over images.</p>
 <p>This module is geared specifically towards working with time series of volumetric data.</p>
 <p>William Bishop
 <a class="reference external" href="mailto:bishopw&#37;&#52;&#48;hhmi&#46;org">bishopw<span>&#64;</span>hhmi<span>&#46;</span>org</a></p>
-<div class="section" id="module-contents">
-<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
-<div class="section" id="functions">
-<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
-<table class="longtable docutils align-default">
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this heading"></a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.image_stats.std_through_time" title="janelia_core.dataprocessing.image_stats.std_through_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">std_through_time</span></code></a>(images: list, image_slice: slice = slice(None, None, None), t_dict: dict = None, sc: pyspark.SparkContext = None, preprocess_func: Callable[[numpy.ndarray], numpy.ndarray] = None, verbose=True, correct_denom=True, h5_data_group: str = 'default') → dict</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.image_stats.std_through_time" title="janelia_core.dataprocessing.image_stats.std_through_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">std_through_time</span></code></a>(, t_dict, sc, preprocess_func, ...[, ...])</p></td>
 <td><p>Calculates standard deviation of individual voxels through time.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.image_stats.create_morphsnakes_brain_mask" title="janelia_core.dataprocessing.image_stats.create_morphsnakes_brain_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_morphsnakes_brain_mask</span></code></a>(img: numpy.ndarray, p: numpy.ndarray, morph_params: dict = {}, verbose=True) → numpy.ndarray</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.image_stats.create_morphsnakes_brain_mask" title="janelia_core.dataprocessing.image_stats.create_morphsnakes_brain_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_morphsnakes_brain_mask</span></code></a>(→ numpy.ndarray)</p></td>
 <td><p>Creates a brain mask using the morphsnakes package.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.image_stats.create_threshold_brain_mask" title="janelia_core.dataprocessing.image_stats.create_threshold_brain_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_threshold_brain_mask</span></code></a>(stats: dict, std_p: int = 70, mean_p: int = 70, verbose=True) → numpy.ndarray</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.image_stats.create_threshold_brain_mask" title="janelia_core.dataprocessing.image_stats.create_threshold_brain_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_threshold_brain_mask</span></code></a>(→ numpy.ndarray)</p></td>
 <td><p>Creates a brain mask by thresholding statistics.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.image_stats.identify_rois_in_brain_mask" title="janelia_core.dataprocessing.image_stats.identify_rois_in_brain_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">identify_rois_in_brain_mask</span></code></a>(brain_mask: numpy.ndarray, rois: List[janelia_core.dataprocessing.roi.ROI], p_in=0.9) → numpy.ndarray</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.image_stats.identify_rois_in_brain_mask" title="janelia_core.dataprocessing.image_stats.identify_rois_in_brain_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">identify_rois_in_brain_mask</span></code></a>(→ numpy.ndarray)</p></td>
 <td><p>Identifies ROIs that significantly overlap with a brain mask.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.image_stats.identify_small_rois" title="janelia_core.dataprocessing.image_stats.identify_small_rois"><code class="xref py py-obj docutils literal notranslate"><span class="pre">identify_small_rois</span></code></a>(roi_extents: numpy.ndarray, rois: List[janelia_core.dataprocessing.roi.ROI]) → numpy.ndarray</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.dataprocessing.image_stats.identify_small_rois" title="janelia_core.dataprocessing.image_stats.identify_small_rois"><code class="xref py py-obj docutils literal notranslate"><span class="pre">identify_small_rois</span></code></a>(→ numpy.ndarray)</p></td>
 <td><p>Identifies ROIS that fit within a rectangular box of a set size.</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py function">
-<dt id="janelia_core.dataprocessing.image_stats.std_through_time">
-<code class="sig-prename descclassname">janelia_core.dataprocessing.image_stats.</code><code class="sig-name descname">std_through_time</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">images</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">image_slice</span><span class="p">:</span> <span class="n">slice</span> <span class="o">=</span> <span class="default_value">slice(None, None, None)</span></em>, <em class="sig-param"><span class="n">t_dict</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sc</span><span class="p">:</span> <span class="n">pyspark.SparkContext</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">preprocess_func</span><span class="p">:</span> <span class="n">Callable<span class="p">[</span><span class="p">[</span>numpy.ndarray<span class="p">]</span><span class="p">, </span>numpy.ndarray<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">correct_denom</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">h5_data_group</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'default'</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/image_stats.html#std_through_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.image_stats.std_through_time" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.dataprocessing.image_stats.std_through_time">
+<span class="sig-prename descclassname"><span class="pre">janelia_core.dataprocessing.image_stats.</span></span><span class="sig-name descname"><span class="pre">std_through_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_slice</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">slice</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">slice(None,</span> <span class="pre">None,</span> <span class="pre">None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pyspark.SparkContext</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correct_denom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h5_data_group</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#janelia_core.dataprocessing.image_stats.std_through_time" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates standard deviation of individual voxels through time.</p>
 <p>This function will also return the uncentered first (i.e, the mean) and second moments for each individual
 voxel through time as well, since these are calculated in the intermediate computations.</p>
@@ -154,8 +158,8 @@ will be ‘std’, ‘mean’ and ‘sec_mom’, where ‘sec_mom’ is the unce
 </dd></dl>
 
 <dl class="py function">
-<dt id="janelia_core.dataprocessing.image_stats.create_morphsnakes_brain_mask">
-<code class="sig-prename descclassname">janelia_core.dataprocessing.image_stats.</code><code class="sig-name descname">create_morphsnakes_brain_mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">morph_params</span><span class="p">:</span> <span class="n">dict</span> <span class="o">=</span> <span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/image_stats.html#create_morphsnakes_brain_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.image_stats.create_morphsnakes_brain_mask" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.dataprocessing.image_stats.create_morphsnakes_brain_mask">
+<span class="sig-prename descclassname"><span class="pre">janelia_core.dataprocessing.image_stats.</span></span><span class="sig-name descname"><span class="pre">create_morphsnakes_brain_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">morph_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#janelia_core.dataprocessing.image_stats.create_morphsnakes_brain_mask" title="Permalink to this definition"></a></dt>
 <dd><p>Creates a brain mask using the morphsnakes package.</p>
 <p>This function operates independently on each plane.</p>
 <dl>
@@ -177,8 +181,8 @@ belongs to the brain or not.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="janelia_core.dataprocessing.image_stats.create_threshold_brain_mask">
-<code class="sig-prename descclassname">janelia_core.dataprocessing.image_stats.</code><code class="sig-name descname">create_threshold_brain_mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">stats</span><span class="p">:</span> <span class="n">dict</span></em>, <em class="sig-param"><span class="n">std_p</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">70</span></em>, <em class="sig-param"><span class="n">mean_p</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">70</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/image_stats.html#create_threshold_brain_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.image_stats.create_threshold_brain_mask" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.dataprocessing.image_stats.create_threshold_brain_mask">
+<span class="sig-prename descclassname"><span class="pre">janelia_core.dataprocessing.image_stats.</span></span><span class="sig-name descname"><span class="pre">create_threshold_brain_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stats</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">70</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">70</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#janelia_core.dataprocessing.image_stats.create_threshold_brain_mask" title="Permalink to this definition"></a></dt>
 <dd><p>Creates a brain mask by thresholding statistics.</p>
 <p>Given a structure of statistics produced by std_through_time, this function returns a binary array estimating which
 voxels belong to the brain.</p>
@@ -197,8 +201,8 @@ belongs to the brain or not.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="janelia_core.dataprocessing.image_stats.identify_rois_in_brain_mask">
-<code class="sig-prename descclassname">janelia_core.dataprocessing.image_stats.</code><code class="sig-name descname">identify_rois_in_brain_mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">brain_mask</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">rois</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="../roi/index.html#janelia_core.dataprocessing.roi.ROI" title="janelia_core.dataprocessing.roi.ROI">janelia_core.dataprocessing.roi.ROI</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">p_in</span><span class="o">=</span><span class="default_value">0.9</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/image_stats.html#identify_rois_in_brain_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.image_stats.identify_rois_in_brain_mask" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.dataprocessing.image_stats.identify_rois_in_brain_mask">
+<span class="sig-prename descclassname"><span class="pre">janelia_core.dataprocessing.image_stats.</span></span><span class="sig-name descname"><span class="pre">identify_rois_in_brain_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">brain_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../roi/index.html#janelia_core.dataprocessing.roi.ROI" title="janelia_core.dataprocessing.roi.ROI"><span class="pre">janelia_core.dataprocessing.roi.ROI</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_in</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.9</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#janelia_core.dataprocessing.image_stats.identify_rois_in_brain_mask" title="Permalink to this definition"></a></dt>
 <dd><p>Identifies ROIs that significantly overlap with a brain mask.</p>
 <dl>
 <dt>Args:</dt><dd><p>brain_mask: A binary np.ndarray the same shape as the shape of images rois were extracted from, indicating
@@ -212,8 +216,8 @@ which voxels belong to the brain.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="janelia_core.dataprocessing.image_stats.identify_small_rois">
-<code class="sig-prename descclassname">janelia_core.dataprocessing.image_stats.</code><code class="sig-name descname">identify_small_rois</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">roi_extents</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">rois</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="../roi/index.html#janelia_core.dataprocessing.roi.ROI" title="janelia_core.dataprocessing.roi.ROI">janelia_core.dataprocessing.roi.ROI</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/dataprocessing/image_stats.html#identify_small_rois"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.dataprocessing.image_stats.identify_small_rois" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.dataprocessing.image_stats.identify_small_rois">
+<span class="sig-prename descclassname"><span class="pre">janelia_core.dataprocessing.image_stats.</span></span><span class="sig-name descname"><span class="pre">identify_small_rois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roi_extents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rois</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../roi/index.html#janelia_core.dataprocessing.roi.ROI" title="janelia_core.dataprocessing.roi.ROI"><span class="pre">janelia_core.dataprocessing.roi.ROI</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#janelia_core.dataprocessing.image_stats.identify_small_rois" title="Permalink to this definition"></a></dt>
 <dd><p>Identifies ROIS that fit within a rectangular box of a set size.</p>
 <dl>
 <dt>Args:</dt><dd><p>roi_extents: A 3d array of the lengths of the sides of a rectangle (in pixels)
@@ -225,9 +229,9 @@ rois must fit into.</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

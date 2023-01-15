@@ -108,7 +108,7 @@ Functions
 
       
 
-   .. py:method:: keyPressEvent(self, ev)
+   .. py:method:: keyPressEvent(ev)
 
       Responds to a key press event
 

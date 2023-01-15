@@ -40,7 +40,7 @@ Classes
    Raises:
        ValueError: If the length of cs_names does not equal the number of coordinate systems in c.
 
-   .. py:method:: from_dict(cls, d: dict)
+   .. py:method:: from_dict(d: dict)
       :classmethod:
 
       Create a new point object from a dictionary.
@@ -52,7 +52,7 @@ Classes
           A new Point object
 
 
-   .. py:method:: to_dict(self)
+   .. py:method:: to_dict()
 
       Create a dictionary from a Point object.
 

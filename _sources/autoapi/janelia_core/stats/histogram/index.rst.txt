@@ -49,7 +49,7 @@ Classes
        n_bins: The number of bins in the histogram.
 
 
-   .. py:method:: reset(self, data: numpy.ndarray = None)
+   .. py:method:: reset(data: numpy.ndarray = None)
 
       Resets the buffer.
 
@@ -60,17 +60,17 @@ Classes
           data: If provided, counts in the buffer are reset based on this data.
 
 
-   .. py:method:: add_value(self, vl)
+   .. py:method:: add_value(vl)
 
       Adds a value to the buffer.
 
 
-   .. py:method:: remove_value(self, vl)
+   .. py:method:: remove_value(vl)
 
       Removes a value from the buffer.
 
 
-   .. py:method:: percentile(self, percentile: float) -> int
+   .. py:method:: percentile(percentile: float) -> int
 
       Returns the bin containing a given percentile.
 
@@ -87,13 +87,13 @@ Classes
           RuntimeError: If percentile is outside of the range [0, 1).
 
 
-   .. py:method:: get_bin_starting_edges(self) -> numpy.ndarray
+   .. py:method:: get_bin_starting_edges() -> numpy.ndarray
 
       Returns an array of starting edges for each bin in the buffer.
 
 
 
-   .. py:method:: _get_bin(self, vl) -> int
+   .. py:method:: _get_bin(vl) -> int
 
       Returns the bin of a histogram a value falls into.
 

@@ -47,7 +47,7 @@ Classes
        cov_ev_range: Values for the eigenvalues of the covariance matrix of the
        Gaussian bump functions will be pulled uniformly from this range.
 
-   .. py:method:: _f(self, x: numpy.ndarray) -> numpy.ndarray
+   .. py:method:: _f(x: numpy.ndarray) -> numpy.ndarray
 
       Computes output given input.
 
@@ -58,7 +58,7 @@ Classes
           y: output of shape n_smps
 
 
-   .. py:method:: generate(self, scale: float = 1.0) -> Callable
+   .. py:method:: generate(scale: float = 1.0) -> Callable
 
       Generates a function at a given scale.
 

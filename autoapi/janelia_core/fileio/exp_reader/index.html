@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.fileio.exp_reader &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <title>janelia_core.fileio.exp_reader &mdash; janelia_core 1.0 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
         <script src="../../../../_static/jquery.js"></script>
         <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/language_data.js"></script>
+        <script src="../../../../_static/sphinx_highlight.js"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
@@ -36,12 +40,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Setting up the core library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../install.html#dependencies">Dependencies</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../../index.html">janelia_core</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../index.html#subpackages">Subpackages</a><ul class="current">
@@ -76,10 +80,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core</span></code></a> &raquo;</li>
-          <li><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio</span></code></a> &raquo;</li>
-      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio.exp_reader</span></code></li>
+      <li><a href="../../../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core</span></code></a></li>
+          <li class="breadcrumb-item"><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio</span></code></a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio.exp_reader</span></code></li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../../../_sources/autoapi/janelia_core/fileio/exp_reader/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -89,36 +93,36 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="module-janelia_core.fileio.exp_reader">
-<span id="janelia-core-fileio-exp-reader"></span><h1><a class="reference internal" href="#module-janelia_core.fileio.exp_reader" title="janelia_core.fileio.exp_reader"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio.exp_reader</span></code></a><a class="headerlink" href="#module-janelia_core.fileio.exp_reader" title="Permalink to this headline"></a></h1>
+  <section id="module-janelia_core.fileio.exp_reader">
+<span id="janelia-core-fileio-exp-reader"></span><h1><a class="reference internal" href="#module-janelia_core.fileio.exp_reader" title="janelia_core.fileio.exp_reader"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.fileio.exp_reader</span></code></a><a class="headerlink" href="#module-janelia_core.fileio.exp_reader" title="Permalink to this heading"></a></h1>
 <p>Tools for reading in experimental data from labs at Janelia.</p>
 <p>William Bishop
 <a class="reference external" href="mailto:bishopw&#37;&#52;&#48;hhmi&#46;org">bishopw<span>&#64;</span>hhmi<span>&#46;</span>org</a></p>
-<div class="section" id="module-contents">
-<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
-<div class="section" id="functions">
-<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline"></a></h3>
-<table class="longtable docutils align-default">
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this heading"></a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.fileio.exp_reader.find_images" title="janelia_core.fileio.exp_reader.find_images"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_images</span></code></a>(image_folder: pathlib.Path, image_ext: str, image_folder_depth: int = 0, verbose=True) → list</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.fileio.exp_reader.find_images" title="janelia_core.fileio.exp_reader.find_images"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_images</span></code></a>(→ list)</p></td>
 <td><p>Locates image files, returning paths to files in a sorted list.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.fileio.exp_reader.read_imaging_metadata" title="janelia_core.fileio.exp_reader.read_imaging_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_imaging_metadata</span></code></a>(metadata_file: pathlib.Path) → dict</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#janelia_core.fileio.exp_reader.read_imaging_metadata" title="janelia_core.fileio.exp_reader.read_imaging_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_imaging_metadata</span></code></a>(→ dict)</p></td>
 <td><p>Function to read in imaging metadata stored in xml files as dictionaries.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.fileio.exp_reader.read_img_file" title="janelia_core.fileio.exp_reader.read_img_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_img_file</span></code></a>(f_name: pathlib.Path, img_slice: slice = slice(None, None, None), h5_data_group: str = 'default') → numpy.ndarray</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#janelia_core.fileio.exp_reader.read_img_file" title="janelia_core.fileio.exp_reader.read_img_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_img_file</span></code></a>(, h5_data_group)</p></td>
 <td><p>Returns a numpy array with data from one image file.</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="attributes">
-<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline"></a></h3>
-<table class="longtable docutils align-default">
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 90%" />
@@ -130,13 +134,13 @@
 </tbody>
 </table>
 <dl class="py data">
-<dt id="janelia_core.fileio.exp_reader.IMG_SMP_NUM_FILE_NAME_REG_EXP">
-<code class="sig-prename descclassname">janelia_core.fileio.exp_reader.</code><code class="sig-name descname">IMG_SMP_NUM_FILE_NAME_REG_EXP</code><em class="property"> = (.*)(TM)([0123456789]*)_</em><a class="headerlink" href="#janelia_core.fileio.exp_reader.IMG_SMP_NUM_FILE_NAME_REG_EXP" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.fileio.exp_reader.IMG_SMP_NUM_FILE_NAME_REG_EXP">
+<span class="sig-prename descclassname"><span class="pre">janelia_core.fileio.exp_reader.</span></span><span class="sig-name descname"><span class="pre">IMG_SMP_NUM_FILE_NAME_REG_EXP</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">(.*)(TM)([0123456789]*)_</span></em><a class="headerlink" href="#janelia_core.fileio.exp_reader.IMG_SMP_NUM_FILE_NAME_REG_EXP" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="janelia_core.fileio.exp_reader.find_images">
-<code class="sig-prename descclassname">janelia_core.fileio.exp_reader.</code><code class="sig-name descname">find_images</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image_folder</span><span class="p">:</span> <span class="n">pathlib.Path</span></em>, <em class="sig-param"><span class="n">image_ext</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">image_folder_depth</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="../../../../_modules/janelia_core/fileio/exp_reader.html#find_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.fileio.exp_reader.find_images" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.fileio.exp_reader.find_images">
+<span class="sig-prename descclassname"><span class="pre">janelia_core.fileio.exp_reader.</span></span><span class="sig-name descname"><span class="pre">find_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_ext</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_folder_depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../../../_modules/janelia_core/fileio/exp_reader.html#find_images"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#janelia_core.fileio.exp_reader.find_images" title="Permalink to this definition"></a></dt>
 <dd><p>Locates image files, returning paths to files in a sorted list.</p>
 <p>Image files are sorted by sample number.</p>
 <dl>
@@ -151,8 +155,8 @@ this is 0, then the images are directly under image_folder.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="janelia_core.fileio.exp_reader.read_imaging_metadata">
-<code class="sig-prename descclassname">janelia_core.fileio.exp_reader.</code><code class="sig-name descname">read_imaging_metadata</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">metadata_file</span><span class="p">:</span> <span class="n">pathlib.Path</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../../../../_modules/janelia_core/fileio/exp_reader.html#read_imaging_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.fileio.exp_reader.read_imaging_metadata" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.fileio.exp_reader.read_imaging_metadata">
+<span class="sig-prename descclassname"><span class="pre">janelia_core.fileio.exp_reader.</span></span><span class="sig-name descname"><span class="pre">read_imaging_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../../_modules/janelia_core/fileio/exp_reader.html#read_imaging_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#janelia_core.fileio.exp_reader.read_imaging_metadata" title="Permalink to this definition"></a></dt>
 <dd><p>Function to read in imaging metadata stored in xml files as dictionaries.</p>
 <p>This function does some very light processing of the data in the xml files.</p>
 <p>Note: Imaging metadata is stored as attributes of XML elements.  The attribute names will
@@ -170,8 +174,8 @@ currently only handles xml tags with single attributes.)</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="janelia_core.fileio.exp_reader.read_img_file">
-<code class="sig-prename descclassname">janelia_core.fileio.exp_reader.</code><code class="sig-name descname">read_img_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f_name</span><span class="p">:</span> <span class="n">pathlib.Path</span></em>, <em class="sig-param"><span class="n">img_slice</span><span class="p">:</span> <span class="n">slice</span> <span class="o">=</span> <span class="default_value">slice(None, None, None)</span></em>, <em class="sig-param"><span class="n">h5_data_group</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'default'</span></em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="../../../../_modules/janelia_core/fileio/exp_reader.html#read_img_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.fileio.exp_reader.read_img_file" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.fileio.exp_reader.read_img_file">
+<span class="sig-prename descclassname"><span class="pre">janelia_core.fileio.exp_reader.</span></span><span class="sig-name descname"><span class="pre">read_img_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_slice</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">slice</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">slice(None,</span> <span class="pre">None,</span> <span class="pre">None)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h5_data_group</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="../../../../_modules/janelia_core/fileio/exp_reader.html#read_img_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#janelia_core.fileio.exp_reader.read_img_file" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a numpy array with data from one image file.</p>
 <dl>
 <dt>The following file types are supported:</dt><dd><ol class="arabic simple">
@@ -193,9 +197,9 @@ NotImplementedError: If passing in a non-default slice object while reading a .k
 </dl>
 </dd></dl>
 
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

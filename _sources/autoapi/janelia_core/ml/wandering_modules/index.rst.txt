@@ -36,9 +36,7 @@ Classes
 
    Base class for wandering modules.
 
-   Initializes internal Module state, shared by both nn.Module and ScriptModule.
-
-   .. py:method:: bound(self)
+   .. py:method:: bound()
       :abstractmethod:
 
       Bounds parameters in the module.
@@ -47,7 +45,7 @@ Classes
       of the module.
 
 
-   .. py:method:: pert_grads(self)
+   .. py:method:: pert_grads()
       :abstractmethod:
 
       Perturbs (or adjusts) gradients of parameters of the module.
@@ -95,7 +93,7 @@ Classes
        support_p: The percent of max value in any direction where we define the boundary of support.  This is
        used for skipping function evaluation for input values that are outside of the support.
 
-   .. py:method:: forward(self, x: torch.Tensor, small_output: bool = False) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor, small_output: bool = False) -> torch.Tensor
 
       Computes output from input.
 
@@ -111,12 +109,12 @@ Classes
           y: Output of shame n_smps
 
 
-   .. py:method:: bound(self)
+   .. py:method:: bound()
 
       Bounds parameters of the module.
 
 
-   .. py:method:: pert_grads(self)
+   .. py:method:: pert_grads()
 
       Perturbs gradients.
 
@@ -148,7 +146,7 @@ Classes
        w_bounds: Bounds for the width parameter.  First column is lower bounds; second column is upper bounds. If
        None, the width parameters will not be bounded.
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes input from output.
 
@@ -159,7 +157,7 @@ Classes
            y: Output of length n_smps
 
 
-   .. py:method:: bound(self)
+   .. py:method:: bound()
 
       Bounds parameters in the module.
 
@@ -167,7 +165,7 @@ Classes
       of the module.
 
 
-   .. py:method:: pert_grads(self)
+   .. py:method:: pert_grads()
 
       Currently we don't implement any gradient perturbations.
 
@@ -209,7 +207,7 @@ Classes
        support_p: The percent of max value in any direction where we define the boundary of support.  This is
        used for skipping function evaluation for input values that are outside of the support.
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes output from input.
 
@@ -220,7 +218,7 @@ Classes
           y: output of length n_smps
 
 
-   .. py:method:: bound(self)
+   .. py:method:: bound()
 
       Bounds parameters in the module.
 
@@ -228,7 +226,7 @@ Classes
       of the module.
 
 
-   .. py:method:: pert_grads(self)
+   .. py:method:: pert_grads()
 
       Perturbs (or adjusts) gradients of parameters of the module.
 

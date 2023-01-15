@@ -67,7 +67,7 @@ Functions
 
    Creates a CondVAEDistribution object.
 
-   .. py:method:: forward(self, x: torch.tensor) -> torch.tensor
+   .. py:method:: forward(x: torch.tensor) -> torch.tensor
       :abstractmethod:
 
       Computes the conditional mean of the distribution at different samples.
@@ -79,7 +79,7 @@ Functions
           mn: mn[i, :] is the mean conditioned on x[i, :]
 
 
-   .. py:method:: sample(self, x: torch.tensor) -> object
+   .. py:method:: sample(x: torch.tensor) -> object
       :abstractmethod:
 
       Samples from a conditional distribution.
@@ -100,7 +100,7 @@ Functions
           another tensor specifying the values of the non-zero samples.
 
 
-   .. py:method:: form_standard_sample(self, smp: object) -> torch.tensor
+   .. py:method:: form_standard_sample(smp: object) -> torch.tensor
       :abstractmethod:
 
       Forms a standard representation of a sample from the output of sample.
@@ -112,7 +112,7 @@ Functions
           formed_smp: A tensor of shape n_smps*d_y.  formed_smp[i,:] is the i^th sample.
 
 
-   .. py:method:: form_compact_sample(self, smp: torch.tensor) -> object
+   .. py:method:: form_compact_sample(smp: torch.tensor) -> object
       :abstractmethod:
 
       Forms a compact representation of a sample given a standard representation.
@@ -124,7 +124,7 @@ Functions
           formed_smp: The compact representation of the sample.
 
 
-   .. py:method:: sample_to(self, smp: object, device: torch.device) -> object
+   .. py:method:: sample_to(smp: object, device: torch.device) -> object
       :abstractmethod:
 
       Moves a sample in compact form to a given device.
@@ -138,7 +138,7 @@ Functions
           device: The device to move the sample to.
 
 
-   .. py:method:: log_prob(self, x: torch.tensor, y: object) -> torch.tensor
+   .. py:method:: log_prob(x: torch.tensor, y: object) -> torch.tensor
       :abstractmethod:
 
       Computes the conditional log probability of individual samples.
@@ -153,7 +153,7 @@ Functions
           ll: Conditional log probability of each sample. Of shape n_smps.
 
 
-   .. py:method:: kl(self, d_2, x: torch.tensor, smp: object = None, return_device: torch.device = None)
+   .. py:method:: kl(d_2, x: torch.tensor, smp: object = None, return_device: torch.device = None)
 
       Computes the KL divergence between this object and another of the same type conditioned on input.
 
@@ -189,7 +189,7 @@ Functions
           input.
 
 
-   .. py:method:: r_params(self) -> list
+   .. py:method:: r_params() -> list
       :abstractmethod:
 
       Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
@@ -203,7 +203,7 @@ Functions
           l: the list of parameters
 
 
-   .. py:method:: s_params(self) -> list
+   .. py:method:: s_params() -> list
       :abstractmethod:
 
       Returns a list of parameters which should be estimated with a score method based gradient.
@@ -238,21 +238,21 @@ Functions
        sigma_f: A module whose forward function accepts input of size n_smps*d_x and outputs a vector of
        standard deviations for each sample of size n_smps*d_y
 
-   .. py:method:: form_standard_sample(self, smp)
+   .. py:method:: form_standard_sample(smp)
 
       Returns a sample in standard form.
 
       See method of parent for more information.
 
 
-   .. py:method:: form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor
+   .. py:method:: form_compact_sample(smp: torch.Tensor) -> torch.Tensor
 
       Converts sample in standard form to compact form.
 
       See method of parent for more information.
 
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes conditional mean given samples.
 
@@ -263,7 +263,7 @@ Functions
           mn: mn[i,:] is the mean conditioned on x[i,:]
 
 
-   .. py:method:: log_prob(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor
+   .. py:method:: log_prob(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor
 
       Computes log P(y|x).
 
@@ -277,7 +277,7 @@ Functions
 
 
 
-   .. py:method:: sample(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: sample(x: torch.Tensor) -> torch.Tensor
 
       Samples from the reparameterized form of P(y|x).
 
@@ -288,21 +288,21 @@ Functions
           y: sampled data of shape n_smps*d_y.
 
 
-   .. py:method:: sample_to(self, smp: object, device: torch.device)
+   .. py:method:: sample_to(smp: object, device: torch.device)
 
       Moves a sample to a specified device.
 
       See function of parent object for more information.
 
 
-   .. py:method:: r_params(self)
+   .. py:method:: r_params()
 
       Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
 
       See method of parent for more information.
 
 
-   .. py:method:: s_params(self) -> list
+   .. py:method:: s_params() -> list
 
       Returns an empty list as there are no parameters for optimization with a score method based gradient.
 
@@ -322,7 +322,7 @@ Functions
        log_prob_fcn: A function which accepts input of shape n_smps*d_x and outputs a tensor of shape n_smps with
        the log probability that each sample is 1.
 
-   .. py:method:: forward(self, x: torch.Tensor)
+   .. py:method:: forward(x: torch.Tensor)
 
       Computes conditional mean given samples.
 
@@ -333,7 +333,7 @@ Functions
           mn: mn[i] is the mean conditioned on x[i,:]
 
 
-   .. py:method:: log_prob(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor
+   .. py:method:: log_prob(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor
 
       Computes log P(y|x).
 
@@ -350,7 +350,7 @@ Functions
 
 
 
-   .. py:method:: sample(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: sample(x: torch.Tensor) -> torch.Tensor
 
       Samples from P(y|x)
 
@@ -361,28 +361,28 @@ Functions
           smp: smp[i] is the value of the i^th sample.
 
 
-   .. py:method:: form_standard_sample(self, smp: torch.Tensor) -> torch.Tensor
+   .. py:method:: form_standard_sample(smp: torch.Tensor) -> torch.Tensor
 
       Converts between compact and standard sample form.
 
       See method of parent for more information.
 
 
-   .. py:method:: form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor
+   .. py:method:: form_compact_sample(smp: torch.Tensor) -> torch.Tensor
 
       Converts sample in standard form to compact form.
 
       See method of parent for more information.
 
 
-   .. py:method:: r_params(self) -> list
+   .. py:method:: r_params() -> list
 
       Returns an empty list as there are no parameters for optimization with the reparamaterization trick.
 
       See method of parent for more information.
 
 
-   .. py:method:: s_params(self) -> list
+   .. py:method:: s_params() -> list
 
       Returns a list of parameters that can be optimized with a score method based gradient.
 
@@ -410,21 +410,21 @@ Functions
    rate_f: A module whose forward function accepts input of size n_smps*d_x and outputs rate values in
    a tensor of size n_smps*d_y
 
-   .. py:method:: form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor
+   .. py:method:: form_compact_sample(smp: torch.Tensor) -> torch.Tensor
 
       Converts between compact and standard sample form.
 
       See method of parent for more information.
 
 
-   .. py:method:: form_standard_sample(self, smp)
+   .. py:method:: form_standard_sample(smp)
 
       Returns a sample in standard form.
 
       See method of parent for more information.
 
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes conditional mean given samples.
 
@@ -435,7 +435,7 @@ Functions
           mn: mn[i,:] is the mean conditioned on x[i,:]
 
 
-   .. py:method:: kl(self, d_2, x: torch.tensor, smp: torch.tensor = None, return_device: torch.device = None)
+   .. py:method:: kl(d_2, x: torch.tensor, smp: torch.tensor = None, return_device: torch.device = None)
 
       Computes the KL divergence between the conditional distribution represented by this object and another.
 
@@ -460,7 +460,7 @@ Functions
           input.
 
 
-   .. py:method:: log_prob(self, x: torch.tensor, y: torch.Tensor) -> torch.tensor
+   .. py:method:: log_prob(x: torch.tensor, y: torch.Tensor) -> torch.tensor
 
       Computes log P(y|x).
 
@@ -473,7 +473,7 @@ Functions
           ll: Log-likelihood of each sample. Of shape n_smps.
 
 
-   .. py:method:: sample(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: sample(x: torch.Tensor) -> torch.Tensor
 
       Samples from the reparameterized form of P(y|x).
 
@@ -486,7 +486,7 @@ Functions
           y: sampled data of shape n_smps*d_y.
 
 
-   .. py:method:: std(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: std(x: torch.Tensor) -> torch.Tensor
 
       Computes conditional standard deviation.
 
@@ -497,7 +497,7 @@ Functions
            std: Standard deviation.  Of shape n_smps*d_y.
 
 
-   .. py:method:: mode(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: mode(x: torch.Tensor) -> torch.Tensor
 
       Computes conditional mode.
 
@@ -508,21 +508,21 @@ Functions
           mode: Mode: Of shape n_smps*d_y.
 
 
-   .. py:method:: r_params(self)
+   .. py:method:: r_params()
 
       Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
 
       See method of parent for more information.
 
 
-   .. py:method:: sample_to(self, smp: torch.Tensor, device: torch.device) -> torch.Tensor
+   .. py:method:: sample_to(smp: torch.Tensor, device: torch.device) -> torch.Tensor
 
       Moves a sample in compact form to a given device.
 
       See method of parent for more information.
 
 
-   .. py:method:: s_params(self) -> list
+   .. py:method:: s_params() -> list
 
       Returns an empty list as there are no parameters for optimization with a score method based gradient.
 
@@ -547,7 +547,7 @@ Functions
        each sample of size n_smps*d_y
 
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes conditional mean.
 
@@ -558,7 +558,7 @@ Functions
           mn: mn[i,:] is the mean conditioned on x[i,:]
 
 
-   .. py:method:: log_prob(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor
+   .. py:method:: log_prob(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor
 
       Computes log P(y|x).
 
@@ -572,7 +572,7 @@ Functions
 
 
 
-   .. py:method:: sample(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: sample(x: torch.Tensor) -> torch.Tensor
 
       Samples from the reparameterized form of P(y|x).
 
@@ -585,7 +585,7 @@ Functions
           y: sampled data of shape nSmps*d_y.
 
 
-   .. py:method:: kl(self, d_2, x: torch.tensor, smp: torch.tensor = None, return_device: torch.device = None)
+   .. py:method:: kl(d_2, x: torch.tensor, smp: torch.tensor = None, return_device: torch.device = None)
 
       Computes the KL divergence between the conditional distribution represented by this object and another.
 
@@ -610,35 +610,35 @@ Functions
           input.
 
 
-   .. py:method:: form_standard_sample(self, smp)
+   .. py:method:: form_standard_sample(smp)
 
       Returns a sample in standard form.
 
       See method of parent for more information.
 
 
-   .. py:method:: form_compact_sample(self, smp: torch.Tensor) -> torch.Tensor
+   .. py:method:: form_compact_sample(smp: torch.Tensor) -> torch.Tensor
 
       Converts between compact and standard sample form.
 
       See method of parent for more information.
 
 
-   .. py:method:: sample_to(self, smp: object, device: torch.device)
+   .. py:method:: sample_to(smp: object, device: torch.device)
 
       Moves a sample in compact form to a given device.
 
       See method of parent for more information.
 
 
-   .. py:method:: r_params(self)
+   .. py:method:: r_params()
 
       Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
 
       See method of parent for more information.
 
 
-   .. py:method:: s_params(self) -> list
+   .. py:method:: s_params() -> list
 
       Returns an empty list as there are no parameters for optimization with a score method based gradient.
 
@@ -661,7 +661,7 @@ Functions
 
        slab_d: The slab distribution
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes  E(y|x).
 
@@ -674,7 +674,7 @@ Functions
           mn: Conditional expectation. Of shape n_smps*d_y
 
 
-   .. py:method:: sample(self, x: torch.Tensor) -> list
+   .. py:method:: sample(x: torch.Tensor) -> list
 
       Samples a conditional spike and slab distribution.
 
@@ -694,7 +694,7 @@ Functions
                   x[support, :].  If there are no non-zero values this will be None.
 
 
-   .. py:method:: log_prob(self, x: torch.Tensor, y: list) -> torch.Tensor
+   .. py:method:: log_prob(x: torch.Tensor, y: list) -> torch.Tensor
 
       Computes log P(y|x).
 
@@ -707,7 +707,7 @@ Functions
           ll: Log-likelihood of each sample.
 
 
-   .. py:method:: form_standard_sample(self, smp) -> torch.Tensor
+   .. py:method:: form_standard_sample(smp) -> torch.Tensor
 
       Forms a standard sample representation from a compact representation.
 
@@ -719,7 +719,7 @@ Functions
            formed_smp: The standard form of a sample.  formed_smp[i] gives the value of the i^th sample.
 
 
-   .. py:method:: form_compact_sample(self, smp: torch.Tensor) -> list
+   .. py:method:: form_compact_sample(smp: torch.Tensor) -> list
 
       Forms a compact sample from a full sample.
 
@@ -730,14 +730,14 @@ Functions
           n_smps, support, nz_vls: Compact representation of the sample.  See sample().
 
 
-   .. py:method:: r_params(self) -> list
+   .. py:method:: r_params() -> list
 
       Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
 
       See method of parent for more information.
 
 
-   .. py:method:: s_params(self) -> list
+   .. py:method:: s_params() -> list
 
       Returns an empty list as there are no parameters for optimization with a score method based gradient.
 
@@ -772,7 +772,7 @@ Functions
    Args:
        dists: dists[j] is P_j, that is the conditional distribution to use for column j.
 
-   .. py:method:: forward(self, x: torch.tensor) -> torch.tensor
+   .. py:method:: forward(x: torch.tensor) -> torch.tensor
 
       Computes the conditional mean of the distribtion at different samples.
 
@@ -783,7 +783,7 @@ Functions
           mn: mn[i, :] is the mean conditioned on x[i, :]
 
 
-   .. py:method:: sample(self, x: torch.tensor) -> torch.tensor
+   .. py:method:: sample(x: torch.tensor) -> torch.tensor
 
       Samples from a conditional distribution.
 
@@ -797,7 +797,7 @@ Functions
           smp: smp[j] is the compact representation of the sample for column j.
 
 
-   .. py:method:: form_standard_sample(self, smp: object) -> torch.tensor
+   .. py:method:: form_standard_sample(smp: object) -> torch.tensor
 
       Forms a standard representation of a sample from the output of sample.
 
@@ -808,7 +808,7 @@ Functions
           formed_smp: The sample represented as a matrix
 
 
-   .. py:method:: form_compact_sample(self, smp: torch.tensor) -> object
+   .. py:method:: form_compact_sample(smp: torch.tensor) -> object
 
       Forms a compact representation of a sample given a standard representation.
 
@@ -819,7 +819,7 @@ Functions
           formed_smp: The compact representation of the sample.
 
 
-   .. py:method:: sample_to(self, smp: object, device: torch.device)
+   .. py:method:: sample_to(smp: object, device: torch.device)
 
       Moves a sample in compact form to a given device.
 
@@ -829,7 +829,7 @@ Functions
           device: The device to move the sample to.
 
 
-   .. py:method:: log_prob(self, x: torch.tensor, y: Sequence) -> torch.tensor
+   .. py:method:: log_prob(x: torch.tensor, y: Sequence) -> torch.tensor
 
       Computes the conditional log probability of individual rows.
 
@@ -843,7 +843,7 @@ Functions
           ll: Conditional log probability of each row. Of shape n_rows.
 
 
-   .. py:method:: kl(self, d_2, x: torch.tensor, smp: Sequence = None, return_device: torch.device = None)
+   .. py:method:: kl(d_2, x: torch.tensor, smp: Sequence = None, return_device: torch.device = None)
 
       Computes the KL divergence between this object and another CondMatrixProductDistribution conditioned on input.
 
@@ -867,14 +867,14 @@ Functions
           kl: Of shape n_smps.  kl[i] is the KL divergence between the two distributions for the i^th sample.
 
 
-   .. py:method:: r_params(self)
+   .. py:method:: r_params()
 
       Returns a list of parameters for which gradients can be estimated with the reparameterization trick.
 
       See method of parent for more information.
 
 
-   .. py:method:: s_params(self) -> list
+   .. py:method:: s_params() -> list
 
       Returns an empty list as there are no parameters for optimization with a score method based gradient.
 
@@ -912,7 +912,7 @@ Functions
    Args:
        dists: Conditional gaussian distributions for each column of the matrix.
 
-   .. py:method:: kl(self, d_2, x: torch.tensor, smp: torch.tensor = None, return_device: torch.device = None)
+   .. py:method:: kl(d_2, x: torch.tensor, smp: torch.tensor = None, return_device: torch.device = None)
 
       Computes the KL divergence between the conditional distribution represented by this object and another.
 
@@ -1014,17 +1014,17 @@ Functions
        sigma_iv: The initial value for sigma parameters.  All distributions will be initialized to have the
        same initial values.
 
-   .. py:method:: forward(self, x: torch.Tensor = None)
+   .. py:method:: forward(x: torch.Tensor = None)
 
       Overwrites parent forward so x does not have to be provided.
 
 
-   .. py:method:: sample(self, x: torch.Tensor = None) -> list
+   .. py:method:: sample(x: torch.Tensor = None) -> list
 
       Overwrites parent sample so x does not have to be provided.
 
 
-   .. py:method:: log_prob(self, x: torch.Tensor = None, y: Sequence = None) -> torch.Tensor
+   .. py:method:: log_prob(x: torch.Tensor = None, y: Sequence = None) -> torch.Tensor
 
       Overwrites parent log_prob so x does not have to be provided.
 
@@ -1061,7 +1061,7 @@ Functions
        std_lb, std_ub, std_iv: lower & upper bounds for standard deviation values and the initial value
        for the standard deviation for the distribution for each entry.
 
-   .. py:method:: initialize(self, mn_mn: float = 0.0, mn_std: float = 0.01, std_v: float = 0.01)
+   .. py:method:: initialize(mn_mn: float = 0.0, mn_std: float = 0.01, std_v: float = 0.01)
 
       Initializes parameters of the distribution.
 
@@ -1111,7 +1111,7 @@ Functions
        ValueError: If std_init is not greater than min_std.
 
 
-   .. py:method:: increase_std(self, f: float)
+   .. py:method:: increase_std(f: float)
 
       Increases the standard deviation by a factor which is approximately log(f).
 
@@ -1119,7 +1119,7 @@ Functions
           f: The factor to increase standard deviation by.
 
 
-   .. py:method:: set_mn(self, v: float)
+   .. py:method:: set_mn(v: float)
 
       Set the mean to a single value everyhwere.
 
@@ -1127,7 +1127,7 @@ Functions
           v: The value to set the mean to
 
 
-   .. py:method:: set_std(self, v: float)
+   .. py:method:: set_std(v: float)
 
       Sets the standard deviation to a single value everywhere.
 
@@ -1204,7 +1204,7 @@ Functions
 
    Creates a DistributionPenalizer object.
 
-   .. py:method:: check_point(self) -> dict
+   .. py:method:: check_point() -> dict
       :abstractmethod:
 
       Returns a dictionary of parameters for the penalizer that should be saved in a check point.
@@ -1213,7 +1213,7 @@ Functions
       penalizer.
 
 
-   .. py:method:: get_marked_params(self, key: str)
+   .. py:method:: get_marked_params(key: str)
       :abstractmethod:
 
       Returns all parameters marked with the key string.
@@ -1224,7 +1224,7 @@ Functions
       key an empty list should be returned.
 
 
-   .. py:method:: list_param_keys(self)
+   .. py:method:: list_param_keys()
       :abstractmethod:
 
       Returns a list of keys associated with parameters.
@@ -1233,7 +1233,7 @@ Functions
           keys: The list of keys.
 
 
-   .. py:method:: penalize(self, d: CondVAEDistribution) -> torch.Tensor
+   .. py:method:: penalize(d: CondVAEDistribution) -> torch.Tensor
       :abstractmethod:
 
       Calculates a penalty over a distribution.
@@ -1290,7 +1290,7 @@ Functions
        fixed at their init values and not learned.
 
 
-   .. py:method:: check_point(self)
+   .. py:method:: check_point()
 
       Returns a dictionary with a copy of key parameters of the penalizer.
 
@@ -1306,7 +1306,7 @@ Functions
              last_scale_pen: The value of the last scale penalty computed with the penalizer
 
 
-   .. py:method:: get_marked_params(self, key: str)
+   .. py:method:: get_marked_params(key: str)
 
       Returns parameters that should be assigned fast and slow learning rates.
 
@@ -1318,7 +1318,7 @@ Functions
           params: The list of parameters matching the key
 
 
-   .. py:method:: list_param_keys(self)
+   .. py:method:: list_param_keys()
 
       Returns the list of keys associated with parameters.
 
@@ -1326,12 +1326,12 @@ Functions
           keys: The keys
 
 
-   .. py:method:: penalize(self, d: CondVAEDistribution) -> torch.Tensor
+   .. py:method:: penalize(d: CondVAEDistribution) -> torch.Tensor
 
       Calculates the penalty for a distribution.
 
 
-   .. py:method:: __str__(self)
+   .. py:method:: __str__()
 
       Returns a string of the current state of the penalizer.
 

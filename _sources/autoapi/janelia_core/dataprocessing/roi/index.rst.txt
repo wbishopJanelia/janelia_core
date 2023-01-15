@@ -35,7 +35,7 @@ Classes
        weights: A numpy array of weights for each voxel.  If all voxels have the same weight, this can be a scalar.
 
 
-   .. py:method:: from_dict(cls, d: dict)
+   .. py:method:: from_dict(d: dict)
       :classmethod:
 
       Creates a new ROI object from a dictionary.
@@ -48,7 +48,7 @@ Classes
           A new ROI object
 
 
-   .. py:method:: from_array(cls, arr: numpy.ndarray, start_inds: numpy.ndarray = None)
+   .. py:method:: from_array(arr: numpy.ndarray, start_inds: numpy.ndarray = None)
       :classmethod:
 
       Create an ROI object from a numpy array.
@@ -61,7 +61,7 @@ Classes
           all zeros.
 
 
-   .. py:method:: to_dict(self)
+   .. py:method:: to_dict()
 
       Creates a dictionary from a ROI object.
 
@@ -72,12 +72,12 @@ Classes
           d: A dictionary with the object data.
 
 
-   .. py:method:: n_voxels(self)
+   .. py:method:: n_voxels()
 
       Returns the number of voxels in the roi.
 
 
-   .. py:method:: bounding_box(self) -> list
+   .. py:method:: bounding_box() -> list
 
       Calculates a bounding box around the ROI.
 
@@ -85,7 +85,7 @@ Classes
           A tuple giving slices for each dimension of the bounding box.
 
 
-   .. py:method:: extents(self) -> numpy.ndarray
+   .. py:method:: extents() -> numpy.ndarray
 
       Gets the length of sides of a bounding box holding the roi.
 
@@ -93,12 +93,12 @@ Classes
           extents: A np.ndarray of side lengths for each dimension of the bounding box
 
 
-   .. py:method:: center_of_mass(self) -> numpy.ndarray
+   .. py:method:: center_of_mass() -> numpy.ndarray
 
       Returns the center of mass of the roi.
 
 
-   .. py:method:: list_all_voxel_inds(self) -> list
+   .. py:method:: list_all_voxel_inds() -> list
 
       Exhaustively lists all voxel coordinates in the roi.
 
@@ -106,7 +106,7 @@ Classes
           dim_coords - A tuple listing all voxel indices.
 
 
-   .. py:method:: list_all_weights(self) -> numpy.ndarray
+   .. py:method:: list_all_weights() -> numpy.ndarray
 
       Returns weights of each voxel in the roi.
 
@@ -119,7 +119,7 @@ Classes
 
 
 
-   .. py:method:: slice_roi(self, plane_idx: int, dim: int = 0, retain_dim=True)
+   .. py:method:: slice_roi(plane_idx: int, dim: int = 0, retain_dim=True)
 
       Returns a slice of an ROI.
 
@@ -136,7 +136,7 @@ Classes
           new_roi: A new roi formed from slicing the roi this function was called on.
 
 
-   .. py:method:: intersect_plane(self, plane_idx: int, dim: int = None)
+   .. py:method:: intersect_plane(plane_idx: int, dim: int = None)
 
       Tests if an ROI intersects a plane.
 

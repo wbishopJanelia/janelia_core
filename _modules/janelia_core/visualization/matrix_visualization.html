@@ -3,17 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.visualization.matrix_visualization &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <title>janelia_core.visualization.matrix_visualization &mdash; janelia_core 1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -34,12 +37,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html">Setting up the core library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html#dependencies">Dependencies</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../autoapi/janelia_core/index.html">janelia_core</a></li>
 </ul>
@@ -57,9 +60,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      <li>janelia_core.visualization.matrix_visualization</li>
+      <li><a href="../../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">janelia_core.visualization.matrix_visualization</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -85,7 +88,7 @@
                   <span class="n">show_colorbar</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">cmap</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">vmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                   <span class="n">vmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">label_fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">xtick_rotation</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
                   <span class="n">ytick_rotation</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Plots a table of values with colors corresponding to values in each table entry.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Plots a table of values with colors corresponding to values in each table entry.</span>
 
 <span class="sd">    The &quot;tricky&quot; part of using this function is getting the values to have the right font size and be correctly</span>
 <span class="sd">    positioned in each cell of the table.  Values will always be vertically centered in each cell.  The user can</span>
@@ -153,13 +156,13 @@
 
     <span class="k">for</span> <span class="n">i_0</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tbl</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
         <span class="k">for</span> <span class="n">i_1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tbl</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">tbl_value_format_str</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tbl</span><span class="p">[</span><span class="n">i_0</span><span class="p">,</span> <span class="n">i_1</span><span class="p">]),</span> <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="n">i_1</span><span class="o">-.</span><span class="mi">5</span> <span class="o">+</span> <span class="n">tbl_values_x_offset</span><span class="p">,</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">tbl_value_format_str</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tbl</span><span class="p">[</span><span class="n">i_0</span><span class="p">,</span> <span class="n">i_1</span><span class="p">]),</span> <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="n">i_1</span><span class="o">-</span><span class="mf">.5</span> <span class="o">+</span> <span class="n">tbl_values_x_offset</span><span class="p">,</span>
                         <span class="n">i_0</span> <span class="o">+</span> <span class="n">y_offset_units</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">tbl_fontsize</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="cmp_n_mats"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/matrix_visualization/index.html#janelia_core.visualization.matrix_visualization.cmp_n_mats">[docs]</a><span class="k">def</span> <span class="nf">cmp_n_mats</span><span class="p">(</span><span class="n">mats</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">clim</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">show_colorbars</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">titles</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                <span class="n">grid_info</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">subplots</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Produces a figuring comparing matrices.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Produces a figuring comparing matrices.</span>
 
 <span class="sd">    Each matrix will be plotted in a separate axes, and all axes will use the same color scaling.</span>
 

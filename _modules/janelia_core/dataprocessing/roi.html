@@ -3,17 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.dataprocessing.roi &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <title>janelia_core.dataprocessing.roi &mdash; janelia_core 1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -34,12 +37,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html">Setting up the core library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html#dependencies">Dependencies</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../autoapi/janelia_core/index.html">janelia_core</a></li>
 </ul>
@@ -57,9 +60,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      <li>janelia_core.dataprocessing.roi</li>
+      <li><a href="../../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">janelia_core.dataprocessing.roi</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -79,7 +82,7 @@
 <div class="viewcode-block" id="ROI"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI">[docs]</a><span class="k">class</span> <span class="nc">ROI</span><span class="p">():</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">voxel_inds</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">weights</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Initializes an ROI object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Initializes an ROI object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            voxel_inds: This is a tuple of length n_dims.  Each entry contains either (1) the indices of each voxel</span>
@@ -94,7 +97,7 @@
 
 <div class="viewcode-block" id="ROI.from_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Creates a new ROI object from a dictionary.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Creates a new ROI object from a dictionary.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            d: A dictionary with the keys &#39;voxel_inds&#39; and &#39;weights&#39;  Extra keys in the dictionary will be</span>
@@ -111,7 +114,7 @@
 
 <div class="viewcode-block" id="ROI.from_array"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI.from_array">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_array</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">start_inds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Create an ROI object from a numpy array.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Create an ROI object from a numpy array.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            arr: The array represnting the ROI.  Individual values are weights of voxels in the ROI.</span>
@@ -137,7 +140,7 @@
         <span class="k">return</span> <span class="n">ROI</span><span class="p">(</span><span class="n">shifted_nz_inds</span><span class="p">,</span> <span class="n">arr</span><span class="p">[</span><span class="n">nz_inds</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="ROI.to_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Creates a dictionary from a ROI object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Creates a dictionary from a ROI object.</span>
 
 <span class="sd">        This is useful for saving the object in a manner which will still allow it to be loaded in the future should</span>
 <span class="sd">        the class definition of ROI change.</span>
@@ -148,7 +151,7 @@
         <span class="k">return</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ROI.n_voxels"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI.n_voxels">[docs]</a>    <span class="k">def</span> <span class="nf">n_voxels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Returns the number of voxels in the roi.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the number of voxels in the roi.&quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">voxel_inds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">slice</span><span class="p">):</span>
             <span class="n">side_lens</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">s</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">voxel_inds</span><span class="p">]</span>
@@ -159,7 +162,7 @@
         <span class="k">return</span> <span class="n">n_voxels</span></div>
 
 <div class="viewcode-block" id="ROI.bounding_box"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI.bounding_box">[docs]</a>    <span class="k">def</span> <span class="nf">bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Calculates a bounding box around the ROI.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculates a bounding box around the ROI.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A tuple giving slices for each dimension of the bounding box.</span>
@@ -173,7 +176,7 @@
             <span class="k">return</span> <span class="nb">tuple</span><span class="p">([</span><span class="nb">slice</span><span class="p">(</span><span class="n">dim_mins</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dim_maxs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_dims</span><span class="p">)])</span></div>
 
 <div class="viewcode-block" id="ROI.extents"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI.extents">[docs]</a>    <span class="k">def</span> <span class="nf">extents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Gets the length of sides of a bounding box holding the roi.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Gets the length of sides of a bounding box holding the roi.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            extents: A np.ndarray of side lengths for each dimension of the bounding box</span>
@@ -182,7 +185,7 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">stop</span> <span class="o">-</span> <span class="n">s</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">bounding_box</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="ROI.center_of_mass"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI.center_of_mass">[docs]</a>    <span class="k">def</span> <span class="nf">center_of_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Returns the center of mass of the roi. &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the center of mass of the roi. &quot;&quot;&quot;</span>
 
         <span class="n">all_inds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_all_voxel_inds</span><span class="p">()</span>
         <span class="n">all_w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_all_weights</span><span class="p">())</span>
@@ -190,7 +193,7 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">i_j</span><span class="o">*</span><span class="n">all_w</span><span class="p">)</span><span class="o">/</span><span class="n">total_w</span><span class="p">)</span> <span class="k">for</span> <span class="n">i_j</span> <span class="ow">in</span> <span class="n">all_inds</span> <span class="p">])</span></div>
 
 <div class="viewcode-block" id="ROI.list_all_voxel_inds"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI.list_all_voxel_inds">[docs]</a>    <span class="k">def</span> <span class="nf">list_all_voxel_inds</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Exhaustively lists all voxel coordinates in the roi.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Exhaustively lists all voxel coordinates in the roi.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            dim_coords - A tuple listing all voxel indices.</span>
@@ -210,7 +213,7 @@
             <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dim_coords</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ROI.list_all_weights"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI.list_all_weights">[docs]</a>    <span class="k">def</span> <span class="nf">list_all_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Returns weights of each voxel in the roi.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns weights of each voxel in the roi.</span>
 
 <span class="sd">        This function returns an array of weights, even if the weights attribute</span>
 <span class="sd">        of the ROI object is a scalar (indicating all weights are the same)</span>
@@ -225,7 +228,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span></div>
 
 <div class="viewcode-block" id="ROI.slice_roi"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI.slice_roi">[docs]</a>    <span class="k">def</span> <span class="nf">slice_roi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plane_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">retain_dim</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Returns a slice of an ROI.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns a slice of an ROI.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            plane_idx: The index of the plane to slice</span>
@@ -256,7 +259,7 @@
         <span class="k">return</span> <span class="n">ROI</span><span class="p">(</span><span class="n">new_voxel_inds</span><span class="p">,</span> <span class="n">new_weights</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ROI.intersect_plane"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/roi/index.html#janelia_core.dataprocessing.roi.ROI.intersect_plane">[docs]</a>    <span class="k">def</span> <span class="nf">intersect_plane</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plane_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Tests if an ROI intersects a plane.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Tests if an ROI intersects a plane.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            plane_idx: The index of the plane</span>

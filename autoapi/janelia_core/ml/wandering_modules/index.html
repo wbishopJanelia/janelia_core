@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.ml.wandering_modules &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <title>janelia_core.ml.wandering_modules &mdash; janelia_core 1.0 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
         <script src="../../../../_static/jquery.js"></script>
         <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/language_data.js"></script>
+        <script src="../../../../_static/sphinx_highlight.js"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
@@ -36,12 +40,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Setting up the core library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../install.html#dependencies">Dependencies</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../../index.html">janelia_core</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../index.html#subpackages">Subpackages</a><ul class="current">
@@ -76,10 +80,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core</span></code></a> &raquo;</li>
-          <li><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml</span></code></a> &raquo;</li>
-      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.wandering_modules</span></code></li>
+      <li><a href="../../../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core</span></code></a></li>
+          <li class="breadcrumb-item"><a href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml</span></code></a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.wandering_modules</span></code></li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../../../_sources/autoapi/janelia_core/ml/wandering_modules/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -89,18 +93,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="module-janelia_core.ml.wandering_modules">
-<span id="janelia-core-ml-wandering-modules"></span><h1><a class="reference internal" href="#module-janelia_core.ml.wandering_modules" title="janelia_core.ml.wandering_modules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.wandering_modules</span></code></a><a class="headerlink" href="#module-janelia_core.ml.wandering_modules" title="Permalink to this headline"></a></h1>
+  <section id="module-janelia_core.ml.wandering_modules">
+<span id="janelia-core-ml-wandering-modules"></span><h1><a class="reference internal" href="#module-janelia_core.ml.wandering_modules" title="janelia_core.ml.wandering_modules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">janelia_core.ml.wandering_modules</span></code></a><a class="headerlink" href="#module-janelia_core.ml.wandering_modules" title="Permalink to this heading"></a></h1>
 <p>Contains an experimental set of modules with parameters that can display some drift during fitting.</p>
 <p>Wandering modules are Torch modules which allow for modifications of their parameters and the gradients
 for their parameters during gradient fitting routines. They are called wandering because in many cases,
 small amounts of noise can be added to the the gradients, so these parameters display a random walk when
 gradients are zero.</p>
-<div class="section" id="module-contents">
-<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline"></a></h2>
-<div class="section" id="classes">
-<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline"></a></h3>
-<table class="longtable docutils align-default">
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this heading"></a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 90%" />
@@ -121,22 +125,21 @@ gradients are zero.</p>
 </tbody>
 </table>
 <dl class="py class">
-<dt id="janelia_core.ml.wandering_modules.WanderingModule">
-<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.wandering_modules.</code><code class="sig-name descname">WanderingModule</code><a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#WanderingModule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.WanderingModule" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.WanderingModule">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">janelia_core.ml.wandering_modules.</span></span><span class="sig-name descname"><span class="pre">WanderingModule</span></span><a class="headerlink" href="#janelia_core.ml.wandering_modules.WanderingModule" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
 <p>Base class for wandering modules.</p>
-<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
 <dl class="py method">
-<dt id="janelia_core.ml.wandering_modules.WanderingModule.bound">
-<em class="property">abstract </em><code class="sig-name descname">bound</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#WanderingModule.bound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.WanderingModule.bound" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.WanderingModule.bound">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bound</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#janelia_core.ml.wandering_modules.WanderingModule.bound" title="Permalink to this definition"></a></dt>
 <dd><p>Bounds parameters in the module.</p>
 <p>This method takes no arguments, other than self, as the bounds themselves are expected to be saved as attributes
 of the module.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="janelia_core.ml.wandering_modules.WanderingModule.pert_grads">
-<em class="property">abstract </em><code class="sig-name descname">pert_grads</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#WanderingModule.pert_grads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.WanderingModule.pert_grads" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.WanderingModule.pert_grads">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pert_grads</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#janelia_core.ml.wandering_modules.WanderingModule.pert_grads" title="Permalink to this definition"></a></dt>
 <dd><p>Perturbs (or adjusts) gradients of parameters of the module.</p>
 <p>This method takes no arguments, other than self, as any customization of how gradients are perturbed should
 be controlled through adjusting attributes of the module.  For example, the amount of noise added to gradients
@@ -146,8 +149,8 @@ could be determined by an attribute.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="janelia_core.ml.wandering_modules.BumpFcn">
-<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.wandering_modules.</code><code class="sig-name descname">BumpFcn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">c</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">w</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">m</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">c_bounds</span><span class="p">:</span> <span class="n">torch.Tensor</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">w_bounds</span><span class="p">:</span> <span class="n">torch.Tensor</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">c_grad_std</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">w_grad_std</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">m_grad_gain</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">support_p</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.01</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#BumpFcn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.BumpFcn" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.BumpFcn">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">janelia_core.ml.wandering_modules.</span></span><span class="sig-name descname"><span class="pre">BumpFcn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_grad_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_grad_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_grad_gain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">support_p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#janelia_core.ml.wandering_modules.BumpFcn" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.wandering_modules.WanderingModule" title="janelia_core.ml.wandering_modules.WanderingModule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WanderingModule</span></code></a></p>
 <p>A function representing a single exponential bump.
 The bump function is of the form:</p>
@@ -176,8 +179,8 @@ used for skipping function evaluation for input values that are outside of the s
 </dd>
 </dl>
 <dl class="py method">
-<dt id="janelia_core.ml.wandering_modules.BumpFcn.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">small_output</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#BumpFcn.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.BumpFcn.forward" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.BumpFcn.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">small_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#janelia_core.ml.wandering_modules.BumpFcn.forward" title="Permalink to this definition"></a></dt>
 <dd><p>Computes output from input.</p>
 <dl>
 <dt>Args:</dt><dd><p>x: Input of shape n_smps*d_in</p>
@@ -193,22 +196,22 @@ non-zero and the second is a tuple of values for these points.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="janelia_core.ml.wandering_modules.BumpFcn.bound">
-<code class="sig-name descname">bound</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#BumpFcn.bound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.BumpFcn.bound" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.BumpFcn.bound">
+<span class="sig-name descname"><span class="pre">bound</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#janelia_core.ml.wandering_modules.BumpFcn.bound" title="Permalink to this definition"></a></dt>
 <dd><p>Bounds parameters of the module.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="janelia_core.ml.wandering_modules.BumpFcn.pert_grads">
-<code class="sig-name descname">pert_grads</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#BumpFcn.pert_grads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.BumpFcn.pert_grads" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.BumpFcn.pert_grads">
+<span class="sig-name descname"><span class="pre">pert_grads</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#janelia_core.ml.wandering_modules.BumpFcn.pert_grads" title="Permalink to this definition"></a></dt>
 <dd><p>Perturbs gradients.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="janelia_core.ml.wandering_modules.SumOfBumpFcns">
-<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.wandering_modules.</code><code class="sig-name descname">SumOfBumpFcns</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">c</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">w</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">m</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">c_bounds</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">w_bounds</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#SumOfBumpFcns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.SumOfBumpFcns" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.SumOfBumpFcns">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">janelia_core.ml.wandering_modules.</span></span><span class="sig-name descname"><span class="pre">SumOfBumpFcns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#janelia_core.ml.wandering_modules.SumOfBumpFcns" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.wandering_modules.WanderingModule" title="janelia_core.ml.wandering_modules.WanderingModule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WanderingModule</span></code></a></p>
 <p>A sum of bump functions, each with learnable centers, widths and magnitudes.</p>
 <p>(See BumpFcn for the functional form of a single bump function).</p>
@@ -226,8 +229,8 @@ None, the width parameters will not be bounded.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="janelia_core.ml.wandering_modules.SumOfBumpFcns.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#SumOfBumpFcns.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.SumOfBumpFcns.forward" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.SumOfBumpFcns.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#janelia_core.ml.wandering_modules.SumOfBumpFcns.forward" title="Permalink to this definition"></a></dt>
 <dd><p>Computes input from output.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>x: Input of shape n_smps*n_dims</p>
@@ -238,24 +241,24 @@ None, the width parameters will not be bounded.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="janelia_core.ml.wandering_modules.SumOfBumpFcns.bound">
-<code class="sig-name descname">bound</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#SumOfBumpFcns.bound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.SumOfBumpFcns.bound" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.SumOfBumpFcns.bound">
+<span class="sig-name descname"><span class="pre">bound</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#janelia_core.ml.wandering_modules.SumOfBumpFcns.bound" title="Permalink to this definition"></a></dt>
 <dd><p>Bounds parameters in the module.</p>
 <p>This method takes no arguments, other than self, as the bounds themselves are expected to be saved as attributes
 of the module.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="janelia_core.ml.wandering_modules.SumOfBumpFcns.pert_grads">
-<code class="sig-name descname">pert_grads</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#SumOfBumpFcns.pert_grads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.SumOfBumpFcns.pert_grads" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.SumOfBumpFcns.pert_grads">
+<span class="sig-name descname"><span class="pre">pert_grads</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#janelia_core.ml.wandering_modules.SumOfBumpFcns.pert_grads" title="Permalink to this definition"></a></dt>
 <dd><p>Currently we don’t implement any gradient perturbations.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="janelia_core.ml.wandering_modules.SlowSumOfBumpFcns">
-<em class="property">class </em><code class="sig-prename descclassname">janelia_core.ml.wandering_modules.</code><code class="sig-name descname">SlowSumOfBumpFcns</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">c</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">w</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">m</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">c_bounds</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">w_bounds</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">c_grad_std</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">w_grad_std</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">m_grad_gain</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">support_p</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.01</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#SlowSumOfBumpFcns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.SlowSumOfBumpFcns" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.SlowSumOfBumpFcns">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">janelia_core.ml.wandering_modules.</span></span><span class="sig-name descname"><span class="pre">SlowSumOfBumpFcns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c_grad_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_grad_std</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_grad_gain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">support_p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#janelia_core.ml.wandering_modules.SlowSumOfBumpFcns" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#janelia_core.ml.wandering_modules.WanderingModule" title="janelia_core.ml.wandering_modules.WanderingModule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WanderingModule</span></code></a></p>
 <p>Implements a sum of bump functions which will be slower in computation on GPU, but may have memory benefits.</p>
 <p>(See BumpFcn for the functional form of a single bump function).</p>
@@ -280,8 +283,8 @@ used for skipping function evaluation for input values that are outside of the s
 </dd>
 </dl>
 <dl class="py method">
-<dt id="janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em><span class="sig-paren">)</span> &#x2192; torch.Tensor<a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#SlowSumOfBumpFcns.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.forward" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.forward" title="Permalink to this definition"></a></dt>
 <dd><p>Computes output from input.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>x: input of shape n_smps*d_in</p>
@@ -292,16 +295,16 @@ used for skipping function evaluation for input values that are outside of the s
 </dd></dl>
 
 <dl class="py method">
-<dt id="janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.bound">
-<code class="sig-name descname">bound</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#SlowSumOfBumpFcns.bound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.bound" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.bound">
+<span class="sig-name descname"><span class="pre">bound</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.bound" title="Permalink to this definition"></a></dt>
 <dd><p>Bounds parameters in the module.</p>
 <p>This method takes no arguments, other than self, as the bounds themselves are expected to be saved as attributes
 of the module.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.pert_grads">
-<code class="sig-name descname">pert_grads</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/janelia_core/ml/wandering_modules.html#SlowSumOfBumpFcns.pert_grads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.pert_grads" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.pert_grads">
+<span class="sig-name descname"><span class="pre">pert_grads</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#janelia_core.ml.wandering_modules.SlowSumOfBumpFcns.pert_grads" title="Permalink to this definition"></a></dt>
 <dd><p>Perturbs (or adjusts) gradients of parameters of the module.</p>
 <p>This method takes no arguments, other than self, as any customization of how gradients are perturbed should
 be controlled through adjusting attributes of the module.  For example, the amount of noise added to gradients
@@ -310,9 +313,9 @@ could be determined by an attribute.</p>
 
 </dd></dl>
 
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

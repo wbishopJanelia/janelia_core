@@ -3,17 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.stats.regression &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <title>janelia_core.stats.regression &mdash; janelia_core 1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -34,12 +37,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html">Setting up the core library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html#dependencies">Dependencies</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../autoapi/janelia_core/index.html">janelia_core</a></li>
 </ul>
@@ -57,9 +60,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      <li>janelia_core.stats.regression</li>
+      <li><a href="../../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">janelia_core.stats.regression</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -86,7 +89,7 @@
 
 
 <div class="viewcode-block" id="corr"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/regression/index.html#janelia_core.stats.regression.corr">[docs]</a><span class="k">def</span> <span class="nf">corr</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; Calculates the pearson correlation between two series of data.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculates the pearson correlation between two series of data.</span>
 
 <span class="sd">    If the data is multi-dimensional, the pearson correlation is calculated for each dimension.</span>
 
@@ -119,7 +122,7 @@
 
 
 <div class="viewcode-block" id="normalized_r_squared"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/regression/index.html#janelia_core.stats.regression.normalized_r_squared">[docs]</a><span class="k">def</span> <span class="nf">normalized_r_squared</span><span class="p">(</span><span class="n">truth</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pred</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Computes normalized r-squared for a collection of variables.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Computes normalized r-squared for a collection of variables.</span>
 
 <span class="sd">    Normalized r-squared is defined as follows:  1 - ( \sum r_i) / ( \sum s_i), where:</span>
 
@@ -150,7 +153,7 @@
 
 
 <div class="viewcode-block" id="r_squared"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/regression/index.html#janelia_core.stats.regression.r_squared">[docs]</a><span class="k">def</span> <span class="nf">r_squared</span><span class="p">(</span><span class="n">truth</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Computes the r-squared value for a collection of variables.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Computes the r-squared value for a collection of variables.</span>
 
 <span class="sd">    Computes the proportion of variance predicted variables capture of ground truth variables.</span>
 
@@ -177,7 +180,7 @@
 
 <div class="viewcode-block" id="grouped_linear_regression_boot_strap"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/regression/index.html#janelia_core.stats.regression.grouped_linear_regression_boot_strap">[docs]</a><span class="k">def</span> <span class="nf">grouped_linear_regression_boot_strap</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">g</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_bs_smps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">include_mean</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                                          <span class="n">rcond</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; Fits a linear regression model, performing a grouped bootstrap to get confidence intervals on coefficients.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Fits a linear regression model, performing a grouped bootstrap to get confidence intervals on coefficients.</span>
 
 <span class="sd">    By grouped bootstrap, we mean samples are selected in groups.</span>
 
@@ -248,7 +251,7 @@
 <div class="viewcode-block" id="grouped_linear_regression_wild_bootstrap"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/regression/index.html#janelia_core.stats.regression.grouped_linear_regression_wild_bootstrap">[docs]</a><span class="k">def</span> <span class="nf">grouped_linear_regression_wild_bootstrap</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">g</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                                              <span class="n">test_coefs</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_bs_smps</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
                                              <span class="n">rcond</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Computes a linear model and stats using a wild bootstrap.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Computes a linear model and stats using a wild bootstrap.</span>
 
 <span class="sd">    For group g, the model for the i^th observation is of the form:</span>
 
@@ -344,7 +347,7 @@
 
 <div class="viewcode-block" id="grouped_linear_regression_ols_estimator"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/regression/index.html#janelia_core.stats.regression.grouped_linear_regression_ols_estimator">[docs]</a><span class="k">def</span> <span class="nf">grouped_linear_regression_ols_estimator</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">g</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                                             <span class="n">rcond</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; Fits a linear model and stats using optimal least squares, accounting for grouped errors.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Fits a linear model and stats using optimal least squares, accounting for grouped errors.</span>
 
 <span class="sd">     For group g, the model for the i^th observation is of the form:</span>
 
@@ -413,7 +416,7 @@
 
 <div class="viewcode-block" id="grouped_linear_regression_within_estimator"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/regression/index.html#janelia_core.stats.regression.grouped_linear_regression_within_estimator">[docs]</a><span class="k">def</span> <span class="nf">grouped_linear_regression_within_estimator</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">g</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                                                <span class="n">rcond</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; Computes linear model and stats using the within estimator for a fixed-effects linear model.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Computes linear model and stats using the within estimator for a fixed-effects linear model.</span>
 
 <span class="sd">    For group g, the model for the i^th observation is of the form:</span>
 
@@ -507,7 +510,7 @@
 
 
 <div class="viewcode-block" id="grouped_linear_regression_acm_stats"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/regression/index.html#janelia_core.stats.regression.grouped_linear_regression_acm_stats">[docs]</a><span class="k">def</span> <span class="nf">grouped_linear_regression_acm_stats</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">acm</span><span class="p">,</span> <span class="n">n_grps</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Calculates statistics given an estimate of an asymptotic covariance matrix.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculates statistics given an estimate of an asymptotic covariance matrix.</span>
 
 <span class="sd">    Confidence intervals and p-values for individual coefficients are calculated assuming a t-distribution on the</span>
 <span class="sd">    estimates for the individual entries of beta.</span>
@@ -547,7 +550,7 @@
 
 <div class="viewcode-block" id="grouped_linear_regression_acm_linear_restriction_stats"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/regression/index.html#janelia_core.stats.regression.grouped_linear_regression_acm_linear_restriction_stats">[docs]</a><span class="k">def</span> <span class="nf">grouped_linear_regression_acm_linear_restriction_stats</span><span class="p">(</span><span class="n">beta</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">acm</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                                                            <span class="n">q</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_grps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Given an asymptotic covariance matrix from linear regression, tests significance of linear restrictions.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Given an asymptotic covariance matrix from linear regression, tests significance of linear restrictions.</span>
 
 <span class="sd">    Given a vector of K-coefficients, beta, we desire to produce a p-value for a null hypothesis taking the form of</span>
 <span class="sd">    J linear restrictions, which can be written as:</span>
@@ -616,7 +619,7 @@
 
 
 <div class="viewcode-block" id="naive_regression"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/regression/index.html#janelia_core.stats.regression.naive_regression">[docs]</a><span class="k">def</span> <span class="nf">naive_regression</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; Performs &quot;naive&quot; regression to predict x from y.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Performs &quot;naive&quot; regression to predict x from y.</span>
 
 <span class="sd">    By naive regression, we assume that all x variables are mutually independent. The parameters this</span>
 <span class="sd">    function provides is the correct regression model for this case.  If not all variables are</span>
@@ -667,11 +670,11 @@
                                  <span class="n">var_clrs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">violin_plots</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                                  <span class="n">plot_c_ints</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">show_nz_sig</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                                  <span class="n">plot_zero_line</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-                                 <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">.</span><span class="mi">05</span><span class="p">,</span> <span class="n">theta_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+                                 <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">.05</span><span class="p">,</span> <span class="n">theta_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
                                  <span class="n">er_bar_pts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">sig_size</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">sig_y_vl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                                  <span class="n">ax</span><span class="p">:</span><span class="n">plt</span><span class="o">.</span><span class="n">axes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
 
-    <span class="sd">&quot;&quot;&quot; For visualizing the results of grouped_linear_regression_boot_strap.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; For visualizing the results of grouped_linear_regression_boot_strap.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        bs_values: The coefficients for each bootstrap sample. bs_values[i,:] are the coefficients for bootstrap sample</span>
@@ -754,7 +757,7 @@
         <span class="k">if</span> <span class="n">show_nz_sig</span><span class="p">:</span>
             <span class="n">y_lim</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">sig_y_vl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">sig_y_vl</span> <span class="o">=</span> <span class="o">.</span><span class="mi">02</span><span class="o">*</span><span class="p">(</span><span class="n">y_lim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">y_lim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">y_lim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">sig_y_vl</span> <span class="o">=</span> <span class="mf">.02</span><span class="o">*</span><span class="p">(</span><span class="n">y_lim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">y_lim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">y_lim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">v_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_vars</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;non_zero&#39;</span><span class="p">][</span><span class="n">v_i</span><span class="p">]:</span>
                     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">v_i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">sig_y_vl</span><span class="p">,</span> <span class="s1">&#39;k*&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="n">sig_size</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">var_clrs</span><span class="p">[</span><span class="n">v_i</span><span class="p">,:])</span>
@@ -767,8 +770,8 @@
     <span class="k">return</span> <span class="n">ax</span></div>
 
 
-<div class="viewcode-block" id="grouped_linear_regression_boot_strap_stats"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/regression/index.html#janelia_core.stats.regression.grouped_linear_regression_boot_strap_stats">[docs]</a><span class="k">def</span> <span class="nf">grouped_linear_regression_boot_strap_stats</span><span class="p">(</span><span class="n">bs_values</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span><span class="nb">float</span> <span class="o">=.</span><span class="mi">05</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; For getting statistics from the results of grouped_linear_regression_boot_strap.</span>
+<div class="viewcode-block" id="grouped_linear_regression_boot_strap_stats"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/regression/index.html#janelia_core.stats.regression.grouped_linear_regression_boot_strap_stats">[docs]</a><span class="k">def</span> <span class="nf">grouped_linear_regression_boot_strap_stats</span><span class="p">(</span><span class="n">bs_values</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span><span class="mf">.05</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; For getting statistics from the results of grouped_linear_regression_boot_strap.</span>
 
 <span class="sd">    This function will compute:</span>
 
@@ -832,7 +835,7 @@
 
 
 <div class="viewcode-block" id="linear_regression_ols_estimator"><a class="viewcode-back" href="../../../autoapi/janelia_core/stats/regression/index.html#janelia_core.stats.regression.linear_regression_ols_estimator">[docs]</a><span class="k">def</span> <span class="nf">linear_regression_ols_estimator</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">rcond</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot; Fits a linear model and stats using optimal least squares.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Fits a linear model and stats using optimal least squares.</span>
 
 <span class="sd">     For group g, the model for the i^th observation is of the form:</span>
 
@@ -883,7 +886,7 @@
                                 <span class="n">sig_size</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">sig_y_vl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">x_axis_rot</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mi">75</span><span class="p">,</span>
                                 <span class="n">ax</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">plot_zero_line</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
 
-    <span class="sd">&quot;&quot;&quot; For visualizing estimated coefficients with confidence intervals.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; For visualizing estimated coefficients with confidence intervals.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        var_strs: Strings giving the name of each coefficient</span>
@@ -959,7 +962,7 @@
     <span class="k">if</span> <span class="n">sig</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">y_lim</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">sig_y_vl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">sig_y_vl</span> <span class="o">=</span> <span class="o">.</span><span class="mi">02</span><span class="o">*</span><span class="p">(</span><span class="n">y_lim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">y_lim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">y_lim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">sig_y_vl</span> <span class="o">=</span> <span class="mf">.02</span><span class="o">*</span><span class="p">(</span><span class="n">y_lim</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">y_lim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">y_lim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">v_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_vars</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">sig</span><span class="p">[</span><span class="n">v_i</span><span class="p">]:</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">v_i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">sig_y_vl</span><span class="p">,</span> <span class="s1">&#39;k*&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="n">sig_size</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">var_clrs</span><span class="p">[</span><span class="n">v_i</span><span class="p">,:])</span>

@@ -76,7 +76,7 @@ Attributes
 
        init_std: The standard deviation of the normal distribution initial biases are pulled from.
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.tensor
 
       Computes output given input.
 
@@ -109,7 +109,7 @@ Attributes
 
        w_init_std: The standard deviation of the normal distribution initial weights are pulled from.
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.tensor
 
       Computes output given input.
 
@@ -142,7 +142,7 @@ Attributes
 
        w_init_std: The standard deviation of the normal distribution initial weights are pulled from.
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.tensor
 
       Computes output given input.
 
@@ -176,7 +176,7 @@ Attributes
        array providing initial values for each dimension. If not provided, the constant value will be initialized
        to be halfway between the lower and upper bound.
 
-   .. py:method:: set_value(self, vl: numpy.ndarray)
+   .. py:method:: set_value(vl: numpy.ndarray)
 
       Sets the value of the function.
 
@@ -187,7 +187,7 @@ Attributes
 
 
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Produces constant output given input.
 
@@ -218,7 +218,7 @@ Attributes
        init_vl: The initial value to initialize the function with.  The length of init_vl determines the number
        of dimensions of the output of the function.
 
-   .. py:method:: set_vl(self, vl: numpy.ndarray)
+   .. py:method:: set_vl(vl: numpy.ndarray)
 
       Sets the value of the function.
 
@@ -228,7 +228,7 @@ Attributes
           vl: The value to set the function to.
 
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Produces constant output given input.
 
@@ -252,7 +252,7 @@ Attributes
        m: The module which input is passed through.  The output of this module is concatenated to
        the input to form the final output of the module.
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes input from output.
 
@@ -284,7 +284,7 @@ Attributes
 
          bias: True if linear layers should have a bias.
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes input given output.
 
@@ -314,7 +314,7 @@ Attributes
        s: Scale value
 
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.tensor
 
       Computes output given input.
 
@@ -334,7 +334,7 @@ Attributes
 
    Creates a new BasicExp object.
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes output from input.
 
@@ -364,7 +364,7 @@ Attributes
 
        s_mn, s_std: The mean and standard deviation for initializing s
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.tensor
 
       Computes output given input.
 
@@ -383,9 +383,7 @@ Attributes
    Applies the transformation e(-x**2) element-wise.
 
 
-   Initializes internal Module state, shared by both nn.Module and ScriptModule.
-
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Applies the transformation e(-x**2) element-wise.
 
@@ -422,7 +420,7 @@ Attributes
         pull initial values of b from
 
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes input from output.
 
@@ -445,7 +443,7 @@ Attributes
    Args:
        o: The offset to apply
 
-   .. py:method:: forward(self, x: torch.Tensor)
+   .. py:method:: forward(x: torch.Tensor)
 
       Computes input from output.
 
@@ -468,7 +466,7 @@ Attributes
    Args:
        o: The fixed offsest
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes output from input.
 
@@ -501,7 +499,7 @@ Attributes
 
        init_s_vls: The initial s values.  Should be of length d.
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes output from input.
 
@@ -526,7 +524,7 @@ Attributes
    Args:
        col_modules: col_modules[i] is the module that should be applied to form column i
 
-   .. py:method:: forward(self, x: torch.Tensor)
+   .. py:method:: forward(x: torch.Tensor)
 
       Computes input from output.
 
@@ -562,7 +560,7 @@ Attributes
        calling forward.  If false, this check is omitted.
 
 
-   .. py:method:: forward(self, x)
+   .. py:method:: forward(x)
 
       Assigns a value to each sample in x.
 
@@ -576,7 +574,7 @@ Attributes
           ValueError: If the number of samples in x does not match the the number of samples the function represents.
 
 
-   .. py:method:: set_value(self, vl: numpy.ndarray)
+   .. py:method:: set_value(vl: numpy.ndarray)
 
       Sets the value of the function.
 
@@ -607,7 +605,7 @@ Attributes
        check_sizes: If true, checks that the number of rows of input matches n (the number of samples) when
        calling forward.  If false, this check is omitted.
 
-   .. py:method:: forward(self, x) -> torch.Tensor
+   .. py:method:: forward(x) -> torch.Tensor
 
       Assigns a value to each sample in x.
 
@@ -621,7 +619,7 @@ Attributes
           ValueError: If the number of samples in x does not match the the number of samples the function represents.
 
 
-   .. py:method:: set_value(self, vl: numpy.ndarray)
+   .. py:method:: set_value(vl: numpy.ndarray)
 
       Sets the value of the function.
 
@@ -664,7 +662,7 @@ Attributes
        selected from the same Uniform distribution.
 
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes output of function given input.
 
@@ -705,7 +703,7 @@ Attributes
        randomly dropping out some functions during each call to forward.  Setting this to None, will
        result in using all centers.
 
-   .. py:method:: forward(self, x: torch.Tensor)
+   .. py:method:: forward(x: torch.Tensor)
 
       Computes output from input.
 
@@ -716,7 +714,7 @@ Attributes
           y: Output of shape n_smps*output_dim
 
 
-   .. py:method:: bound(self, ctr_bounds: Sequence = [0, 1], bound_fcns: bool = True)
+   .. py:method:: bound(ctr_bounds: Sequence = [0, 1], bound_fcns: bool = True)
 
       Applies bounds to the centers.
 
@@ -744,7 +742,7 @@ Attributes
 
        coefs: the vector [a, b]
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes output from input.
 
@@ -776,7 +774,7 @@ Attributes
 
        s_std: Standard deviation of normal distribution for initializing shifts
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes output given input.
 
@@ -812,7 +810,7 @@ Attributes
 
        group_modules: group_fcns[i] is the function to apply to data for group i.
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes input from output.
 
@@ -837,7 +835,7 @@ Attributes
    Args:
        dim: The dimension to sum along
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes input from output.
 
@@ -902,7 +900,7 @@ Attributes
 
        n_div_per_hc_side_per_dim: The number of divisions per hypercube side for each dimension
 
-   .. py:method:: _x_to_idx(self, x: torch.Tensor, run_checks: bool = True) -> torch.Tensor
+   .. py:method:: _x_to_idx(x: torch.Tensor, run_checks: bool = True) -> torch.Tensor
 
       Given x data computes the indices of active basis functions for each point.
 
@@ -919,7 +917,7 @@ Attributes
           ValueError: If check_range is true and one or more x values are not in the valid range for the function.
 
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes input given output.
 
@@ -960,7 +958,7 @@ Attributes
 
        init_s: initial scales of shape n_ctrs*output_dim
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes output from input.
 
@@ -1000,7 +998,7 @@ Attributes
    Raises:
        ValueError: If any of the parameters have the wrong shape
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes output from input.
 
@@ -1027,7 +1025,7 @@ Attributes
 
        s_mn, s_std: The mean and standard deviation for initializing s
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.tensor
 
       Computes output given input.
 
@@ -1052,7 +1050,7 @@ Attributes
    Args:
        dim: The index to insert the empty dimension at.
 
-   .. py:method:: forward(self, x: torch.Tensor) -> torch.Tensor
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
 
       Computes input from output.
 

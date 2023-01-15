@@ -48,7 +48,7 @@ Classes
        **kwargs: Additional keyword arguments that will be added as attributes of the object.
 
 
-   .. py:method:: from_dict(cls, d: dict)
+   .. py:method:: from_dict(d: dict)
       :classmethod:
 
       Creates a new Dataset object from a dictioary.
@@ -60,7 +60,7 @@ Classes
           A new DataSet object
 
 
-   .. py:method:: to_dict(self)
+   .. py:method:: to_dict()
 
       Creates a dictionary from a Dataset object.
 
@@ -94,13 +94,13 @@ Classes
 
 
 
-   .. py:method:: has_ts_data(self) -> bool
+   .. py:method:: has_ts_data() -> bool
 
       Returns true if any time series data has non-zero data points.
 
 
 
-   .. py:method:: select_time_range(self, start_time: float, end_time: float)
+   .. py:method:: select_time_range(start_time: float, end_time: float)
 
       Down selects data in a time range.
 
@@ -113,7 +113,7 @@ Classes
 
 
 
-   .. py:method:: select_ts_data(self, key: str, sel_inds: numpy.ndarray) -> dict
+   .. py:method:: select_ts_data(key: str, sel_inds: numpy.ndarray) -> dict
 
       Selects data by index in a given dictionary of ts_data.
 
@@ -162,7 +162,7 @@ Classes
        **kwargs: Additional keyword arguments that will be added as attributes of the object.
 
 
-   .. py:method:: from_dict(cls, d: dict)
+   .. py:method:: from_dict(d: dict)
       :classmethod:
 
       Creates a new ROIDataset object from a dictionary.
@@ -174,7 +174,7 @@ Classes
           A new ROIDataset object
 
 
-   .. py:method:: to_dict(self) -> dict
+   .. py:method:: to_dict() -> dict
 
       Creates a dictionary from a Dataset object.
 
@@ -185,7 +185,7 @@ Classes
           d: A dictionary with the object data.
 
 
-   .. py:method:: down_select_rois(self, roi_groups: list, roi_inds)
+   .. py:method:: down_select_rois(roi_groups: list, roi_inds)
 
       Down select the rois in a dataset.
 
@@ -200,7 +200,7 @@ Classes
           roi_inds: The indices in dataset.roi_groups[roi_group].rois to keep.
 
 
-   .. py:method:: extract_rois(self, roi_group, roi_inds, labels)
+   .. py:method:: extract_rois(roi_group, roi_inds, labels)
 
       Extracts rois from a dataset.
 
@@ -216,7 +216,7 @@ Classes
           These objects will have fields added holding the ts_data for that ROI.
 
 
-   .. py:method:: form_composite_rois(self, roi_groups: list, roi_weights: list) -> janelia_core.dataprocessing.roi.ROI
+   .. py:method:: form_composite_rois(roi_groups: list, roi_weights: list) -> janelia_core.dataprocessing.roi.ROI
 
       Forms composite rois as linear combinations of rois in a dataset.
 
@@ -232,7 +232,7 @@ Classes
 
 
 
-   .. py:method:: get_rois_center_of_mass(self, roi_group: str, roi_inds) -> numpy.ndarray
+   .. py:method:: get_rois_center_of_mass(roi_group: str, roi_inds) -> numpy.ndarray
 
       Gets the center of mass of requested rois.
 
@@ -278,7 +278,7 @@ Classes
        **kwards: Additional keyword arguments will be added as attributes of the object.
    |
 
-   .. py:method:: to_dict(self) -> dict
+   .. py:method:: to_dict() -> dict
 
       Create a dictionary from a Dataset object.
 
@@ -289,7 +289,7 @@ Classes
           d: A dictionary with the object data.
 
 
-   .. py:method:: from_dict(cls, d: dict)
+   .. py:method:: from_dict(d: dict)
       :classmethod:
 
       Creates a new PointDataset object from a dictionary.

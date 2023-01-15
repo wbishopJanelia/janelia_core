@@ -70,7 +70,7 @@ Functions
        colormaps will be used.
 
 
-   .. py:method:: init_ui(self, levels_range: Sequence = None)
+   .. py:method:: init_ui(levels_range: Sequence = None)
 
       Initializes the UI for a GroupedStackedImageVisualizer object.
 

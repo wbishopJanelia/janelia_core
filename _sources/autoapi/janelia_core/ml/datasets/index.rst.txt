@@ -50,12 +50,12 @@ Functions
        (Keeping track of this is helpful when needing to merge and concatenate batches later.)
 
 
-   .. py:method:: pin_memory(self)
+   .. py:method:: pin_memory()
 
       Puts this object's data into pinned memory.
 
 
-   .. py:method:: to(self, device: torch.device, move_i_orig: bool = False, non_blocking: bool = False)
+   .. py:method:: to(device: torch.device, move_i_orig: bool = False, non_blocking: bool = False)
 
       Moves data to the specified device.
 
@@ -68,12 +68,12 @@ Functions
           non_blocking: If the .to() command should be passed the non_blocking option.
 
 
-   .. py:method:: __len__(self) -> int
+   .. py:method:: __len__() -> int
 
       Returns the number of samples in the dataset.
 
 
-   .. py:method:: __getitem__(self, index)
+   .. py:method:: __getitem__(index)
 
       Returns requested samples from the dataset.
 
@@ -85,7 +85,7 @@ Functions
           smps: The requested samples.
 
 
-   .. py:method:: efficient_get_item(self, index)
+   .. py:method:: efficient_get_item(index)
 
       A computational (but not memory) efficient way of indexing a TimeSeriesBatch object.
 
@@ -132,7 +132,7 @@ Functions
    Raises:
        ValueError: If not all ts_data tensors have the same number of time points.
 
-   .. py:method:: __len__(self) -> int
+   .. py:method:: __len__() -> int
 
       Returns the number of samples in the dataset.
 
@@ -143,7 +143,7 @@ Functions
           The number of samples in the dataset.
 
 
-   .. py:method:: __getitem__(self, index) -> TimeSeriesBatch
+   .. py:method:: __getitem__(index) -> TimeSeriesBatch
 
       Returns requested samples from the dataset.
 

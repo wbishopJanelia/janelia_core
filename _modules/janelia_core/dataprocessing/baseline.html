@@ -3,17 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.dataprocessing.baseline &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <title>janelia_core.dataprocessing.baseline &mdash; janelia_core 1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -34,12 +37,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html">Setting up the core library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html#dependencies">Dependencies</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../autoapi/janelia_core/index.html">janelia_core</a></li>
 </ul>
@@ -57,9 +60,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      <li>janelia_core.dataprocessing.baseline</li>
+      <li><a href="../../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">janelia_core.dataprocessing.baseline</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -84,7 +87,7 @@
 <div class="viewcode-block" id="percentile_filter_1d"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/baseline/index.html#janelia_core.dataprocessing.baseline.percentile_filter_1d">[docs]</a><span class="k">def</span> <span class="nf">percentile_filter_1d</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">window_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">filter_start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">write_offset</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
                          <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">n_hist_bins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 
-    <span class="sd">&quot;&quot;&quot; Performs percentile filtering for a single variable.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Performs percentile filtering for a single variable.</span>
 
 <span class="sd">    This function uses a moving window to calculate percentiles.  The window is determined by two parameters:</span>
 <span class="sd">    window_length and filter_start. Window_length is the number of data points in the window.</span>
@@ -184,7 +187,7 @@
     <span class="n">n_steps</span> <span class="o">=</span> <span class="n">n_data_pts</span> <span class="o">-</span> <span class="n">write_ind</span> <span class="o">-</span> <span class="mi">1</span>
 
     <span class="c1"># Create the histogram filter and preallocate output</span>
-    <span class="n">buffer</span> <span class="o">=</span> <span class="n">HistogramFilter</span><span class="p">(</span><span class="n">min_vl</span><span class="p">,</span> <span class="n">max_vl</span> <span class="o">+</span> <span class="o">.</span><span class="mi">000001</span><span class="p">,</span> <span class="n">n_hist_bins</span><span class="p">)</span>
+    <span class="n">buffer</span> <span class="o">=</span> <span class="n">HistogramFilter</span><span class="p">(</span><span class="n">min_vl</span><span class="p">,</span> <span class="n">max_vl</span> <span class="o">+</span> <span class="mf">.000001</span><span class="p">,</span> <span class="n">n_hist_bins</span><span class="p">)</span>
 
     <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n_data_pts</span><span class="p">)</span>
     <span class="n">y</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
@@ -221,7 +224,7 @@
 <div class="viewcode-block" id="percentile_filter_multi_d"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/baseline/index.html#janelia_core.dataprocessing.baseline.percentile_filter_multi_d">[docs]</a><span class="k">def</span> <span class="nf">percentile_filter_multi_d</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">window_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">filter_start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">write_offset</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                                   <span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_processes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 
-    <span class="sd">&quot;&quot;&quot; Calculates baselines independently for each variable in the data across time.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculates baselines independently for each variable in the data across time.</span>
 
 <span class="sd">    This function is a wrapper around percentile_filter_1d.  It adds the ability to filter in parellel on</span>
 <span class="sd">    machines with multiple cores and to filter a restricted set of variabels in a volume, indicated by a mask.</span>
@@ -295,7 +298,7 @@
 
 <div class="viewcode-block" id="calculate_causal_percentile_baseline"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/baseline/index.html#janelia_core.dataprocessing.baseline.calculate_causal_percentile_baseline">[docs]</a><span class="k">def</span> <span class="nf">calculate_causal_percentile_baseline</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">window_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                                          <span class="n">n_hist_bins</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Calculates percentile based baseline in causal manner for one variable.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Calculates percentile based baseline in causal manner for one variable.</span>
 
 <span class="sd">    The value baseline[i] is calculated as the p-th percentile in the window data[i-window_size+1:i+1].</span>
 
@@ -323,7 +326,7 @@
     <span class="n">max_vl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="n">baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">max_vl</span> <span class="o">&gt;</span> <span class="n">min_vl</span><span class="p">:</span>
-        <span class="n">buffer</span> <span class="o">=</span> <span class="n">HistogramFilter</span><span class="p">(</span><span class="n">min_vl</span><span class="p">,</span> <span class="n">max_vl</span> <span class="o">+</span> <span class="o">.</span><span class="mi">000001</span><span class="p">,</span> <span class="n">n_hist_bins</span><span class="p">)</span>
+        <span class="n">buffer</span> <span class="o">=</span> <span class="n">HistogramFilter</span><span class="p">(</span><span class="n">min_vl</span><span class="p">,</span> <span class="n">max_vl</span> <span class="o">+</span> <span class="mf">.000001</span><span class="p">,</span> <span class="n">n_hist_bins</span><span class="p">)</span>
         <span class="n">buffer</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">window_size</span><span class="p">])</span>
         <span class="n">leading_edges</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="n">get_bin_starting_edges</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">pt_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">window_size</span><span class="p">,</span> <span class="n">n_data_pts</span><span class="p">):</span>
@@ -340,7 +343,7 @@
 
 <div class="viewcode-block" id="calculate_causal_percentile_baselines"><a class="viewcode-back" href="../../../autoapi/janelia_core/dataprocessing/baseline/index.html#janelia_core.dataprocessing.baseline.calculate_causal_percentile_baselines">[docs]</a><span class="k">def</span> <span class="nf">calculate_causal_percentile_baselines</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">window_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                                           <span class="n">n_hist_bins</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>  <span class="n">n_processes</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; A wrapper function for calculating baseline values for multiple variables in parallel.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; A wrapper function for calculating baseline values for multiple variables in parallel.</span>
 
 <span class="sd">    This function wraps around calculate_causal_percentile_baseline, allowing a user to use multiple</span>
 <span class="sd">    cores to calculate baselines in parallel.</span>

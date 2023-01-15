@@ -3,17 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>janelia_core.visualization.custom_color_maps &mdash; janelia_core 1.0 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <title>janelia_core.visualization.custom_color_maps &mdash; janelia_core 1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -34,12 +37,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Installation</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Installation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html">Setting up the core library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html#dependencies">Dependencies</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API Reference</span></p>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../autoapi/janelia_core/index.html">janelia_core</a></li>
 </ul>
@@ -57,9 +60,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../../index.html">Module code</a> &raquo;</li>
-      <li>janelia_core.visualization.custom_color_maps</li>
+      <li><a href="../../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">janelia_core.visualization.custom_color_maps</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -79,7 +82,7 @@
 
 
 <div class="viewcode-block" id="MultiParamCMap"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.MultiParamCMap">[docs]</a><span class="k">class</span> <span class="nc">MultiParamCMap</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot; An object representing a color map over multiple parameters.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; An object representing a color map over multiple parameters.</span>
 
 <span class="sd">    Unlike a typical colormap, which has a single index, these color maps allow indexing over multiple parameters.</span>
 
@@ -91,7 +94,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_vl_ranges</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">clrs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Creates a new MultiParamCMap object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Creates a new MultiParamCMap object.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            param_vl_ranges: param_vls[i] specifies values for the i^th parameter that specific colors will be assigned</span>
@@ -110,7 +113,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">n_param_vls</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">*</span><span class="n">p_vls</span><span class="p">))</span> <span class="k">for</span> <span class="n">p_vls</span> <span class="ow">in</span> <span class="n">param_vl_ranges</span><span class="p">]</span>
 
 <div class="viewcode-block" id="MultiParamCMap.__getitem__"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.MultiParamCMap.__getitem__">[docs]</a>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_vls</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; Returns colors for combinations of parameter values.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns colors for combinations of parameter values.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            param_vls: Values of parameters go generate colors for.  param_vls[i] contains parameter values for the i^th</span>
@@ -136,17 +139,17 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clrs</span><span class="p">[</span><span class="n">inds</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="MultiParamCMap.to_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.MultiParamCMap.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Returns the attributes of the colormap as a dictionary for serialization.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the attributes of the colormap as a dictionary for serialization.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="MultiParamCMap.from_dict"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.MultiParamCMap.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Creates a MultiParamCMap from a dictionary. &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Creates a MultiParamCMap from a dictionary. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">param_vl_ranges</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;param_vl_ranges&#39;</span><span class="p">],</span> <span class="n">clrs</span><span class="o">=</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;clrs&#39;</span><span class="p">])</span></div></div>
 
 
 <div class="viewcode-block" id="generate_normalized_rgb_cmap"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.generate_normalized_rgb_cmap">[docs]</a><span class="k">def</span> <span class="nf">generate_normalized_rgb_cmap</span><span class="p">(</span><span class="n">base_map</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">ListedColormap</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Generates a colormap of RGB values, where each value has a norm of 1.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Generates a colormap of RGB values, where each value has a norm of 1.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">         base_map: The base map to sample.  RGB values of this map will be normalized.</span>
@@ -165,7 +168,7 @@
 <div class="viewcode-block" id="generate_two_param_norm_map"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.generate_two_param_norm_map">[docs]</a><span class="k">def</span> <span class="nf">generate_two_param_norm_map</span><span class="p">(</span><span class="n">clr_param_range</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">norm_param_range</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span>
                                 <span class="n">p1_cmap</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">,</span> <span class="n">clims</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
                                 <span class="n">norm_lims</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">MultiParamCMap</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Generates a MultiParamCMap for two parameters.  The first indexes color; the second the norm of the color.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Generates a MultiParamCMap for two parameters.  The first indexes color; the second the norm of the color.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        clr_param_range: The range of values for parameter 0, which indexes into color, in the form</span>
@@ -209,7 +212,7 @@
 <div class="viewcode-block" id="generate_two_param_hsv_map"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.generate_two_param_hsv_map">[docs]</a><span class="k">def</span> <span class="nf">generate_two_param_hsv_map</span><span class="p">(</span><span class="n">clr_param_range</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">vl_param_range</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">,</span>
                                <span class="n">p1_cmap</span><span class="p">:</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Colormap</span><span class="p">,</span> <span class="n">clims</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
                                <span class="n">vllims</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">MultiParamCMap</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Generates a MultiParamCMap for two parameters, which index hue and value of hsv colors.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Generates a MultiParamCMap for two parameters, which index hue and value of hsv colors.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        clr_param_range: The range of values for parameter 0, which indexes into hue, in the form</span>
@@ -259,7 +262,7 @@
 
 <div class="viewcode-block" id="visualize_two_param_map"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.visualize_two_param_map">[docs]</a><span class="k">def</span> <span class="nf">visualize_two_param_map</span><span class="p">(</span><span class="n">cmap</span><span class="p">:</span> <span class="n">MultiParamCMap</span><span class="p">,</span> <span class="n">plot_ax</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">Axes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">p0_vls</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                             <span class="n">p1_vls</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Plots a visualization of a two-parameter MultiParamCMap, i.e., the 2-d version of making 1-d colorbar.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Plots a visualization of a two-parameter MultiParamCMap, i.e., the 2-d version of making 1-d colorbar.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        cmap: The color map to plot</span>
@@ -304,7 +307,7 @@
 
 
 <div class="viewcode-block" id="make_red_green_c_map"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.make_red_green_c_map">[docs]</a><span class="k">def</span> <span class="nf">make_red_green_c_map</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span> <span class="n">inc_transp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Generates a color map that linearly goes from red at 0, to black at .5 and then to green at 1.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Generates a color map that linearly goes from red at 0, to black at .5 and then to green at 1.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        n: The number of values in the color map</span>
@@ -321,13 +324,13 @@
         <span class="n">middle_alpha</span> <span class="o">=</span> <span class="mf">1.0</span>
 
     <span class="k">return</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;red_to_green&#39;</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span>  <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]),</span>
-                                                               <span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">middle_alpha</span><span class="p">]),</span>
+                                                               <span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">middle_alpha</span><span class="p">]),</span>
                                                                <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])],</span> <span class="n">N</span><span class="o">=</span><span class="n">n</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="make_purple_green_c_map"><a class="viewcode-back" href="../../../autoapi/janelia_core/visualization/custom_color_maps/index.html#janelia_core.visualization.custom_color_maps.make_purple_green_c_map">[docs]</a><span class="k">def</span> <span class="nf">make_purple_green_c_map</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span> <span class="n">inc_transp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                             <span class="n">gentle</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot; Generates a color map that linearly goes from purple at 0, to black at .5 and then to green at 1.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Generates a color map that linearly goes from purple at 0, to black at .5 and then to green at 1.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        n: The number of values in the color map</span>
@@ -346,15 +349,15 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">gentle</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;purple_to_green&#39;</span><span class="p">,</span>
                                                                    <span class="n">colors</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span>  <span class="p">[</span><span class="mf">75.0</span><span class="o">/</span><span class="mi">255</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">146.0</span><span class="o">/</span><span class="mf">255.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]),</span>
-                                                                           <span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">middle_alpha</span><span class="p">]),</span>
+                                                                           <span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">middle_alpha</span><span class="p">]),</span>
                                                                            <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="p">[</span><span class="mf">26.0</span><span class="o">/</span><span class="mi">255</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">26.0</span><span class="o">/</span><span class="mf">255.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])],</span>
                                                                    <span class="n">N</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;purple_to_green&#39;</span><span class="p">,</span>
                                                                    <span class="n">colors</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="mf">75.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">146.0</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]),</span>
-                                                                           <span class="p">(</span><span class="o">.</span><span class="mi">4</span><span class="p">,</span> <span class="p">[</span><span class="mf">75.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">146.0</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">]),</span>
-                                                                           <span class="p">(</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">middle_alpha</span><span class="p">]),</span>
-                                                                           <span class="p">(</span><span class="o">.</span><span class="mi">6</span><span class="p">,</span> <span class="p">[</span><span class="mf">26.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">26.0</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="o">.</span><span class="mi">1</span><span class="p">]),</span>
+                                                                           <span class="p">(</span><span class="mf">.4</span><span class="p">,</span> <span class="p">[</span><span class="mf">75.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">146.0</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="mf">.1</span><span class="p">]),</span>
+                                                                           <span class="p">(</span><span class="mf">.5</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">middle_alpha</span><span class="p">]),</span>
+                                                                           <span class="p">(</span><span class="mf">.6</span><span class="p">,</span> <span class="p">[</span><span class="mf">26.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">26.0</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="mf">.1</span><span class="p">]),</span>
                                                                            <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="p">[</span><span class="mf">26.0</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">26.0</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])],</span>
                                                                    <span class="n">N</span><span class="o">=</span><span class="n">n</span><span class="p">)</span></div>
 
