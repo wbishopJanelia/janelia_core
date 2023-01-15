@@ -26,10 +26,7 @@ setup(
     "pandas",
     "psutil",
 	"pyspark",
-#   "sphinx",
     "tifffile",
- #  "sphinx-autoapi",
-  # "sphinx-rtd-theme",
     "tqdm",
     ],
 )
