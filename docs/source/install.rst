@@ -25,6 +25,11 @@ dependencies that must be installed separately:
 
 2. If you will be working with `klb files <https://bitbucket.org/fernandoamat/keller-lab-block-filetype>`_, you will need to install pyklb which is available from https://github.com/bhoeckendorf/pyklb. Follow the instructions there to install it.  If you are not working with klb files, you can skip this.
 
+3. If you want to modify and generate documentation, you will need sphinx.  Run the following commands to install the required packages:
+
+	* pip install sphinx
+	* pip install sphinx-autoapi
+	* pip install sphinx-rtd-theme
 
 
 
