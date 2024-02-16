@@ -1242,8 +1242,12 @@ class PWLNNFcn(torch.nn.Module):
         with torch.no_grad():
             top_k_indices = knn_do(x=x, ctrs=self.ctrs, k=self.k, m=self.m, n_ctrs_used=self.n_used_fcns)
 
+        # distance_weights = 1/(1 + distances**2)
+        # # distance_weights /= torch.sum(distance_weights, axis=1, keepdims=True)
+        # distance_weights = distance_weights[..., None, None]
+
         # Compute linear functions applied to each input data point
-        selected_wts = self.wts[top_k_indices]
+        selected_wts = self.wts[top_k_indices] #* distance_weights
         selected_ctrs = self.ctrs[top_k_indices]
 
         applied_wts = torch.sum(selected_wts, dim=0)
@@ -1419,8 +1423,8 @@ class SumAlongDim(torch.nn.Module):
 class MultiDSumOfTiledHyperCubeBasisFcns(torch.nn.Module):
     """A module consisting of a collection of separate SumOfTiledHyperCubeBasisFcns that together output
      a multi-dimensional vector of outputs, where each entry of the output is produced by one function"""
-    def __init__(self, n_cols: int, n_divisions_per_dim: Sequence[int], dim_ranges: np.ndarray,
-                 n_div_per_hc_side_per_dim: Sequence[int], init_val: float = 0.):
+    def __init__(self, d_out: int, n_divisions_per_dim: Sequence[int], dim_ranges: np.ndarray,
+                 n_div_per_hc_side_per_dim: Sequence[int], init_val: float = 0., **kwargs):
         """
         Creates a MultiDSumOfTiledHyperCubeBasisFcns object.
 
@@ -1441,10 +1445,10 @@ class MultiDSumOfTiledHyperCubeBasisFcns(torch.nn.Module):
 
         super().__init__()
 
-        self.n_cols = n_cols
+        self.n_cols = d_out
 
-        col_dists = [None] * n_cols
-        for c_i in range(n_cols):
+        col_dists = [None] * self.n_cols
+        for c_i in range(self.n_cols):
             # Create the SumOfTiledHyperCubeBasisFcns object for the column
             col_dists[c_i] = SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=n_divisions_per_dim,
                                                           dim_ranges=dim_ranges,
@@ -1825,4 +1829,147 @@ class Unsqueeze(torch.nn.Module):
     def forward(self, x:torch.Tensor) -> torch.Tensor:
         """ Computes input from output. """
         return torch.unsqueeze(input=x, dim=self.dim)
-    
+
+
+class DomainBounder(torch.nn.Module):
+
+    def __init__(self, domains):
+
+        super().__init__()
+        self.register_buffer('domains', torch.Tensor(domains))
+
+    def forward(self, input):
+
+        # Normalize the input
+        min_values = input.min(dim=0, keepdim=True)[0]
+        max_values = input.max(dim=0, keepdim=True)[0]
+        normalized_input = (input - min_values) / (max_values - min_values)
+
+        # Scale and translate to fit domain
+        normalized_input *= torch.diff(self.domains, axis=1).T
+        normalized_input += torch.unsqueeze(self.domains[:, 0], dim=0)
+
+        return normalized_input
+
+class DenseHypercube(torch.nn.Module):
+
+    def __init__(self, d_out: int, d_in: int = 32, d_embed: int = 2, bias: bool = False):
+
+        super().__init__()
+
+        self.enc_linear_1 = torch.nn.Linear(in_features=d_in, out_features=20)
+        self.enc_linear_2 = torch.nn.Linear(in_features=20, out_features=5)
+        self.enc_linear_3 = torch.nn.Linear(in_features=5, out_features=2)
+        self.encoder = torch.nn.Sequential(self.enc_linear_1,
+                                           torch.nn.Tanh(),
+                                           self.enc_linear_2,
+                                           torch.nn.Tanh(),
+                                           self.enc_linear_3,
+                                           torch.nn.Tanh()
+                                           )
+
+        # Define unit domain
+        domains = np.zeros(shape=(2, 2))
+        domains[:, 1] = 1
+
+        domains_marg = np.zeros(shape=(2, 2))
+        domains_marg[:, 1] = .99
+        domains_marg[:, 0] = .01
+
+        # Set up domain bounder that rescales each dimension
+        self.domain_bounder = DomainBounder(domains=domains_marg)
+
+        # Set up hypercube network to learn coefficient values over the low-dimensional domain encoded
+        # by the autoencoder
+        self.hypercube_network = SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=[25]*d_embed,
+                                                              dim_ranges=domains,
+                                                              n_div_per_hc_side_per_dim=[1]*d_embed,
+                                                              init_val=0.)
+
+    def forward(self, x: torch.Tensor):
+        x_enc = self.encoder(x)
+        x_enc = self.domain_bounder(x_enc)
+        c = self.hypercube_network(x_enc)
+        return c
+
+class DenseNetHypercube(torch.nn.Module):
+
+    def __init__(self, d_out: int, d_in: int = 32, d_embed: int = 2, bias: bool = False):
+
+        super().__init__()
+
+        n_layers = 5
+        growth_rate = 5
+        self.densenet= DenseLNLNet(nl_class=torch.nn.Tanh, d_in=d_in, n_layers=n_layers, growth_rate=growth_rate, bias=False)
+        d_dense_in = d_in + n_layers * growth_rate
+        self.densenet_out = torch.nn.Linear(in_features=d_dense_in, out_features=2)
+        self.encoder = torch.nn.Sequential(self.densenet, self.densenet_out)
+
+        # Define unit domain
+        domains = np.zeros(shape=(2, 2))
+        domains[:, 1] = 1
+
+        domains_marg = np.zeros(shape=(2, 2))
+        domains_marg[:, 1] = .99
+        domains_marg[:, 0] = .01
+
+        # Set up domain bounder that rescales each dimension
+        self.domain_bounder = DomainBounder(domains=domains_marg)
+
+        # Set up hypercube network to learn coefficient values over the low-dimensional domain encoded
+        # by the autoencoder
+        self.hypercube_network = SumOfTiledHyperCubeBasisFcns(n_divisions_per_dim=[25]*d_embed,
+                                                              dim_ranges=domains,
+                                                              n_div_per_hc_side_per_dim=[1]*d_embed,
+                                                              init_val=0.)
+
+    def forward(self, x: torch.Tensor):
+        x_enc = self.encoder(x)
+        x_enc = self.domain_bounder(x_enc)
+        c = self.hypercube_network(x_enc)
+        return c
+
+class DensePWLNN(torch.nn.Module):
+
+    def __init__(self, d_out: int, d_in: int = 32, d_embed: int = 2, bias: bool = False):
+
+        super().__init__()
+
+        self.enc_linear_1 = torch.nn.Linear(in_features=d_in, out_features=20)
+        # self.enc_linear_2 = torch.nn.Linear(in_features=20, out_features=5)
+        # self.enc_linear_3 = torch.nn.Linear(in_features=5, out_features=2)
+        self.encoder = torch.nn.Sequential(self.enc_linear_1,
+                                           torch.nn.Tanh(),
+                                           # self.enc_linear_2,
+                                           # torch.nn.Tanh(),
+                                           # self.enc_linear_3,
+                                           # torch.nn.Tanh()
+                                           )
+
+        self.pwlnn = PWLNNFcn(d_out=2, d_in=20, k=5, m=250, n_fcns=250, n_used_fcns=None)
+
+    def forward(self, x: torch.Tensor):
+        x_enc = self.encoder(x)
+        c = self.pwlnn(x_enc)
+        return c
+
+
+class DenseNetPWLNN(torch.nn.Module):
+
+    def __init__(self, d_out: int, d_in: int = 32, d_embed: int = 2, bias: bool = False):
+
+        super().__init__()
+
+        n_layers = 5
+        growth_rate = 5
+        self.densenet= DenseLNLNet(nl_class=torch.nn.Tanh, d_in=d_in, n_layers=n_layers, growth_rate=growth_rate, bias=False)
+        d_dense_in = d_in + n_layers * growth_rate
+        self.densenet_out = torch.nn.Linear(in_features=d_dense_in, out_features=2)
+        self.encoder = torch.nn.Sequential(self.densenet, self.densenet_out)
+
+        self.pwlnn = PWLNNFcn(d_out=2, d_in=2, k=5, m=250, n_fcns=250, n_used_fcns=None)
+
+    def forward(self, x: torch.Tensor):
+        x_enc = self.encoder(x)
+        c = self.pwlnn(x_enc)
+        return c

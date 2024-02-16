@@ -45,7 +45,7 @@ def knn_do(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int, n_ctrs_used: int
         return select_inds[knn_mc(x=x, ctrs=ctrs[select_inds, :], k=k, m=m)]
 
 
-def knn_mc(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int) -> torch.Tensor:
+def knn_mc(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int, p: int = .5, return_values: bool = False) -> torch.Tensor:
     """ Memory constrained version of knn function.
 
     In this implementation we search for the k nearest centers to each point in a set of data.
@@ -66,6 +66,8 @@ def knn_mc(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int) -> torch.Tensor:
 
         m: The number of centers to process at a time.  Larger values of m will enable faster computation on GPU but use
         more memory.
+
+        p: vector p-norm of the pairwise distances
 
     Returns:
 
@@ -96,10 +98,10 @@ def knn_mc(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int) -> torch.Tensor:
 
         # Find nearest neighbors for this block
         diffs = x - torch.reshape(cur_ctrs, [n_cur_ctrs, 1, d])
-        sq_distances = torch.sum(diffs**2, dim=2)
+        p_distances = torch.sum(diffs**p, dim=2)**(1/p)
 
         cur_k = min(k, n_cur_ctrs)
-        top_k = torch.topk(sq_distances, k=cur_k, dim=0, largest=False)
+        top_k = torch.topk(p_distances, k=cur_k, dim=0, largest=False)
 
         # Compare nearest neighbors for this block to those we find before
         if b_i == 0:
@@ -115,5 +117,9 @@ def knn_mc(x: torch.Tensor, ctrs: torch.Tensor, k: int, m: int) -> torch.Tensor:
             indices = torch.gather(two_step_indices, 0, two_step_top_k.indices)
             values = torch.gather(two_step_values, 0, two_step_top_k.indices)
 
-    return indices
+    return indices#, values
+    # if return_values:
+    #     return indices, values
+    # else:
+    #     return indices
 
